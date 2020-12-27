@@ -15,24 +15,12 @@ function _zplugr_help() {
   echo ""
   echo "commands:"
   echo "  clone   clone a zsh plugin's git repo"
-  echo "  pull    update a plugin, or all plugins"
-  echo "  path    show zplugr's root plugin path"
-  echo "  prompt  load a plugin as a prompt"
-  echo "  ls      list all cloned plugins"
-  echo "  source  source a plugin"
   echo "  exists  check if a plugin is cloned"
   echo "  help    show this message"
-}
-
-function _zplugr_prompt() {
-  local repo="$1"
-  local plugin=${${repo##*/}%.git}
-  if [[ ! -d $ZPLUGR_PLUGINS_DIR/$plugin ]]; then
-    _zplugr_clone "$@"
-  fi
-  autoload -U promptinit; promptinit
-  fpath+=$ZPLUGR_PLUGINS_DIR/$plugin
-  prompt "$plugin"
+  echo "  list    list all cloned plugins"
+  echo "  prompt  load a plugin as a prompt"
+  echo "  pull    update a plugin, or all plugins"
+  echo "  source  source a plugin"
 }
 
 function _zplugr_clone() {
@@ -46,6 +34,32 @@ function _zplugr_clone() {
     repo="https://github.com/${repo%.git}.git"
   fi
   git -C "$ZPLUGR_PLUGINS_DIR" clone --recursive --depth 1 "$repo"
+  [[ $! -eq 0 ]] || return 1
+}
+
+function _zplugr_exists() {
+  local repo="$1"
+  local plugin=${${repo##*/}%.git}
+  [[ -d $ZPLUGR_PLUGINS_DIR/$plugin ]] && return 0 || return 1
+}
+
+function _zplugr_list() {
+  for d in $ZPLUGR_PLUGINS_DIR/*(/); do
+    if [[ -d $d/.git ]]; then
+      echo "${d:t}"
+    fi
+  done
+}
+
+function _zplugr_prompt() {
+  local repo="$1"
+  local plugin=${${repo##*/}%.git}
+  if [[ ! -d $ZPLUGR_PLUGINS_DIR/$plugin ]]; then
+    _zplugr_clone "$@"
+  fi
+  autoload -U promptinit; promptinit
+  fpath+=$ZPLUGR_PLUGINS_DIR/$plugin
+  prompt "$plugin"
 }
 
 function _zplugr_pull() {
@@ -54,15 +68,11 @@ function _zplugr_pull() {
   if [[ -n "$1" ]]; then
     update_plugins=(${${1##*/}%.git})
   else
-    update_plugins=($ZPLUGR_PLUGINS_DIR/*(/))
+    update_plugins=($(_zplugr_list))
   fi
   for p in $update_plugins; do
-    if [[ -d $p/.git ]]; then
-      echo "updating ${p:t}..."
-      git -C "$p" pull --rebase
-    else
-      echo "${p:t} is not a git repo. skipping..."
-    fi
+    echo "updating ${p:t}..."
+    git -C "$ZPLUGR_PLUGINS_DIR/$p" pull --rebase --autostash
   done
 }
 
@@ -91,16 +101,6 @@ function _zplugr_source() {
     ln -s "$alt_source_file" "$source_file"
   fi
   source "$source_file"
-}
-
-function _zplugr_exists() {
-  local repo="$1"
-  local plugin=${${repo##*/}%.git}
-  [[ -d $ZPLUGR_PLUGINS_DIR/$plugin ]] && return 0 || return 1
-}
-
-function _zplugr_ls() {
-  \ls $ZPLUGR_PLUGINS_DIR
 }
 
 function zplugr() {
