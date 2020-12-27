@@ -1,16 +1,16 @@
-# http://github.com/mattmc3/zplugr
+# http://github.com/mattmc3/pz
 # Copyright mattmc3, 2020-2021
 # MIT license, https://opensource.org/licenses/MIT
 #
-# A humble plugin manager for zsh
+# pz - Plugins for ZSH made easy-pz
 #
 
-ZPLUGR_PLUGINS_DIR="${ZPLUGR_PLUGINS_DIR:-${ZDOTDIR:-$HOME/.config/zsh}/plugins}"
+PZ_PLUGINS_DIR="${PZ_PLUGINS_DIR:-${ZDOTDIR:-$HOME/.config/zsh}/plugins}"
 
-function _zplugr_help() {
-  echo "zplugr - A humble zsh plugin manager"
+function _pz_help() {
+  echo "pz - Plugins for ZSH made easy-pz"
   echo ""
-  echo "usage: zplugr <cmd> args..."
+  echo "usage: pz <cmd> [args...]"
   echo ""
   echo "commands:"
   echo "  help    show this message"
@@ -21,7 +21,7 @@ function _zplugr_help() {
   echo "  source  source a plugin"
 }
 
-function _zplugr_clone() {
+function _pz_clone() {
   local repo="$1"
   local plugin=${${repo##*/}%.git}
   if [[ $repo != git://* &&
@@ -31,59 +31,59 @@ function _zplugr_clone() {
         $repo != git@*:*/* ]]; then
     repo="https://github.com/${repo%.git}.git"
   fi
-  git -C "$ZPLUGR_PLUGINS_DIR" clone --recursive --depth 1 "$repo"
+  git -C "$PZ_PLUGINS_DIR" clone --recursive --depth 1 "$repo"
   [[ $! -eq 0 ]] || return 1
 }
 
-function _zplugr_list() {
+function _pz_list() {
   setopt localoptions nullglob
-  for d in $ZPLUGR_PLUGINS_DIR/*(/); do
+  for d in $PZ_PLUGINS_DIR/*(/); do
     if [[ -d $d/.git ]]; then
       echo "${d:t}"
     fi
   done
 }
 
-function _zplugr_prompt() {
+function _pz_prompt() {
   local repo="$1"
   local plugin=${${repo##*/}%.git}
-  if [[ ! -d $ZPLUGR_PLUGINS_DIR/$plugin ]]; then
-    _zplugr_clone "$@"
+  if [[ ! -d $PZ_PLUGINS_DIR/$plugin ]]; then
+    _pz_clone "$@"
   fi
   autoload -U promptinit; promptinit
-  fpath+=$ZPLUGR_PLUGINS_DIR/$plugin
+  fpath+=$PZ_PLUGINS_DIR/$plugin
   prompt "$plugin"
 }
 
-function _zplugr_pull() {
+function _pz_pull() {
   local repo plugin update_plugins
   if [[ -n "$1" ]]; then
     update_plugins=(${${1##*/}%.git})
   else
-    update_plugins=($(_zplugr_list))
+    update_plugins=($(_pz_list))
   fi
   for p in $update_plugins; do
     echo "updating ${p:t}..."
-    git -C "$ZPLUGR_PLUGINS_DIR/$p" pull --rebase --autostash
+    git -C "$PZ_PLUGINS_DIR/$p" pull --rebase --autostash
   done
 }
 
-function _zplugr_source() {
+function _pz_source() {
   setopt localoptions nullglob
   local repo="$1"
   local plugin=${${repo##*/}%.git}
 
-  if [[ ! -d $ZPLUGR_PLUGINS_DIR/$plugin ]]; then
-    _zplugr_clone "$@"
+  if [[ ! -d $PZ_PLUGINS_DIR/$plugin ]]; then
+    _pz_clone "$@"
   fi
 
-  local source_file="$ZPLUGR_PLUGINS_DIR/$plugin/$plugin.plugin.zsh"
+  local source_file="$PZ_PLUGINS_DIR/$plugin/$plugin.plugin.zsh"
   if [[ ! -f "$source_file" ]]; then
     local files=(
-      $ZPLUGR_PLUGINS_DIR/$plugin/*.plugin.zsh
-      $ZPLUGR_PLUGINS_DIR/$plugin/*.zsh
-      $ZPLUGR_PLUGINS_DIR/$plugin/*.sh
-      $ZPLUGR_PLUGINS_DIR/$plugin/*.zsh-theme
+      $PZ_PLUGINS_DIR/$plugin/*.plugin.zsh
+      $PZ_PLUGINS_DIR/$plugin/*.zsh
+      $PZ_PLUGINS_DIR/$plugin/*.sh
+      $PZ_PLUGINS_DIR/$plugin/*.zsh-theme
     )
     local alt_source_file=${files[1]}
     [[ -n "$alt_source_file" ]] || {
@@ -95,18 +95,18 @@ function _zplugr_source() {
   source "$source_file"
 }
 
-function zplugr() {
+function pz() {
   cmd="$1"
-  [[ -d "$ZPLUGR_PLUGINS_DIR" ]] || mkdir -p "$ZPLUGR_PLUGINS_DIR"
+  [[ -d "$PZ_PLUGINS_DIR" ]] || mkdir -p "$PZ_PLUGINS_DIR"
 
-  if functions "_zplugr_${cmd}" > /dev/null ; then
+  if functions "_pz_${cmd}" > /dev/null ; then
     shift
-    _zplugr_${cmd} "$@"
+    _pz_${cmd} "$@"
     return $?
   elif [[ -z $cmd ]]; then
-    _zplugr_help
+    _pz_help
     return
   else
-    echo "zplugr command not found: '${cmd}'" >&2 && return 1
+    echo "pz command not found: '${cmd}'" >&2 && return 1
   fi
 }

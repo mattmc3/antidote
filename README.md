@@ -1,82 +1,86 @@
-# zplugr
+# PZ
 
-> A humble zsh plugin manager
+> PZ - Plugins for ZSH made easy-pz
 
 Too many plugin managers try to do too many things.
-zplugr isn't a clever plugin manager, it's a smart one.
-Simple. Easy to understand. Doesn't try to be too much.
-Does everything you'd want a plugin manager to do and lets you do the rest.
+PZ doesn't try to be _clever_ when it can be **smart**.
+Simple. Fast. Easy to understand. With short, readable ZSH code.
+
+PZ does just enough to manage your ZSH plugins really well, and then gets out of your way.
+
+Small footprint, big impact - that's easy-pz.
 
 ## Usage
 
-The help is pretty helpful:
+The help is pretty helpful. Run `pz help`:
 
 ```text
-zplugr - A humble zsh plugin manager
+pz - Plugins for ZSH made easy-pz
 
-usage: zplugr <cmd> [args...]
+usage: pz <cmd> [args...]
 
 commands:
   help    show this message
   clone   clone a zsh plugin's git repo
   list    list all cloned plugins
-  prompt  load a plugin as a prompt
+  prompt  initialize a prompt theme plugin
   pull    update a plugin, or all plugins
   source  source a plugin
 ```
 
-### Cloning plugins
+### Cloning
 
-Examples:
+You can clone a plugin with partial or full git paths:
 
 ```shell
-zplugr clone mattmc3/zplugr
-zplugr clone https://github.com/zsh-users/zsh-history-substring-search
-zplugr clone git@github.com:zsh-users/zsh-history-substring-search.git
+pz clone mattmc3/pz
+pz clone https://github.com/zsh-users/zsh-history-substring-search
+pz clone git@github.com:zsh-users/zsh-history-substring-search.git
 ```
 
 ### Updating plugins
 
-Update a single plugin:
+You can update a single plugin:
 
 ```shell
-zplugr pull mattmc3/zplugr
+pz pull mattmc3/pz
 ```
 
-Updating all plugins:
+Or, update all plugins:
 
 ```shell
-zplugr pull
+pz pull
 ```
 
-### Sourcing a plugin
+### Sourcing
 
-If the plugin doesn't exist, it will be cloned prior to being sourced
+You can source a plugin to add its functionality to your ZSH.
+If the plugin doesn't exist, it will be cloned prior to being sourced:
 
 ```shell
-zplugr source mattmc3/zplugr
+pz source mattmc3/pz
 ```
 
 ### Prompts
 
-You can source a prompt too
+You can use prompt plugins too
 
 ```shell
-zplugr prompt sindresorhus/pure
+pz prompt sindresorhus/pure
 ```
 
 ## Installation
 
-To install zplugr, simply clone the repo...
+To install pz, simply clone the repo...
 
 ```shell
-git clone --depth=1 --recursive https://github.com/mattmc3/zplugr.git ~/.config/zsh/plugins/zplugr
+git clone --depth=1 --recursive https://github.com/mattmc3/pz.git ~/.config/zsh/plugins/pz
 ```
 
-...and source zplugr from your .zshrc
+...and source pz from your .zshrc
 
 ```shell
-source ~/.config/zsh/plugins/zplugr/zplugr.zsh
+source ~/.config/zsh/plugins/pz/pz.zsh
 ```
 
 ***- Or -***
@@ -84,8 +88,36 @@ source ~/.config/zsh/plugins/zplugr/zplugr.zsh
 You could add this snippet for total automation in your .zshrc
 
 ```shell
-ZPLUGR_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
-[[ -d $ZPLUGR_PLUGINS_DIR/zplugr ]] ||
-  git clone --depth=1 --recursive https://github.com/mattmc3/zplugr.git $ZPLUGR_PLUGINS_DIR/zplugr
-source $ZPLUGR_PLUGINS_DIR/zplugr/zplugr.zsh
+PZ_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
+[[ -d $PZ_PLUGINS_DIR/pz ]] ||
+  git clone https://github.com/mattmc3/pz.git $PZ_PLUGINS_DIR/pz
+source $PZ_PLUGINS_DIR/pz/pz.zsh
+```
+
+## .zshrc
+
+A good example .zshrc might look like this:
+
+```shell
+### ${ZDOTDIR:-$HOME}/.zshrc
+
+# setup pz
+PZ_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
+[[ -d $PZ_PLUGINS_DIR/pz ]] ||
+  git clone https://github.com/mattmc3/pz.git $PZ_PLUGINS_DIR/pz
+source $PZ_PLUGINS_DIR/pz/pz.zsh
+
+# source plugins
+pz source mattmc3/zsh-setopts
+pz source mattmc3/zsh-history
+pz source mattmc3/zfunctions
+pz source mattmc3/zsh-xdg-basedirs
+pz source zsh-users/zsh-autosuggestions
+pz source zsh-users/zsh-history-substring-search
+pz source zsh-users/zsh-completions
+pz source mattmc3/zsh-compinit
+pz source zsh-users/zsh-syntax-highlighting
+
+# init prompt
+pz prompt sindresorhus/pure
 ```
