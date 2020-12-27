@@ -54,16 +54,16 @@ function _pz_help() {
       echo "  pz prompt sindresorhus/pure"
       ;;
     *)
-  echo "pz - Plugins for ZSH made easy-pz"
-  echo ""
-  echo "usage: pz <cmd> [args...]"
-  echo ""
-  echo "commands:"
-  echo "  help    show this message"
+      echo "pz - Plugins for ZSH made easy-pz"
+      echo ""
+      echo "usage: pz <cmd> [args...]"
+      echo ""
+      echo "commands:"
+      echo "  help    show this message"
       echo "  clone   download a plugin"
       echo "  list    list all plugins"
       echo "  prompt  load a prompt plugin"
-  echo "  pull    update a plugin, or all plugins"
+      echo "  pull    update a plugin, or all plugins"
       echo "  source  load a plugin"
       ;;
   esac
@@ -93,14 +93,20 @@ function _pz_list() {
 }
 
 function _pz_prompt() {
+  local flag_add_only=false
+  if [[ "$1" == "-a" ]]; then
+    flag_add_only=true
+    shift
+  fi
   local repo="$1"
   local plugin=${${repo##*/}%.git}
-  if [[ ! -d $PZ_PLUGINS_DIR/$plugin ]]; then
-    _pz_clone "$@"
-  fi
-  autoload -U promptinit; promptinit
+  [[ -d $PZ_PLUGINS_DIR/$plugin ]] || _pz_clone "$@"
   fpath+=$PZ_PLUGINS_DIR/$plugin
-  prompt "$plugin"
+  if [[ $flag_add_only == false ]]; then
+    autoload -U promptinit
+    promptinit
+    prompt "$plugin"
+  fi
 }
 
 function _pz_pull() {
