@@ -14,13 +14,13 @@ function _zplugr_help() {
   echo "usage: zplugr <cmd> args..."
   echo ""
   echo "commands:"
-  echo "  clone   clone a git reporitory"
-  echo "  pull    update a plugin or all plugins"
-  echo "  path    show the root plugin path"
+  echo "  clone   clone a zsh plugin's git repo"
+  echo "  pull    update a plugin, or all plugins"
+  echo "  path    show zplugr's root plugin path"
   echo "  prompt  load a plugin as a prompt"
-  echo "  ls      list the plugins path"
+  echo "  ls      list all cloned plugins"
   echo "  source  source a plugin"
-  echo "  exists  checks for a plugin's existence"
+  echo "  exists  check if a plugin is cloned"
   echo "  help    show this message"
 }
 
