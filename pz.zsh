@@ -7,18 +7,66 @@
 
 PZ_PLUGINS_DIR="${PZ_PLUGINS_DIR:-${ZDOTDIR:-$HOME/.config/zsh}/plugins}"
 
+function __pz_help_examples() {
+  echo "examples:"
+      echo "  pz $1 zsh-users/zsh-autosuggestions"
+      echo "  pz $1 https://github.com/zsh-users/zsh-history-substring-search"
+      echo "  pz $1 git@github.com:zsh-users/zsh-completions.git"
+}
+
 function _pz_help() {
+  case "$1" in
+    clone)
+      echo "pz clone <plugin> - download a plugin"
+      echo ""
+      echo "args:"
+      echo "  plugin:  <user/repo>|<git-url>"
+      echo ""
+      __pz_help_examples "clone"
+      ;;
+    source)
+      echo "pz source <plugin> - load a plugin"
+      echo ""
+      echo "args:"
+      echo "  plugin:  <user/repo>|<git-url>"
+      echo ""
+      __pz_help_examples "source"
+      ;;
+    pull)
+      echo "pz pull <plugin> - update a plugin"
+      echo ""
+      echo "args:"
+      echo "  plugin:  <user/repo>|<git-url>"
+      echo ""
+      __pz_help_examples "pull"
+      ;;
+    prompt)
+      echo "pz prompt [-a] <prompt-plugin> - load a prompt plugin"
+      echo ""
+      echo "args:"
+      echo "  -a             Adds a prompt, but does not set it as the theme"
+      echo "  prompt-plugin  <user/repo>|<git-url>"
+      echo ""
+      echo "examples:"
+      echo "  pz prompt -a https://github.com/agnoster/agnoster-zsh-theme"
+      echo "  pz prompt -a git@github.com:miekg/lean.git"
+      echo "  pz prompt -a romkatv/powerlevel10k"
+      echo "  pz prompt sindresorhus/pure"
+      ;;
+    *)
   echo "pz - Plugins for ZSH made easy-pz"
   echo ""
   echo "usage: pz <cmd> [args...]"
   echo ""
   echo "commands:"
   echo "  help    show this message"
-  echo "  clone   clone a zsh plugin's git repo"
-  echo "  list    list all cloned plugins"
-  echo "  prompt  load a plugin as a prompt"
+      echo "  clone   download a plugin"
+      echo "  list    list all plugins"
+      echo "  prompt  load a prompt plugin"
   echo "  pull    update a plugin, or all plugins"
-  echo "  source  source a plugin"
+      echo "  source  load a plugin"
+      ;;
+  esac
 }
 
 function _pz_clone() {
