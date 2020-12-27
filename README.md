@@ -21,11 +21,11 @@ usage: pz <cmd> [args...]
 
 commands:
   help    show this message
-  clone   clone a zsh plugin's git repo
-  list    list all cloned plugins
-  prompt  initialize a prompt theme plugin
+  clone   download a plugin
+  list    list all plugins
+  prompt  load a prompt plugin
   pull    update a plugin, or all plugins
-  source  source a plugin
+  source  load a plugin
 ```
 
 ### Cloning
@@ -33,9 +33,9 @@ commands:
 You can clone a plugin with partial or full git paths:
 
 ```shell
-pz clone mattmc3/pz
+pz clone zsh-users/zsh-autosuggestions
 pz clone https://github.com/zsh-users/zsh-history-substring-search
-pz clone git@github.com:zsh-users/zsh-history-substring-search.git
+pz clone git@github.com:zsh-users/zsh-completions.git
 ```
 
 ### Updating plugins
@@ -58,7 +58,7 @@ You can source a plugin to add its functionality to your ZSH.
 If the plugin doesn't exist, it will be cloned prior to being sourced:
 
 ```shell
-pz source mattmc3/pz
+pz source zsh-users/zsh-history-substring-search
 ```
 
 ### Prompts
@@ -74,7 +74,7 @@ pz prompt sindresorhus/pure
 To install pz, simply clone the repo...
 
 ```shell
-git clone --depth=1 --recursive https://github.com/mattmc3/pz.git ~/.config/zsh/plugins/pz
+git clone https://github.com/mattmc3/pz.git ~/.config/zsh/plugins/pz
 ```
 
 ...and source pz from your .zshrc
