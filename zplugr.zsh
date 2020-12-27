@@ -1,4 +1,3 @@
-
 # http://github.com/mattmc3/zplugr
 # Copyright mattmc3, 2020-2021
 # MIT license, https://opensource.org/licenses/MIT
@@ -14,9 +13,8 @@ function _zplugr_help() {
   echo "usage: zplugr <cmd> args..."
   echo ""
   echo "commands:"
-  echo "  clone   clone a zsh plugin's git repo"
-  echo "  exists  check if a plugin is cloned"
   echo "  help    show this message"
+  echo "  clone   clone a zsh plugin's git repo"
   echo "  list    list all cloned plugins"
   echo "  prompt  load a plugin as a prompt"
   echo "  pull    update a plugin, or all plugins"
@@ -37,13 +35,8 @@ function _zplugr_clone() {
   [[ $! -eq 0 ]] || return 1
 }
 
-function _zplugr_exists() {
-  local repo="$1"
-  local plugin=${${repo##*/}%.git}
-  [[ -d $ZPLUGR_PLUGINS_DIR/$plugin ]] && return 0 || return 1
-}
-
 function _zplugr_list() {
+  setopt localoptions nullglob
   for d in $ZPLUGR_PLUGINS_DIR/*(/); do
     if [[ -d $d/.git ]]; then
       echo "${d:t}"
@@ -63,7 +56,6 @@ function _zplugr_prompt() {
 }
 
 function _zplugr_pull() {
-  setopt localoptions nullglob
   local repo plugin update_plugins
   if [[ -n "$1" ]]; then
     update_plugins=(${${1##*/}%.git})
@@ -110,7 +102,7 @@ function zplugr() {
   if functions "_zplugr_${cmd}" > /dev/null ; then
     shift
     _zplugr_${cmd} "$@"
-    return $!
+    return $?
   elif [[ -z $cmd ]]; then
     _zplugr_help
     return

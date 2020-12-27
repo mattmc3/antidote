@@ -17,21 +17,19 @@ zplugr - A humble zsh plugin manager
 usage: zplugr <cmd> [args...]
 
 commands:
-  clone   clone a zsh plugin's git repo
-  pull    update a plugin, or all plugins
-  path    show zplugr's root plugin path
-  prompt  load a plugin as a prompt
-  ls      list all cloned plugins
-  source  source a plugin
-  exists  check if a plugin is cloned
   help    show this message
+  clone   clone a zsh plugin's git repo
+  list    list all cloned plugins
+  prompt  load a plugin as a prompt
+  pull    update a plugin, or all plugins
+  source  source a plugin
 ```
 
 ### Cloning plugins
 
 Examples:
 
-```
+```shell
 zplugr clone mattmc3/zplugr
 zplugr clone https://github.com/zsh-users/zsh-history-substring-search
 zplugr clone git@github.com:zsh-users/zsh-history-substring-search.git
@@ -41,13 +39,13 @@ zplugr clone git@github.com:zsh-users/zsh-history-substring-search.git
 
 Update a single plugin:
 
-```
+```shell
 zplugr pull mattmc3/zplugr
 ```
 
 Updating all plugins:
 
-```
+```shell
 zplugr pull
 ```
 
@@ -55,7 +53,7 @@ zplugr pull
 
 If the plugin doesn't exist, it will be cloned prior to being sourced
 
-```
+```shell
 zplugr source mattmc3/zplugr
 ```
 
@@ -63,7 +61,7 @@ zplugr source mattmc3/zplugr
 
 You can source a prompt too
 
-```
+```shell
 zplugr prompt sindresorhus/pure
 ```
 
