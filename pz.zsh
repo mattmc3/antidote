@@ -140,6 +140,7 @@ function _pz_source() {
     }
     ln -s "$alt_source_file" "$source_file"
   fi
+  fpath+=$PZ_PLUGINS_DIR/$plugin
   source "$source_file"
 }
 
