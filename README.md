@@ -72,8 +72,8 @@ zplugr prompt sindresorhus/pure
 To install zplugr, add this to your `${ZDOTDIR:-$HOME}/.zshrc`
 
 ```shell
-ZPLUGR_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}"/plugins
+ZPLUGR_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
 [[ -d $ZPLUGR_PLUGINS_DIR/zplugr ]] ||
-  git clone --depth=1 --recursive https://github.com/mattmc3/zplugr.git $ZPLUGR_PLUGINS_DIR/zplugr
+  git -C $ZPLUGR_PLUGINS_DIR clone --depth=1 --recursive https://github.com/mattmc3/zplugr.git
 source $ZPLUGR_PLUGINS_DIR/zplugr/zplugr.zsh
 ```
