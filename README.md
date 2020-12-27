@@ -78,12 +78,12 @@ git clone --depth=1 --recursive https://github.com/mattmc3/zplugr.git ~/.config/
 ...and source zplugr from your .zshrc
 
 ```shell
-source  ~/.config/zsh/plugins/zplugr/zplugr.zsh
+source ~/.config/zsh/plugins/zplugr/zplugr.zsh
 ```
 
 ***- Or -***
 
-You could add this full snippet for total automation in your .zshrc
+You could add this snippet for total automation in your .zshrc
 
 ```shell
 ZPLUGR_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
