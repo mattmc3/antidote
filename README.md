@@ -48,7 +48,7 @@ zplugr pull mattmc3/zplugr
 Updating all plugins:
 
 ```
-zplugr pull mattmc3/zplugr
+zplugr pull
 ```
 
 ### Sourcing a plugin
