@@ -11,19 +11,19 @@ Does everything you'd want a plugin manager to do and lets you do the rest.
 
 The help is pretty helpful:
 
-```shell
+```text
 zplugr - A humble zsh plugin manager
 
 usage: zplugr <cmd> [args...]
 
 commands:
-  clone   clone a git reporitory
-  pull    update a plugin or all plugins
-  path    show the root plugin path
+  clone   clone a zsh plugin's git repo
+  pull    update a plugin, or all plugins
+  path    show zplugr's root plugin path
   prompt  load a plugin as a prompt
-  ls      list the plugins path
+  ls      list all cloned plugins
   source  source a plugin
-  exists  checks for a plugin's existence
+  exists  check if a plugin is cloned
   help    show this message
 ```
 
