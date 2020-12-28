@@ -38,7 +38,7 @@ pz clone https://github.com/zsh-users/zsh-history-substring-search
 pz clone git@github.com:zsh-users/zsh-completions.git
 ```
 
-### Updating plugins
+### Updating
 
 You can update a single plugin:
 
@@ -94,9 +94,21 @@ PZ_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
 source $PZ_PLUGINS_DIR/pz/pz.zsh
 ```
 
+## Customizing
+
+### Plugin location
+
+PZ stores your plugins by here by default: `~/.config/zsh/plugins`.
+
+You can change the default plugin location by setting the `PZ_PLUGINS_DIR` variable in your .zshrc:
+
+```shell
+PZ_PLUGINS_DIR=~/.zsh/plugins
+```
+
 ## .zshrc
 
-A good example .zshrc might look like this:
+A good example .zshrc might look something like this:
 
 ```shell
 ### ${ZDOTDIR:-$HOME}/.zshrc
