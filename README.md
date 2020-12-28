@@ -120,9 +120,7 @@ PZ_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
 source $PZ_PLUGINS_DIR/pz/pz.zsh
 
 # source plugins
-pz source mattmc3/zsh-setopts
-pz source mattmc3/zsh-history
-pz source mattmc3/zfunctions
+pz source mattmc3/ez
 pz source mattmc3/zsh-xdg-basedirs
 pz source zsh-users/zsh-autosuggestions
 pz source zsh-users/zsh-history-substring-search
