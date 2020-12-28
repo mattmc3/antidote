@@ -123,7 +123,6 @@ function _pz_pull() {
 }
 
 function _pz_source() {
-  setopt localoptions nullglob
   local repo="$1"
   local plugin=${${repo##*/}%.git}
 
@@ -134,10 +133,10 @@ function _pz_source() {
   local source_file="$PZ_PLUGINS_DIR/$plugin/$plugin.plugin.zsh"
   if [[ ! -f "$source_file" ]]; then
     local files=(
-      $PZ_PLUGINS_DIR/$plugin/*.plugin.zsh
-      $PZ_PLUGINS_DIR/$plugin/*.zsh
-      $PZ_PLUGINS_DIR/$plugin/*.sh
-      $PZ_PLUGINS_DIR/$plugin/*.zsh-theme
+      $PZ_PLUGINS_DIR/$plugin/*.plugin.zsh(.N)
+      $PZ_PLUGINS_DIR/$plugin/*.zsh(.N)
+      $PZ_PLUGINS_DIR/$plugin/*.sh(.N)
+      $PZ_PLUGINS_DIR/$plugin/*.zsh-theme(.N)
     )
     local alt_source_file=${files[1]}
     [[ -n "$alt_source_file" ]] || {
