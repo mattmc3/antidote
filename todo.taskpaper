@@ -1,0 +1,18 @@
+general:
+	- Update README
+	- Add .editorconfig
+
+command enhancements:
+	source:
+		- source should allow paths to any directory rather than just assuming plugins
+		For example - pz source ~/my_custom_plugin
+		- source should allow multiple arguments to aid deep pathing
+		For example - `pz source ohmyzsh lib/misc.zsh
+	list:
+	prompt:
+		- prompt should support using ohmyzsh theme files
+
+Archive:
+	- list should show the fully qualified friendly name @done(20-12-28 18:39)
+	- allow domains other than github.com @done(20-12-28 17:53)
+	- remove need for PZ_PLUGINS_DIR variable @done(20-12-28 18:37)
