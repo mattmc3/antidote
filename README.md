@@ -98,12 +98,21 @@ source $PZ_PLUGINS_DIR/pz/pz.zsh
 
 ### Plugin location
 
-PZ stores your plugins by here by default: `~/.config/zsh/plugins`.
+PZ stores your plugins wherever you installed it.
 
-You can change the default plugin location by setting the `PZ_PLUGINS_DIR` variable in your .zshrc:
+You can change the default plugin location by setting this `zstyle` in your .zshrc:
 
 ```shell
-PZ_PLUGINS_DIR=~/.zsh/plugins
+zstyle :pz: plugins-dir $ZDOTDIR/plugins
+```
+
+### Git URL
+
+Don't prefer to default to GitHub.com for your plugins? Feel free to change the default git URL with this `zstyle` in your .zshrc:
+
+```shell
+# bitbucket.org or gitlab.com or really any git service
+zstyle :pz:clone: gitserver bitbucket.org
 ```
 
 ## .zshrc
