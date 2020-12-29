@@ -5,6 +5,14 @@
 # pz - Plugins for ZSH made easy-pz
 #
 
+# init settings
+if zstyle -T :pz: plugins-dir; then
+  zstyle :pz: plugins-dir ${${(%):-%N}:A:h:h}
+fi
+if zstyle -T :pz:clone: default-gitserver; then
+  zstyle :pz:clone: default-gitserver 'github.com'
+fi
+
 function __pz_help_examples() {
   echo "examples:"
       echo "  pz $1 zsh-users/zsh-autosuggestions"
@@ -78,23 +86,10 @@ function _pz_help() {
   esac
 }
 
-function __pz_gitserver() {
-  local gitserver
-  zstyle -s :pz:clone: default-gitserver gitserver || gitserver='github.com'
-  echo $gitserver
-}
-
-function __pz_pluginsdir() {
-  local pluginsdir
-  local curfile=${(%):-%N}
-  zstyle -s :pz: plugins-dir pluginsdir || pluginsdir=${curfile:A:h:h}
-  echo $pluginsdir
-}
-
 function _pz_clone() {
   local repo="$1"
-  local pluginsdir=$(__pz_pluginsdir)
-  local gitserver=$(__pz_gitserver)
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
+  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver
   if [[ $repo != git://* &&
         $repo != https://* &&
         $repo != http://* &&
@@ -107,8 +102,9 @@ function _pz_clone() {
 }
 
 function _pz_list() {
-  local pluginsdir=$(__pz_pluginsdir)
-  local gitserver="https://$(__pz_gitserver)"
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
+  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver
+  local httpsgit="https://$gitserver"
   local flag_short_name=false
   if [[ "$1" == "-s" ]]; then
     flag_short_name=true
@@ -121,17 +117,17 @@ function _pz_list() {
       echo "${d:t}"
     else
       repo_url=$(git -C "$d" remote get-url origin)
-      if [[ "$repo_url" == ${repo_url#$gitserver/} ]]; then
+      if [[ "$repo_url" == ${repo_url#$httpsgit/} ]]; then
         echo "$repo_url"
       else
-        echo ${${repo_url#$gitserver/}%.git}
+        echo ${${repo_url#$httpsgit/}%.git}
       fi
     fi
   done
 }
 
 function _pz_prompt() {
-  local pluginsdir=$(__pz_pluginsdir)
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
   local flag_add_only=false
   if [[ "$1" == "-a" ]]; then
     flag_add_only=true
@@ -149,12 +145,12 @@ function _pz_prompt() {
 }
 
 function _pz_pull() {
-  local pluginsdir=$(__pz_pluginsdir)
-  local repo plugin update_plugins
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
+  local p update_plugins
   if [[ -n "$1" ]]; then
     update_plugins=(${${1##*/}%.git})
   else
-    update_plugins=($(_pz_list))
+    update_plugins=($(_pz_list -s))
   fi
   for p in $update_plugins; do
     echo "updating ${p:t}..."
@@ -163,7 +159,7 @@ function _pz_pull() {
 }
 
 function _pz_source() {
-  local pluginsdir=$(__pz_pluginsdir)
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
   local repo="$1"
   local plugin=${${repo##*/}%.git}
 
@@ -192,7 +188,7 @@ function _pz_source() {
 
 function pz() {
   local cmd="$1"
-  local pluginsdir=$(__pz_pluginsdir)
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
   [[ -d "$pluginsdir" ]] || mkdir -p "$pluginsdir"
 
   if functions "_pz_${cmd}" > /dev/null ; then
