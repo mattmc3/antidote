@@ -1,8 +1,10 @@
 general:
-	- Update README
-	- Add .editorconfig
+	- Add completions file
+	- Add support for zcompiling plugins path. Similar to znap, but less aggressive
 
 command enhancements:
+	clone:
+		- explore whether mafredri/zsh-async should be used for parallelism with cloning
 	source:
 		- source should allow paths to any directory rather than just assuming plugins
 		For example - pz source ~/my_custom_plugin
@@ -10,9 +12,12 @@ command enhancements:
 		For example - `pz source ohmyzsh lib/misc.zsh
 	list:
 	prompt:
-		- prompt should support using ohmyzsh theme files
+		- prompt should support using ohmyzsh theme files @maybe
 
 Archive:
 	- list should show the fully qualified friendly name @done(20-12-28 18:39)
 	- allow domains other than github.com @done(20-12-28 17:53)
 	- remove need for PZ_PLUGINS_DIR variable @done(20-12-28 18:37)
+	- Update README @done(21-01-01 15:28)
+	- Add .editorconfig @done(21-01-01 15:28)
+	- symlink to relative paths instead of absolute ones @done(21-01-01 15:37)

@@ -180,7 +180,7 @@ function _pz_source() {
       echo "cannot find zsh file to source: $repo" >&2
       return 1
     }
-    ln -s "$alt_source_file" "$source_file"
+    ln -s "${alt_source_file:t}" "$source_file"
   fi
   fpath+=$pluginsdir/$plugin
   source "$source_file"
