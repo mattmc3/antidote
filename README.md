@@ -117,7 +117,7 @@ zstyle :pz:clone: gitserver bitbucket.org
 
 ## .zshrc
 
-A good example .zshrc might look something like this:
+A good example .zshrc starter file might look something like this:
 
 ```shell
 ### ${ZDOTDIR:-$HOME}/.zshrc
@@ -130,11 +130,9 @@ source $PZ_PLUGINS_DIR/pz/pz.zsh
 
 # source plugins
 pz source mattmc3/ez
-pz source mattmc3/zsh-xdg-basedirs
 pz source zsh-users/zsh-autosuggestions
 pz source zsh-users/zsh-history-substring-search
 pz source zsh-users/zsh-completions
-pz source mattmc3/zsh-compinit
 pz source zsh-users/zsh-syntax-highlighting
 
 # init prompt
