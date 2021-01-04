@@ -27,7 +27,7 @@ function _pz_help() {
       echo "  pz clone <plugin>"
       echo ""
       echo "args:"
-      echo "  plugin:  <user/repo>|<git-url>"
+      echo "  plugin:  shorthand user/repo or full git URL"
       echo ""
       __pz_help_examples "clone"
       ;;
@@ -44,7 +44,7 @@ function _pz_help() {
       echo ""
       echo "args:"
       echo "  -a             Adds a prompt, but does not set it as the theme"
-      echo "  prompt-plugin  <user/repo>|<git-url>"
+      echo "  prompt-plugin  shorthand user/repo or full git URL"
       echo ""
       echo "examples:"
       echo "  pz prompt -a https://github.com/agnoster/agnoster-zsh-theme"
@@ -57,16 +57,17 @@ function _pz_help() {
       echo "pz pull <plugin>"
       echo ""
       echo "args:"
-      echo "  plugin:  <user/repo>|<git-url>"
+      echo "  plugin:  shorthand user/repo or full git URL"
       echo ""
       __pz_help_examples "pull"
       ;;
     source)
       echo "usage:"
-      echo "pz source <plugin>"
+      echo "pz source <plugin> [<subpath>]"
       echo ""
       echo "args:"
-      echo "  plugin:  <user/repo>|<git-url>"
+      echo "  plugin:   shorthand user/repo or full git URL"
+      echo "  subpath:  subpath within plugin to use instead of root path"
       echo ""
       __pz_help_examples "source"
       ;;
@@ -159,30 +160,47 @@ function _pz_pull() {
 }
 
 function _pz_source() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
-  local repo="$1"
-  local plugin=${${repo##*/}%.git}
+  local pluginsdir plugin source_file plugin_path files
 
+  zstyle -s :pz: plugins-dir pluginsdir
+  plugin=${${1##*/}%.git}
   if [[ ! -d $pluginsdir/$plugin ]]; then
-    _pz_clone "$@"
+    _pz_clone $1
   fi
 
-  local source_file="$pluginsdir/$plugin/$plugin.plugin.zsh"
+  plugin_path="$pluginsdir/$plugin"
+  if [[ -n "$2" ]]; then
+    plugin_path+="/${2%/*}"
+    plugin=${2##*/}
+  fi
+  source_file="$plugin_path/$plugin.plugin.zsh"
+
   if [[ ! -f "$source_file" ]]; then
-    local files=(
-      $pluginsdir/$plugin/*.plugin.zsh(.N)
-      $pluginsdir/$plugin/*.zsh(.N)
-      $pluginsdir/$plugin/*.sh(.N)
-      $pluginsdir/$plugin/*.zsh-theme(.N)
+    files=(
+      # look for specific files first
+      $plugin_path/$plugin.zsh(.N)
+      $plugin_path/$plugin(.N)
+      $plugin_path/$plugin.zsh-theme(.N)
+      $plugin_path/init.zsh(.N)
     )
+    # if just a repo parameter was provided, then do more aggressive globbing
+    if [[ -z "$2" ]]; then
+      files=(
+        $files
+        $plugin_path/*.plugin.zsh(.N)
+        $plugin_path/*.zsh(.N)
+        $plugin_path/*.zsh-theme(.N)
+        $plugin_path/*.sh(.N)
+      )
+    fi
     local alt_source_file=${files[1]}
     [[ -n "$alt_source_file" ]] || {
-      echo "cannot find zsh file to source: $repo" >&2
+      echo "plugin not found: $plugin (path: $plugin_path)" >&2
       return 1
     }
     ln -s "${alt_source_file:t}" "$source_file"
   fi
-  fpath+=$pluginsdir/$plugin
+  fpath+=$plugin_path
   source "$source_file"
 }
 

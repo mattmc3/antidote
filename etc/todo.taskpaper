@@ -8,8 +8,6 @@ command enhancements:
 	source:
 		- source should allow paths to any directory rather than just assuming plugins
 		For example - pz source ~/my_custom_plugin
-		- source should allow multiple arguments to aid deep pathing
-		For example - `pz source ohmyzsh lib/misc.zsh
 	list:
 	prompt:
 		- prompt should support using ohmyzsh theme files @maybe
@@ -21,3 +19,4 @@ Archive:
 	- Update README @done(21-01-01 15:28)
 	- Add .editorconfig @done(21-01-01 15:28)
 	- symlink to relative paths instead of absolute ones @done(21-01-01 15:37)
+	- source should support sub-pathing (ex: pz source ohmyzsh lib/git) @done(21-01-04 00:15)
