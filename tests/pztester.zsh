@@ -1,9 +1,6 @@
 #!/usr/bin/env zsh
 
 THIS_SCIRPT=${(%):-%N}
-autoload colors; colors
-PZ_PLUGIN_HOME=$(mktemp -d)
-puts "created temporary PZ_PLUGIN_HOME: $PZ_PLUGIN_HOME"
 
 function puts() {
   echo "$fg[cyan]${@}${reset_color}"
@@ -19,9 +16,6 @@ function del() {
 }
 
 function setup() {
-  typeset -g successes fails
-  successes=0
-  fails=0
   puts "sourcing pz"
   source ${THIS_SCIRPT:a:h:h}/pz.zsh
   assert $? "sourcing of pz.zsh failed"
@@ -96,33 +90,23 @@ function test_clone_ohmyzsh() {
   del $PZ_PLUGIN_HOME/ohmyzsh
 }
 
+function test_source_not_yet_cloned_plugin() {
+  puts "test sourcing a plugin that needs cloned first..."
+  assert_directory_not_exists $PZ_PLUGIN_HOME/zsh-tailf
+  assert_file_not_exists $PZ_PLUGIN_HOME/zsh-tailf/tailf.plugin.zsh
+  assert_function_not_exists "tailf"
+
+  pz source rummik/zsh-tailf
+
+  assert_directory_exists $PZ_PLUGIN_HOME/zsh-tailf
+  assert_file_exists $PZ_PLUGIN_HOME/zsh-tailf/tailf.plugin.zsh
+  assert_function_exists "tailf"
+  del $PZ_PLUGIN_HOME/zsh-tailf
+}
+
 function test_pz_list() {
   local plugins=($(_pz_list -s))
   assert_equals 6 ${#plugins[@]}
-}
-
-function assert() {
-  if test $1 -ne 0; then
-    echo "$fg[red]${2}${reset_color}" >&2
-    ((fails = fails + 1))
-    return 1
-  fi
-  ((successes = successes + 1))
-}
-
-function assert_equals() {
-  test "$1" = "$2"
-  assert $? "$0 fail: expected $1, actual $2"
-}
-
-function assert_directory_exists() {
-  test -d "$1"
-  assert $? "$0 fail: directory does not exist: $1"
-}
-
-function assert_file_exists() {
-  test -f "$1"
-  assert $? "$0 fail: file does not exist: $1"
 }
 
 function test_pz_source_file() {
@@ -149,19 +133,16 @@ function test_pz_source_file() {
   assert_equals '' $sf
 }
 
-function show_assert_results() {
-  echo "----------"
-  echo $fg[green]"Successful assertions: ${successes}"${reset_color}
-  echo $fg[red]"Failed assertions: ${fails}"${reset_color}
-  local total
-  (( total = $successes + $fails ))
-  echo $fg[cyan]"Total assertions: ${total}"${reset_color}
-}
+autoload colors; colors
+PZ_PLUGIN_HOME=$(mktemp -d)
+puts "created temporary PZ_PLUGIN_HOME: $PZ_PLUGIN_HOME"
+source "${THIS_SCIRPT:a:h}/assertions.zsh"
 
 () {
   setup
 
   test_clone_ohmyzsh
+  test_source_not_yet_cloned_plugin
 
   setup_fake_plugins
   test_pz_list
@@ -169,5 +150,5 @@ function show_assert_results() {
   teardown_fake_plugins
 
   teardown
-  show_assert_results
+  print_assertion_results
 }

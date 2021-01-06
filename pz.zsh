@@ -139,9 +139,10 @@ function __pz_get_source_file() {
 }
 
 function _pz_source() {
-  local source_file=$(__pz_get_source_file "$@")
+  local source_file
+  source_file=$(__pz_get_source_file "$@")
   if [[ $? -eq 2 ]]; then
-    _pz_clone $repo
+    _pz_clone $1
     source_file=$(__pz_get_source_file "$@")
   fi
   [[ -n "$source_file" ]] || {
