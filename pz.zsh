@@ -5,11 +5,10 @@
 # pz - Plugins for ZSH made easy-pz
 #
 
-THIS_SCRIPT=${(%):-%N}
-PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-$THIS_SCRIPT:A:h:h}
-
 () {
-  local basedir=${THIS_SCRIPT:A:h}
+  typeset -gHa _pz_opts=( localoptions extendedglob globdots globstarshort nullglob rcquotes )
+  local basedir="${${(%):-%x}:A:h}"
+  typeset -g PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-$basedir:h}
   local funcdir=$basedir/zfunctions
   typeset -gU FPATH fpath=( $funcdir $basedir $fpath )
   autoload -Uz $funcdir/*(.N)
@@ -22,7 +21,29 @@ function _pz_help() {
     echo "usage:"
     echo "  pz <command> [<flags...>] [<arguments...>]"
     echo "commands:"
-    echo "  help, clone, list, initfile, prompt, pull, source"
+    echo "  help, clone, list, initfile, prompt, pull, source, zcompile"
+  fi
+}
+
+function _pz_zcompile() {
+  emulate -L zsh; setopt $_pz_opts
+  autoload -U zrecompile
+  [[ -d $PZ_PLUGIN_HOME ]] || return 1
+
+  local f
+  local flag_clean=false
+  [[ "$1" == "-c" ]] && flag_clean=true && shift
+
+  if [[ $flag_clean == true ]]; then
+    for f in "$PZ_PLUGIN_HOME"/**/*.zwc(.N) "$PZ_PLUGIN_HOME"/**/*.zwc.old(.N); do
+      echo "removing $f"
+      command rm -f "$f"
+    done
+  else
+    for f in "$PZ_PLUGIN_HOME"/**/*.zsh{,-theme}; do
+      echo "compiling $f"
+      zrecompile -pq "$f"
+    done
   fi
 }
 

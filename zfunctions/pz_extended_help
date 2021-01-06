@@ -15,7 +15,7 @@ case "$1" in
     echo "  pz clone <plugin>"
     echo ""
     echo "args:"
-    echo "  plugin:  shorthand user/repo or full git URL"
+    echo "  plugin  shorthand user/repo or full git URL"
     echo ""
     __pz_help_examples "clone"
     ;;
@@ -27,8 +27,8 @@ case "$1" in
     echo "  show the file that will be sourced to initialize a plugin"
     echo ""
     echo "args:"
-    echo "  plugin:   shorthand user/repo or full git URL"
-    echo "  subpath:  subpath within plugin to use instead of root path"
+    echo "  plugin   shorthand user/repo or full git URL"
+    echo "  subpath  subpath within plugin to use instead of root path"
     echo ""
     echo "examples:"
     echo "  pz source ohmyzsh"
@@ -62,7 +62,7 @@ case "$1" in
     echo "  pz pull <plugin>"
     echo ""
     echo "args:"
-    echo "  plugin:  shorthand user/repo or full git URL"
+    echo "  plugin  shorthand user/repo or full git URL"
     echo ""
     __pz_help_examples "pull"
     ;;
@@ -71,14 +71,25 @@ case "$1" in
     echo "  pz source <plugin> [<subpath>]"
     echo ""
     echo "args:"
-    echo "  plugin:   shorthand user/repo or full git URL"
-    echo "  subpath:  subpath within plugin to use instead of root path"
+    echo "  plugin   shorthand user/repo or full git URL"
+    echo "  subpath  subpath within plugin to use instead of root path"
     echo ""
     echo "examples:"
     echo "  pz source ohmyzsh"
     echo "  pz source ohmyzsh/ohmyzsh lib/git"
     echo "  pz source ohmyzsh/ohmyzsh plugins/extract"
     __pz_help_examples --no-header "source"
+    ;;
+  zcompile)
+    echo "usage:"
+    echo "  pz zcompile [-c]"
+    echo ""
+    echo "args:"
+    echo "  -c  cleans instead of compiles"
+    echo ""
+    echo "examples:"
+    echo "  pz zcompile"
+    echo "  pz zcompile -c"
     ;;
   *)
     echo "pz - Plugins for ZSH made easy-pz"
@@ -94,5 +105,6 @@ case "$1" in
     echo "  prompt    load a prompt plugin"
     echo "  pull      update a plugin, or all plugins"
     echo "  source    load a plugin"
+    echo "  zcompile  compile zsh files for your plugins"
     ;;
 esac
