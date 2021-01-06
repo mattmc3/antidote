@@ -5,17 +5,15 @@
 # pz - Plugins for ZSH made easy-pz
 #
 
-# init settings
-_zero=${(%):-%N}
+THIS_SCRIPT=${(%):-%N}
+PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-$THIS_SCRIPT:A:h}
+
 () {
-  if zstyle -T :pz: plugins-dir; then
-    zstyle :pz: plugins-dir ${_zero:A:h:h}
-  fi
-  if zstyle -T :pz:clone: default-gitserver; then
-    zstyle :pz:clone: default-gitserver 'github.com'
-  fi
+  local basedir=${THIS_SCRIPT:A:h}
+  local funcdir=$basedir/zfunctions
+  typeset -gU FPATH fpath=( $funcdir $basedir $fpath )
+  autoload -Uz $funcdir/*(.N)
 }
-unset _zero
 
 function _pz_help() {
   if (( $+functions[pz_extended_help] )); then
@@ -29,9 +27,7 @@ function _pz_help() {
 }
 
 function _pz_clone() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
-  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver
-
+  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver || gitserver="github.com"
   local repo="$1"
   if [[ $repo != git://* &&
         $repo != https://* &&
@@ -40,13 +36,12 @@ function _pz_clone() {
         $repo != git@*:*/* ]]; then
     repo="https://${gitserver}/${repo%.git}.git"
   fi
-  git -C "$pluginsdir" clone --recursive --depth 1 "$repo"
+  git -C "$PZ_PLUGIN_HOME" clone --recursive --depth 1 "$repo"
   [[ $! -eq 0 ]] || return 1
 }
 
 function _pz_list() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
-  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver
+  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver || gitserver="github.com"
 
   local httpsgit="https://$gitserver"
   local flag_short_name=false
@@ -55,7 +50,7 @@ function _pz_list() {
     shift
   fi
 
-  for d in $pluginsdir/*(/N); do
+  for d in $PZ_PLUGIN_HOME/*(/N); do
     if [[ $flag_short_name == true ]]; then
       echo "${d:t}"
     else
@@ -71,8 +66,6 @@ function _pz_list() {
 }
 
 function _pz_prompt() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
-
   local flag_add_only=false
   if [[ "$1" == "-a" ]]; then
     flag_add_only=true
@@ -80,8 +73,8 @@ function _pz_prompt() {
   fi
   local repo="$1"
   local plugin=${${repo##*/}%.git}
-  [[ -d $pluginsdir/$plugin ]] || _pz_clone "$@"
-  fpath+=$pluginsdir/$plugin
+  [[ -d $PZ_PLUGIN_HOME/$plugin ]] || _pz_clone "$@"
+  fpath+=$PZ_PLUGIN_HOME/$plugin
   if [[ $flag_add_only == false ]]; then
     autoload -U promptinit
     promptinit
@@ -90,8 +83,6 @@ function _pz_prompt() {
 }
 
 function _pz_pull() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
-
   local p update_plugins
   if [[ -n "$1" ]]; then
     update_plugins=(${${1##*/}%.git})
@@ -100,15 +91,13 @@ function _pz_pull() {
   fi
   for p in $update_plugins; do
     echo "updating ${p:t}..."
-    git -C "$pluginsdir/$p" pull --rebase --autostash
+    git -C "$PZ_PLUGIN_HOME/$p" pull --rebase --autostash
   done
 }
 
 function __pz_get_source_file() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
-
   local plugin=${${1##*/}%.git}
-  local plugin_path="$pluginsdir/$plugin"
+  local plugin_path="$PZ_PLUGIN_HOME/$plugin"
   [[ -d $plugin_path ]] || return 2
 
   local search_files
@@ -164,10 +153,8 @@ function _pz_source() {
 }
 
 function pz() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
-
   local cmd="$1"
-  [[ -d "$pluginsdir" ]] || mkdir -p "$pluginsdir"
+  [[ -d "$PZ_PLUGIN_HOME" ]] || mkdir -p "$PZ_PLUGIN_HOME"
 
   if functions "_pz_${cmd}" > /dev/null ; then
     shift

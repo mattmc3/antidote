@@ -88,22 +88,23 @@ source ~/.config/zsh/plugins/pz/pz.zsh
 You could add this snippet for total automation in your .zshrc
 
 ```shell
-PZ_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
-[[ -d $PZ_PLUGINS_DIR/pz ]] ||
-  git clone https://github.com/mattmc3/pz.git $PZ_PLUGINS_DIR/pz
-source $PZ_PLUGINS_DIR/pz/pz.zsh
+PZ_PLUGIN_HOME="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
+[[ -d $PZ_PLUGIN_HOME/pz ]] ||
+  git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
+source $PZ_PLUGIN_HOME/pz/pz.zsh
 ```
 
 ## Customizing
 
 ### Plugin location
 
-PZ stores your plugins wherever you installed it.
-
-You can change the default plugin location by setting this `zstyle` in your .zshrc:
+PZ stores your plugins wherever you installed PZ.
+Peferrably, that would be in a `$ZDOTDIR/plugins` directory, because then you get can let PZ manage itself and auto-update with `pz pull`.
+But, if you prefer something else, you can always change the default plugin location by setting the `PZ_PLUGIN_HOME` variable .zshrc:
 
 ```shell
-zstyle :pz: plugins-dir $ZDOTDIR/plugins
+# use a custom directory for pz plugins
+PZ_PLUGIN_HOME=~/.pzplugins
 ```
 
 ### Git URL
@@ -126,10 +127,10 @@ An example `.zshrc` might look something like this:
 ...
 
 # then setup pz
-PZ_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
-[[ -d $PZ_PLUGINS_DIR/pz ]] ||
-  git clone https://github.com/mattmc3/pz.git $PZ_PLUGINS_DIR/pz
-source $PZ_PLUGINS_DIR/pz/pz.zsh
+PZ_PLUGIN_HOME="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
+[[ -d $PZ_PLUGIN_HOME/pz ]] ||
+  git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
+source $PZ_PLUGIN_HOME/pz/pz.zsh
 
 # source plugins from github
 pz source zsh-users/zsh-autosuggestions
