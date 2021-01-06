@@ -36,7 +36,7 @@ function _pz_clone() {
         $repo != git@*:*/* ]]; then
     repo="https://${gitserver}/${repo%.git}.git"
   fi
-  git -C "$PZ_PLUGIN_HOME" clone --recursive --depth 1 "$repo"
+  git -C "$PZ_PLUGIN_HOME" clone --depth 1 --recursive --shallow-submodules "$repo"
   [[ $! -eq 0 ]] || return 1
 }
 
