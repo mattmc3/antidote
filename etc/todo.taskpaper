@@ -1,8 +1,12 @@
 general:
 	- Add completions file
 	- Add support for zcompiling plugins path. Similar to znap, but less aggressive
+	- Ensure seamless integration as an OMZ plugin manager with $ZSH_CUSTOM
+	- Make source file its own command? @maybe
+	- Prezto plugins may have a functions directory that should be added to fpath
+	- Remove extended help to its own function file
 
-command enhancements:
+commands:
 	clone:
 		- explore whether mafredri/zsh-async should be used for parallelism with cloning
 	source:
@@ -10,7 +14,7 @@ command enhancements:
 		For example - pz source ~/my_custom_plugin
 	list:
 	prompt:
-		- prompt should support using ohmyzsh theme files @maybe
+		- do we even want this feature?? @maybe
 
 Archive:
 	- list should show the fully qualified friendly name @done(20-12-28 18:39)
@@ -20,3 +24,4 @@ Archive:
 	- Add .editorconfig @done(21-01-01 15:28)
 	- symlink to relative paths instead of absolute ones @done(21-01-01 15:37)
 	- source should support sub-pathing (ex: pz source ohmyzsh lib/git) @done(21-01-04 00:15)
+	- Add test framework @done(21-01-05 21:04)

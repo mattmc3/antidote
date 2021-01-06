@@ -6,12 +6,17 @@
 #
 
 # init settings
-if zstyle -T :pz: plugins-dir; then
-  zstyle :pz: plugins-dir ${${(%):-%N}:A:h:h}
-fi
-if zstyle -T :pz:clone: default-gitserver; then
-  zstyle :pz:clone: default-gitserver 'github.com'
-fi
+_zero=${(%):-%N}
+() {
+  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
+  if zstyle -T ":${zspz}:" plugins-dir; then
+    zstyle ":${zspz}:" plugins-dir ${_zero:A:h:h}
+  fi
+  if zstyle -T ":${zspz}:clone:" default-gitserver; then
+    zstyle ":${zspz}:clone:" default-gitserver 'github.com'
+  fi
+}
+unset _zero
 
 function __pz_help_examples() {
   echo "examples:"
@@ -88,9 +93,11 @@ function _pz_help() {
 }
 
 function _pz_clone() {
+  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
+  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
+  local gitserver; zstyle -s ":${zspz}:clone:" default-gitserver gitserver
+
   local repo="$1"
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
-  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver
   if [[ $repo != git://* &&
         $repo != https://* &&
         $repo != http://* &&
@@ -103,8 +110,10 @@ function _pz_clone() {
 }
 
 function _pz_list() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
-  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver
+  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
+  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
+  local gitserver; zstyle -s ":${zspz}:clone:" default-gitserver gitserver
+
   local httpsgit="https://$gitserver"
   local flag_short_name=false
   if [[ "$1" == "-s" ]]; then
@@ -113,10 +122,10 @@ function _pz_list() {
   fi
 
   for d in $pluginsdir/*(/N); do
-    [[ -d $d/.git ]] || continue
     if [[ $flag_short_name == true ]]; then
       echo "${d:t}"
     else
+      [[ -d $d/.git ]] || continue
       repo_url=$(git -C "$d" remote get-url origin)
       if [[ "$repo_url" == ${repo_url#$httpsgit/} ]]; then
         echo "$repo_url"
@@ -128,7 +137,9 @@ function _pz_list() {
 }
 
 function _pz_prompt() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
+  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
+  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
+
   local flag_add_only=false
   if [[ "$1" == "-a" ]]; then
     flag_add_only=true
@@ -146,7 +157,9 @@ function _pz_prompt() {
 }
 
 function _pz_pull() {
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
+  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
+  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
+
   local p update_plugins
   if [[ -n "$1" ]]; then
     update_plugins=(${${1##*/}%.git})
@@ -159,54 +172,69 @@ function _pz_pull() {
   done
 }
 
-function _pz_source() {
-  local pluginsdir plugin source_file plugin_path files
+function __pz_get_source_file() {
+  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
+  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
 
-  zstyle -s :pz: plugins-dir pluginsdir
-  plugin=${${1##*/}%.git}
-  if [[ ! -d $pluginsdir/$plugin ]]; then
-    _pz_clone $1
-  fi
+  local plugin=${${1##*/}%.git}
+  local plugin_path="$pluginsdir/$plugin"
+  [[ -d $plugin_path ]] || return 2
 
-  plugin_path="$pluginsdir/$plugin"
-  if [[ -n "$2" ]]; then
-    plugin_path+="/${2%/*}"
-    plugin=${2##*/}
-  fi
-  source_file="$plugin_path/$plugin.plugin.zsh"
-
-  if [[ ! -f "$source_file" ]]; then
-    files=(
-      # look for specific files first
-      $plugin_path/$plugin.zsh(.N)
-      $plugin_path/$plugin(.N)
-      $plugin_path/$plugin.zsh-theme(.N)
-      $plugin_path/init.zsh(.N)
-    )
-    # if just a repo parameter was provided, then do more aggressive globbing
-    if [[ -z "$2" ]]; then
-      files=(
-        $files
+  local search_files
+  if [[ -z "$2" ]]; then
+    # if just a repo was specified, the search is broad
+    if [[ -f "$plugin_path/$plugin.plugin.zsh" ]]; then
+      # let's do a performance shortcut for adherents to proper convention
+      search_files=("$plugin_path/$plugin.plugin.zsh")
+    else
+      search_files=(
+        # look for specific files first
+        $plugin_path/$plugin.zsh(.N)
+        $plugin_path/$plugin(.N)
+        $plugin_path/$plugin.zsh-theme(.N)
+        $plugin_path/init.zsh(.N)
+        # then do more aggressive globbing
         $plugin_path/*.plugin.zsh(.N)
         $plugin_path/*.zsh(.N)
         $plugin_path/*.zsh-theme(.N)
         $plugin_path/*.sh(.N)
       )
     fi
-    local alt_source_file=${files[1]}
-    [[ -n "$alt_source_file" ]] || {
-      echo "plugin not found: $plugin (path: $plugin_path)" >&2
-      return 1
-    }
-    ln -s "${alt_source_file:t}" "$source_file"
+  else
+    # if a subplugin was specified, the search is more specific
+    local subpath=${2%/*}
+    local subplugin=${2##*/}
+    search_files=(
+        # look for specific files
+        $plugin_path/$2(.N)
+        $plugin_path/$subpath/$subplugin.zsh(.N)
+        $plugin_path/$subpath/$subplugin/$subplugin.plugin.zsh(.N)
+        $plugin_path/$subpath/$subplugin/init.zsh(.N)
+      )
   fi
-  fpath+=$plugin_path
+  [[ ${#search_files[@]} -gt 0 ]] || return 1
+  echo ${search_files[1]}
+}
+
+function _pz_source() {
+  local source_file=$(__pz_get_source_file "$@")
+  if [[ $? -eq 2 ]]; then
+    _pz_clone $repo
+    source_file=$(__pz_get_source_file "$@")
+  fi
+  [[ -n "$source_file" ]] || {
+    echo "plugin not found $1 $2" >&2
+    return 1
+  }
+  fpath+="${source_file:a:h}"
   source "$source_file"
 }
 
 function pz() {
+  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
+  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
+
   local cmd="$1"
-  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
   [[ -d "$pluginsdir" ]] || mkdir -p "$pluginsdir"
 
   if functions "_pz_${cmd}" > /dev/null ; then
