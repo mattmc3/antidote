@@ -1,10 +1,7 @@
 #!/usr/bin/env zsh
 
 ZERO=${(%):-%N}
-
-source ${ZERO:a:h:h}/pz.zsh
 autoload colors; colors
-
 successes=0
 fails=0
 
@@ -175,4 +172,8 @@ function run_tests() {
   (( total = $successes + $fails ))
   echo $fg[cyan]"Total assertions: ${total}"${reset_color}
 }
+
+# main
+source ${ZERO:a:h:h}/pz.zsh
+assert $? "sourcing of pz.zsh failed"
 run_tests
