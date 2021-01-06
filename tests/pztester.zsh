@@ -2,7 +2,6 @@
 
 ZERO=${(%):-%N}
 
-zstyle :pz: zstyle-prefix 'pztest'
 source ${ZERO:a:h:h}/pz.zsh
 autoload colors; colors
 
@@ -15,7 +14,7 @@ function puts() {
 
 function del() {
   # let's make sure we safely rm our temp area
-  local plugins; zstyle -s :pztest: plugins-dir plugins
+  local plugins; zstyle -s :pz: plugins-dir plugins
   if [[ -z $plugins ]] || { [[ $1 != $plugins/* && $1 != $plugins ]] }; then
     echo $fg[red]"Unsafe delete attempted: $@"${reset_color}
   else
@@ -27,12 +26,12 @@ function setup() {
   puts "setup..."
   test_plugins_dir=$(mktemp -d)
   puts "creating $test_plugins_dir"
-  zstyle :pztest: plugins-dir $test_plugins_dir
+  zstyle :pz: plugins-dir $test_plugins_dir
 }
 
 function teardown() {
   puts "teardown..."
-  zstyle -s ':pztest:' plugins-dir test_plugins_dir
+  zstyle -s ':pz:' plugins-dir test_plugins_dir
   if [[ $test_plugins_dir != /var/folders/* &&
         $test_plugins_dir != /tmp/* ]]
   then
@@ -45,7 +44,7 @@ function teardown() {
 
 function setup_fake_plugins() {
   local plugins file
-  zstyle -s :pztest: plugins-dir plugins
+  zstyle -s :pz: plugins-dir plugins
 
   # zsh-incompletions (zsh-users/zsh-completions fake)
   puts "creating fake plugin: zsh-incompletions"
@@ -87,7 +86,7 @@ function setup_fake_plugins() {
 }
 
 function teardown_fake_plugins() {
-  local plugins; zstyle -s :pztest: plugins-dir plugins
+  local plugins; zstyle -s :pz: plugins-dir plugins
   local d
   for d in $plugins/*(/); do
     puts removing $d
@@ -96,7 +95,7 @@ function teardown_fake_plugins() {
 }
 
 function test_clone_ohmyzsh() {
-  local plugins; zstyle -s :pztest: plugins-dir plugins
+  local plugins; zstyle -s :pz: plugins-dir plugins
   puts "test cloning ohmyzsh/ohmyzsh..."
   pz clone ohmyzsh/ohmyzsh
   assert_directory_exists $plugins/ohmyzsh
@@ -134,7 +133,7 @@ function assert_file_exists() {
 }
 
 function test_pz_source_file() {
-  local plugins; zstyle -s :pztest: plugins-dir plugins
+  local plugins; zstyle -s :pz: plugins-dir plugins
   local sf
   sf=$(__pz_get_source_file zsh-incompletions)
   assert_equals $plugins/zsh-incompletions/zsh-incompletions.plugin.zsh $sf

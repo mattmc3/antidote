@@ -8,12 +8,11 @@
 # init settings
 _zero=${(%):-%N}
 () {
-  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
-  if zstyle -T ":${zspz}:" plugins-dir; then
-    zstyle ":${zspz}:" plugins-dir ${_zero:A:h:h}
+  if zstyle -T :pz: plugins-dir; then
+    zstyle :pz: plugins-dir ${_zero:A:h:h}
   fi
-  if zstyle -T ":${zspz}:clone:" default-gitserver; then
-    zstyle ":${zspz}:clone:" default-gitserver 'github.com'
+  if zstyle -T :pz:clone: default-gitserver; then
+    zstyle :pz:clone: default-gitserver 'github.com'
   fi
 }
 unset _zero
@@ -93,9 +92,8 @@ function _pz_help() {
 }
 
 function _pz_clone() {
-  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
-  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
-  local gitserver; zstyle -s ":${zspz}:clone:" default-gitserver gitserver
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
+  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver
 
   local repo="$1"
   if [[ $repo != git://* &&
@@ -110,9 +108,8 @@ function _pz_clone() {
 }
 
 function _pz_list() {
-  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
-  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
-  local gitserver; zstyle -s ":${zspz}:clone:" default-gitserver gitserver
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
+  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver
 
   local httpsgit="https://$gitserver"
   local flag_short_name=false
@@ -137,8 +134,7 @@ function _pz_list() {
 }
 
 function _pz_prompt() {
-  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
-  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
 
   local flag_add_only=false
   if [[ "$1" == "-a" ]]; then
@@ -157,8 +153,7 @@ function _pz_prompt() {
 }
 
 function _pz_pull() {
-  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
-  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
 
   local p update_plugins
   if [[ -n "$1" ]]; then
@@ -173,8 +168,7 @@ function _pz_pull() {
 }
 
 function __pz_get_source_file() {
-  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
-  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
 
   local plugin=${${1##*/}%.git}
   local plugin_path="$pluginsdir/$plugin"
@@ -233,8 +227,7 @@ function _pz_source() {
 }
 
 function pz() {
-  local zspz; zstyle -s ":pz:" "zstyle-prefix" zspz || zspz="pz"
-  local pluginsdir; zstyle -s ":${zspz}:" plugins-dir pluginsdir
+  local pluginsdir; zstyle -s :pz: plugins-dir pluginsdir
 
   local cmd="$1"
   [[ -d "$pluginsdir" ]] || mkdir -p "$pluginsdir"
