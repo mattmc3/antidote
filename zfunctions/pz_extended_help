@@ -19,12 +19,12 @@ case "$1" in
     echo ""
     __pz_help_examples "clone"
     ;;
-  file)
+  initfile)
     echo "usage:"
-    echo "  pz file <plugin> [<subpath>]"
+    echo "  pz initfile <plugin> [<subpath>]"
     echo ""
     echo "description:"
-    echo "  show the file that will be sourced for a plugin"
+    echo "  show the file that will be sourced to initialize a plugin"
     echo ""
     echo "args:"
     echo "  plugin:   shorthand user/repo or full git URL"
@@ -89,7 +89,7 @@ case "$1" in
     echo "commands:"
     echo "  help      show this message"
     echo "  clone     download a plugin"
-    echo "  initfile  show the file that will be sourced for a plugin"
+    echo "  initfile  show the file that will be sourced to initialize a plugin"
     echo "  list      list all plugins"
     echo "  prompt    load a prompt plugin"
     echo "  pull      update a plugin, or all plugins"
