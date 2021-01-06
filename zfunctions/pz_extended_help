@@ -19,6 +19,23 @@ case "$1" in
     echo ""
     __pz_help_examples "clone"
     ;;
+  file)
+    echo "usage:"
+    echo "  pz file <plugin> [<subpath>]"
+    echo ""
+    echo "description:"
+    echo "  show the file that will be sourced for a plugin"
+    echo ""
+    echo "args:"
+    echo "  plugin:   shorthand user/repo or full git URL"
+    echo "  subpath:  subpath within plugin to use instead of root path"
+    echo ""
+    echo "examples:"
+    echo "  pz source ohmyzsh"
+    echo "  pz source ohmyzsh/ohmyzsh lib/git"
+    echo "  pz source ohmyzsh/ohmyzsh plugins/extract"
+    __pz_help_examples --no-header "source"
+    ;;
   list)
     echo "usage:"
     echo "  pz list [-s]"
@@ -42,7 +59,7 @@ case "$1" in
     ;;
   pull)
     echo "usage:"
-    echo "pz pull <plugin>"
+    echo "  pz pull <plugin>"
     echo ""
     echo "args:"
     echo "  plugin:  shorthand user/repo or full git URL"
@@ -51,7 +68,7 @@ case "$1" in
     ;;
   source)
     echo "usage:"
-    echo "pz source <plugin> [<subpath>]"
+    echo "  pz source <plugin> [<subpath>]"
     echo ""
     echo "args:"
     echo "  plugin:   shorthand user/repo or full git URL"
@@ -59,19 +76,23 @@ case "$1" in
     echo ""
     echo "examples:"
     echo "  pz source ohmyzsh"
+    echo "  pz source ohmyzsh/ohmyzsh lib/git"
+    echo "  pz source ohmyzsh/ohmyzsh plugins/extract"
     __pz_help_examples --no-header "source"
     ;;
   *)
     echo "pz - Plugins for ZSH made easy-pz"
     echo ""
-    echo "usage: pz <cmd> [args...]"
+    echo "usage:"
+    echo "  pz <command> [flags|arguments...]"
     echo ""
     echo "commands:"
-    echo "  help    show this message"
-    echo "  clone   download a plugin"
-    echo "  list    list all plugins"
-    echo "  prompt  load a prompt plugin"
-    echo "  pull    update a plugin, or all plugins"
-    echo "  source  load a plugin"
+    echo "  help      show this message"
+    echo "  clone     download a plugin"
+    echo "  initfile  show the file that will be sourced for a plugin"
+    echo "  list      list all plugins"
+    echo "  prompt    load a prompt plugin"
+    echo "  pull      update a plugin, or all plugins"
+    echo "  source    load a plugin"
     ;;
 esac

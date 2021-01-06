@@ -82,6 +82,14 @@ function teardown_fake_plugins() {
   done
 }
 
+function test_clone_nonexistent_plugin() {
+  puts "test cloning ohmyzsh/ohmyzsh..."
+  pz clone mattmc3/doesnotexist
+  local exitstatus=$?
+  assert_not_equals 0 $exitstatus "Unexpected exit status"
+  assert_not_directory_exists $PZ_PLUGIN_HOME/doesnotexist
+}
+
 function test_clone_ohmyzsh() {
   puts "test cloning ohmyzsh/ohmyzsh..."
   pz clone ohmyzsh/ohmyzsh
@@ -111,25 +119,25 @@ function test_pz_list() {
 
 function test_pz_source_file() {
   local sf
-  sf=$(__pz_get_source_file zsh-incompletions)
+  sf=$(pz initfile zsh-incompletions)
   assert_equals $PZ_PLUGIN_HOME/zsh-incompletions/zsh-incompletions.plugin.zsh $sf
-  sf=$(__pz_get_source_file fakemyzsh)
+  sf=$(pz initfile fakemyzsh)
   assert_equals $PZ_PLUGIN_HOME/fakemyzsh/fake-my-zsh.sh $sf
-  sf=$(__pz_get_source_file fakemyzsh lib/one.zsh)
+  sf=$(pz initfile fakemyzsh lib/one.zsh)
   assert_equals $PZ_PLUGIN_HOME/fakemyzsh/lib/one.zsh $sf
-  sf=$(__pz_get_source_file fakemyzsh lib/two)
+  sf=$(pz initfile fakemyzsh lib/two)
   assert_equals $PZ_PLUGIN_HOME/fakemyzsh/lib/two.zsh $sf
-  sf=$(__pz_get_source_file fakemyzsh plugins/foobar)
+  sf=$(pz initfile fakemyzsh plugins/foobar)
   assert_equals $PZ_PLUGIN_HOME/fakemyzsh/plugins/foobar/foobar.plugin.zsh $sf
-  sf=$(__pz_get_source_file fakemyzsh themes/russellbobby)
+  sf=$(pz initfile fakemyzsh themes/russellbobby)
   assert_equals $PZ_PLUGIN_HOME/fakemyzsh/themes/russellbobby.zsh-theme $sf
-  sf=$(__pz_get_source_file preztno modules/soarin)
+  sf=$(pz initfile preztno modules/soarin)
   assert_equals $PZ_PLUGIN_HOME/preztno/modules/soarin/init.zsh $sf
-  sf=$(__pz_get_source_file upper.zsh)
+  sf=$(pz initfile upper.zsh)
   assert_equals $PZ_PLUGIN_HOME/upper.zsh/upper.plugin.zsh $sf
-  sf=$(__pz_get_source_file zee)
+  sf=$(pz initfile zee)
   assert_equals $PZ_PLUGIN_HOME/zee/zee.sh $sf
-  sf=$(__pz_get_source_file notaplugin)
+  sf=$(pz initfile notaplugin)
   assert_equals '' $sf
 }
 
@@ -141,6 +149,7 @@ source "${THIS_SCIRPT:a:h}/assertions.zsh"
 () {
   setup
 
+  test_clone_nonexistent_plugin
   test_clone_ohmyzsh
   test_source_not_yet_cloned_plugin
 
