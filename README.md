@@ -117,24 +117,34 @@ zstyle :pz:clone: gitserver bitbucket.org
 
 ## .zshrc
 
-A good example .zshrc starter file might look something like this:
+An example `.zshrc` might look something like this:
 
 ```shell
 ### ${ZDOTDIR:-$HOME}/.zshrc
 
-# setup pz
+# setup your environment
+...
+
+# then setup pz
 PZ_PLUGINS_DIR="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
 [[ -d $PZ_PLUGINS_DIR/pz ]] ||
   git clone https://github.com/mattmc3/pz.git $PZ_PLUGINS_DIR/pz
 source $PZ_PLUGINS_DIR/pz/pz.zsh
 
-# source plugins
-pz source mattmc3/ez
+# source plugins from github
 pz source zsh-users/zsh-autosuggestions
 pz source zsh-users/zsh-history-substring-search
 pz source zsh-users/zsh-completions
 pz source zsh-users/zsh-syntax-highlighting
 
-# init prompt
+# source ohmyzsh plugins
+pz source ohmyzsh/ohmyzsh plugins/colored-man-pages
+
+# set your prompt
 pz prompt sindresorhus/pure
+
+# -or- use oh-my-zsh themes instead of a prompt plugin
+pz source ohmyzsh lib/git
+pz source ohmyzsh lib/theme-and-appearance
+pz source ohmyzsh themes/robbyrussell
 ```
