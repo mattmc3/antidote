@@ -152,7 +152,6 @@ function _pz_source() {
 
   if [[ ! -f "$source_file" ]]; then
     # time to search
-    echo "searching..."
     source_file=$(_pz_initfile "$@")
   fi
 
