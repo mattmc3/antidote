@@ -6,7 +6,7 @@
 #
 
 THIS_SCRIPT=${(%):-%N}
-PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-$THIS_SCRIPT:A:h}
+PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-$THIS_SCRIPT:A:h:h}
 
 () {
   local basedir=${THIS_SCRIPT:A:h}
