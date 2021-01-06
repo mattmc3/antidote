@@ -17,3 +17,7 @@ trim_trailing_whitespace = false
 [*.zsh]
 indent_style = space
 indent_size = 2
+
+[**/zfunctions/*]
+indent_style = space
+indent_size = 2
