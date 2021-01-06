@@ -17,78 +17,15 @@ _zero=${(%):-%N}
 }
 unset _zero
 
-function __pz_help_examples() {
-  echo "examples:"
-      echo "  pz $1 zsh-users/zsh-autosuggestions"
-      echo "  pz $1 https://github.com/zsh-users/zsh-history-substring-search"
-      echo "  pz $1 git@github.com:zsh-users/zsh-completions.git"
-}
-
 function _pz_help() {
-  case "$1" in
-    clone)
-      echo "usage:"
-      echo "  pz clone <plugin>"
-      echo ""
-      echo "args:"
-      echo "  plugin:  shorthand user/repo or full git URL"
-      echo ""
-      __pz_help_examples "clone"
-      ;;
-    list)
-      echo "usage:"
-      echo "  pz list [-s]"
-      echo ""
-      echo "args:"
-      echo "  -s  list the short name"
-      ;;
-    prompt)
-      echo "usage:"
-      echo "  pz prompt [-a] <prompt-plugin>"
-      echo ""
-      echo "args:"
-      echo "  -a             Adds a prompt, but does not set it as the theme"
-      echo "  prompt-plugin  shorthand user/repo or full git URL"
-      echo ""
-      echo "examples:"
-      echo "  pz prompt -a https://github.com/agnoster/agnoster-zsh-theme"
-      echo "  pz prompt -a git@github.com:miekg/lean.git"
-      echo "  pz prompt -a romkatv/powerlevel10k"
-      echo "  pz prompt sindresorhus/pure"
-      ;;
-    pull)
-      echo "usage:"
-      echo "pz pull <plugin>"
-      echo ""
-      echo "args:"
-      echo "  plugin:  shorthand user/repo or full git URL"
-      echo ""
-      __pz_help_examples "pull"
-      ;;
-    source)
-      echo "usage:"
-      echo "pz source <plugin> [<subpath>]"
-      echo ""
-      echo "args:"
-      echo "  plugin:   shorthand user/repo or full git URL"
-      echo "  subpath:  subpath within plugin to use instead of root path"
-      echo ""
-      __pz_help_examples "source"
-      ;;
-    *)
-      echo "pz - Plugins for ZSH made easy-pz"
-      echo ""
-      echo "usage: pz <cmd> [args...]"
-      echo ""
-      echo "commands:"
-      echo "  help    show this message"
-      echo "  clone   download a plugin"
-      echo "  list    list all plugins"
-      echo "  prompt  load a prompt plugin"
-      echo "  pull    update a plugin, or all plugins"
-      echo "  source  load a plugin"
-      ;;
-  esac
+  if (( $+functions[pz_extended_help] )); then
+    pz_extended_help $@
+  else
+    echo "usage:"
+    echo "  pz <command> [<flags...>] [<arguments...>]"
+    echo "commands:"
+    echo "  help, clone, list, prompt, pull, source"
+  fi
 }
 
 function _pz_clone() {
