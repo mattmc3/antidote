@@ -91,7 +91,7 @@ function _pz_pull() {
   fi
   for p in $update_plugins; do
     echo "updating ${p:t}..."
-    git -C "$PZ_PLUGIN_HOME/$p" pull --rebase --autostash
+    git -C "$PZ_PLUGIN_HOME/$p" pull --recurse-submodules --depth 1 --rebase --autostash
   done
 }
 
