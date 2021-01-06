@@ -56,14 +56,14 @@ function setup_fake_plugins() {
   # fake-my-zsh (ohmyzsh/ohmyzsh fake)
   puts "creating fake plugin: fakemyzsh"
   mkdir -p $plugins/fakemyzsh
+  mkdir -p $plugins/fakemyzsh/lib $plugins/fakemyzsh/plugins $plugins/fakemyzsh/themes
   touch $plugins/fakemyzsh/fake-my-zsh.sh
-  mkdir -p $plugins/fakemyzsh/lib
   for file in one two three; do
     touch $plugins/fakemyzsh/lib/${file}.zsh
   done
-  mkdir -p $plugins/fakemyzsh/plugins
   mkdir $plugins/fakemyzsh/plugins/foobar
   touch $plugins/fakemyzsh/plugins/foobar/foobar.plugin.zsh
+  touch $plugins/fakemyzsh/themes/russellbobby.zsh-theme
 
   # preztno (sorin-ionescu/prezto fake)
   puts "creating fake plugin: preztno"
@@ -146,6 +146,8 @@ function test_pz_source_file() {
   assert_equals $plugins/fakemyzsh/lib/two.zsh $sf
   sf=$(__pz_get_source_file fakemyzsh plugins/foobar)
   assert_equals $plugins/fakemyzsh/plugins/foobar/foobar.plugin.zsh $sf
+  sf=$(__pz_get_source_file fakemyzsh themes/russellbobby)
+  assert_equals $plugins/fakemyzsh/themes/russellbobby.zsh-theme $sf
   sf=$(__pz_get_source_file preztno modules/soarin)
   assert_equals $plugins/preztno/modules/soarin/init.zsh $sf
   sf=$(__pz_get_source_file upper.zsh)

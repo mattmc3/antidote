@@ -182,7 +182,7 @@ function __pz_get_source_file() {
 
   local search_files
   if [[ -z "$2" ]]; then
-    # if just a repo was specified, the search is broad
+    # if just a repo was specified, the search is more broad
     if [[ -f "$plugin_path/$plugin.plugin.zsh" ]]; then
       # let's do a performance shortcut for adherents to proper convention
       search_files=("$plugin_path/$plugin.plugin.zsh")
@@ -207,9 +207,11 @@ function __pz_get_source_file() {
     search_files=(
         # look for specific files
         $plugin_path/$2(.N)
+        $plugin_path/$subpath/$subplugin.plugin.zsh(.N)
         $plugin_path/$subpath/$subplugin.zsh(.N)
         $plugin_path/$subpath/$subplugin/$subplugin.plugin.zsh(.N)
         $plugin_path/$subpath/$subplugin/init.zsh(.N)
+        $plugin_path/$subpath/$subplugin.zsh-theme(.N)
       )
   fi
   [[ ${#search_files[@]} -gt 0 ]] || return 1
