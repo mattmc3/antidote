@@ -1,11 +1,10 @@
 # http://github.com/mattmc3/pz
 # Copyright mattmc3, 2020-2021
 # MIT license, https://opensource.org/licenses/MIT
-#
 # pz - Plugins for ZSH made easy-pz
-#
 
 () {
+  # setup pz by setting some globals and autoloading anything in zfunctions
   typeset -gHa _pz_opts=( localoptions extendedglob globdots globstarshort nullglob rcquotes )
   local basedir="${${(%):-%x}:A:h}"
   typeset -g PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-$basedir:h}
@@ -70,11 +69,10 @@ function _pz_initfile() {
       $plugin_path/*.sh(.N)
     )
   else
-    # if a subplugin was specified, the search is more specific
+    # if a subplugin was specified, the search is different
     local subpath=${2%/*}
     local subplugin=${2##*/}
     search_files=(
-        # look for specific files
         $plugin_path/$2(.N)
         $plugin_path/$subpath/$subplugin/$subplugin.plugin.zsh(.N)
         $plugin_path/$subpath/$subplugin.plugin.zsh(.N)
@@ -86,7 +84,8 @@ function _pz_initfile() {
       )
   fi
   [[ ${#search_files[@]} -gt 0 ]] || return 1
-  echo ${search_files[1]}
+  REPLY=${search_files[1]}
+  echo $REPLY
 }
 
 function _pz_list() {
@@ -150,15 +149,13 @@ function _pz_source() {
   fi
 
   if [[ ! -f "$source_file" ]]; then
-    # time to search
-    source_file=$(_pz_initfile "$@")
+    _pz_initfile "$@" >/dev/null
+    source_file=$REPLY
   fi
-
   [[ -f "$source_file" ]] || {
-    echo "unable to source plugin - file not found $@" >&2
-    return 1
+    echo "unable to find plugin initfile: $@" >&2 && return 1
   }
-  fpath+="${source_file:a:h}"
+  fpath+="${source_file:h}"
   source "$source_file"
 }
 
@@ -167,17 +164,16 @@ function _pz_zcompile() {
   autoload -U zrecompile
   [[ -d $PZ_PLUGIN_HOME ]] || return 1
 
-  local f
   local flag_clean=false
   [[ "$1" == "-c" ]] && flag_clean=true && shift
 
   if [[ $flag_clean == true ]]; then
-    for f in "$PZ_PLUGIN_HOME"/**/*.zwc(.N) "$PZ_PLUGIN_HOME"/**/*.zwc.old(.N); do
+    local f; for f in "$PZ_PLUGIN_HOME"/**/*.zwc(.N) "$PZ_PLUGIN_HOME"/**/*.zwc.old(.N); do
       echo "removing $f"
       command rm -f "$f"
     done
   else
-    for f in "$PZ_PLUGIN_HOME"/**/*.zsh{,-theme}; do
+    local f; for f in "$PZ_PLUGIN_HOME"/**/*.zsh{,-theme}; do
       echo "compiling $f"
       zrecompile -pq "$f"
     done
@@ -186,9 +182,9 @@ function _pz_zcompile() {
 
 function pz() {
   local cmd="$1"
+  local REPLY
   [[ -d "$PZ_PLUGIN_HOME" ]] || mkdir -p "$PZ_PLUGIN_HOME"
 
-  # if functions "_pz_${cmd}" > /dev/null ; then
   if (( $+functions[_pz_${cmd}] )); then
     shift
     _pz_${cmd} "$@"
