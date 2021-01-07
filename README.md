@@ -56,7 +56,7 @@ PZ_PLUGIN_HOME="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
 source $PZ_PLUGIN_HOME/pz/pz.zsh
 ```
 
-### Downloading your plugins
+### Download your plugins
 
 You can clone a plugin with partial or full git paths:
 
@@ -75,7 +75,7 @@ If the plugin doesn't exist, it will be cloned prior to being sourced:
 pz source zsh-users/zsh-history-substring-search
 ```
 
-### Load prompt plugins
+### Load a prompt plugin
 
 You can use prompt plugins too
 
@@ -83,7 +83,7 @@ You can use prompt plugins too
 pz prompt sindresorhus/pure
 ```
 
-### Updating your plugins
+### Update your plugins
 
 You can update a single plugin:
 
@@ -91,7 +91,7 @@ You can update a single plugin:
 pz pull mattmc3/pz
 ```
 
-Or, update all plugins:
+Or, update all your plugins:
 
 ```shell
 pz pull
@@ -101,7 +101,9 @@ pz pull
 
 If you use [Oh My Zsh][ohmyzsh], you are probably familiar with `$ZSH_CUSTOM`, which is where you can add your own plugins to Oh My Zsh.
 By default, `$ZSH_CUSTOM` resides in ~/.oh-my-zsh/custom, but you can put it anywhere.
-PZ works well with Oh My Zsh, and you can simply set your `$PZ_PLUGIN_HOME` variable to `$ZSH_CUSTOM/plugins`.
+PZ is a stand alone plugin manager, but it also works really well to augment Oh My Zsh.
+This is really handy since Oh My Zsh does't have a way to manage external plugins itself.
+To use PZ to manage external Oh My Zsh plugins, simply set your `$PZ_PLUGIN_HOME` variable to `$ZSH_CUSTOM/plugins`.
 For example, try adding this snippet to your `.zshrc`:
 
 ```shell
