@@ -4,7 +4,7 @@
 
 A plugin manager for ZSH doesn't have to be _complicated_ to be **powerful**.
 PZ doesn't try to be _clever_ when it can be **smart**.
-PZ is a full featured, fast, and easy to understand plugin manager encapsulated in single file with about 200 lines of clean ZSH.
+PZ is a full featured, fast, and easy to understand plugin manager encapsulated in a single file with about 200 lines of clean ZSH.
 
 PZ does just enough to manage your ZSH plugins really well, and then gets out of your way.
 
