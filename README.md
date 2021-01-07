@@ -105,10 +105,16 @@ PZ works well with Oh My Zsh, and you can simply set your `$PZ_PLUGIN_HOME` vari
 For example, try adding this snippet to your `.zshrc`:
 
 ```shell
+# set PZ's plugin home to your ZSH_CUSTOM
 PZ_PLUGIN_HOME="${ZSH_CUSTOM:-$ZSH/custom}/plugins"
+
+# get PZ if you haven't already
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
   git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
 source $PZ_PLUGIN_HOME/pz/pz.zsh
+
+# then, in your plugins array, add pz
+plugins=(... pz)
 ```
 
 ## Customizing
