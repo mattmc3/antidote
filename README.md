@@ -111,9 +111,11 @@ PZ_PLUGIN_HOME="${ZSH_CUSTOM:-$ZSH/custom}/plugins"
 # get PZ if you haven't already
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
   git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
-source $PZ_PLUGIN_HOME/pz/pz.zsh
 
-# then, in your plugins array, add pz
+# no need to source it, if you put pz in your plugins array
+# source $PZ_PLUGIN_HOME/pz/pz.zsh
+
+# add pz to your Oh My Zsh plugins
 plugins=(... pz)
 ```
 
