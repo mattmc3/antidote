@@ -35,28 +35,6 @@ function _pz_help() {
   fi
 }
 
-function _pz_zcompile() {
-  emulate -L zsh; setopt $_pz_opts
-  autoload -U zrecompile
-  [[ -d $PZ_PLUGIN_HOME ]] || return 1
-
-  local f
-  local flag_clean=false
-  [[ "$1" == "-c" ]] && flag_clean=true && shift
-
-  if [[ $flag_clean == true ]]; then
-    for f in "$PZ_PLUGIN_HOME"/**/*.zwc(.N) "$PZ_PLUGIN_HOME"/**/*.zwc.old(.N); do
-      echo "removing $f"
-      command rm -f "$f"
-    done
-  else
-    for f in "$PZ_PLUGIN_HOME"/**/*.zsh{,-theme}; do
-      echo "compiling $f"
-      zrecompile -pq "$f"
-    done
-  fi
-}
-
 function _pz_clone() {
   local gitserver; zstyle -s :pz:clone: default-gitserver gitserver || gitserver="github.com"
   local repo="$1"
@@ -182,6 +160,28 @@ function _pz_source() {
   }
   fpath+="${source_file:a:h}"
   source "$source_file"
+}
+
+function _pz_zcompile() {
+  emulate -L zsh; setopt $_pz_opts
+  autoload -U zrecompile
+  [[ -d $PZ_PLUGIN_HOME ]] || return 1
+
+  local f
+  local flag_clean=false
+  [[ "$1" == "-c" ]] && flag_clean=true && shift
+
+  if [[ $flag_clean == true ]]; then
+    for f in "$PZ_PLUGIN_HOME"/**/*.zwc(.N) "$PZ_PLUGIN_HOME"/**/*.zwc.old(.N); do
+      echo "removing $f"
+      command rm -f "$f"
+    done
+  else
+    for f in "$PZ_PLUGIN_HOME"/**/*.zsh{,-theme}; do
+      echo "compiling $f"
+      zrecompile -pq "$f"
+    done
+  fi
 }
 
 function pz() {
