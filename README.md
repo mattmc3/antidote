@@ -75,7 +75,7 @@ If the plugin doesn't exist, it will be cloned prior to being sourced:
 pz source zsh-users/zsh-history-substring-search
 ```
 
-### Locad prompt plugins
+### Load prompt plugins
 
 You can use prompt plugins too
 
