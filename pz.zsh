@@ -15,13 +15,23 @@
 }
 
 function _pz_help() {
-  if (( $+functions[pz_extended_help] )); then
+  if [[ -n "$1" ]] && (( $+functions[pz_extended_help] )); then
     pz_extended_help $@
   else
+    echo "pz - Plugins for ZSH made easy-pz"
+    echo ""
     echo "usage:"
-    echo "  pz <command> [<flags...>] [<arguments...>]"
+    echo "  pz <command> [<flags...>|<arguments...>]"
+    echo ""
     echo "commands:"
-    echo "  help, clone, list, initfile, prompt, pull, source, zcompile"
+    echo "  help      show this message"
+    echo "  clone     download a plugin"
+    echo "  initfile  show the file that will be sourced to initialize a plugin"
+    echo "  list      list all plugins"
+    echo "  prompt    load a prompt plugin"
+    echo "  pull      update a plugin, or all plugins"
+    echo "  source    load a plugin"
+    echo "  zcompile  compile zsh files for your plugins"
   fi
 }
 

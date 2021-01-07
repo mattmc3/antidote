@@ -92,19 +92,6 @@ case "$1" in
     echo "  pz zcompile -c"
     ;;
   *)
-    echo "pz - Plugins for ZSH made easy-pz"
-    echo ""
-    echo "usage:"
-    echo "  pz <command> [<flags...>|<arguments...>]"
-    echo ""
-    echo "commands:"
-    echo "  help      show this message"
-    echo "  clone     download a plugin"
-    echo "  initfile  show the file that will be sourced to initialize a plugin"
-    echo "  list      list all plugins"
-    echo "  prompt    load a prompt plugin"
-    echo "  pull      update a plugin, or all plugins"
-    echo "  source    load a plugin"
-    echo "  zcompile  compile zsh files for your plugins"
+    echo "No extended help available for command: $@"
     ;;
 esac

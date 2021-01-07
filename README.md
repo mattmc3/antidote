@@ -100,9 +100,9 @@ pz pull
 ### Oh My Zsh
 
 If you use [Oh My Zsh][ohmyzsh], you are probably familiar with `$ZSH_CUSTOM`, which is where you can add your own plugins to Oh My Zsh.
-By default, `$ZSH_CUSTOM` resides in ~/.oh-my-zsh/custom, but you can put it anywhere.
+By default, `$ZSH_CUSTOM` resides in `~/.oh-my-zsh/custom`, but you can put it anywhere.
 PZ is a stand alone plugin manager, but it also works really well to augment Oh My Zsh.
-This is really handy since Oh My Zsh does't have a way to manage external plugins itself.
+This is handy since Oh My Zsh doesn't have a way to manage external plugins itself.
 To use PZ to manage external Oh My Zsh plugins, simply set your `$PZ_PLUGIN_HOME` variable to `$ZSH_CUSTOM/plugins`.
 For example, try adding this snippet to your `.zshrc`:
 
@@ -114,10 +114,7 @@ PZ_PLUGIN_HOME="${ZSH_CUSTOM:-$ZSH/custom}/plugins"
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
   git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
 
-# no need to source it, if you put pz in your plugins array
-# source $PZ_PLUGIN_HOME/pz/pz.zsh
-
-# add pz to your Oh My Zsh plugins
+# no need to source pz.zsh yourself if you put it in your plugins array
 plugins=(... pz)
 ```
 
