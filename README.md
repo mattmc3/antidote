@@ -8,7 +8,7 @@ PZ is a full featured, fast, and easy to understand plugin manager encapsulated 
 
 PZ does just enough to manage your ZSH plugins really well, and then gets out of your way.
 
-Small footprint, big impact - easy-pz.
+Plugins for ZSH made easy-pz.
 
 ## Usage
 
