@@ -95,7 +95,7 @@ case "$1" in
     echo "pz - Plugins for ZSH made easy-pz"
     echo ""
     echo "usage:"
-    echo "  pz <command> [flags|arguments...]"
+    echo "  pz <command> [<flags...>|<arguments...>]"
     echo ""
     echo "commands:"
     echo "  help      show this message"

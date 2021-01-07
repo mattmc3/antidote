@@ -2,13 +2,13 @@
 
 > PZ - Plugins for ZSH made easy-pz
 
-Too many plugin managers try to do too many things.
+A plugin manager for ZSH doesn't have to be _complicated_ to be **powerful**.
 PZ doesn't try to be _clever_ when it can be **smart**.
-Simple. Fast. Easy to understand. With short, readable ZSH code.
+PZ is a full featured, fast, and easy to understand plugin manager encapsulated in single file with about 200 lines of clean ZSH.
 
 PZ does just enough to manage your ZSH plugins really well, and then gets out of your way.
 
-Small footprint, big impact - that's easy-pz.
+Small footprint, big impact - easy-pz.
 
 ## Usage
 
@@ -17,56 +17,18 @@ The help is pretty helpful. Run `pz help`:
 ```text
 pz - Plugins for ZSH made easy-pz
 
-usage: pz <cmd> [args...]
+usage:
+  pz <command> [<flags...>|<arguments...>]
 
 commands:
-  help    show this message
-  clone   download a plugin
-  list    list all plugins
-  prompt  load a prompt plugin
-  pull    update a plugin, or all plugins
-  source  load a plugin
-```
-
-### Cloning
-
-You can clone a plugin with partial or full git paths:
-
-```shell
-pz clone zsh-users/zsh-autosuggestions
-pz clone https://github.com/zsh-users/zsh-history-substring-search
-pz clone git@github.com:zsh-users/zsh-completions.git
-```
-
-### Updating
-
-You can update a single plugin:
-
-```shell
-pz pull mattmc3/pz
-```
-
-Or, update all plugins:
-
-```shell
-pz pull
-```
-
-### Sourcing
-
-You can source a plugin to add its functionality to your ZSH.
-If the plugin doesn't exist, it will be cloned prior to being sourced:
-
-```shell
-pz source zsh-users/zsh-history-substring-search
-```
-
-### Prompts
-
-You can use prompt plugins too
-
-```shell
-pz prompt sindresorhus/pure
+  help      show this message
+  clone     download a plugin
+  initfile  show the file that will be sourced to initialize a plugin
+  list      list all plugins
+  prompt    load a prompt plugin
+  pull      update a plugin, or all plugins
+  source    load a plugin
+  zcompile  compile zsh files for your plugins
 ```
 
 ## Installation
@@ -89,6 +51,61 @@ You could add this snippet for total automation in your .zshrc
 
 ```shell
 PZ_PLUGIN_HOME="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
+[[ -d $PZ_PLUGIN_HOME/pz ]] ||
+  git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
+source $PZ_PLUGIN_HOME/pz/pz.zsh
+```
+
+### Downloading your plugins
+
+You can clone a plugin with partial or full git paths:
+
+```shell
+pz clone zsh-users/zsh-autosuggestions
+pz clone https://github.com/zsh-users/zsh-history-substring-search
+pz clone git@github.com:zsh-users/zsh-completions.git
+```
+
+### Load your plugins
+
+You can source a plugin to add its functionality to your ZSH.
+If the plugin doesn't exist, it will be cloned prior to being sourced:
+
+```shell
+pz source zsh-users/zsh-history-substring-search
+```
+
+### Locad prompt plugins
+
+You can use prompt plugins too
+
+```shell
+pz prompt sindresorhus/pure
+```
+
+### Updating your plugins
+
+You can update a single plugin:
+
+```shell
+pz pull mattmc3/pz
+```
+
+Or, update all plugins:
+
+```shell
+pz pull
+```
+
+### Oh My Zsh
+
+If you use [Oh My Zsh][ohmyzsh], you are probably familiar with `$ZSH_CUSTOM`, which is where you can add your own plugins to Oh My Zsh.
+By default, `$ZSH_CUSTOM` resides in ~/.oh-my-zsh/custom, but you can put it anywhere.
+PZ works well with Oh My Zsh, and you can simply set your `$PZ_PLUGIN_HOME` variable to `$ZSH_CUSTOM/plugins`.
+For example, try adding this snippet to your `.zshrc`:
+
+```shell
+PZ_PLUGIN_HOME="${ZSH_CUSTOM:-$ZSH/custom}/plugins"
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
   git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
 source $PZ_PLUGIN_HOME/pz/pz.zsh
@@ -149,3 +166,5 @@ pz source ohmyzsh lib/git
 pz source ohmyzsh lib/theme-and-appearance
 pz source ohmyzsh themes/robbyrussell
 ```
+
+[ohmyzsh]: https://ohmyz.sh

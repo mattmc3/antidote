@@ -1,24 +1,28 @@
 general:
 	- Add completions file
-	- Ensure seamless integration as an OMZ plugin manager with $ZSH_CUSTOM @documentation
 	- Prezto plugins may have a functions directory that should be added to fpath
 	- Add a man page @documentation
 	- Do we want to change the CLI to mimic the now defunct antibody to serve as a drop-in replacement? @maybe
 	- Add more tests @never-really-done
-	- Consider an auto-zcompile feature during clone/pull operations @maybe
+	- Add support for branches @cli
+	- Comparison table of other ZSH plugin managers @documentation
 
 commands:
 	clone:
 		- explore whether mafredri/zsh-async should be used for parallelism with cloning
+		- Allow clone to renamed plugin with second parameter @cli
 	source:
-		- add a cache file for speed - I'm thinking store initfile results in zstyle settings
+		- add a cache file for speed - I'm thinking store initfile results in zstyle settings when we had to search
 		- source should allow paths to any directory rather than just assuming plugins
-		For example - pz source ~/my_custom_plugin
+		  For example - pz source ~/my_custom_plugin
 	prompt:
 		- do we even want this feature or is a prompt a special plugin?? @maybe
+	zcompile:
+		- Consider an auto-zcompile feature during clone/pull operations @maybe
 
 Archive:
-    - Add support for zcompiling plugins path. Similar to znap, but less aggressive @done(21-01-06 17:21) @project(general)
+	- Ensure seamless integration as an OMZ plugin manager with $ZSH_CUSTOM @documentation @done(21-01-07 09:15)
+	- Add support for zcompiling plugins path. Similar to znap, but less aggressive @done(21-01-06 17:21) @project(general)
 	- Make source file its own command (now pz initfile) @done(21-01-06 16:03) @project(general)
 	- Remove extended help to its own function file @done(21-01-06 12:22) @project(general)
 	- list should show the fully qualified friendly name @done(20-12-28 18:39)
