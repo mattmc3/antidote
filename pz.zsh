@@ -102,26 +102,16 @@ function _pz_initfile() {
 }
 
 function _pz_list() {
-  local gitserver; zstyle -s :pz:clone: default-gitserver gitserver || gitserver="github.com"
-
-  local httpsgit="https://$gitserver"
-  local flag_short_name=false
-  if [[ "$1" == "-s" ]]; then
-    flag_short_name=true
-    shift
+  local flag_detail=false
+  if [[ "$1" == "-d" ]]; then
+    flag_detail=true; shift
   fi
-
   for d in $PZ_PLUGIN_HOME/*(/N); do
-    if [[ $flag_short_name == true ]]; then
-      echo "${d:t}"
-    else
-      [[ -d $d/.git ]] || continue
+    if [[ $flag_detail == true ]] && [[ -d $d/.git ]]; then
       repo_url=$(git -C "$d" remote get-url origin)
-      if [[ "$repo_url" == ${repo_url#$httpsgit/} ]]; then
-        echo "$repo_url"
-      else
-        echo ${${repo_url#$httpsgit/}%.git}
-      fi
+      printf "%-30s | %s\n" ${d:t} ${repo_url}
+    else
+      echo "${d:t}"
     fi
   done
 }
@@ -148,7 +138,7 @@ function _pz_pull() {
   if [[ -n "$1" ]]; then
     update_plugins=(${${1##*/}%.git})
   else
-    update_plugins=($(_pz_list -s))
+    update_plugins=($(_pz_list))
   fi
   for p in $update_plugins; do
     echo "updating ${p:t}..."
@@ -188,7 +178,8 @@ function pz() {
   local cmd="$1"
   [[ -d "$PZ_PLUGIN_HOME" ]] || mkdir -p "$PZ_PLUGIN_HOME"
 
-  if functions "_pz_${cmd}" > /dev/null ; then
+  # if functions "_pz_${cmd}" > /dev/null ; then
+  if (( $+functions[_pz_${cmd}] )); then
     shift
     _pz_${cmd} "$@"
     return $?

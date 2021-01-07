@@ -113,7 +113,7 @@ function test_source_not_yet_cloned_plugin() {
 }
 
 function test_pz_list() {
-  local plugins=($(_pz_list -s))
+  local plugins=($(pz list))
   assert_equals 6 ${#plugins[@]}
 }
 

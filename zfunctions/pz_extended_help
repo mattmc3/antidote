@@ -38,10 +38,10 @@ case "$1" in
     ;;
   list)
     echo "usage:"
-    echo "  pz list [-s]"
+    echo "  pz list [-d]"
     echo ""
     echo "args:"
-    echo "  -s  list the short name"
+    echo "  -d  provide more details in the plugin list"
     ;;
   prompt)
     echo "usage:"
