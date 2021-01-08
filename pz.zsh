@@ -3,16 +3,6 @@
 # MIT license, https://opensource.org/licenses/MIT
 # pz - Plugins for ZSH made easy-pz
 
-() {
-  # setup pz by setting some globals and autoloading anything in zfunctions
-  typeset -gHa _pz_opts=( localoptions extendedglob globdots globstarshort nullglob rcquotes )
-  local basedir="${${(%):-%x}:A:h}"
-  typeset -g PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-$basedir:h}
-  local funcdir=$basedir/zfunctions
-  typeset -gU FPATH fpath=( $funcdir $basedir $fpath )
-  autoload -Uz $funcdir/*(.N)
-}
-
 function _pz_help() {
   if [[ -n "$1" ]] && (( $+functions[pz_extended_help] )); then
     pz_extended_help $@
@@ -134,29 +124,38 @@ function _pz_pull() {
 }
 
 function _pz_source() {
-  local repo="$1"
-  local plugin=${${repo##*/}%.git}
-  local pluginpath="$PZ_PLUGIN_HOME/$plugin"
-  [[ -d "$pluginpath" ]] || _pz_clone $@
+  local plugin=${${1##*/}%.git}
+  local plugindir="$PZ_PLUGIN_HOME/$plugin"
 
-  local source_file;
+  if [[ ! -d "$plugindir" ]]; then
+    _pz_clone $1
+    if [[ $? -ne 0 ]] || [[ ! -d "$plugindir" ]]; then
+      echo >&2 "cannot find and unable to clone plugin"
+      echo >&2 "'pz source $@' should find a plugin at $plugindir"
+      return 1
+    fi
+  fi
+
+  local initfile
   if [[ -z "$2" ]]; then
-    source_file="$pluginpath/$plugin.plugin.zsh"
+    initfile="$pluginpath/$plugin.plugin.zsh"
   else
     local subpath=${2%/*}
     local subplugin=${2##*/}
-    source_file="$pluginpath/$subpath/$subplugin.plugin.zsh"
+    initfile="$pluginpath/$subpath/$subplugin.plugin.zsh"
   fi
 
-  if [[ ! -f "$source_file" ]]; then
+  # if we didn't find the expected initfile then search for one
+  if [[ ! -f "$initfile" ]]; then
     _pz_initfile "$@" >/dev/null
-    source_file=$REPLY
+    initfile=$REPLY
+    if [[ $? -ne 0 ]] || [[ ! -f "$initfile" ]]; then
+      echo >&2 "unable to find plugin initfile: $@" && return 1
+    fi
   fi
-  [[ -f "$source_file" ]] || {
-    echo "unable to find plugin initfile: $@" >&2 && return 1
-  }
-  fpath+="${source_file:h}"
-  source "$source_file"
+  fpath+="${initfile:h}"
+  [[ -d ${initfile:h}/functions ]] && fpath+="${initfile:h}/functions"
+  source "$initfile"
 }
 
 function _pz_zcompile() {
@@ -183,16 +182,26 @@ function _pz_zcompile() {
 function pz() {
   local cmd="$1"
   local REPLY
-  [[ -d "$PZ_PLUGIN_HOME" ]] || mkdir -p "$PZ_PLUGIN_HOME"
-
   if (( $+functions[_pz_${cmd}] )); then
     shift
     _pz_${cmd} "$@"
     return $?
   elif [[ -z $cmd ]]; then
-    _pz_help
-    return
+    _pz_help && return
   else
-    echo "pz command not found: '${cmd}'" >&2 && return 1
+    echo >&2 "pz command not found: '${cmd}'" && return 1
   fi
+}
+
+() {
+  # setup pz by setting some globals and autoloading anything in zfunctions
+  typeset -gHa _pz_opts=( localoptions extendedglob globdots globstarshort nullglob rcquotes )
+  local basedir="${${(%):-%x}:A:h}"
+
+  typeset -g PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-$basedir:h}
+  [[ -d "$PZ_PLUGIN_HOME" ]] || mkdir -p "$PZ_PLUGIN_HOME"
+
+  local funcdir=$basedir/zfunctions
+  typeset -gU FPATH fpath=( $funcdir $basedir $fpath )
+  autoload -Uz $funcdir/*(.N)
 }

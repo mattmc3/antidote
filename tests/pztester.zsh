@@ -56,7 +56,9 @@ function setup_fake_plugins() {
   # preztno (sorin-ionescu/prezto fake)
   puts "creating fake plugin: preztno"
   mkdir -p $PZ_PLUGIN_HOME/preztno/modules/soarin
-  touch $PZ_PLUGIN_HOME/preztno/modules/soarin/init.zsh
+  echo "preztno=sourced" > $PZ_PLUGIN_HOME/preztno/modules/soarin/init.zsh
+  mkdir -p $PZ_PLUGIN_HOME/preztno/modules/soarin/functions
+  touch $PZ_PLUGIN_HOME/preztno/modules/soarin/functions/foo
 
   # upper (peterhurford/up.zsh fake)
   puts "creating fake plugin: upper"
@@ -87,7 +89,7 @@ function test_clone_nonexistent_plugin() {
   pz clone mattmc3/doesnotexist
   local exitstatus=$?
   assert_not_equals 0 $exitstatus "Unexpected exit status"
-  assert_directory_non_exists $PZ_PLUGIN_HOME/doesnotexist
+  assert_directory_not_exists $PZ_PLUGIN_HOME/doesnotexist
 }
 
 function test_clone_ohmyzsh() {
@@ -110,6 +112,19 @@ function test_source_not_yet_cloned_plugin() {
   assert_file_exists $PZ_PLUGIN_HOME/zsh-tailf/tailf.plugin.zsh
   assert_function_exists "tailf"
   del $PZ_PLUGIN_HOME/zsh-tailf
+}
+
+function test_sourcing_a_plugin_works() {
+  puts "test sourcing a plugin does all the things we need it to..."
+  assert_file_exists $PZ_PLUGIN_HOME/preztno/modules/soarin/functions/foo
+  assert_fpath_not_contains $PZ_PLUGIN_HOME/preztno/modules/soarin/functions
+  [[ -z $preztno ]]
+  assert_equals $? 0 "fail: preztno is already sourced"
+  pz source preztno modules/soarin
+  [[ -n $preztno ]]
+  assert_equals $? 0 "fail: preztno was not sourced"
+  assert_fpath_contains $PZ_PLUGIN_HOME/preztno/modules/soarin
+  assert_fpath_contains $PZ_PLUGIN_HOME/preztno/modules/soarin/functions
 }
 
 function test_pz_list() {
@@ -155,6 +170,7 @@ source "${THIS_SCIRPT:a:h}/assertions.zsh"
 
   setup_fake_plugins
   test_pz_list
+  test_sourcing_a_plugin_works
   test_pz_source_file
   teardown_fake_plugins
 
