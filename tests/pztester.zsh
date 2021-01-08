@@ -87,7 +87,7 @@ function test_clone_nonexistent_plugin() {
   pz clone mattmc3/doesnotexist
   local exitstatus=$?
   assert_not_equals 0 $exitstatus "Unexpected exit status"
-  assert_not_directory_exists $PZ_PLUGIN_HOME/doesnotexist
+  assert_directory_non_exists $PZ_PLUGIN_HOME/doesnotexist
 }
 
 function test_clone_ohmyzsh() {
