@@ -194,14 +194,14 @@ function pz() {
 }
 
 () {
-  # setup pz by setting some globals and autoloading anything in zfunctions
+  # setup pz by setting some globals and autoloading anything in functions
   typeset -gHa _pz_opts=( localoptions extendedglob globdots globstarshort nullglob rcquotes )
   local basedir="${${(%):-%x}:A:h}"
 
   typeset -g PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-$basedir:h}
   [[ -d "$PZ_PLUGIN_HOME" ]] || mkdir -p "$PZ_PLUGIN_HOME"
 
-  local funcdir=$basedir/zfunctions
+  local funcdir=$basedir/functions
   typeset -gU FPATH fpath=( $funcdir $basedir $fpath )
   autoload -Uz $funcdir/*(.N)
 }
