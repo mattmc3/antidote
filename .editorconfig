@@ -6,18 +6,36 @@ charset = utf-8
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
-indent_style = tab
+indent_style = space
 indent_size = 4
 
-[*.md]
+[*.{md,markdown}]
 # Don't trim end spacing because unfortunately Markdown uses that
 indent_style = space
 trim_trailing_whitespace = false
 
-[*.zsh]
+[*.{bash,zsh,sh}]
 indent_style = space
 indent_size = 2
 
-[**/zfunctions/*]
+[.{zsh*,zlogin,zlogout,zprofile}]
 indent_style = space
 indent_size = 2
+
+[*.fish]
+indent_style = space
+indent_size = 4
+
+[**/functions/*]
+indent_style = space
+indent_size = 2
+
+[**/bin/*]
+indent_style = space
+indent_size = 2
+
+[*.{todo,taskpaper}]
+indent_style = tab
+
+[{makefile,Makefile,MAKEFILE}]
+indent_style = tab
