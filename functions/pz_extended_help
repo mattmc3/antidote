@@ -12,12 +12,13 @@ function __pz_help_examples() {
 case "$1" in
   clone)
     echo "usage:"
-    echo "  pz clone <plugin>"
+    echo "  pz clone <plugin> [<renamed-plugin>]"
     echo ""
     echo "args:"
     echo "  plugin  shorthand user/repo or full git URL"
     echo ""
     __pz_help_examples "clone"
+    echo "  pz clone zsh-users/zsh-autosuggestions autosuggest"
     ;;
   initfile)
     echo "usage:"

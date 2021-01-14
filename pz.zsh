@@ -27,6 +27,9 @@ function _pz_help() {
 function _pz_clone() {
   local gitserver; zstyle -s :pz:clone: default-gitserver gitserver || gitserver="github.com"
   local repo="$1"
+  local plugin=${${1##*/}%.git}
+  [[ -z "$2" ]] || plugin="$2"
+
   if [[ $repo != git://* &&
         $repo != https://* &&
         $repo != http://* &&
@@ -34,7 +37,7 @@ function _pz_clone() {
         $repo != git@*:*/* ]]; then
     repo="https://${gitserver}/${repo%.git}.git"
   fi
-  git -C "$PZ_PLUGIN_HOME" clone --depth 1 --recursive --shallow-submodules "$repo"
+  git -C "$PZ_PLUGIN_HOME" clone --depth 1 --recursive --shallow-submodules "$repo" "$plugin"
   [[ $? -eq 0 ]] || return 1
 }
 
