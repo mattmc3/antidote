@@ -8,16 +8,16 @@ general:
 
 commands:
 	clone:
-		- explore whether mafredri/zsh-async should be used for parallelism with cloning
-		- Allow clone to renamed plugin with second parameter @cli
+		- explore whether mafredri/zsh-async should be used for parallelism with cloning @inprogress
 	source:
-		- add a cache file for speed - I'm thinking store initfile results in an associative array when we had to search
+		- add a cache file for speed - I'm thinking store initfile results in an associative array when we had to search @inprogress
 		- source should allow paths to any directory rather than just assuming plugins
 		  For example - pz source ~/my_custom_plugin
 	prompt:
 		- do we even want this feature or is a prompt a special plugin?? @maybe
 	zcompile:
 		- Consider an auto-zcompile feature during clone/pull operations @maybe
+		- Consider exclusions from zcompile (maybe take plugins as parameters for inclusion)
 
 plugin spec:
 	- consider implementing plugin "standard" https://zdharma.org/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
@@ -25,6 +25,7 @@ plugin spec:
 
 
 Archive:
+	- Allow clone to renamed plugin with second parameter @cli @done(21-01-14 13:01)
 	- Prezto plugins may have a functions directory that should be added to fpath @done(21-01-08 13:27)
 	- Ensure seamless integration as an OMZ plugin manager with $ZSH_CUSTOM @documentation @done(21-01-07 09:15)
 	- Add support for zcompiling plugins path. Similar to znap, but less aggressive @done(21-01-06 17:21) @project(general)
