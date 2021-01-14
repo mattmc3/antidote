@@ -6,6 +6,7 @@
 function _pz_help() {
   if [[ -n "$1" ]] && (( $+functions[pz_extended_help] )); then
     pz_extended_help $@
+    return $?
   else
     echo "pz - Plugins for ZSH made easy-pz"
     echo ""

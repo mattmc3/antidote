@@ -94,5 +94,6 @@ case "$1" in
     ;;
   *)
     echo "No extended help available for command: $@"
+    return 1
     ;;
 esac
