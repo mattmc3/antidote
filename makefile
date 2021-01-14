@@ -2,7 +2,7 @@
 
 .PHONY: test
 test:
-	./bin/run_tests -p
+	./bin/run_tests
 
 .PHONY: help
 help:

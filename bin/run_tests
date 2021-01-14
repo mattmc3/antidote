@@ -9,6 +9,10 @@ function main() {
   [[ -f $PROJECT_HOME/cache/tapz/tapz.zsh ]] ||
     git clone -q https://github.com/mattmc3/tapz.git $PROJECT_HOME/cache/tapz
   source $PROJECT_HOME/cache/tapz/tapz.zsh
-  tapz $@ $PROJECT_HOME/tests/*.zsh
+  if [[ ${#@[@]} -gt 0 ]]; then
+    tapz $@
+  else
+    tapz $PROJECT_HOME/tests/*.zsh
+  fi
 }
 main $@
