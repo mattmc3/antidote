@@ -1,9 +1,7 @@
-
-@echo "=== zcompile ==="
-
 0=${(%):-%N}
-source ${0:a:h}/includes/setup_teardown.zsh
+@echo "=== ${0:t:r} ==="
 
+source ${0:a:h}/includes/setup_teardown.zsh
 setup "fakes"
 
 @test "zsh-incompletions.plugin.zsh is not compiled" ! -f $PZ_PLUGIN_HOME/zsh-incompletions/zsh-incompletions.plugin.zsh.zwc

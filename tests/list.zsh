@@ -1,9 +1,7 @@
-
-@echo "=== list ==="
-
 0=${(%):-%N}
-source ${0:a:h}/includes/setup_teardown.zsh
+@echo "=== ${0:t:r} ==="
 
+source ${0:a:h}/includes/setup_teardown.zsh
 setup "fakes"
 
 # IFS=$'\n'

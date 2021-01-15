@@ -1,8 +1,7 @@
-@echo "=== help ==="
-
 0=${(%):-%N}
-source ${0:a:h}/includes/setup_teardown.zsh
+@echo "=== ${0:t:r} ==="
 
+source ${0:a:h}/includes/setup_teardown.zsh
 setup
 
 pz help > /dev/null 2>&1
