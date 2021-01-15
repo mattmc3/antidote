@@ -1,2 +1,2 @@
 0=${(%):-%N}
-source ${0:A:h}/pz.zsh
+source ${0:a:h}/pz.zsh

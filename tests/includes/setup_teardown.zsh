@@ -1,6 +1,6 @@
 () {
   0=${(%):-%x}
-  TESTS_HOME=${0:A:h:h}
+  TESTS_HOME=${0:a:h:h}
 }
 
 setup() {

@@ -2,7 +2,7 @@
 
 () {
   0=${(%):-%x}
-  PROJECT_HOME=${0:A:h:h}
+  PROJECT_HOME=${0:a:h:h}
 }
 
 function main() {
