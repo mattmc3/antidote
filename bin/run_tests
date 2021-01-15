@@ -6,13 +6,13 @@
 }
 
 function main() {
-  [[ -f $PROJECT_HOME/cache/tapz/tapz.zsh ]] ||
-    git clone -q https://github.com/mattmc3/tapz.git $PROJECT_HOME/cache/tapz
-  source $PROJECT_HOME/cache/tapz/tapz.zsh
+  [[ -f $PROJECT_HOME/cache/ztap/ztap.zsh ]] ||
+    git clone -q https://github.com/mattmc3/ztap.git $PROJECT_HOME/cache/ztap
+  source $PROJECT_HOME/cache/ztap/ztap.zsh
   if [[ ${#@[@]} -gt 0 ]]; then
-    tapz $@
+    ztap $@
   else
-    tapz $PROJECT_HOME/tests/*.zsh
+    ztap $PROJECT_HOME/tests/*.zsh
   fi
 }
 main $@
