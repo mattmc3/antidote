@@ -200,7 +200,7 @@ If you store your ZSH configuration in a [dotfiles][dotfiles] reporitory, it is 
 
 ### Git URL
 
-Don't prefer to default to GitHub.com for your plugins? Feel free to change the default git URL with this `zstyle` in your .zshrc:
+Don't prefer to default to GitHub.com for your plugins? Feel free to change the default git URL with this `zstyle` in your `.zshrc`:
 
 ```shell
 # bitbucket.org or gitlab.com or really any git service
