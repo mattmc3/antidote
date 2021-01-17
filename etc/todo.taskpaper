@@ -25,6 +25,7 @@ plugin spec:
 
 
 Archive:
+	- Add parameter for compiling only a specific plugin @done(21-01-17 10:42)
 	- Allow clone to renamed plugin with second parameter @cli @done(21-01-14 13:01)
 	- Prezto plugins may have a functions directory that should be added to fpath @done(21-01-08 13:27)
 	- Ensure seamless integration as an OMZ plugin manager with $ZSH_CUSTOM @documentation @done(21-01-07 09:15)

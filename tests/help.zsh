@@ -20,7 +20,7 @@ pz help list > /dev/null 2>&1
 pzhelplist=("${(@f)$(pz help list)}")
 @test 'count of help lines is 5' ${#pzhelplist[@]} -eq 5
 @test '`pz help list` tells us usage' "${pzhelplist[1]}" = "usage:"
-@test '`pz help list` tells us args' "${pzhelplist[4]}" = "args:"
+@test '`pz help list` tells us flags' "${pzhelplist[4]}" = "flags:"
 
 # extended help invalid
 pz help invalid > /dev/null 2>&1

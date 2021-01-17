@@ -117,13 +117,10 @@ function _pz_prompt() {
 }
 
 function _pz_pull() {
-  local p update_plugins
-  if [[ -n "$1" ]]; then
-    update_plugins=(${${1##*/}%.git})
-  else
-    update_plugins=($(_pz_list))
-  fi
-  for p in $update_plugins; do
+  local update_plugins
+  [[ -n "$1" ]] && update_plugins=(${${1##*/}%.git}) || update_plugins=($(_pz_list))
+
+  local p; for p in $update_plugins; do
     echo "updating ${p:t}..."
     git -C "$PZ_PLUGIN_HOME/$p" pull --recurse-submodules --depth 1 --rebase --autostash
   done
@@ -167,22 +164,25 @@ function _pz_source() {
 function _pz_zcompile() {
   emulate -L zsh; setopt $_pz_opts
   autoload -U zrecompile
-  [[ -d $PZ_PLUGIN_HOME ]] || return 1
 
   local flag_clean=false
   [[ "$1" == "-c" ]] && flag_clean=true && shift
 
-  if [[ $flag_clean == true ]]; then
-    local f; for f in "$PZ_PLUGIN_HOME"/**/*.zwc(.N) "$PZ_PLUGIN_HOME"/**/*.zwc.old(.N); do
-      echo "removing $f"
-      command rm -f "$f"
-    done
-  else
-    local f; for f in "$PZ_PLUGIN_HOME"/**/*.zsh{,-theme}; do
-      echo "compiling $f"
-      zrecompile -pq "$f"
-    done
-  fi
+  local compile_plugins
+  [[ -n "$1" ]] && compile_plugins=(${${1##*/}%.git}) || compile_plugins=($(_pz_list))
+
+  local p; for p in $compile_plugins; do
+    echo "p := $p"
+    if [[ $flag_clean == true ]]; then
+      local f; for f in "$PZ_PLUGIN_HOME/$p"/**/*.zwc(.N) "$PZ_PLUGIN_HOME/$p"/**/*.zwc.old(.N); do
+        echo "removing $f" && command rm -f "$f"
+      done
+    else
+      local f; for f in "$PZ_PLUGIN_HOME/$p"/**/*.zsh{,-theme}; do
+        echo "compiling $f" && zrecompile -pq "$f"
+      done
+    fi
+  done
 }
 
 function pz() {

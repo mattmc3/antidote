@@ -41,16 +41,18 @@ case "$1" in
     echo "usage:"
     echo "  pz list [-d]"
     echo ""
-    echo "args:"
-    echo "  -d  provide more details in the plugin list"
+    echo "flags:"
+    echo "  -d   provide more details in the plugin list"
     ;;
   prompt)
     echo "usage:"
     echo "  pz prompt [-a] <prompt-plugin>"
     echo ""
+    echo "flags:"
+    echo "  -a   Adds a prompt, but does not set it as the theme"
+    echo ""
     echo "args:"
-    echo "  -a             Adds a prompt, but does not set it as the theme"
-    echo "  prompt-plugin  shorthand user/repo or full git URL"
+    echo "  prompt-plugin   shorthand user/repo or full git URL"
     echo ""
     echo "examples:"
     echo "  pz prompt -a https://github.com/agnoster/agnoster-zsh-theme"
@@ -60,7 +62,7 @@ case "$1" in
     ;;
   pull)
     echo "usage:"
-    echo "  pz pull <plugin>"
+    echo "  pz pull [<plugin>]"
     echo ""
     echo "args:"
     echo "  plugin  shorthand user/repo or full git URL"
@@ -83,10 +85,13 @@ case "$1" in
     ;;
   zcompile)
     echo "usage:"
-    echo "  pz zcompile [-c]"
+    echo "  pz zcompile [-c] [<plugin>]"
+    echo ""
+    echo "flags:"
+    echo "  -c   cleans instead of compiles"
     echo ""
     echo "args:"
-    echo "  -c  cleans instead of compiles"
+    echo "  plugin   shorthand user/repo or full git URL"
     echo ""
     echo "examples:"
     echo "  pz zcompile"
