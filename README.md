@@ -183,14 +183,20 @@ plugins=(... pz)
 
 ### Plugin location
 
-PZ stores your plugins wherever you installed PZ.
-Peferrably, that would be in a `$ZDOTDIR/plugins` directory, because then you get can let PZ manage itself and auto-update with `pz pull`.
-But, if you prefer something else, you can always change the default plugin location by setting the `PZ_PLUGIN_HOME` variable .zshrc:
+PZ stores your plugins in your `$ZDOTDIR/plugins` directory.
+If you don's use `$ZDOTDIR`, then `~/.config/zsh/plugins` is used.
+
+But, if you prefer to store your plugins someplace else, you can always change the default plugin location.
+Do this by setting the `PZ_PLUGIN_HOME` variable in your `.zshrc` before sourcing PZ:
 
 ```shell
 # use a custom directory for pz plugins
 PZ_PLUGIN_HOME=~/.pzplugins
 ```
+
+Also note that it is recommended that you store PZ in the same place as your other plugins so that `pz pull` will update PZ.
+
+If you store your ZSH configuration in a [dotfiles][dotfiles] reporitory, it is recommended to add your preferred `$PZ_PLUGIN_HOME` to your `.gitignore` file.
 
 ### Git URL
 
@@ -236,3 +242,4 @@ pz source ohmyzsh themes/robbyrussell
 ```
 
 [ohmyzsh]: https://ohmyz.sh
+[dotfiles]: https://dotfiles.github.io
