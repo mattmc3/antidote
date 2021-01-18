@@ -40,7 +40,7 @@ function _pz_clone() {
   fi
 
   [[ -d "$PZ_PLUGIN_HOME" ]] || mkdir -p "$PZ_PLUGIN_HOME"
-  git -C "$PZ_PLUGIN_HOME" clone --depth 1 --recursive --shallow-submodules "$repo" "$plugin"
+  command git -C "$PZ_PLUGIN_HOME" clone --depth 1 --recursive --shallow-submodules "$repo" "$plugin"
   [[ $? -eq 0 ]] || return 1
 }
 
@@ -91,7 +91,7 @@ function _pz_list() {
   fi
   for d in $PZ_PLUGIN_HOME/*(/N); do
     if [[ $flag_detail == true ]] && [[ -d $d/.git ]]; then
-      repo_url=$(git -C "$d" remote get-url origin)
+      repo_url=$(command git -C "$d" remote get-url origin)
       printf "%-30s | %s\n" ${d:t} ${repo_url}
     else
       echo "${d:t}"
@@ -122,7 +122,7 @@ function _pz_pull() {
 
   local p; for p in $update_plugins; do
     echo "updating ${p:t}..."
-    git -C "$PZ_PLUGIN_HOME/$p" pull --recurse-submodules --depth 1 --rebase --autostash
+    command git -C "$PZ_PLUGIN_HOME/$p" pull --recurse-submodules --depth 1 --rebase --autostash
   done
 }
 
