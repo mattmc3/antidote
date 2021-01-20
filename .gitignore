@@ -3,3 +3,4 @@
 *.cache
 foo.zsh
 cache/
+.ztap/
