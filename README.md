@@ -136,12 +136,25 @@ This will not set the theme, but make it available to easily switch during your 
 For example, in your `.zshrc` add the following:
 
 ```shell
+# .zshrc
 # make a few other great prompts available
 pz prompt -a miekg/lean
 pz prompt -a romkatv/powerlevel10k
 
 # and then set your default prompt to pure
-pz prompt sindresorhus/pure"
+pz prompt sindresorhus/pure
+```
+
+You can then switch to an available prompt in your interactive Zsh session:
+
+```shell
+$ # list available prompts
+$ promp -l
+Currently available prompt themes:
+adam1 adam2 bart bigfade clint default elite2 elite fade fire off oliver pws redhat restore suse walters zefram lean pure
+
+$ # now, switch to a different prompt
+$ prompt lean
 ```
 
 ### Update your plugins
