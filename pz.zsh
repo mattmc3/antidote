@@ -136,35 +136,50 @@ function _pz_pull() {
 }
 
 function _pz_source() {
-  local plugin=${${1##*/}%.git}
-  local plugindir="$PZ_PLUGIN_HOME/$plugin"
+  # check associative array cache for initfile to source
+  local initfile_key="':pz:source:$1:$2:'"
+  local initfile=$_pz_initfile_cache[$initfile_key]
 
-  if [[ ! -d "$plugindir" ]]; then
-    _pz_clone $1
-    if [[ $? -ne 0 ]] || [[ ! -d "$plugindir" ]]; then
-      echo >&2 "cannot find and unable to clone plugin"
-      echo >&2 "'pz source $@' should find a plugin at $plugindir"
-      return 1
-    fi
-  fi
-
-  local initfile
-  if [[ -z "$2" ]]; then
-    initfile="$pluginpath/$plugin.plugin.zsh"
-  else
-    local subpath=${2%/*}
-    local subplugin=${2##*/}
-    initfile="$pluginpath/$subpath/$subplugin.plugin.zsh"
-  fi
-
-  # if we didn't find the expected initfile then search for one
+  # if we didn't find an initfile in the lookup or it doesn't exist, then
+  # clone the plugin if possible and save the initfile location to cache
   if [[ ! -f "$initfile" ]]; then
-    _pz_initfile "$@" >/dev/null
-    initfile=$REPLY
-    if [[ $? -ne 0 ]] || [[ ! -f "$initfile" ]]; then
-      echo >&2 "unable to find plugin initfile: $@" && return 1
+    local plugin=${${1##*/}%.git}
+    local plugindir="$PZ_PLUGIN_HOME/$plugin"
+
+    if [[ ! -d "$plugindir" ]]; then
+      _pz_clone $1
+      if [[ $? -ne 0 ]] || [[ ! -d "$plugindir" ]]; then
+        echo >&2 "cannot find and unable to clone plugin"
+        echo >&2 "'pz source $@' should find a plugin at $plugindir"
+        return 1
+      fi
     fi
+
+    if [[ -z "$2" ]]; then
+      initfile="$pluginpath/$plugin.plugin.zsh"
+    else
+      local subpath=${2%/*}
+      local subplugin=${2##*/}
+      initfile="$pluginpath/$subpath/$subplugin.plugin.zsh"
+    fi
+
+    # if we didn't find the expected initfile then search for one
+    if [[ ! -f "$initfile" ]]; then
+      _pz_initfile "$@" >/dev/null
+      initfile=$REPLY
+      if [[ $? -ne 0 ]] || [[ ! -f "$initfile" ]]; then
+        echo >&2 "unable to find plugin initfile: $@" && return 1
+      fi
+    fi
+
+    # if we have invalid cache that gives the wrong result, fix it
+    [[ -z "$_pz_initfile_cache[$initfile_key]" ]] || __pz_init_cache "reset"
+    # add result to cache
+    _pz_initfile_cache[$initfile_key]="$initfile"
+    local stored_initfile_val="${initfile/#$PZ_PLUGIN_HOME\//\$PZ_PLUGIN_HOME/}"
+    echo "_pz_initfile_cache[$initfile_key]=\"${stored_initfile_val}\"" >> "$PZ_CACHE_HOME/_pz_initfile_cache.zsh"
   fi
+
   fpath+="${initfile:h}"
   [[ -d ${initfile:h}/functions ]] && fpath+="${initfile:h}/functions"
   source "$initfile"
@@ -175,23 +190,29 @@ function _pz_zcompile() {
   autoload -U zrecompile
 
   local flag_clean=false
+  local compile_plugins p f
   [[ "$1" == "-c" ]] && flag_clean=true && shift
-
-  local compile_plugins
   [[ -n "$1" ]] && compile_plugins=(${${1##*/}%.git}) || compile_plugins=($(_pz_list))
 
-  local p; for p in $compile_plugins; do
-    echo "p := $p"
+  for p in $compile_plugins; do
     if [[ $flag_clean == true ]]; then
-      local f; for f in "$PZ_PLUGIN_HOME/$p"/**/*.zwc(.N) "$PZ_PLUGIN_HOME/$p"/**/*.zwc.old(.N); do
+      for f in "$PZ_PLUGIN_HOME/$p"/**/*.zwc(.N) "$PZ_PLUGIN_HOME/$p"/**/*.zwc.old(.N); do
         echo "removing $f" && command rm -f "$f"
       done
     else
-      local f; for f in "$PZ_PLUGIN_HOME/$p"/**/*.zsh{,-theme}; do
+      for f in "$PZ_PLUGIN_HOME/$p"/**/*.zsh{,-theme}; do
         echo "compiling $f" && zrecompile -pq "$f"
       done
     fi
   done
+}
+
+function __pz_init_cache() {
+  if [[ ! -f "$PZ_CACHE_HOME/_pz_initfile_cache.zsh" ]] || [[ "$1" == "reset" ]]; then
+    mkdir -p "$PZ_CACHE_HOME"
+    echo "typeset -gA _pz_initfile_cache" > "$PZ_CACHE_HOME/_pz_initfile_cache.zsh"
+  fi
+  source "$PZ_CACHE_HOME/_pz_initfile_cache.zsh"
 }
 
 function pz() {
@@ -211,9 +232,11 @@ function pz() {
 () {
   # setup pz by setting some globals and autoloading anything in functions
   autoload colors && colors
-  typeset -g PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-${ZDOTDIR:-$HOME/.config/zsh}/plugins}
-  typeset -gHa _pz_opts=( localoptions extendedglob globdots globstarshort nullglob rcquotes )
   local basedir="${${(%):-%x}:a:h}"
+  [[ -n "$PZ_CACHE_HOME" ]] || typeset -g PZ_CACHE_HOME="$basedir/.cache"
+  [[ -n "$PZ_PLUGIN_HOME" ]] || typeset -g PZ_PLUGIN_HOME="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
+  typeset -gHa _pz_opts=( localoptions extendedglob globdots globstarshort nullglob rcquotes )
+  __pz_init_cache
 
   if [[ -d $basedir/functions ]]; then
     typeset -gU FPATH fpath=( $basedir/functions $basedir $fpath )

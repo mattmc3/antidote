@@ -7,9 +7,9 @@ tmpdir=$(mktemp -d)
 mkdir $tmpdir/pz
 cp ${0:a:h:h}/pz.zsh $tmpdir/pz
 
-@test 'PZ_PLUGIN_HOME not set' -z $PZ_PLUGIN_HOME
+@test 'PZ_PLUGIN_HOME not set' -z "$PZ_PLUGIN_HOME"
 source $tmpdir/pz/pz.zsh
-@test 'PZ_PLUGIN_HOME set after sourcing pz' "$PZ_PLUGIN_HOME" = $ZDOTDIR/plugins
+@test 'PZ_PLUGIN_HOME set after sourcing pz' "$PZ_PLUGIN_HOME" = "$ZDOTDIR/plugins"
 @test 'PZ_PLUGIN_HOME directory should not be created yet' ! -d "$PZ_PLUGIN_HOME"
 
 # let's not really create the plugins in ZTAP's rcs directory

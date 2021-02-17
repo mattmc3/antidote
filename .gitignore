@@ -2,5 +2,5 @@
 *.old
 *.cache
 foo.zsh
-cache/
+.cache/
 .ztap/
