@@ -2,7 +2,7 @@
 
 .PHONY: test
 test:
-	./bin/runtests
+	./tests/runtests
 
 .PHONY: help
 help:
