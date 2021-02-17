@@ -117,13 +117,22 @@ function _pz_prompt() {
 }
 
 function _pz_pull() {
+  emulate -L zsh; setopt local_options no_monitor
   local update_plugins
   [[ -n "$1" ]] && update_plugins=(${${1##*/}%.git}) || update_plugins=($(_pz_list))
 
   local p; for p in $update_plugins; do
-    echo "updating ${p:t}..."
-    command git -C "$PZ_PLUGIN_HOME/$p" pull --recurse-submodules --depth 1 --rebase --autostash
+    () {
+      echo "${fg[cyan]}updating ${p:t}...${reset_color}"
+      command git -C "$PZ_PLUGIN_HOME/$p" pull --recurse-submodules --depth 1 --rebase --autostash
+      if [[ $? -eq 0 ]]; then
+        echo "${fg[green]}${p:t} update successful.${reset_color}"
+      else
+        echo "${fg[red]}${p:t} update failed.${reset_color}"
+      fi
+    } &
   done
+  wait
 }
 
 function _pz_source() {
@@ -201,8 +210,8 @@ function pz() {
 
 () {
   # setup pz by setting some globals and autoloading anything in functions
+  autoload colors && colors
   typeset -g PZ_PLUGIN_HOME=${PZ_PLUGIN_HOME:-${ZDOTDIR:-$HOME/.config/zsh}/plugins}
-
   typeset -gHa _pz_opts=( localoptions extendedglob globdots globstarshort nullglob rcquotes )
   local basedir="${${(%):-%x}:a:h}"
 

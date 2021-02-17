@@ -8,7 +8,7 @@ general:
 
 commands:
 	clone:
-		- explore whether mafredri/zsh-async should be used for parallelism with cloning @inprogress
+		- explore if we can achieve parallelism with cloning (mafredri/zsh-async?) @inprogress
 	source:
 		- add a cache file for speed - I'm thinking store initfile results in an associative array when we had to search @inprogress
 		- source should allow paths to any directory rather than just assuming plugins
@@ -22,9 +22,8 @@ commands:
 plugin spec:
 	- consider implementing plugin "standard" https://zdharma.org/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
 
-
-
 Archive:
+  	- add git pull in background so that all repos update in parallel @done(21-02-17 12:38) @project(commands.pull)
 	- Add parameter for compiling only a specific plugin @done(21-01-17 10:42)
 	- Allow clone to renamed plugin with second parameter @cli @done(21-01-14 13:01)
 	- Prezto plugins may have a functions directory that should be added to fpath @done(21-01-08 13:27)
