@@ -124,7 +124,7 @@ function _pz_pull() {
   local p; for p in $update_plugins; do
     () {
       echo "${fg[cyan]}updating ${p:t}...${reset_color}"
-      command git -C "$PZ_PLUGIN_HOME/$p" pull --recurse-submodules --depth 1 --rebase --autostash
+      command git -C "$PZ_PLUGIN_HOME/$p" pull --quiet --recurse-submodules --depth 1 --rebase --autostash
       if [[ $? -eq 0 ]]; then
         echo "${fg[green]}${p:t} update successful.${reset_color}"
       else
