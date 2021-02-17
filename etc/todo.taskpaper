@@ -1,27 +1,21 @@
-releases:
-	version 1.0:
-		- Add bumpversion and -v flag for version display @cli
-		- Add support for branches @cli
-	vNext:
-		- Add completions file
-		- Add a man page @documentation
-		- Add more tests @never-really-done
-		- Comparison table of other ZSH plugin managers @documentation
+version 1.0:
+	- Add bumpversion and -v flag for version display @cli
+	- Add support for branches @cli
 
-commands:
+vNext:
+	- Comparison table of other ZSH plugin managers @documentation
+	- consider implementing parts of the Zsh plugin "standard" https://zdharma.org/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
 	clone:
 		- explore if we can achieve parallelism with cloning (mafredri/zsh-async?) @inprogress
 	source:
 		- source should allow paths to any directory rather than just assuming plugins
-		  For example - pz source ~/my_custom_plugin
+		For example - pz source ~/my_custom_plugin
 	zcompile:
 		- Consider an auto-zcompile feature during clone/pull operations @maybe
 		- Consider exclusions from zcompile (maybe take plugins as parameters for inclusion)
 
-plugin spec:
-	- consider implementing parts of the Zsh plugin "standard" https://zdharma.org/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
-
 Archive:
+	- Add completions file @done(21-02-17 17:13) @project(releases.vNext)
 	- add a cache file for speed - I'm thinking store initfile results in an associative array when we had to search @inprogress @done(21-02-17 16:30) @project(commands.source)
   	- add git pull in background so that all repos update in parallel @done(21-02-17 12:38) @project(commands.pull)
 	- Add parameter for compiling only a specific plugin @done(21-01-17 10:42)
