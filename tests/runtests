@@ -1,16 +1,14 @@
 #!/usr/bin/env zsh
-# contents of ./bin/runtests in your project
 
 0=${(%):-%N}
-PROJECT_HOME=${0:a:h:h}
-ZTAP_HOME=${ZTAP_HOME:-$PROJECT_HOME/.ztap}
+TESTS_HOME=${0:a:h}
 
-[[ -f $ZTAP_HOME/ztap.zsh ]] ||
-  git clone --depth 1 -q https://github.com/mattmc3/ztap.git $ZTAP_HOME
+[[ -d $TESTS_HOME/.ztap ]] ||
+  git clone --depth 1 -q https://github.com/mattmc3/ztap.git $TESTS_HOME/.ztap
 
-source $ZTAP_HOME/ztap.zsh
+source $TESTS_HOME/.ztap/ztap.zsh
 if [[ $# -gt 0 ]]; then
-  ztap "$@"
+  ztap "$@" | $TESTS_HOME/.ztap/bin/colorize_tap
 else
-  ztap $PROJECT_HOME/tests/*.zsh
+  ztap $TESTS_HOME/*.zsh | $TESTS_HOME/.ztap/bin/colorize_tap
 fi
