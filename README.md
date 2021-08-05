@@ -21,14 +21,14 @@ usage:
   pz <command> [<flags...>|<arguments...>]
 
 commands:
-  help      show this message
+  help      display this message
   clone     download a plugin
-  initfile  show the file that will be sourced to initialize a plugin
+  initfile  display the plugin's init file
   list      list all plugins
   prompt    load a prompt plugin
   pull      update a plugin, or all plugins
   source    load a plugin
-  zcompile  compile zsh files for your plugins
+  zcompile  compile your plugins' zsh files
 ```
 
 You can also get extended help for commands by running `pz help <command>`:

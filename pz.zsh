@@ -14,14 +14,14 @@ function _pz_help() {
     echo "  pz <command> [<flags...>|<arguments...>]"
     echo ""
     echo "commands:"
-    echo "  help      show this message"
+    echo "  help      display this message"
     echo "  clone     download a plugin"
-    echo "  initfile  show the file that will be sourced to initialize a plugin"
+    echo "  initfile  display the plugin's init file"
     echo "  list      list all plugins"
     echo "  prompt    load a prompt plugin"
     echo "  pull      update a plugin, or all plugins"
     echo "  source    load a plugin"
-    echo "  zcompile  compile zsh files for your plugins"
+    echo "  zcompile  compile your plugins' zsh files"
   fi
 }
 
