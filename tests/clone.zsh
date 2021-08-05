@@ -25,7 +25,7 @@ pz clone zsh-users/zsh-autosuggestions autosuggest > /dev/null 2>&1
 @test "zsh-autosuggestions directory should still not exist" ! -d $PZ_PLUGIN_HOME/zsh-autosuggestions
 
 # clone a non-existing repo
-pz clone mattmc3/doesnotexist > /dev/null 2>&1
+pz clone void/doesnotexist > /dev/null 2>&1
 @test "pz clone mattmc3/doesnotexist" $? -ne 0
 @test "doesnotexist directory should not exist" ! -d $PZ_PLUGIN_HOME/doesnotexist
 
