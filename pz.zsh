@@ -1,14 +1,14 @@
 # http://github.com/mattmc3/pz
 # Copyright mattmc3, 2020-2021
 # MIT license, https://opensource.org/licenses/MIT
-# pz - Plugins for ZSH made easy-pz
+# pz - Plugins for Zsh made easy-pz
 
 function _pz_help() {
   if [[ -n "$1" ]] && (( $+functions[pz_extended_help] )); then
     pz_extended_help $@
     return $?
   else
-    echo "pz - Plugins for ZSH made easy-pz"
+    echo "pz - Plugins for Zsh made easy-pz"
     echo ""
     echo "usage:"
     echo "  pz <command> [<flags...>|<arguments...>]"

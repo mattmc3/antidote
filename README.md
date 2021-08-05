@@ -1,21 +1,21 @@
 # PZ
 
-> PZ - Plugins for ZSH made easy-pz
+> PZ - Plugins for Zsh made easy-pz
 
-A plugin manager for ZSH doesn't have to be _complicated_ to be **powerful**.
+A plugin manager for Zsh doesn't have to be _complicated_ to be **powerful**.
 PZ doesn't try to be _clever_ when it can be **smart**.
 PZ is a full featured, fast, and easy to understand plugin manager encapsulated in [a single, small, clean Zsh script][pz.zsh].
 
-PZ does just enough to manage your ZSH plugins really well, and then gets out of your way.
+PZ does just enough to manage your Zsh plugins really well, and then gets out of your way.
 
-Plugins for ZSH made easy-pz.
+Plugins for Zsh made easy-pz.
 
 ## Usage
 
 The help is pretty helpful. Run `pz help`:
 
 ```text
-pz - Plugins for ZSH made easy-pz
+pz - Plugins for Zsh made easy-pz
 
 usage:
   pz <command> [<flags...>|<arguments...>]
@@ -100,7 +100,7 @@ pz clone zsh-users/zsh-autosuggestions autosuggest
 ### Load your plugins
 
 Loading a plugin means you source its primary plugin file.
-You can source a plugin to use it in your interactive ZSH sessions.
+You can source a plugin to use it in your interactive Zsh sessions.
 
 ```shell
 pz source zsh-history-substring-search
@@ -123,15 +123,15 @@ Prompt plugins are special and are handled a little differently than sourcing re
 pz prompt sindresorhus/pure
 ```
 
-ZSH has builtin functionality for switching and managing prompts.
-Running this ZSH builtin command will give you a list of the prompt themes you have available:
+Zsh has builtin functionality for switching and managing prompts.
+Running this Zsh builtin command will give you a list of the prompt themes you have available:
 
 ```shell
 prompt -l
 ```
 
 If you would like to make more prompt themes available, you can use the `-a` flag.
-This will not set the theme, but make it available to easily switch during your ZSH session.
+This will not set the theme, but make it available to easily switch during your Zsh session.
 
 For example, in your `.zshrc` add the following:
 
@@ -182,7 +182,7 @@ For example, try adding this snippet to your `.zshrc`:
 
 ```shell
 # set PZ's plugin home to your ZSH_CUSTOM
-PZ_PLUGIN_HOME="${ZSH_CUSTOM:-$ZSH/custom}/plugins"
+PZ_PLUGIN_HOME=$ZSH_CUSTOM/plugins
 
 # get PZ if you haven't already
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
@@ -209,7 +209,7 @@ PZ_PLUGIN_HOME=~/.pzplugins
 
 Also note that it is recommended that you store PZ in the same place as your other plugins so that `pz pull` will update PZ.
 
-If you store your ZSH configuration in a [dotfiles][dotfiles] reporitory, it is recommended to add your preferred `$PZ_PLUGIN_HOME` to your `.gitignore` file.
+If you store your Zsh configuration in a [dotfiles][dotfiles] reporitory, it is recommended to add your preferred `$PZ_PLUGIN_HOME` to your `.gitignore` file.
 
 ### Git URL
 

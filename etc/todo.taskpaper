@@ -3,7 +3,7 @@ version 1.0:
 	- Add support for branches @cli
 
 vNext:
-	- Comparison table of other ZSH plugin managers @documentation
+	- Comparison table of other Zsh plugin managers @documentation
 	- consider implementing parts of the Zsh plugin "standard" https://zdharma.org/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
 	clone:
 		- explore if we can achieve parallelism with cloning (mafredri/zsh-async?) @inprogress
