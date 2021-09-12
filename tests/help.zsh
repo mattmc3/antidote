@@ -18,7 +18,7 @@ pzhelp=("${(@f)$(pz help)}")
 pz help list > /dev/null 2>&1
 @test '`pz help list` extended help command succeeds' $? -eq 0
 pzhelplist=("${(@f)$(pz help list)}")
-@test 'count of help lines is 5' ${#pzhelplist[@]} -eq 5
+@test 'count of help lines for list command is 6' ${#pzhelplist[@]} -eq 6
 @test '`pz help list` tells us usage' "${pzhelplist[1]}" = "usage:"
 @test '`pz help list` tells us flags' "${pzhelplist[4]}" = "flags:"
 

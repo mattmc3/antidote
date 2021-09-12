@@ -87,16 +87,33 @@ function _pz_initfile() {
 }
 
 function _pz_list() {
-  local flag_detail=false
+  local giturl name user repo shorthand flag_shorthand flag_detail
+  if [[ "$1" == "-s" ]]; then
+    flag_shorthand=true; shift
+  fi
   if [[ "$1" == "-d" ]]; then
     flag_detail=true; shift
   fi
   for d in $PZ_PLUGIN_HOME/*(/N); do
-    if [[ $flag_detail == true ]] && [[ -d $d/.git ]]; then
-      repo_url=$(command git -C "$d" remote get-url origin)
-      printf "%-30s | %s\n" ${d:t} ${repo_url}
+    if [[ -d "$d"/.git ]]; then
+      name="${d:t}"
+      giturl=$(command git -C "$d" remote get-url origin)
+      user=${${${giturl%/*}%.git}##*/}
+      repo=${${giturl##*/}%.git}
+      shorthand="$user/$repo"
     else
-      echo "${d:t}"
+      name="${d:t}"
+      giturl=
+      user=
+      repo=
+      shorthand="$name"
+    fi
+    if [[ $flag_detail == true ]] && [[ -n "$giturl" ]]; then
+      printf "%-30s | %s\n" ${name} ${giturl}
+    elif [[ $flag_shorthand == true ]]; then
+      echo "$shorthand"
+    else
+      echo "$name"
     fi
   done
 }

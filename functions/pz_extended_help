@@ -39,9 +39,10 @@ case "$1" in
     ;;
   list)
     echo "usage:"
-    echo "  pz list [-d]"
+    echo "  pz list [-s|-d]"
     echo ""
     echo "flags:"
+    echo "  -s   use the shorthand git name for plugins (user/repo)"
     echo "  -d   provide more details in the plugin list"
     ;;
   prompt)
