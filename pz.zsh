@@ -31,6 +31,8 @@ function _pz_clone() {
   local plugin
   [[ -z "$2" ]] && plugin=${${1##*/}%.git} || plugin="$2"
 
+  [[ ! -d "$PZ_PLUGIN_HOME/$plugin" ]] || return
+
   if [[ $repo != git://* &&
         $repo != https://* &&
         $repo != http://* &&
