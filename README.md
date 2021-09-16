@@ -181,8 +181,12 @@ To use PZ to manage your external Oh My Zsh plugins, simply set your `$PZ_PLUGIN
 For example, try adding this snippet to your `.zshrc`:
 
 ```shell
-# set PZ's plugin home to your ZSH_CUSTOM
-PZ_PLUGIN_HOME=$ZSH_CUSTOM/plugins
+# set omz paths somewhere in your script
+ZSH=${ZSH:-${ZDOTDIR:-$HOME}/.oh-my-zsh}
+ZSH_CUSTOM=${ZSH_CUSTOM:-$ZSH/custom}
+
+# set PZ's home to your omz custom path
+PZ_PLUGIN_HOME=ZSH_CUSTOM
 
 # get PZ if you haven't already
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
@@ -212,7 +216,9 @@ but still want Oh My Zsh plugins and features, you can setup your config this wa
 pz source mafredri/zsh-async
 pz source zsh-users/zsh-autosuggestions
 
-# source OMZ plugins
+# source OMZ libs and plugins
+ZSH=$PZ_PLUGIN_HOME/ohmyzsh
+pz source ohmyzsh/ohmyzsh lib/git
 pz source ohmyzsh/ohmyzsh plugins/git
 pz source ohmyzsh/ohmyzsh plugins/heroku
 pz source ohmyzsh/ohmyzsh plugins/brew
