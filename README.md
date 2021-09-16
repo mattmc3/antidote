@@ -177,7 +177,7 @@ If you use [Oh My Zsh][ohmyzsh], you are probably familiar with `$ZSH_CUSTOM`, w
 By default, `$ZSH_CUSTOM` resides in `~/.oh-my-zsh/custom`, but you can put it anywhere.
 PZ is a stand alone plugin manager, but it also works really well to augment Oh My Zsh.
 This is handy since Oh My Zsh doesn't have a way to manage external plugins itself.
-To use PZ to manage external Oh My Zsh plugins, simply set your `$PZ_PLUGIN_HOME` variable to `$ZSH_CUSTOM/plugins`.
+To use PZ to manage your external Oh My Zsh plugins, simply set your `$PZ_PLUGIN_HOME` variable to `$ZSH_CUSTOM/plugins`.
 For example, try adding this snippet to your `.zshrc`:
 
 ```shell
@@ -187,9 +187,42 @@ PZ_PLUGIN_HOME=$ZSH_CUSTOM/plugins
 # get PZ if you haven't already
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
   git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
+  
+# clone anything you need that omz didn't provide
+pz clone zsh-users/zsh-autosuggestions
+pz clone zsh-users/zsh-syntax-highlighting
 
 # no need to source pz.zsh yourself if you put it in your plugins array
-plugins=(... pz)
+plugins=(... pz zsh-autosuggestions zsh-syntax-highlighting)
+
+# source omz like normal
+source $ZSH/oh-my-zsh.sh
+```
+
+*Alternatively*, if prefer to have PZ drive your configuration rather than Oh My Zsh,
+but still want Oh My Zsh plugins and features, you can setup your config this way instead:
+
+
+```shell
+# get PZ if you haven't already
+[[ -d $PZ_PLUGIN_HOME/pz ]] ||
+  git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
+
+# source regular plugins
+pz source mafredri/zsh-async
+pz source zsh-users/zsh-autosuggestions
+
+# source OMZ plugins
+pz source ohmyzsh/ohmyzsh plugins/git
+pz source ohmyzsh/ohmyzsh plugins/heroku
+pz source ohmyzsh/ohmyzsh plugins/brew
+pz source ohmyzsh/ohmyzsh plugins/fzf
+
+# make the prompt pretty
+pz source sindresorhus/pure
+
+# always source syntax highlighting plugin last
+pz source zsh-users/zsh-syntax-highlighting
 ```
 
 ## Customizing
