@@ -219,7 +219,7 @@ pz source ohmyzsh/ohmyzsh plugins/brew
 pz source ohmyzsh/ohmyzsh plugins/fzf
 
 # make the prompt pretty
-pz source sindresorhus/pure
+pz prompt sindresorhus/pure
 
 # always source syntax highlighting plugin last
 pz source zsh-users/zsh-syntax-highlighting
