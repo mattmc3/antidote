@@ -185,10 +185,10 @@ function _pz_source() {
     # if we didn't find the expected initfile then search for one
     if [[ ! -f "$initfile" ]]; then
       _pz_initfile "$@" >/dev/null
-      initfile=$REPLY
-      if [[ $? -ne 0 ]] || [[ ! -f "$initfile" ]]; then
+      if [[ $? -ne 0 ]] || [[ ! -f "$REPLY" ]]; then
         echo >&2 "unable to find plugin initfile: $@" && return 1
       fi
+      initfile=$REPLY
     fi
 
     # if we have invalid cache that gives the wrong result, fix it
