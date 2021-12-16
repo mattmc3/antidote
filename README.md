@@ -2,11 +2,12 @@
 
 > PZ - Plugins for Zsh made easy-pz
 
-A plugin manager for Zsh doesn't have to be _complicated_ to be **powerful**.
-PZ doesn't try to be _clever_ when it can be **smart**.
-PZ is a full featured, fast, and easy to understand plugin manager encapsulated in [a single, small, clean Zsh script][pz.zsh].
+A plugin manager for Zsh doesn't have to be _complicated_ to be **powerful**. PZ doesn't
+try to be _clever_ when it can be **smart**. PZ is a full featured, fast, and easy to
+understand plugin manager encapsulated in [a single, small, clean Zsh script][pz.zsh].
 
-PZ does just enough to manage your Zsh plugins really well, and then gets out of your way. And it's unit tested too to make sure it works as expected!
+PZ does just enough to manage your Zsh plugins really well, and then gets out of your
+way. And it's unit tested too to make sure it works as expected!
 
 Plugins for Zsh made easy-pz.
 
@@ -70,7 +71,7 @@ source ~/.config/zsh/plugins/pz/pz.zsh
 You could add this snippet for total automation in your `.zshrc`
 
 ```shell
-PZ_PLUGIN_HOME="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
+PZ_PLUGIN_HOME="${ZDOTDIR:-~/.config/zsh}/plugins"
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
   git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
 source $PZ_PLUGIN_HOME/pz/pz.zsh
@@ -106,8 +107,9 @@ You can source a plugin to use it in your interactive Zsh sessions.
 pz source zsh-history-substring-search
 ```
 
-If you haven't cloned a plugin already, you can still source it.
-It will be cloned automatically, but in order to do that you will need to use its longer name or a full git URL:
+If you haven't cloned a plugin already, you can still source it. It will be cloned
+automatically, but in order to do that you will need to use its longer name or a full
+git URL:
 
 ```shell
 pz source zsh-users/zsh-history-substring-search
@@ -116,22 +118,22 @@ pz source https://github.com/zsh-users/zsh-autosuggestions
 
 ### Load a prompt/theme plugin
 
-You can use prompt plugins too, which will set your theme.
-Prompt plugins are special and are handled a little differently than sourcing regular plugins.
+You can use prompt plugins too, which will set your theme. Prompt plugins are special
+and are handled a little differently than sourcing regular plugins.
 
 ```shell
 pz prompt sindresorhus/pure
 ```
 
-Zsh has builtin functionality for switching and managing prompts.
-Running this Zsh builtin command will give you a list of the prompt themes you have available:
+Zsh has builtin functionality for switching and managing prompts. Running this Zsh
+builtin command will give you a list of the prompt themes you have available:
 
 ```shell
 prompt -l
 ```
 
-If you would like to make more prompt themes available, you can use the `-a` flag.
-This will not set the theme, but make it available to easily switch during your Zsh session.
+If you would like to make more prompt themes available, you can use the `-a` flag. This
+will not set the theme, but make it available to easily switch during your Zsh session.
 
 For example, in your `.zshrc` add the following:
 
@@ -149,12 +151,12 @@ You can then switch to an available prompt in your interactive Zsh session:
 
 ```shell
 $ # list available prompts
-$ promp -l
+$ prompt -l
 Currently available prompt themes:
-adam1 adam2 bart bigfade clint default elite2 elite fade fire off oliver pws redhat restore suse walters zefram lean pure
+adam1 adam2 bart bigfade clint default elite2 elite fade fire off ...
 
 $ # now, switch to a different prompt
-$ prompt lean
+$ prompt pure
 ```
 
 ### Update your plugins
@@ -173,25 +175,28 @@ pz pull
 
 ### Oh My Zsh
 
-If you use [Oh My Zsh][ohmyzsh], you are probably familiar with `$ZSH_CUSTOM`, which is where you can add your own plugins to Oh My Zsh.
-By default, `$ZSH_CUSTOM` resides in `~/.oh-my-zsh/custom`, but you can put it anywhere.
+If you use [Oh My Zsh][ohmyzsh], you are probably familiar with `$ZSH_CUSTOM`, which is
+where you can add your own plugins to Oh My Zsh. By default, `$ZSH_CUSTOM` resides in
+`~/.oh-my-zsh/custom`, but you can put it anywhere.
+
 PZ is a stand alone plugin manager, but it also works really well to augment Oh My Zsh.
 This is handy since Oh My Zsh doesn't have a way to manage external plugins itself.
-To use PZ to manage your external Oh My Zsh plugins, simply set your `$PZ_PLUGIN_HOME` variable to `$ZSH_CUSTOM/plugins`.
-For example, try adding this snippet to your `.zshrc`:
+To use PZ to manage your external Oh My Zsh plugins, simply set your `$PZ_PLUGIN_HOME`
+variable to `$ZSH_CUSTOM/plugins`. For example, try adding this snippet to your
+`.zshrc`:
 
 ```shell
 # set omz paths somewhere in your script
-ZSH=${ZSH:-${ZDOTDIR:-$HOME}/.oh-my-zsh}
+ZSH=${ZSH:-${ZDOTDIR:-~}/.oh-my-zsh}
 ZSH_CUSTOM=${ZSH_CUSTOM:-$ZSH/custom}
 
 # set PZ's home to your omz custom path
-PZ_PLUGIN_HOME=ZSH_CUSTOM
+PZ_PLUGIN_HOME=$ZSH_CUSTOM
 
 # get PZ if you haven't already
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
   git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
-  
+
 # clone anything you need that omz didn't provide
 pz clone zsh-users/zsh-autosuggestions
 pz clone zsh-users/zsh-syntax-highlighting
@@ -204,7 +209,8 @@ source $ZSH/oh-my-zsh.sh
 ```
 
 *Alternatively*, if prefer to have PZ drive your configuration rather than Oh My Zsh,
-but still want Oh My Zsh plugins and features, you can setup your config this way instead:
+but still want Oh My Zsh plugins and features, you can setup your config this way
+instead:
 
 
 ```shell
@@ -238,21 +244,25 @@ pz source zsh-users/zsh-syntax-highlighting
 PZ stores your plugins in your `$ZDOTDIR/plugins` directory.
 If you don's use `$ZDOTDIR`, then `~/.config/zsh/plugins` is used.
 
-But, if you prefer to store your plugins someplace else, you can always change the default plugin location.
-Do this by setting the `PZ_PLUGIN_HOME` variable in your `.zshrc` before sourcing PZ:
+But, if you prefer to store your plugins someplace else, you can always change the
+default plugin location. Do this by setting the `PZ_PLUGIN_HOME` variable in your
+`.zshrc` before sourcing PZ:
 
 ```shell
 # use a custom directory for pz plugins
 PZ_PLUGIN_HOME=~/.pzplugins
 ```
 
-Also note that it is recommended that you store PZ in the same place as your other plugins so that `pz pull` will update PZ.
+Also note that it is recommended that you store PZ in the same place as your other
+plugins so that `pz pull` will update PZ.
 
-If you store your Zsh configuration in a [dotfiles][dotfiles] reporitory, it is recommended to add your preferred `$PZ_PLUGIN_HOME` to your `.gitignore` file.
+If you store your Zsh configuration in a [dotfiles][dotfiles] reporitory, it is
+recommended to add your preferred `$PZ_PLUGIN_HOME` to your `.gitignore` file.
 
 ### Git URL
 
-Don't prefer to default to GitHub.com for your plugins? Feel free to change the default git URL with this `zstyle` in your `.zshrc`:
+Don't want to use GitHub.com for your plugins? Feel free to change the default git URL
+with this `zstyle` in your `.zshrc`:
 
 ```shell
 # bitbucket.org or gitlab.com or really any git service
@@ -264,13 +274,13 @@ zstyle :pz:clone: gitserver bitbucket.org
 An example `.zshrc` might look something like this:
 
 ```shell
-### ${ZDOTDIR:-$HOME}/.zshrc
+### ${ZDOTDIR:-~}/.zshrc
 
 # setup your environment
 ...
 
 # then setup pz
-PZ_PLUGIN_HOME="${ZDOTDIR:-$HOME/.config/zsh}/plugins"
+PZ_PLUGIN_HOME="${ZDOTDIR:-~/.config/zsh}/plugins"
 [[ -d $PZ_PLUGIN_HOME/pz ]] ||
   git clone https://github.com/mattmc3/pz.git $PZ_PLUGIN_HOME/pz
 source $PZ_PLUGIN_HOME/pz/pz.zsh
