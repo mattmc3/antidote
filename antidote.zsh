@@ -3,38 +3,35 @@
 # antidote
 #
 # A spiritual successor to antibody: https://getantibody.github.io/
-# antidote bundle < ${ZDOTDIR:-~}/.antidote.conf >| $ANTIDOTE_HOME/init.zsh
-#
+# antidote bundle < ${ZDOTDIR:-~}/.antidote.conf >| $ANTIDOTE_DIR/init.zsh
 
-ANTIDOTE_HOME=${ANTIDOTE_HOME:-${ZDOTDIR:-~}/.zplugins}
+ANTIDOTE_DIR=${ANTIDOTE_DIR:-${ZDOTDIR:-~}/.antidote}
 if [[ -z "$ANTIDOTE_RESET_ON_CHANGE" ]]; then
   ANTIDOTE_RESET_ON_CHANGE=(${ZDOTDIR:-~}/.zpluginrc)
 fi
 
 function antidote-help() {
-  local usage=$(<<'EOS'
-usage: antidote [<flags>] <command> [<args> ...]
-
-Flags:
-  -h, --help  Show context-sensitive help
-
-Commands:
-  home
-    prints where antidote is cloning the bundles
-EOS
-)
-  echo $usage
+  local usage=(
+    'usage: antidote [<flags>] <command> [<args> ...]'
+    ''
+    'Flags:'
+    '  -h, --help  Show help'
+    ''
+    'Commands:'
+    '  home'
+    '    prints where antidote is cloning plugins'
+  )
+  printf "%s\n" "${usage[@]}"
 }
-antidote-help
 
 function antidote-home() {
-  echo $ANTIDOTE_HOME
+  echo $ANTIDOTE_DIR
 }
 
 function antidote-compile() {
   local repo plugin f
   autoload -U zrecompile
-  for repo in $ANTIDOTE_HOME/*/.git/..(/); do
+  for repo in $ANTIDOTE_DIR/*/.git/..(/); do
     plugin=${repo:A}
     for f in "$plugin"/**/*.zwc(N) "$plugin"/**/*.zwc.old(N); do
       command rm -f "$f"
@@ -48,7 +45,7 @@ function antidote-compile() {
 function antidote-update() {
   setopt local_options no_notify no_monitor
   local repo plugin
-  for repo in $ANTIDOTE_HOME/*/.git/..(/); do
+  for repo in $ANTIDOTE_DIR/*/.git/..(/); do
     plugin=${repo:A}
     () {
       echo "Updating ${plugin:t}"
@@ -66,7 +63,7 @@ function antidote-clone() {
   local repo=$1
   local giturl=$repo
   local branch=$2
-  local plugin=$ANTIDOTE_HOME/${repo:t}
+  local plugin=$ANTIDOTE_DIR/${repo:t}
   if [[ ! -d $plugin ]]; then
     [[ -z "$branch" ]] || branch="--branch=$branch"
     if [[ $repo != git://* &&
@@ -153,7 +150,7 @@ function antidote-bundle() {
 
     # turn repos into plugin dirs
     if [[ $plugin != \/* ]]; then
-      plugin=$ANTIDOTE_HOME/${plugin:t}
+      plugin=$ANTIDOTE_DIR/${plugin:t}
     fi
 
     # if 'path:*' instruction specified, we need a subdir or subfile of the plugin
@@ -190,15 +187,15 @@ function antidote-bundle() {
 }
 
 function antidote-loadall() {
-  local plugin_init=$ANTIDOTE_HOME/init.zsh
+  local plugin_init=$ANTIDOTE_DIR/init.zsh
   [[ -f $plugin_init ]] || antidote-reset
   source $plugin_init
 }
 
 function antidote-reset() {
   # write init.zsh which drives the plugin management
-  [[ -d $ANTIDOTE_HOME ]] || mkdir -p $ANTIDOTE_HOME
-  echo "# generated file... do not modify!" >| $ANTIDOTE_HOME/init.zsh
+  [[ -d $ANTIDOTE_DIR ]] || mkdir -p $ANTIDOTE_DIR
+  echo "# generated file... do not modify!" >| $ANTIDOTE_DIR/init.zsh
 
   # shameless copy from zgen
   # https://github.com/tarjoilija/zgen/blob/0b669d2d0dcf788b4c81a7a30b4fa41dfbf7d1a7/zgen.zsh#L263-L284
@@ -206,35 +203,35 @@ function antidote-reset() {
                 stat -Lf "%m" 2>/dev/null $ANTIDOTE_RESET_ON_CHANGE)"
   local shas="$(cksum ${ANTIDOTE_RESET_ON_CHANGE})"
 
-  local initcode=$(<<'EOS'
-# this file is generated!!! do not modify!!!
-# recompilation triggers
+  local initcode=(
+    '# this file is generated!!! do not modify!!!'
+    '# recompilation triggers'
+    ''
+    'read -rd "" ages <<AGES; read -rd "" shas <<SHAS'
+    '{{ages}}'
+    'AGES'
+    '{{shas}}'
+    'SHAS'
+    ''
+    'if [[ -n "$ANTIDOTE_RESET_ON_CHANGE" \'
+    '      && "$(stat -Lc "%Y" 2>/dev/null $ANTIDOTE_RESET_ON_CHANGE || \'
+    '            stat -Lf "%m"             $ANTIDOTE_RESET_ON_CHANGE)" != "$ages" \'
+    '      && "$(cksum                     $ANTIDOTE_RESET_ON_CHANGE)" != "$shas" ]]'
+    'then'
+    '  echo ''plugin: file change detected in $ANTIDOTE_RESET_ON_CHANGE; resetting plugins files...'''
+    '  plugin reset'
+    'fi'
+    'source $ANTIDOTE_DIR/bundle.zsh'
+  )
 
-read -rd '' ages <<AGES; read -rd '' shas <<SHAS
-{{ages}}
-AGES
-{{shas}}
-SHAS
-
-if [[ -n "$ANTIDOTE_RESET_ON_CHANGE" \
-      && "$(stat -Lc "%Y" 2>/dev/null $ANTIDOTE_RESET_ON_CHANGE || \
-            stat -Lf "%m"             $ANTIDOTE_RESET_ON_CHANGE)" != "$ages" \
-      && "$(cksum                     $ANTIDOTE_RESET_ON_CHANGE)" != "$shas" ]]
-then
-  echo 'plugin: file change detected in $ANTIDOTE_RESET_ON_CHANGE; resetting plugins files...'
-  plugin reset
-fi
-source $ANTIDOTE_HOME/bundle.zsh
-EOS
-)
   initcode=${initcode:gs/{{ages}}/$ages}
   initcode=${initcode:gs/{{shas}}/$shas}
-  echo "$initcode" >| $ANTIDOTE_HOME/init.zsh
+  echo "$initcode" >| $ANTIDOTE_DIR/init.zsh
   # write out bundle.zsh which has the actual plugin instructions
-  plugin bundle < ${ZDOTDIR:-~}/.zpluginrc >| $ANTIDOTE_HOME/bundle.zsh
+  plugin bundle < ${ZDOTDIR:-~}/.zpluginrc >| $ANTIDOTE_DIR/bundle.zsh
 }
 
-function _plugin() {
+function antidote() {
   local cmd=$1
   if (( $+functions[antidote-${cmd}] )); then
     shift
@@ -245,4 +242,3 @@ function _plugin() {
     return 1
   fi
 }
-_plugin "$@"
