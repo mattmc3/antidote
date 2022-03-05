@@ -1,4 +1,5 @@
 #!/bin/zsh
+setopt local_options extended_glob
 
 if [[ $# -ne 0 ]]; then
   echo >&2 "antidote: error: unexpected $1, try --help"
@@ -8,7 +9,7 @@ fi
 local ANTIDOTE_HOME=$(antidote-home)
 local d
 local bundle
-for d in $ANTIDOTE_HOME/*/.git/..; do
+for d in $ANTIDOTE_HOME/*/.git/..(N); do
   local url=$(git -C "${d:A}" config remote.origin.url)
   printf '%-64s %s\n' $url ${d:A}
 done
