@@ -4,3 +4,8 @@ for _fn in ${0:A:h}/functions/*; do
   autoload -Uz $_fn
 done
 unset _fn
+
+_antidote() {
+	IFS=' ' read -A reply <<< "help bundle update home purge list init"
+}
+compctl -K _antidote antidote
