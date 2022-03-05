@@ -1,3 +1,4 @@
+#!/bin/zsh
 setopt local_options extended_glob
 local plugin_dir=$1
 local plugin_name=${plugin_dir:t}

@@ -1,3 +1,4 @@
+#!/bin/zsh
 local cmd="$1"
 
 if (( $+functions[antidote-${cmd}] )); then

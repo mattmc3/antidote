@@ -1,3 +1,4 @@
+#!/bin/zsh
 setopt local_options no_notify no_monitor
 local ANTIDOTE_HOME=$(antidote-home)
 local d

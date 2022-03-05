@@ -1,1 +1,2 @@
+#!/bin/zsh
 echo ${ANTIDOTE_HOME:-${ZDOTDIR:-$HOME/.config/zsh}/.antidote}
