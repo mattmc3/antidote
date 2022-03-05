@@ -1,3 +1,4 @@
+#!/bin/zsh
 local ANTIDOTE_HOME=$(antidote-home)
 local repo=$1
 local giturl=$repo
