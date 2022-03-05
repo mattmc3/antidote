@@ -1,0 +1,23 @@
+#!/bin/zsh
+local plugin=$1
+local kind=$2
+
+[[ $kind != clone ]] || return
+local plugindir initfile REPLY
+local ANTIDOTE_HOME=$(antidote-home)
+plugindir=$ANTIDOTE_HOME/${plugin:t}
+
+if [[ $kind = fpath ]]; then
+  echo "fpath+=( $plugindir )"
+elif [[ $kind = path ]]; then
+  echo "export PATH=\"$plugindir:\$PATH\""
+else
+  echo "fpath+=( $plugindir )"
+  _antidote_initfile $plugindir >/dev/null || return 1
+  initfile=$REPLY
+  if [[ $kind = defer ]]; then
+    echo "zsh-defer source $initfile"
+  else
+    echo "source $initfile"
+  fi
+fi
