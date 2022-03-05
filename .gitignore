@@ -2,3 +2,4 @@
 *.zwc
 *.zwc.old
 .ztap/
+.cache/
