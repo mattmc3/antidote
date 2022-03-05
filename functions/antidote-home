@@ -1,2 +1,17 @@
 #!/bin/zsh
-echo ${ANTIDOTE_HOME:-${ZDOTDIR:-$HOME/.config/zsh}/.antidote}
+local rootdir
+REPLY=
+if [[ -n "$ANTIDOTE_HOME" ]]; then
+  rootdir=$ANTIDOTE_HOME
+elif [[ "${OSTYPE}" == darwin* ]]; then
+  rootdir="$HOME/Library/Caches"
+elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
+  rootdir="$LOCALAPPDATA"
+elif [[ -n "$XDG_CACHE_HOME" ]]; then
+  rootdir="$XDG_CACHE_HOME"
+else
+  rootdir="$HOME/.cache"
+fi
+REPLY="$rootdir/antidote"
+[[ -d $REPLY ]] || mkdir -p $REPLY
+echo $REPLY
