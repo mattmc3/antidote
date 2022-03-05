@@ -1,0 +1,56 @@
+local help=()
+
+case "$1" in
+  '')
+    help=(
+      'usage: antidote [<flags>] <command> [<args> ...]'
+      ''
+      'The fast and native Zsh plugin manager'
+      ''
+      'Flags:'
+      '-h, --help           Show context-sensitive help.'
+      '-v, --version        Show application version.'
+      ''
+      'Commands:'
+      '  help [<command>...]'
+      '    show help'
+      ''
+      '  bundle [<bundles>...]'
+      '    downloads a bundle and prints its source line'
+      ''
+      '  update'
+      '    updates all previously bundled bundles'
+      ''
+      '  home'
+      '    prints where antidote is cloning the bundles'
+      ''
+      '  purge <bundle>'
+      '    purges a bundle from your computer'
+      ''
+      '  list'
+      '    lists all currently installed bundles'
+      ''
+      '  path <bundle>'
+      '    prints the path of a currently cloned bundle'
+    )
+    ;;
+  bundle)
+    help=(
+      'usage: antidote bundle [<bundles>...]'
+      ''
+      'downloads a bundle and prints its source line'
+      ''
+      'Flags:'
+      '  -h, --help           Show context-sensitive help.'
+      '  -v, --version        Show application version.'
+      'Args:'
+      '  [<bundles>]  bundle list'
+    )
+    ;;
+  *)
+    echo "No extended help available for command: $@"
+    return 1
+    ;;
+esac
+
+printf "%s\n" "${help[@]}"

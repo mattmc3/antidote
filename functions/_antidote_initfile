@@ -1,0 +1,15 @@
+setopt local_options extended_glob
+local plugin_dir=$1
+local plugin_name=${plugin_dir:t}
+local initfiles
+initfiles=(
+  $plugin_dir/$plugin_name.plugin.zsh(N)
+  $plugin_dir/$plugin_name.zsh(N)
+  $plugin_dir/init.zsh(N)
+  $plugin_dir/*.plugin.{z,}sh(N)
+  $plugin_dir/*.{z,}sh{-theme,}(N)
+)
+if [[ ${#initfiles[@]} -eq 0 ]]; then
+  echo >&2 "antidote: no init file found '$1'." && return 1
+fi
+echo $initfiles[1]

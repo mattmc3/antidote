@@ -1,0 +1,11 @@
+local cmd="$1"
+
+if (( $+functions[antidote-${cmd}] )); then
+  shift
+  antidote-${cmd} "$@"
+  return $?
+elif [[ -z "$cmd" ]] || [[ $cmd = --help ]] || [[ $cmd = -h ]]; then
+  antidote-help
+else
+  echo >&2 "antidote: command not found '${cmd}'" && return 1
+fi
