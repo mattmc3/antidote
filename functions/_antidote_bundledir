@@ -1,8 +1,13 @@
 #!/bin/zsh
-# sanitize URL for safe use as a dir name
+
 local bundle="$1"
-local url=$(_antidote_tourl $bundle)
-url=${url:gs/\@/-AT-}
-url=${url:gs/\:/-COLON-}
-url=${url:gs/\//-SLASH-}
-echo $(antidote-home)/$url
+if zstyle -t ':antidote:bundle' use-friendly-name; then
+  echo $(antidote-home)/${${bundle:t}%.git}
+else
+  # sanitize URL for safe use as a dir name
+  local url=$(_antidote_tourl $bundle)
+  url=${url:gs/\@/-AT-}
+  url=${url:gs/\:/-COLON-}
+  url=${url:gs/\//-SLASH-}
+  echo $(antidote-home)/$url
+fi
