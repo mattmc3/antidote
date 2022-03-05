@@ -1,0 +1,12 @@
+#!/bin/zsh
+local bundle=$1
+local url=$bundle
+if [[ $bundle != git://* &&
+      $bundle != https://* &&
+      $bundle != http://* &&
+      $bundle != ssh://* &&
+      $bundle != git@*:*/* ]]
+then
+  url=https://github.com/$bundle
+fi
+echo $url
