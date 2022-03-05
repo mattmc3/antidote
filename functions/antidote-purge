@@ -5,13 +5,12 @@ if [[ $# -eq 0 ]]; then
   return 1
 fi
 
-local ANTIDOTE_HOME=$(antidote-home)
 local bundle=$1
-local bundlepath=$ANTIDOTE_HOME/${1:t}
-if [[ ! -d $bundlepath ]]; then
-  echo >&2 "antidote: error: $bundle does not exist on expected location: $bundlepath"
+local bundledir=$(_antidote_bundledir $bundle)
+if [[ ! -d $bundledir ]]; then
+  echo >&2 "antidote: error: $bundle does not exist on expected location: $bundledir"
   return 1
 fi
 
 echo "Removing $bundle..."
-command rm -rf $bundlepath
+command rm -rf "$bundledir"

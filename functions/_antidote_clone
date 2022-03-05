@@ -1,18 +1,10 @@
 #!/bin/zsh
-local ANTIDOTE_HOME=$(antidote-home)
-local repo=$1
-local giturl=$repo
+local bundle=$1
 local branch=$2
-local plugindir=$ANTIDOTE_HOME/${repo:t}
-if [[ ! -d $plugindir ]]; then
+local giturl=$(_antidote_tourl $bundle)
+local bundledir=$(_antidote_bundledir $giturl)
+
+if [[ ! -d $bundledir ]]; then
   [[ -z "$branch" ]] || branch="--branch=$branch"
-  if [[ $repo != git://* &&
-        $repo != https://* &&
-        $repo != http://* &&
-        $repo != ssh://* &&
-        $repo != git@*:*/* ]]
-  then
-    giturl=https://github.com/$repo
-  fi
-  command git clone $branch --quiet --depth 1 --recurse-submodules --shallow-submodules $giturl $plugindir
+  command git clone $branch --quiet --depth 1 --recurse-submodules --shallow-submodules $giturl $bundledir
 fi

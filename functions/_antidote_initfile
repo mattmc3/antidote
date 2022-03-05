@@ -1,18 +1,18 @@
 #!/bin/zsh
 setopt local_options extended_glob
-local plugin_dir=$1
-local plugin_name=${plugin_dir:t}
-local initfiles
 REPLY=
-initfiles=(
-  $plugin_dir/$plugin_name.plugin.zsh(N)
-  $plugin_dir/$plugin_name.zsh(N)
-  $plugin_dir/init.zsh(N)
-  $plugin_dir/*.plugin.{z,}sh(N)
-  $plugin_dir/*.{z,}sh{-theme,}(N)
+local bundle=$1
+local bundledir=$(_antidote_bundledir $bundle)
+local bundlename=${bundle:t}
+local initfiles=(
+  $bundledir/$bundlename.plugin.zsh(N)
+  $bundledir/$bundlename.zsh(N)
+  $bundledir/init.zsh(N)
+  $bundledir/*.plugin.{z,}sh(N)
+  $bundledir/*.{z,}sh{-theme,}(N)
 )
 if [[ ${#initfiles[@]} -eq 0 ]]; then
-  echo >&2 "antidote: no init file found '$1'."
+  echo >&2 "antidote: no init file found '$bundle' $bundlename."
   return 1
 fi
 REPLY=$initfiles[1]
