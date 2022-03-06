@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+if [[ $# -eq 0 ]]; then
+  echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
+  return 1
+fi
+
+local bundle="$1"
+local bundledir=$(_antidote_bundledir $bundle)
+if [[ ! -d $bundledir ]]; then
+  echo >&2 "antidote: error: $bundle does not exist in cloned paths"
+  return 1
+fi
