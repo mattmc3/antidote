@@ -23,11 +23,11 @@ can keep a plugins file.
 
 A plugin file is basically any text file that has one plugin per line.
 
-In our examples, let’s assume we have a ${ZDOTDIR:-~}/.zsh_plugins.txt with these
+In our examples, let’s assume we have a `${ZDOTDIR:-~}/.zsh_plugins.txt` file with these
 contents:
 
 ```zsh
-# ${ZDOTDIR:-~}/.zsh_plugins.txt
+# .zsh_plugins.txt
 # comments are supported like this
 zshzoo/zfunctions
 zshzoo/zshrc.d
@@ -52,7 +52,7 @@ That being said, let’s look how can we load them!
 This is the most common way. Basically, every time the a new shell starts, antidote will
 apply the plugins given to it.
 
-For this to work, antidote needs to be wrapped into your .zshrc. To do that, run:
+For this to work, antidote needs to be wrapped into your `.zshrc`. To do that, run:
 
 ```zsh
 # .zshrc
@@ -62,7 +62,7 @@ source <(antidote init)
 And reload your current shell or open a new one.
 
 Then, you will also need to tell antidote which plugins to bundle. This can also be done
-in the .zshrc file:
+in the `.zshrc` file:
 
 ```zsh
 # .zshrc
@@ -83,8 +83,8 @@ Assuming the same `.zsh_plugins.txt` as before, we can run:
 antidote bundle < ${ZDOTDIR:-~}/.zsh_plugins.txt > ${ZDOTDIR:-~}/.zsh_plugins.zsh
 ```
 
-At any time to update our `.zsh_plugins.zsh` file. Now, we just need to source that file
-in our `.zshrc`:
+We can run this at any time to update our `.zsh_plugins.zsh` file. Now, we just need to
+source that file in our `.zshrc`:
 
 ```zsh
 # .zshrc
@@ -111,16 +111,16 @@ a look!
 
 ### Kind
 
-The kind annotation can be used to determine how a bundle should be treated.
+The `kind` annotation can be used to determine how a bundle should be treated.
 
 #### zsh
 
 The default is `kind:zsh`, which will look for files that match these globs:
 
-- *.plugin.zsh
-- *.zsh
-- *.sh
-- *.zsh-theme
+- `*.plugin.zsh`
+- `*.zsh`
+- `*.sh`
+- `*.zsh-theme`
 
 And `source` them.
 
