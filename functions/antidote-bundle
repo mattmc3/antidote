@@ -44,5 +44,5 @@ for bundlestr in $zsh_bundles; do
   script+="$(_antidote_script $bundle $opts[kind] $opts[path])"
 done
 
-printf "%s\n" "${prescript[@]}"
+(( ! $#prescript )) || printf "%s\n" "${prescript[@]}"
 printf "%s\n" "${script[@]}"
