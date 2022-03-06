@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 local bundle="$1"
-if zstyle -t ':antidote:bundle' use-friendly-name; then
+if zstyle -t ':antidote:bundle' use-friendly-names; then
   echo $(antidote-home)/${${bundle:t}%.git}
 else
   # sanitize URL for safe use as a dir name
