@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 local help=()
 
 case "$1" in

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 local rootdir
 if [[ -n "$ANTIDOTE_HOME" ]]; then
   REPLY=$ANTIDOTE_HOME

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 
 local bundlestr parts bundle optstr opts
 typeset -A opts

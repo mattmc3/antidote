@@ -1,2 +1,2 @@
-#!/bin/zsh
-# placeholder for antibody compatibility
+#!/usr/bin/env zsh
+

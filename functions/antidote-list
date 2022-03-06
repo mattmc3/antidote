@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 setopt local_options extended_glob
 
 if [[ $# -ne 0 ]]; then

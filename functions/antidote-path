@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 
 if [[ $# -eq 0 ]]; then
   echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
