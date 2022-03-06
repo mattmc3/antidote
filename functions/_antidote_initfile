@@ -2,7 +2,12 @@
 setopt local_options extended_glob
 REPLY=
 local bundle=$1
-local bundledir=$(_antidote_bundledir $bundle)
+local bundledir
+if [[ -d "$bundle" ]]; then
+  bundledir=$bundle
+else
+  bundledir=$(_antidote_bundledir $bundle)
+fi
 local bundlename=${bundle:t}
 local initfiles=(
   $bundledir/$bundlename.plugin.zsh(N)
