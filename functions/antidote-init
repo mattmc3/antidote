@@ -1,2 +1,16 @@
 #!/usr/bin/env zsh
 
+local script=(
+  '#!/usr/bin/env zsh'
+  'function antidote {'
+  '  case "$1" in'
+  '    bundle)'
+  '      source <( antidote-main $@ ) || antidote-main $@'
+  '      ;;'
+  '    *)'
+  '      antidote-main $@'
+  '      ;;'
+  '  esac'
+  '}'
+)
+printf "%s\n" "${script[@]}"
