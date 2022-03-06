@@ -211,4 +211,9 @@ fpath+=( /Users/matt/Library/Caches/antidote/zsh-users__zsh-autosuggestions )
 source /Users/matt/Library/Caches/antidote/zsh-users__zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
 ```
 
+## Credits
+
+A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
+[antibody] over the years.
+
 [antibody]:  https://getantibody.github.io
