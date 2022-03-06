@@ -11,7 +11,7 @@ if [[ ! -t 0 ]]; then
     zsh_bundles+=($data)
   done
 elif [[ $# -gt 0 ]]; then
-  zsh_bundles=($@)
+  zsh_bundles=("$*")
 else
   # if stdin containts no data and no params were passed there's nothing to do
   return 1
@@ -37,6 +37,10 @@ for bundlestr in $zsh_bundles; do
     _antidote_clone romkatv/zsh-defer
     prescript=("$(_antidote_script romkatv/zsh-defer)")
   fi
+
+  # nothing to do for clone-only bundles
+  [[ $opts[kind] != clone ]] || continue
+
   script+="$(_antidote_script $bundle $opts[kind] $opts[path])"
 done
 
