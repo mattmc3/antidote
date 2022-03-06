@@ -1,23 +1,68 @@
 #!/bin/zsh
+# you can bundle a plugin directory, a zsh script, or a git repo
+# this function scripts that out for your zshrc
 local bundle=$1
-local kind=$2
+local kind=${2:-zsh}
+local bundlepath=$3
+local bundledir initfile REPLY
+local skipfpath=false
 
-[[ $kind != clone ]] || return
-
-local bundledir=$(_antidote_bundledir $bundle)
-
-if [[ $kind = fpath ]]; then
-  echo "fpath+=( $bundledir )"
-elif [[ $kind = path ]]; then
-  echo "export PATH=\"$bundledir:\$PATH\""
-else
-  echo "fpath+=( $bundledir )"
-  local initfile REPLY
-  _antidote_initfile $bundle >/dev/null || return 1
-  initfile=$REPLY
-  if [[ $kind = defer ]]; then
-    echo "zsh-defer source $initfile"
+function __antidote_scriptout {
+  local fso=$1
+  local kind=$2
+  if [[ $kind = fpath ]]; then
+    echo "fpath+=( $fso )"
+  elif [[ $kind = path ]]; then
+    echo "export PATH=\"$fso:\$PATH\""
+  elif [[ $kind = defer ]]; then
+    echo "zsh-defer source $fso"
   else
-    echo "source $initfile"
+    echo "source $fso"
   fi
+}
+
+function __antidote_err_filenotfound {
+  echo >&2 "antidote: error: failed to bundle: $1: no such file or directory"
+}
+
+# if the bundle is a zsh file, we can shortcut past other logic
+if [[ -f $bundle ]]; then
+  __antidote_scriptout $bundle $kind
+  return
+fi
+
+# set the bundledir
+if [[ -d $bundle ]]; then
+  bundledir=$bundle
+else
+  bundledir=$(_antidote_bundledir $bundle)
+  [[ -d "$bundledir" ]] || { __antidote_err_filenotfound $bundledir && return 1 }
+fi
+
+# handle specified bundlepath
+if [[ -n "$bundlepath" ]]; then
+  if [[ -f $bundledir/$bundlepath ]]; then
+    initfile=$bundledir/$bundlepath
+    skipfpath=true
+  elif [[ -d $bundledir/$bundlepath ]]; then
+    bundledir=$bundledir/$bundlepath
+  else
+    __antidote_err_filenotfound $bundledir/$bundlepath
+    return 1
+  fi
+fi
+
+# detect the init file
+if [[ -z "$initfile" ]] && [[ $kind != (fpath|path) ]]; then
+  _antidote_initfile $bundledir >/dev/null || return 1
+  initfile=$REPLY
+  [[ -f "$initfile" ]] || { __antidote_err_filenotfound $initfile && return 1 }
+fi
+
+# output the script
+if [[ $kind = (path|fpath) ]]; then
+  __antidote_scriptout $bundledir $kind
+else
+  [[ $skipfpath = true ]] || __antidote_scriptout $bundledir fpath
+  __antidote_scriptout $initfile $kind
 fi
