@@ -2,35 +2,33 @@
 
 setopt local_options no_notify no_monitor
 
-local zsh_plugins=()
+local zsh_bundles=()
 if [[ ! -t 0 ]]; then
   # handle both <redirected or piped| input
   while read -r data; do
     # skip comments
     [[ $data != \#* ]] && [[ -n $data ]] || continue
-    zsh_plugins+=($data)
+    zsh_bundles+=($data)
   done
 elif [[ $# -gt 0 ]]; then
-  zsh_plugins=($@)
+  zsh_bundles=($@)
 else
   # if stdin containts no data and no params were passed there's nothing to do
   return 1
 fi
 
-# clone the requested plugins in the background
-() {
-  _antidote_cloneall $zsh_plugins
-} &
+# clone the requested bundles in the background
+_antidote_cloneall $zsh_bundles &
 wait
 
-# script loading of plugins
-local pluginstr parts plugin optstr opts
+# generate bundle load script
+local bundlestr parts bundle optstr opts
 typeset -A opts
 local prescript=() script=()
 
-for pluginstr in $zsh_plugins; do
-  parts=(${(@s/ /)pluginstr})
-  plugin=$parts[1]
+for bundlestr in $zsh_bundles; do
+  parts=(${(@s/ /)bundlestr})
+  bundle=$parts[1]
   optstr=(${parts[@]:1})
   opts=(${(@s/:/)optstr})
 
@@ -38,7 +36,7 @@ for pluginstr in $zsh_plugins; do
     _antidote_clone romkatv/zsh-defer
     prescript=("$(_antidote_script romkatv/zsh-defer)")
   fi
-  script+=("$(_antidote_script $plugin $opts[kind])")
+  script+=("$(_antidote_script $bundle $opts[kind]) $opts[path])")
 done
 
 printf "%s\n" "${prescript[@]}"

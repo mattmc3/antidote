@@ -1,18 +1,18 @@
 #!/bin/zsh
 
-local pluginstr parts plugin optstr opts
+local bundlestr parts bundle optstr opts
 typeset -A opts
 
-for pluginstr in $@; do
-  parts=(${(@s/ /)pluginstr})
-  plugin=$parts[1]
+for bundlestr in $@; do
+  parts=(${(@s/ /)bundlestr})
+  bundle=$parts[1]
   optstr=(${parts[@]:1})
   opts=(${(@s/:/)optstr})
-  if [[ $plugin = \$* ]] || [[ $plugin = /* ]]; then
-    # path plugins
+  if [[ $bundle = \$* ]] || [[ $bundle = /* ]]; then
+    # path bundles
     continue
-  elif [[ $plugin = */* ]]; then
+  elif [[ $bundle = */* ]]; then
     # repos
-    _antidote_clone $plugin ${opts[branch]}
+    _antidote_clone $bundle ${opts[branch]}
   fi
 done
