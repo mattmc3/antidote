@@ -182,6 +182,19 @@ fpath+=( /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.co
 zsh-defer source /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-olets-SLASH-zsh-abbr/zsh-abbr.plugin.zsh
 ```
 
+### Branch
+
+You can also specify a branch to download, if you don’t want the `main` branch for
+whatever reason.
+
+Example:
+
+```zsh
+$ antidote bundle zsh-users/zsh-autosuggestions branch:develop
+fpath+=( /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions )
+source /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
+```
+
 ## Friendly Names
 
 You can also change how Antidote names the plugin directories by adding this to your
