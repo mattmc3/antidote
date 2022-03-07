@@ -170,7 +170,7 @@ $ antidote bundle mbadolato/iTerm2-Color-Schemes kind:clone
 #### defer
 
 The `kind:defer` option defers loading of a plugin. This can be useful for plugins you
-don't need available right away or are slow to load. Use with caution.
+don't need available right away or are slow to load. [Use with caution][deferred-init].
 
 Example:
 
@@ -216,4 +216,5 @@ source /Users/matt/Library/Caches/antidote/zsh-users__zsh-autosuggestions/zsh-au
 A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
 [antibody] over the years.
 
-[antibody]:  https://getantibody.github.io
+[antibody]:       https://getantibody.github.io
+[deferred-init]:  https://github.com/romkatv/zsh-bench#deferred-initialization
