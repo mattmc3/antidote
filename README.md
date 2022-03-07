@@ -1,4 +1,9 @@
-# PZ
+# Legacy PZ (Now Antidote)
+
+**NOTE:** PZ is now Antidote, a feature-compatible implementation of the legacy
+Antibody plugin manager. This change introduces breaking changes to legacy PZ. The
+original PZ will remain available on the
+["pz" branch](https://github.com/mattmc3/antidote/tree/pz).
 
 > PZ - Plugins for Zsh made easy-pz
 
