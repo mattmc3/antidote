@@ -1,8 +1,9 @@
 # antidote
 
-> A Zsh plugin manager that picks up where [Antibody][antibody] left off.
+> The fast, native, Zsh plugin manager
 
-Antidote is a feature complete re-implementation of Antibody in Zsh.
+Antidote is a feature complete Zsh implementation of the legacy [Antibody][antibody]
+plugin manager.
 
 ## Installation
 
