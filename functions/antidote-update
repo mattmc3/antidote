@@ -7,7 +7,7 @@ for d in $ANTIDOTE_HOME/**/.git/..; do
     local url=$(git -C "${d:A}" config remote.origin.url)
     local oldsha=$(git -C "${d:A}" rev-parse --short HEAD)
     echo "antidote: updating: $url"
-    git -C "${d:A}" pull --ff --rebase --autostash
+    git -C "${d:A}" pull --quiet --ff --rebase --autostash
     local newsha=$(git -C "${d:A}" rev-parse --short HEAD)
     if [[ $oldsha != $newsha ]]; then
       echo "antidote: updated: $url $oldsha -> $newsha"
