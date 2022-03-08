@@ -203,6 +203,29 @@ You may also change Antidote's home folder, for example:
 export ANTIDOTE_HOME=~/Libary/antidote
 ```
 
+## Home
+
+You can also see where antidote is keeping the plugins with the `home` command:
+
+```zsh
+$ antidote home
+/Users/matt/Library/Caches/antidote
+```
+
+Of course, you can remove the entire thing with:
+
+```zsh
+rm -rf $(antidote home)
+```
+
+if you decide to start fresh or to use something else.
+
+If you clear out your plugins, don't forget to also run:
+
+```zsh
+rm ${ZDOTDIR:-~}/.zsh_plugins.zsh
+```
+
 ## Options
 
 There are a few options you can use that should cover most common use cases. Let's take
@@ -294,7 +317,7 @@ fpath+=( /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.co
 source /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
 ```
 
-# Path
+## Path
 
 You may specify a subfolder or a specific file if the repo you are bundling contains
 multiple plugins. This is especially useful for frameworks like [Oh-My-Zsh][ohmyzsh].
