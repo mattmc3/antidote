@@ -32,10 +32,11 @@ unset zhome
   <summary>Static plugins</summary>
 
   If you prefer an entirely manual installation with as little as possible in your
-  `.zshrc`, you could always clone antidote yourself:
+  `.zshrc`, you could always `git clone` antidote and `source` it yourself:
 
   ```zsh
   git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+  source ${ZDOTDIR:-~}/.antidote/antidote.zsh
   ```
 
   Then create a `.zsh_plugins.txt` file with some plugins in it:
@@ -142,15 +143,14 @@ will be loaded via a statically generated plugins file. Basically, antidote will
 need to run when you change your `.zsh_plugins.txt` file, and then it will regenerate
 the static file.
 
-_Note that in this case, we will never want to call `antidote init`. **Be sure that's not
-in your `.zshrc`**. If you did that, remove it from your `.zshrc` and start a fresh
-terminal session. `antidote init` is a wrapper provided for backwards compatibility
-with antibody and antigen, but no longer recommended._
+_Note that in this case, we will never want to call `antidote init`. **Be sure that's
+not in your `.zshrc`**. `antidote init` is a wrapper provided for backwards
+compatibility with antibody and antigen users, but is no longer recommended._
 
 Assuming the `.zsh_plugins.txt` be created above, we can run:
 
 ```zsh
-antidote bundle < ${ZDOTDIR:-~}/.zsh_plugins.txt > ${ZDOTDIR:-~}/.zsh_plugins.zsh
+antidote bundle <${ZDOTDIR:-~}/.zsh_plugins.txt >${ZDOTDIR:-~}/.zsh_plugins.zsh
 ```
 
 We can run this at any time to update our `.zsh_plugins.zsh` file, however if you
