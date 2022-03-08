@@ -196,6 +196,26 @@ fpath+=( /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.co
 source /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
 ```
 
+# Path
+
+You may specify a subfolder or a specific file if the repo you are bundling contains
+multiple plugins. This is especially useful for frameworks like [Oh-My-Zsh][ohmyzsh].
+
+File Example:
+
+```zsh
+$ antidote bundle ohmyzsh/ohmyzsh path:lib/clipboard.zsh
+source /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/lib/clipboard.zsh
+```
+
+Folder Example:
+
+```zsh
+$ antidote bundle ohmyzsh/ohmyzsh path:plugins/magic-enter
+fpath+=( /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/plugins/magic-enter )
+source /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/plugins/magic-enter/magic-enter.plugin.zsh
+```
+
 ## Friendly Names
 
 You can also change how Antidote names the plugin directories by adding this to your
@@ -219,3 +239,4 @@ A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
 
 [antibody]:       https://getantibody.github.io
 [deferred-init]:  https://github.com/romkatv/zsh-bench#deferred-initialization
+[ohmyzsh]:        https://github.com/ohmyzsh/ohmyzsh
