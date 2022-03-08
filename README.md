@@ -121,6 +121,13 @@ ohmyzsh/ohmyzsh   path:plugins/colored-man-pages
 romkatv/zsh-bench kind:path
 olets/zsh-abbr    kind:defer
 
+# prompts:
+#   with prompt plugins, remember to add this to your .zshrc:
+#   `autoload -Uz promptinit && promptinit && prompt pure`
+sindresorhus/pure     kind:fpath
+romkatv/powerlevel10k kind:fpath
+
+# other plugins
 zsh-users/zsh-syntax-highlighting
 zsh-users/zsh-history-substring-search
 zsh-users/zsh-autosuggestions
