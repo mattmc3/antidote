@@ -23,6 +23,7 @@ if [[ ! $zhome/.zsh_plugins.zsh -nt $zhome/.zsh_plugins.txt ]]; then
     antidote bundle <$zhome/.zsh_plugins.txt >$zhome/.zsh_plugins.zsh
   )
 fi
+function antidote { source ${ZDOTDIR:-~}/.antidote/antidote.zsh }
 source $zhome/.zsh_plugins.zsh
 unset zhome
 ```
@@ -345,7 +346,6 @@ echo gh_user/gh_repo >>|${ZDOTDIR:~}/.zsh_plugins.txt
 If that's too ugly, you can also recommend they run:
 
 ```zsh
-source ${ZDOTDIR:-~}/.antidote/antidote.zsh
 antidote install gh_user/gh_repo
 ```
 
