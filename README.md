@@ -232,11 +232,16 @@ fpath+=( /Users/matt/Library/Caches/antidote/zsh-users__zsh-autosuggestions )
 source /Users/matt/Library/Caches/antidote/zsh-users__zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
 ```
 
+## Benchmarks
+
+You can see how antidote compares with other setups [here][benchmarks].
+
 ## Credits
 
 A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
 [antibody] over the years.
 
 [antibody]:       https://getantibody.github.io
+[benchmarks]:     https://github.com/romkatv/zsh-bench/blob/master/doc/linux-desktop.md
 [deferred-init]:  https://github.com/romkatv/zsh-bench#deferred-initialization
 [ohmyzsh]:        https://github.com/ohmyzsh/ohmyzsh
