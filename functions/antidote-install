@@ -1,0 +1,5 @@
+#!/usr/bin/env zsh
+# install a new bundle
+local bundle=$1
+local bundlefile=${2:-${ZDOTDIR:-$HOME}/.zsh_plugins.txt}
+echo $bundle >>| $bundlefile

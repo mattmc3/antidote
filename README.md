@@ -324,6 +324,22 @@ source /Users/matt/Library/Caches/antidote/zsh-users__zsh-autosuggestions/zsh-au
 
 You can see how antidote compares with other setups [here][benchmarks].
 
+## Plugin authors
+
+If you authored a Zsh plugin, the recommended antidote snippet to tell your users how to
+install your plugin would be this:
+
+```zsh
+echo gh_user/gh_repo >>|${ZDOTDIR:~}/.zsh_plugins.txt
+```
+
+If that's too ugly, you can also recommend they run:
+
+```zsh
+source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+antidote install gh_user/gh_repo
+```
+
 ## Credits
 
 A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
