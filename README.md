@@ -17,7 +17,7 @@ would be to add the following snippet to your `.zshrc`:
 zhome=${ZDOTDIR:-$HOME}
 if [[ ! $zhome/.zsh_plugins.zsh -nt $zhome/.zsh_plugins.txt ]]; then
   [[ -e $zhome/.antidote ]]     || git clone --depth=1 https://github.com/mattmc3/antidote.git $zhome/.antidote
-  [[ $zhome/.zsh_plugins.txt ]] || $zhome/.zsh_plugins.txt
+  [[ $zhome/.zsh_plugins.txt ]] || touch $zhome/.zsh_plugins.txt
   (
     source $zhome/.antidote/antidote.zsh
     antidote bundle <$zhome/.zsh_plugins.txt >$zhome/.zsh_plugins.zsh
