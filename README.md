@@ -7,28 +7,107 @@ plugin manager.
 
 ## Installation
 
-Add the following to your `.zshrc`
+### Recommended install
+
+To get the best performance and a seamless install of antidote, the recommended method
+would be to add the following snippet to your `.zshrc`:
 
 ```zsh
-[[ -d ${ZDOTDIR:-~}/.antidote ]] ||
-  git clone https://github.com/mattmc3/antidote ${ZDOTDIR:-~}/.antidote
-source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+# clone antidote if necessary and generate a static plugin file
+zhome=${ZDOTDIR:-$HOME}
+if [[ ! $zhome/.zsh_plugins.zsh -nt $zhome/.zsh_plugins.txt ]]; then
+  [[ -e $zhome/.antidote ]]     || git clone --depth=1 https://github.com/mattmc3/antidote.git $zhome/.antidote
+  [[ $zhome/.zsh_plugins.txt ]] || $zhome/.zsh_plugins.txt
+  (
+    source $zhome/.antidote/antidote.zsh
+    antidote bundle <$zhome/.zsh_plugins.txt >$zhome/.zsh_plugins.zsh
+  )
+fi
+source $zhome/.zsh_plugins.zsh
+unset zhome
 ```
+
+### Manual install
+<details>
+  <summary>Static plugins</summary>
+
+  If you prefer an entirely manual installation with as little as possible in your
+  `.zshrc`, you could always clone antidote yourself:
+
+  ```zsh
+  git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+  ```
+
+  Then create a `.zsh_plugins.txt` file with some plugins in it:
+
+  ```zsh
+  echo "zsh-users/zsh-syntax-highlighting"  >| ${ZDOTDIR:-~}/.zsh_plugins.txt
+  echo "zsh-users/zsh-autosuggestions"     >>| ${ZDOTDIR:-~}/.zsh_plugins.txt
+  ```
+
+  Then generate your static plugins zsh file:
+
+  ```zsh
+  antidote bundle <${ZDOTDIR:-~}/.zsh_plugins.txt >${ZDOTDIR:-~}/.zsh_plugins.zsh
+  ```
+
+  Then source your static plugins files from your `.zshrc`:
+
+  ```zsh
+  # .zshrc
+  source ${ZDOTDIR:-~}/.zsh_plugins.zsh
+  ```
+
+  You will need to manually regenerate your `.zsh_plugins.zsh` yourself every time you
+  change your plugins.
+</details>
+
+<details>
+  <summary>Dynamic plugins</summary>
+
+  **Note:** _This installation method is provided for legacy purposes only, and is not
+  recommended._
+
+  Clone antidote:
+
+  ```zsh
+  git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+  ```
+
+  Add the following snippet to your `.zshrc`
+
+  ```zsh
+  # zshrc
+
+  # initialize antidote for dynamic plugins
+  source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+  source <(antidote init)
+
+  # bundle plugins individually
+  antidote bundle zsh-users/zsh-syntax-highlighting
+  antidote bundle zsh-users/zsh-autosuggestions
+
+  # or bundle using a plugins file
+  antidote bundle <${ZDOTDIR:-~}/.zsh_plugins.txt
+  ```
+</details>
 
 ## Usage
 
-There are mainly two ways of using antidote: static and dynamic. We will also see how we
-can keep a plugins file.
+Antidote achieves its speed by doing all the work of cloning plugins up front and
+generating the code your `.zshrc` needs to source those plugins. Typically, we want to
+do this via a plugins file.
 
 ### Plugins file
 
-A plugin file is basically any text file that has one plugin per line.
+A plugins file is basically any text file that has one plugin per line.
 
-In our examples, let’s assume we have a `${ZDOTDIR:-~}/.zsh_plugins.txt` file with these
+In our examples, let's assume we have a `${ZDOTDIR:-~}/.zsh_plugins.txt` file with these
 contents:
 
 ```zsh
 # .zsh_plugins.txt
+
 # comments are supported like this
 zshzoo/zfunctions
 zshzoo/zshrc.d
@@ -37,69 +116,78 @@ zsh-users/zsh-completions
 # empty lines are skipped
 
 # annotations are also allowed:
-ohmyzsh/ohmyzsh path:plugins/colored-man-pages
+ohmyzsh/ohmyzsh   path:lib/clipboard.zsh
+ohmyzsh/ohmyzsh   path:plugins/colored-man-pages
 romkatv/zsh-bench kind:path
-olets/zsh-abbr kind:defer
+olets/zsh-abbr    kind:defer
 
 zsh-users/zsh-syntax-highlighting
 zsh-users/zsh-history-substring-search
 zsh-users/zsh-autosuggestions
 ```
 
-That being said, let’s look how can we load them!
+Now that we have a plugins file, let's look how can we load them!
 
-### Dynamic loading
+### Loading plugins
 
-This is the most common way. Basically, every time the a new shell starts, antidote will
-apply the plugins given to it.
+If you followed the [recommended install procedure](#recommended-install), your plugins
+will be loaded via a statically generated plugins file. Basically, antidote will only
+need to run when you change your `.zsh_plugins.txt` file, and then it will regenerate
+the static file.
 
-For this to work, antidote needs to be wrapped into your `.zshrc`. To do that, run:
+_Note that in this case, we will never want to call `antidote init`. **Be sure that's not
+in your `.zshrc`**. If you did that, remove it from your `.zshrc` and start a fresh
+terminal session. `antidote init` is a wrapper provided for backwards compatibility
+with antibody and antigen, but no longer recommended._
 
-```zsh
-# .zshrc
-source <(antidote init)
-```
-
-And reload your current shell or open a new one.
-
-Then, you will also need to tell antidote which plugins to bundle. This can also be done
-in the `.zshrc` file:
-
-```zsh
-# .zshrc
-antidote bundle < ${ZDOTDIR:-~}/.zsh_plugins.txt
-```
-
-### Static loading
-
-This is the faster alternative. Basically, you’ll run antidote only when you change your
-plugins, and then you can just load the "static" plugins file.
-
-Note that in this case, **we should not put `antidote init` on our `.zshrc`**. If you
-did that already, remove it from your .zshrc and start a fresh terminal session.
-
-Assuming the same `.zsh_plugins.txt` as before, we can run:
+Assuming the `.zsh_plugins.txt` be created above, we can run:
 
 ```zsh
 antidote bundle < ${ZDOTDIR:-~}/.zsh_plugins.txt > ${ZDOTDIR:-~}/.zsh_plugins.zsh
 ```
 
-We can run this at any time to update our `.zsh_plugins.zsh` file. Now, we just need to
-source that file in our `.zshrc`:
+We can run this at any time to update our `.zsh_plugins.zsh` file, however if you
+followed the recommended install procedure you won't need to do this yourself.
+
+Finally, the static generated plugins file gets sourced in your `.zshrc`.
 
 ```zsh
 # .zshrc
 source ${ZDOTDIR:-~}/.zsh_plugins.zsh
 ```
 
-And that’s it!
+### Loading without a .zsh_plugins file
 
-## CleanMyMac and others
+<details>
+  <summary>Show details</summary>
+  **Note:** _This method is provided for legacy purposes, but is slower and not
+  recommended._
+
+  For this to work, `antidote` needs to be wrapped into your `.zshrc`. To do that, run:
+
+  ```zsh
+  # .zshrc
+  source <(antidote init)
+  ```
+
+  And reload your current shell or open a new one.
+
+  Then, you will also need to tell antidote which plugins to bundle. This can also be done
+  in the `.zshrc` file:
+
+  ```zsh
+  # .zshrc
+  antidote bundle zsh-users/zsh-history-substring-search
+  antidote bundle zsh-users/zsh-autosuggestions
+  ```
+</details>
+
+## CleanMyMac or similar tools
 
 If you use CleanMyMac or similar tools, make sure to set it up to ignore the `antidote
 home` folder, otherwise it may delete your plugins.
 
-You may also change Antidote’s home folder, for example:
+You may also change Antidote's home folder, for example:
 
 ```zsh
 export ANTIDOTE_HOME=~/Libary/antidote
@@ -107,7 +195,7 @@ export ANTIDOTE_HOME=~/Libary/antidote
 
 ## Options
 
-There are a few options you can use that should cover most common use cases. Let’s take
+There are a few options you can use that should cover most common use cases. Let's take
 a look!
 
 ### Kind
@@ -160,7 +248,7 @@ fpath+=( /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-github.co
 #### clone
 
 The `kind:clone` only gets the plugin, doing nothing else. It can be useful for managing
-a package that isn’t directly used as a shell plugin.
+a package that isn't directly used as a shell plugin.
 
 Example:
 
@@ -185,7 +273,7 @@ zsh-defer source /Users/matt/Library/Caches/antidote/https-COLON--SLASH--SLASH-g
 
 ### Branch
 
-You can also specify a branch to download, if you don’t want the `main` branch for
+You can also specify a branch to download, if you don't want the `main` branch for
 whatever reason.
 
 Example:
