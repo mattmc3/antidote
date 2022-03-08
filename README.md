@@ -23,7 +23,7 @@ if [[ ! $zhome/.zsh_plugins.zsh -nt $zhome/.zsh_plugins.txt ]]; then
     antidote bundle <$zhome/.zsh_plugins.txt >$zhome/.zsh_plugins.zsh
   )
 fi
-function antidote { source ${ZDOTDIR:-~}/.antidote/antidote.zsh }
+function antidote { source ${ZDOTDIR:-~}/.antidote/antidote.zsh; antidote "$@" }
 source $zhome/.zsh_plugins.zsh
 unset zhome
 ```
