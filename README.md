@@ -167,8 +167,10 @@ source ${ZDOTDIR:-~}/.zsh_plugins.zsh
 
 <details>
   <summary>Show details</summary>
-  **Note:** _This method is provided for legacy purposes, but is slower and not
-  recommended._
+
+  <strong><em>
+  Note: This method is provided for legacy purposes, but is slower and not recommended.
+  </em></strong>
 
   For this to work, `antidote` needs to be wrapped into your `.zshrc`. To do that, run:
 
