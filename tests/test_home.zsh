@@ -27,5 +27,4 @@ expected=$XDG_CACHE_HOME/antidote
 actual=$(antidote-home)
 @test "antidote home on an OS with \$XDG_CACHE_HOME defined uses \$XDG_CACHE_HOME" "$actual" = "$expected"
 
-
 teardown
