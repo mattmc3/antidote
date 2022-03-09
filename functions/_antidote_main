@@ -1,4 +1,7 @@
 #!/usr/bin/env zsh
+
+# the purpose of _antidote_main is to allow `antidote` and `antidote init` to co-exist
+
 if ! (( $+functions[antidote-help] )); then
   0=${(%):-%x}
   for _fn in ${0:A:h}/*; do
