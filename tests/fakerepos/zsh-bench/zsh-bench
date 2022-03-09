@@ -1,0 +1,5 @@
+#!/usr/bin/env zsh
+# fake romkatv/zsh-bench
+
+# This repo is interesting because it's not a plugin - it's a utility shell script
+# Thus, there is no Zsh plugin init file
