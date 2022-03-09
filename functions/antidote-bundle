@@ -35,7 +35,11 @@ for bundlestr in $zsh_bundles; do
 
   if [[ $opts[kind] = defer ]] && [[ $#prescript -eq 0 ]]; then
     _antidote_clone romkatv/zsh-defer
-    prescript=("$(_antidote_script romkatv/zsh-defer)")
+    prescript=(
+      "if ! (( \$+functions[zsh-defer] )); then"
+      "$(_antidote_script romkatv/zsh-defer | pr -to 2)"
+      "fi"
+    )
   fi
 
   # nothing to do for clone-only bundles
