@@ -26,5 +26,6 @@ ohmyzsh/ohmyzsh path:plugins/extract
 zdharma-continuum/fast-syntax-highlighting kind:defer
 
 # non-conforming plugins
-# rummik/zsh-tailf
-# peterhurford/up.zsh
+peterhurford/up.zsh
+rummik/zsh-tailf
+rupa/z

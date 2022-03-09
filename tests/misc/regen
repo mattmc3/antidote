@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+
+# There's a chicken-and-egg problem here in that we are using an untested antidote to
+# generate the desired output for tests. The reason this is okay is simply this: git.
+# Since we store the resulting file in git, can diff it and do manual verification that
+# the output really is correct. This is for convenience only.
+
+0=${(%):-%x}
+prj_dir=${0:a:h:h:h}
+source $prj_dir/antidote.zsh
+txtfile=${0:h}/zsh_plugins.txt
+zshfile=${txtfile:r}.zsh
+antidote bundle <$txtfile >$zshfile
+antidote_homedir=$(antidote home)
+echo $antidote_homedir
+sed -i '' "s|$antidote_homedir|\$ANTIDOTE_HOME|g" $zshfile
