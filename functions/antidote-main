@@ -1,4 +1,12 @@
 #!/usr/bin/env zsh
+if ! (( $+functions[antidote-help] )); then
+  0=${(%):-%x}
+  for _fn in ${0:A:h}/*; do
+    (( $+functions[${_fn:t}] )) || autoload -Uz $_fn
+  done
+  unset _fn
+fi
+
 local cmd="$1"
 
 if (( $+functions[antidote-${cmd}] )); then

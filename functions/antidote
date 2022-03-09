@@ -1,2 +1,7 @@
 #!/usr/bin/env zsh
+
+if ! (( $+functions[antidote-main] )); then
+  0=${(%):-%x}
+  autoload -Uz ${0:h}/antidote-main
+fi
 antidote-main "$@"
