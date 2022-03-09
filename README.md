@@ -363,13 +363,13 @@ If you authored a Zsh plugin, the recommended antidote snippet to tell your user
 install your plugin would be this:
 
 ```zsh
-echo gh_user/gh_repo >>|${ZDOTDIR:~}/.zsh_plugins.txt
+antidote install gh_user/gh_repo
 ```
 
-If that's too ugly, you can also recommend they run:
+You can also do it more explicitly this way:
 
 ```zsh
-antidote install gh_user/gh_repo
+echo gh_user/gh_repo >>|${ZDOTDIR:~}/.zsh_plugins.txt
 ```
 
 ## Credits

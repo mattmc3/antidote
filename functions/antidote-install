@@ -2,4 +2,11 @@
 # install a new bundle
 local bundle=$1
 local bundlefile=${2:-${ZDOTDIR:-$HOME}/.zsh_plugins.txt}
-echo $bundle >>| $bundlefile
+
+_antidote_clone $bundle
+if [[ $? -ne 0 ]]; then
+  echo >&2 "antidote: unable to clone bundle '$bundle'."
+else
+  echo $bundle >>| $bundlefile
+  echo "Bundle '$bundle' added to '$bundlefile'."
+fi
