@@ -1,0 +1,3 @@
+#!/usr/bin/env zsh
+# included as its own function so that we can mock it in ZTAP tests
+command git clone "$@"

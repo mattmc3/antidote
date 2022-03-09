@@ -1,3 +1,5 @@
 #!/usr/bin/env zsh
 
-# placeholder
+if [[ -d $ANTIDOTE_HOME ]] && [[ $ANTIDOTE_HOME = *ztap* ]]; then
+  rm -rf $ANTIDOTE_HOME
+fi

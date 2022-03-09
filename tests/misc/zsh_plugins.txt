@@ -1,0 +1,30 @@
+# plugins
+zsh-users/zsh-history-substring-search
+https://github.com/zsh-users/zsh-history-substring-search
+git@github.com:zsh-users/zsh-completions
+
+# kind:zsh
+zsh-users/zsh-syntax-highlighting kind:zsh
+
+# kind:clone
+mattmc3/antidote
+
+# kind:fpath
+sindresorhus/pure kind:fpath
+
+# kind:path
+romkatv/zsh-bench kind:path
+
+# branches
+zsh-users/zsh-autosuggestions branch:develop
+
+# subpath plugins
+ohmyzsh/ohmyzsh path:lib/clipboard.zsh
+ohmyzsh/ohmyzsh path:plugins/extract
+
+# deferred
+zdharma-continuum/fast-syntax-highlighting kind:defer
+
+# non-conforming plugins
+# rummik/zsh-tailf
+# peterhurford/up.zsh
