@@ -1,0 +1,9 @@
+#!/usr/bin/env zsh
+
+0=${(%):-%x}
+for _fn in ${0:A:h}/*; do
+  (( $+functions[${_fn:t}] )) || autoload -Uz $_fn
+done
+unset _fn
+
+PRJ_HOME=${0:a:h:h:h}

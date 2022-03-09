@@ -20,3 +20,7 @@ indent_size = 2
 [functions/*]
 indent_style = space
 indent_size = 2
+
+[tests/**/*]
+indent_style = space
+indent_size = 2

@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+
+0=${(%):-%N}
+TESTS_HOME=${0:a:h}
+# make sure our tests don't get hung up on git prompting
+export GIT_TERMINAL_PROMPT=0
+
+[[ -d $TESTS_HOME/.ztap ]] ||
+  command git clone --depth 1 -q https://github.com/mattmc3/ztap.git $TESTS_HOME/.ztap
+
+source $TESTS_HOME/.ztap/ztap.zsh
+if [[ $# -gt 0 ]]; then
+  ztap "$@" | $TESTS_HOME/.ztap/bin/colorize_tap
+else
+  ztap $TESTS_HOME/test_*.zsh | $TESTS_HOME/.ztap/bin/colorize_tap
+fi

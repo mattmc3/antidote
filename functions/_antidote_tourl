@@ -1,10 +1,7 @@
 #!/usr/bin/env zsh
 local bundle=$1
 local url=$bundle
-if [[ $bundle != git://* &&
-      $bundle != https://* &&
-      $bundle != http://* &&
-      $bundle != ssh://* &&
+if [[ $bundle != *://* &&
       $bundle != git@*:*/* ]]
 then
   url=https://github.com/$bundle
