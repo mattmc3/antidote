@@ -7,6 +7,6 @@ done
 unset _fn
 
 PRJ_HOME=${0:a:h:h:h}
-TEST_DIR=${0:a:h:h}
+TEST_HOME=${0:a:h:h}
 export ANTIDOTE_HOME=$(mktemp -d -t ztap)
 @echo "temp ANTIDOTE_HOME=$ANTIDOTE_HOME"

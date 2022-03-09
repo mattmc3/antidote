@@ -8,10 +8,18 @@ ZSH_PLUGINS_TXT=${0:a:h}/misc/zsh_plugins.txt
 ZSH_PLUGINS_ZSH=${ZSH_PLUGINS_TXT:r}.zsh
 
 # mocks
+# comment this out to test actually cloning repos
 function _antidote_gitclone { _mock_gitclone "$@" }
+
+actual_repos=($ANTIDOTE_HOME/*(N/))
+@test "nothing has been cloned" $#actual_repos -eq 0
 
 antidote bundle <$ZSH_PLUGINS_TXT >| $PRJ_HOME/.cache/bundle_actual.txt
 @test "antidote bundle succeeds" $? -eq 0
+
+actual_repos=($ANTIDOTE_HOME/*(N/))
+expected_repos=($TEST_HOME/fakerepos/*(N/))
+@test "all repos have been cloned" $#actual_repos -eq $#expected_repos
 
 actual=("${(@f)$(antidote bundle <$ZSH_PLUGINS_TXT)}")
 expected=("${(f)"$(<$ZSH_PLUGINS_ZSH)"}")

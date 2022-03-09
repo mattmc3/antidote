@@ -5,7 +5,7 @@ local giturl=${@[-2]}
 local bundledir=${@[-1]}
 local reponame=${${giturl%.git}:t}
 
-if [[ ! -d "$TEST_DIR/fakerepos/$reponame" ]]; then
+if [[ ! -d "$TEST_HOME/fakerepos/$reponame" ]]; then
   echo >&2 "Fake repo not found '$reponame'."
   return 1
 elif [[ -d "$bundledir" ]]; then
@@ -13,4 +13,4 @@ elif [[ -d "$bundledir" ]]; then
   return 1
 fi
 
-cp -a "$TEST_DIR/fakerepos/$reponame" "$bundledir"
+cp -a "$TEST_HOME/fakerepos/$reponame" "$bundledir"
