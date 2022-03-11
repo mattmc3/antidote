@@ -9,13 +9,10 @@
      src="https://avatars.githubusercontent.com/u/101279220?s=80&v=4">
 </a>
 
-> Get the cure - Zsh plugin management made awesome
-
+> Get the cure - Zsh plugin management made awesome</blockquote>
+  
 Antidote is a feature complete Zsh implementation of the legacy [Antibody][antibody]
 plugin manager.
-
-<br>
-<br>
 
 ## Documentation
 
