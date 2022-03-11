@@ -2,7 +2,7 @@
 
 # the purpose of _antidote_main is to allow `antidote` and `antidote init` to co-exist
 0=${(%):-%x}
-local ver='1.0.0'
+local ver='1.1.0'
 
 if ! (( $+functions[antidote-help] )); then
   for _fn in ${0:A:h}/*; do
