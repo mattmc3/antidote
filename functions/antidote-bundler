@@ -1,16 +1,11 @@
 #!/usr/bin/env zsh
 # bundle and source a static plugins file
 
-local bundlefile="$1"
-if [[ -z "$bundlefile" ]]; then
-  echo >&2 "antidote: expecting plugins file argument."
-  return 1
-elif [[ ! -f "$bundlefile" ]] then;
-  echo >&2 "antidote: file not found '$bundlefile'."
-  return 1
-fi
+local bundlefile="${1:-${ZDOTDIR:-$HOME}/.zsh_plugins.txt}"
+[[ -f "$bundlefile" ]] || touch "$bundlefile"
 local staticfile="${2:-${bundlefile:r}.zsh}"
 [[ "$staticfile" != "$bundlefile" ]] || staticfile="${bundlefile:r}.static.zsh"
 
+# regenerate the static file based on whether the bundle file is newer
 [[ $staticfile -nt $bundlefile ]] || antidote bundle <"$bundlefile" >|"$staticfile"
 source "$staticfile"
