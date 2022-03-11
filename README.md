@@ -25,10 +25,10 @@ The full documentation can be found at [https://getantidote.github.io][getantido
 The short version:
 
 The original [Antigen][antigen] plugin manager was slow. [Antibody][antibody] was
-written to address this, but was written in [Go][go], not Zsh. Other native Zsh plugin
-managers caught up on speed, so it was deprecated. But Antibody had some other nice
-features that aren't in other Zsh plugin managers. So [Antidote][getantidote] was
-created to be the 3rd generation of antigen-compatible Zsh plugin managers.
+written to address this, but was written in [Go][go], not [Zsh][zsh]. Other native
+Zsh plugin managers caught up on speed, so it was deprecated. But Antibody had some
+other nice features that aren't in other Zsh plugin managers. So [Antidote][getantidote]
+was created to be the 3rd generation of antigen-compatible Zsh plugin managers.
 
 ## Installation
 
@@ -100,3 +100,5 @@ A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
 [getantidote]:    https://getantidote.github.io
 [go]:             https://go.dev
 [benchmarks]:     https://github.com/romkatv/zsh-bench/blob/master/doc/linux-desktop.md
+[zsh]:            https://www.zsh.org
+
