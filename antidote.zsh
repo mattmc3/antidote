@@ -6,6 +6,6 @@ done
 unset _fn
 
 _antidote() {
-	IFS=' ' read -A reply <<< "help bundle update home purge list path init install"
+	IFS=' ' read -A reply <<< "help bundle update home purge list load path init install"
 }
 compctl -K _antidote antidote

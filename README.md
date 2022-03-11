@@ -34,7 +34,7 @@ created to be the 3rd generation of antigen-compatible Zsh plugin managers.
 
 ### Recommended install
 
-The simplest way to use antidote is to call the `antidote bundler` command from your
+The simplest way to use antidote is to call the `antidote load` command from your
 `.zshrc`:
 
 ```zsh
@@ -46,13 +46,13 @@ The simplest way to use antidote is to call the `antidote bundler` command from 
 source ${ZDOTDIR:-~}/.antidote/antidote.zsh
 
 # generate and source your static plugins file
-antidote bundler
+antidote load
 ```
 
 ### Ultra-high performance install
 
 To squeeze out every last drop of performance, you can do all the things
-`antidote bundler` does for you on your own. This snippet shows you how:
+`antidote load` does for you on your own. This snippet shows you how:
 
 ```zsh
 # clone antidote if necessary and generate a static plugin file
@@ -70,7 +70,7 @@ unset zhome
 ```
 
 This method boils down to only the essentials. However, note that you'll really only be
-saving small fractions of a second over using `antidote bundler` directly.
+saving small fractions of a second over using `antidote load` directly.
 
 ## Benchmarks
 
