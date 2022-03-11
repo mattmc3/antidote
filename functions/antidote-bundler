@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+# bundle and source a static plugins file
+
+local bundlefile="$1"
+if [[ -z "$bundlefile" ]]; then
+  echo >&2 "antidote: expecting plugins file argument."
+  return 1
+elif [[ ! -f "$bundlefile" ]] then;
+  echo >&2 "antidote: file not found '$bundlefile'."
+  return 1
+fi
+local staticfile="${2:-${bundlefile:r}.zsh}"
+[[ "$staticfile" != "$bundlefile" ]] || staticfile="${bundlefile:r}.static.zsh"
+
+[[ $staticfile -nt $bundlefile ]] || antidote bundle <"$bundlefile" >|"$staticfile"
+source "$staticfile"
