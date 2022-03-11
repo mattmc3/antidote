@@ -1,5 +1,8 @@
 # antidote
 
+[![MIT License](https://img.shields.io/badge/license-MIT-007EC7.svg)](/LICENSE)
+![version](https://img.shields.io/badge/version-v1.0.0-ff69b4)
+
 <a title="GetAntidote"
    href="https://getantidote.github.io"
    align="right">

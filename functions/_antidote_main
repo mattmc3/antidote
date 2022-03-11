@@ -1,9 +1,10 @@
 #!/usr/bin/env zsh
 
 # the purpose of _antidote_main is to allow `antidote` and `antidote init` to co-exist
+0=${(%):-%x}
+local ver='1.0.0'
 
 if ! (( $+functions[antidote-help] )); then
-  0=${(%):-%x}
   for _fn in ${0:A:h}/*; do
     (( $+functions[${_fn:t}] )) || autoload -Uz $_fn
   done
@@ -18,6 +19,10 @@ if (( $+functions[antidote-${cmd}] )); then
   return $?
 elif [[ -z "$cmd" ]] || [[ $cmd = (--help|-h) ]]; then
   antidote-help
+elif [[ $cmd = (--version|-v) ]]; then
+  local gitsha=$(git -C "${0:h:h}" rev-parse --short HEAD 2>/dev/null)
+  [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
+  echo "antidote version $ver"
 else
   echo >&2 "antidote: command not found '${cmd}'" && return 1
 fi
