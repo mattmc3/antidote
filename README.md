@@ -44,7 +44,7 @@ The simplest way to use antidote is to call the `antidote load` command from you
 # source antidote
 . ~/.antidote/antidote.zsh
 
-# generate and source your static plugins file
+# generate and source plugins from ~/.zsh_plugins.txt
 antidote load
 ```
 
