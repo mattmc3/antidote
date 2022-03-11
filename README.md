@@ -1,20 +1,25 @@
 # antidote
 
-<p align="center">
-  <a href="https://getantidote.github.io">
-    <img alt="GetAntidote Logo" src="https://avatars.githubusercontent.com/u/101279220?s=140&v=4"
-      height="140" />
-  </a>
-  <h3 align="center">Antidote</h3>
-  <p align="center">
-    <blockquote>Get the cure - Zsh plugin management made awesome</blockquote>
-  </p>
-</p>
+<a title="GetAntidote"
+   href="https://getantidote.github.io"
+   align="right">
+<img align="right"
+     height="80"
+     alt="GetAntidote Logo"
+     src="https://avatars.githubusercontent.com/u/101279220?s=80&v=4">
+</a>
 
----
+> Get the cure - Zsh plugin management made awesome
 
 Antidote is a feature complete Zsh implementation of the legacy [Antibody][antibody]
 plugin manager.
+
+<br>
+<br>
+
+## Documentation
+
+Documentation can be found at https://getantidote.github.io
 
 ## Installation
 
@@ -104,10 +109,6 @@ unset zhome
   antidote bundle <${ZDOTDIR:-~}/.zsh_plugins.txt
   ```
 </details>
-
-## Documentation
-
-Documentation can be found at https://getantidote.github.io
 
 ## Benchmarks
 
