@@ -10,20 +10,49 @@
 </a>
 
 > Get the cure - Zsh plugin management made awesome</blockquote>
-  
+
 Antidote is a feature complete Zsh implementation of the legacy [Antibody][antibody]
 plugin manager.
 
 ## Documentation
 
-Documentation can be found at https://getantidote.github.io
+The full documentation can be found at [https://getantidote.github.io][getantidote]
+
+## History
+
+> Antigen < Antibody < Antidote
+
+The short version:
+
+The original [Antigen][antigen] plugin manager was slow. [Antibody][antibody] was
+written to address this, but was written in [Go][go], not Zsh. Other native Zsh plugin
+managers caught up on speed, so it was deprecated. But Antibody had some other nice
+features that aren't in other Zsh plugin managers. So [Antidote][getantidote] was
+created to be the 3rd generation of antigen-compatible Zsh plugin managers.
 
 ## Installation
 
 ### Recommended install
 
-To get the best performance and a seamless install of antidote, the recommended method
-would be to add the following snippet to your `.zshrc`:
+The simplest way to use antidote is to call the `antidote bundler` command from your
+`.zshrc`:
+
+```zsh
+# clone antidote if necessary
+[[ -e ${ZDOTDIR:-~}/.antidote ]] || \
+  git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+
+# load antidote
+source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+
+# generate and source your static plugins file
+antidote bundler
+```
+
+### Ultra-high performance install
+
+To squeeze out every last drop of performance, you can do all the things
+`antidote bundler` does for you on your own. This snippet shows you how:
 
 ```zsh
 # clone antidote if necessary and generate a static plugin file
@@ -36,76 +65,12 @@ if [[ ! $zhome/.zsh_plugins.zsh -nt $zhome/.zsh_plugins.txt ]]; then
     antidote bundle <$zhome/.zsh_plugins.txt >$zhome/.zsh_plugins.zsh
   )
 fi
-autoload -Uz $zhome/.antidote/functions/antidote
 source $zhome/.zsh_plugins.zsh
 unset zhome
 ```
 
-### Manual install
-<details>
-  <summary>Static plugins</summary>
-
-  If you prefer an entirely manual installation with as little as possible in your
-  `.zshrc`, you could always `git clone` antidote and `source` it yourself:
-
-  ```zsh
-  git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
-  source ${ZDOTDIR:-~}/.antidote/antidote.zsh
-  ```
-
-  Then create a `.zsh_plugins.txt` file with some plugins in it:
-
-  ```zsh
-  echo "zsh-users/zsh-syntax-highlighting"  >| ${ZDOTDIR:-~}/.zsh_plugins.txt
-  echo "zsh-users/zsh-autosuggestions"     >>| ${ZDOTDIR:-~}/.zsh_plugins.txt
-  ```
-
-  Then generate your static plugins zsh file:
-
-  ```zsh
-  antidote bundle <${ZDOTDIR:-~}/.zsh_plugins.txt >${ZDOTDIR:-~}/.zsh_plugins.zsh
-  ```
-
-  Then source your static plugins files from your `.zshrc`:
-
-  ```zsh
-  # .zshrc
-  source ${ZDOTDIR:-~}/.zsh_plugins.zsh
-  ```
-
-  You will need to manually regenerate your `.zsh_plugins.zsh` yourself every time you
-  change your plugins.
-</details>
-
-<details>
-  <summary>Dynamic plugins</summary>
-
-  **Note:** _This installation method is provided for legacy purposes only, and is not
-  recommended._
-
-  Clone antidote:
-
-  ```zsh
-  git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
-  ```
-
-  Add the following snippet to your `.zshrc`
-
-  ```zsh
-  # zshrc
-
-  # initialize antidote for dynamic plugins
-  source ${ZDOTDIR:-~}/.antidote/antidote.zsh
-  source <(antidote init)
-
-  # bundle plugins individually
-  antidote bundle zsh-users/zsh-syntax-highlighting
-  antidote bundle zsh-users/zsh-autosuggestions
-
-  # or bundle using a plugins file
-  antidote bundle <${ZDOTDIR:-~}/.zsh_plugins.txt
-  ```
-</details>
+This method boils down to only the essentials. However, note that you'll really only be
+saving small fractions of a second over using `antidote bundler` directly.
 
 ## Benchmarks
 
@@ -131,5 +96,8 @@ echo gh_user/gh_repo >>|${ZDOTDIR:~}/.zsh_plugins.txt
 A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
 [antibody] over the years.
 
-[antibody]:       https://getantibody.github.io
+[antigen]:        https://github.com/zsh-users/antigen
+[antibody]:       https://github.com/getantibody/antibody
+[getantidote]:    https://getantidote.github.io
+[go]:             https://go.dev
 [benchmarks]:     https://github.com/romkatv/zsh-bench/blob/master/doc/linux-desktop.md
