@@ -14,7 +14,8 @@ function _antidote_gitclone { _mock_gitclone "$@" }
 actual_repos=($ANTIDOTE_HOME/*(N/))
 @test "nothing has been cloned" $#actual_repos -eq 0
 
-antidote bundle <$ZSH_PLUGINS_TXT >| $PRJ_HOME/.cache/bundle_actual.txt
+# either write @echo fd3 to /dev/null or to &1
+3>&1 antidote bundle <$ZSH_PLUGINS_TXT >| $PRJ_HOME/.cache/bundle_actual.txt
 @test "antidote bundle succeeds" $? -eq 0
 
 actual_repos=($ANTIDOTE_HOME/*(N/))
@@ -28,7 +29,9 @@ expected=(${expected//\$ANTIDOTE_HOME/$ANTIDOTE_HOME})
 @test "antidote bundle produces the expected output line count" $#expected -eq $#actual
 
 # debuging help
-if [[ "$expected" != "$actual" ]]; then
+if [[ "$expected" = "$actual" ]]; then
+  @test "antidote bundle produces the expected output" 1 -eq 1
+else
   @test "antidote bundle produces the expected output" "see bundle_expected.txt" = "see bundle_actual.txt"
   printf "%s\n" "${expected[@]}" >| $PRJ_HOME/.cache/bundle_expected.txt
   printf "%s\n" "${actual[@]}" >| $PRJ_HOME/.cache/bundle_actual.txt

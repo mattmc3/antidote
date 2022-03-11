@@ -1,5 +1,9 @@
 #!/usr/bin/env zsh
-# @echo "fakegit clone $@"
+
+# this is a bit unusual, but we're going to echo to fd3 so that we can get debug info
+# fd3 is not an open fd, so this means that we need to redirect 3>/dev/null or to 3>&1
+# for anything that uses this mock
+@echo "fakegit clone $@" >&3
 
 local giturl=${@[-2]}
 local bundledir=${@[-1]}
