@@ -1,0 +1,10 @@
+usage: antidote bundle [<bundles>...]
+
+Downloads a bundle and prints its source line
+
+Flags:
+  -h, --help           Show context-sensitive help
+  -v, --version        Show application version
+
+Args:
+  [<bundles>]  bundle list

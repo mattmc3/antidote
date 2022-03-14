@@ -1,0 +1,7 @@
+usage: antidote init
+
+Initializes the shell so antidote can behave like legacy antibody/antigen
+
+Flags:
+  -h, --help           Show context-sensitive help
+  -v, --version        Show application version

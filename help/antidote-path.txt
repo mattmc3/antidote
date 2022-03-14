@@ -1,0 +1,10 @@
+usage: antidote path <bundle>
+
+Prints the path of a currently cloned bundle
+
+Flags:
+  -h, --help           Show context-sensitive help
+  -v, --version        Show application version
+
+Args:
+  <bundle>  bundle in which to find and print cloned path

@@ -12,13 +12,13 @@ if ! (( $+functions[antidote-help] )); then
 fi
 
 local cmd="$1"
+shift
 
 if (( $+functions[antidote-${cmd}] )); then
-  shift
   antidote-${cmd} "$@"
   return $?
 elif [[ -z "$cmd" ]] || [[ $cmd = (--help|-h) ]]; then
-  antidote-help
+  antidote-help "$@"
 elif [[ $cmd = (--version|-v) ]]; then
   local gitsha=$(git -C "${0:h:h}" rev-parse --short HEAD 2>/dev/null)
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
