@@ -3,7 +3,7 @@
 local help_dir="${0:a:h:h}/help"
 antidote_help="$help_dir/antidote.txt"
 if [[ -z "$1" ]]; then
-  cat "$antidote_help"
+  command cat "$antidote_help"
   return
 fi
 
@@ -12,4 +12,4 @@ if [[ ! -f "$help_txt" ]]; then
   echo >&2 "antidote: error: expected valid command but got '$@'"
   return 1
 fi
-cat "$help_txt"
+command cat "$help_txt"
