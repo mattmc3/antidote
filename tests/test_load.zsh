@@ -22,5 +22,4 @@ cp "${0:a:h}/misc/zsh_plugins.txt" "$BUNDLEFILE"
 
 @test "a static file now exists" -f "$STATICFILE"
 
-@echo "$ZTAP_LOGS"
 teardown
