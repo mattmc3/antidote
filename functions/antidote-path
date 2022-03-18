@@ -10,4 +10,6 @@ local bundledir=$(_antidote_bundledir $bundle)
 if [[ ! -d $bundledir ]]; then
   echo >&2 "antidote: error: $bundle does not exist in cloned paths"
   return 1
+else
+  echo "$bundledir"
 fi
