@@ -8,9 +8,9 @@ fi
 local bundle=$1
 local bundledir=$(_antidote_bundledir $bundle)
 if [[ ! -d $bundledir ]]; then
-  echo >&2 "antidote: error: $bundle does not exist on expected location: $bundledir"
+  echo >&2 "antidote: error: $bundle does not exist at the expected location: $bundledir"
   return 1
 fi
 
 echo "Removing $bundle..."
-command rm -rf "$bundledir"
+command rm -rf "$bundledir" && echo "removed!"
