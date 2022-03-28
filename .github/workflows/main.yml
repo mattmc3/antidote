@@ -12,6 +12,6 @@ jobs:
       - name: Install zsh
         run: sudo apt-get update; sudo apt-get install zsh
       - name: Test
-        run: > 
+        run: |
           zsh tests/runtests | tail -1 | grep 'ok'
 
