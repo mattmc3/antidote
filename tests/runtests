@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+set -o pipefail
+
 0=${(%):-%N}
 PRJ_HOME=${0:a:h:h}
 TESTS_HOME=${0:a:h}
