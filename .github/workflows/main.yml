@@ -10,17 +10,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        version:
-          - master
-      container:
-        image: ghcr.io/zsh-users/zsh:${{ matrix.version }}
-      steps:
-        - uses: actions/checkout@v2
-
-        - name: Test
-          shell: zsh
-          run: ./test/runtests | tail -1 | grep 'ok'
+    container:
+      image: ghcr.io/zsh-users/zsh:latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        shell: zsh
+        run: ./test/runtests | tail -1 | grep 'ok'
 
