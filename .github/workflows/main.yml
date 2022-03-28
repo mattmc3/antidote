@@ -1,6 +1,3 @@
-# taken from: https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/.github/workflows/test.yml
-# and adapted 
-
 name: CI
 
 on:
@@ -10,11 +7,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/zsh-users/zsh:latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install zsh
+        run: sudo apt-get update; sudo apt-get install zsh
       - name: Test
-        shell: zsh
-        run: ./test/runtests | tail -1 | grep 'ok'
+        run: zsh /test/runtests | tail -1 | grep 'ok'
 
