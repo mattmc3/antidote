@@ -27,7 +27,7 @@ function main() {
     if [[ $# -gt 0 ]]; then
         ztap "$@" | "$ZTAP_HOME/bin/colorize_tap"
     else
-        ztap "$TESTS_HOME/test_*.zsh" | "$ZTAP_HOME/bin/colorize_tap"
+        ztap $TESTS_HOME/test_*.zsh | "$ZTAP_HOME/bin/colorize_tap"
     fi
 }
 
