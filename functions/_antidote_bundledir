@@ -5,15 +5,7 @@ local bundle="$1"
 if [[ -d "$bundle" ]]; then
   echo $bundle
 elif zstyle -t ':antidote:bundle' use-friendly-names; then
-  # zsh-users/zsh-autosuggestions becomes zsh-users__zsh-autosuggestions
-  bundle=${bundle%.git}
-  bundle=${bundle:gs/\:/\/}
-  local parts=(${(@s:/:)bundle})
-  if [[ $#parts -gt 1 ]]; then
-    echo $(antidote-home)/${parts[-2]}__${parts[-1]}
-  else
-    echo $(antidote-home)/$bundle
-  fi
+  echo $(_antidote_friendlyname "$bundle")
 else
   # sanitize URL for safe use as a dir name
   local url=$(_antidote_tourl $bundle)

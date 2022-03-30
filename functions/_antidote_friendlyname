@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+# zsh-users/zsh-autosuggestions becomes zsh-users__zsh-autosuggestions
+repo=$1
+bundle=${repo%.git}
+bundle=${bundle:gs/\:/\/}
+local parts=(${(@s:/:)bundle})
+if [[ $#parts -gt 1 ]]; then
+  echo $(antidote-home)/${parts[-2]}__${parts[-1]}
+else
+  echo $(antidote-home)/$bundle
+fi
