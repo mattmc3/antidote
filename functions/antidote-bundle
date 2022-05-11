@@ -8,6 +8,10 @@ if [[ ! -t 0 ]]; then
   while read -r data; do
     # skip comments
     [[ $data != \#* ]] && [[ -n $data ]] || continue
+
+    # remove carriage returns from Windows files
+    data=${data//$'\r'}
+
     zsh_bundles+=($data)
   done
 elif [[ $# -gt 0 ]]; then
