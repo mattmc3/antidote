@@ -1,4 +1,7 @@
 #!/usr/bin/env zsh
+
+### Clone a git repo containing a Zsh plugin.
+
 local bundle=$1
 local branch=$2
 local giturl=$(_antidote_tourl $bundle)

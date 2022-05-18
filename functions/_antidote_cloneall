@@ -1,18 +1,23 @@
 #!/usr/bin/env zsh
 
-local bundlestr parts bundle optstr opts
-typeset -A opts
+### Clone all bundled plugins.
 
-for bundlestr in $@; do
-  parts=(${(@s/ /)bundlestr})
+local bundle_str parts bundle annotation_str annotations
+typeset -A annotations
+
+for bundle_str in $@; do
+  # separate bundle annotations from repos
+  # we turn annotation strings ('kind:fpath')
+  # into a Zsh associative array ('kind' 'fpath')
+  parts=(${(@s/ /)bundle_str})
   bundle=$parts[1]
-  optstr=(${parts[@]:1})
-  opts=(${(@s/:/)optstr})
+  annotation_str=(${parts[@]:1})
+  annotations=(${(@s/:/)annotation_str})
   if [[ $bundle = \$* ]] || [[ $bundle = /* ]]; then
     # path bundles
     continue
   elif [[ $bundle = */* ]]; then
     # repos
-    _antidote_clone $bundle ${opts[branch]}
+    _antidote_clone $bundle ${annotations[branch]}
   fi
 done

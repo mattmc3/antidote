@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 
-# Get the name of the bundle dir.
+### Get the name of the bundle dir.
+
 # If the bundle is a directory, then we just use that.
 # Otherwise, we assume a git repo. For that, by default, use the legacy antibody format:
 # $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
