@@ -1,5 +1,10 @@
 #!/usr/bin/env zsh
 
+### Enable dynamic antidote bundles.
+
+# This function changes how the `antidote` command works by sourcing the results of
+# `antidote bundle` instead of just generating the Zsh script.
+
 local script=(
   '#!/usr/bin/env zsh'
   'function antidote {'

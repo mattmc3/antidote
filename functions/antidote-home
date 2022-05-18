@@ -1,4 +1,9 @@
 #!/usr/bin/env zsh
+
+### Get the directory where antidote stores its plugins.
+
+# Can be overridden by setting `$ANTIDOTE_HOME`.
+
 local rootdir
 if [[ -n "$ANTIDOTE_HOME" ]]; then
   REPLY=$ANTIDOTE_HOME

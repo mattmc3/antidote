@@ -1,5 +1,9 @@
 #!/usr/bin/env zsh
 
+### The entry point for antidote commands.
+
+# Note that this function gets overridden if using `antidote-init`.
+
 if ! (( $+functions[_antidote_main] )); then
   0=${(%):-%x}
   autoload -Uz ${0:h}/_antidote_main

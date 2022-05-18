@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+### Bundle Zsh plugins into a script to load those plugins.
+
 setopt local_options no_notify no_monitor
 
 local zsh_bundles=()

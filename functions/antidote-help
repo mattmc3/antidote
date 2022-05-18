@@ -1,4 +1,7 @@
 #!/usr/bin/env zsh
+
+### Get help text for antidote commands.
+
 0=${(%):-%x}
 local help_dir="${0:a:h:h}/help"
 antidote_help="$help_dir/antidote.txt"
