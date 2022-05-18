@@ -15,7 +15,7 @@ if [[ ! -t 0 ]]; then
     zsh_bundles+=($data)
   done
 elif [[ $# -gt 0 ]]; then
-  zsh_bundles=("$*")
+  zsh_bundles=("${(@f)${@}}")
 else
   # if stdin containts no data and no params were passed there's nothing to do
   return 1
