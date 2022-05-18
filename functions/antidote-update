@@ -9,6 +9,7 @@
 ##?   -v, --version        Show application version
 
 setopt local_options no_notify no_monitor
+
 0=${(%):-%x}
 
 function __antidote_update {
