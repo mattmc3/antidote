@@ -1,6 +1,11 @@
 #!/usr/bin/env zsh
 
-# the purpose of _antidote_main is to allow `antidote` and `antidote init` to co-exist
+### The main antidote controller function.
+
+# _antidote_main allows `antidote` and `antidote-init` to co-exist, which is why this
+# code isn't in the core `antidote` function. `antidote-init` will change what that
+# function does.
+
 0=${(%):-%x}
 local ver='1.1.0'
 

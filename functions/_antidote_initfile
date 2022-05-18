@@ -1,4 +1,7 @@
 #!/usr/bin/env zsh
+
+### Get the path to a plugin's init file.
+
 setopt local_options extended_glob
 REPLY=
 local bundle=$1

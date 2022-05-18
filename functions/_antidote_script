@@ -1,4 +1,7 @@
 #!/usr/bin/env zsh
+
+### Generate the Zsh script for statically loading a plugin.
+
 # you can bundle a plugin directory, a zsh script, or a git repo
 # this function scripts that out for your zshrc
 local bundle=$1

@@ -1,9 +1,15 @@
 #!/usr/bin/env zsh
+
+### Get the url from a repo bundle.
+
+# Handle bundles like:
+# - https://gitprovider.com/user/repo (already a URL)
+# - git@gitprovider.com:user/repo.git (already a URL)
+# - user/repo (needs to become a URL)
+
 local bundle=$1
 local url=$bundle
-if [[ $bundle != *://* &&
-      $bundle != git@*:*/* ]]
-then
+if [[ $bundle != *://* && $bundle != git@*:*/* ]]; then
   url=https://github.com/$bundle
 fi
 echo $url
