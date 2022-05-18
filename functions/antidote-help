@@ -27,4 +27,4 @@ if [[ ! -f "$fn_file" ]]; then
   return 1
 fi
 
-grep "^##?" "${fn_file}" | cut -c 5-
+command grep "^##?" "${fn_file}" | cut -c 5-
