@@ -1,18 +1,30 @@
 #!/usr/bin/env zsh
 
-### Get help text for antidote commands.
+##? usage: antidote help [<command>...]
+##?
+##? Show help
+##?
+##? Flags:
+##?   -h, --help           Show context-sensitive help
+##?   -v, --version        Show application version
+##?
+##? Args:
+##?   [<command>]  Show help on command
+
 
 0=${(%):-%x}
-local help_dir="${0:a:h:h}/help"
-antidote_help="$help_dir/antidote.txt"
-if [[ -z "$1" ]]; then
-  command cat "$antidote_help"
-  return
-fi
 
-local help_txt="${help_dir}/antidote-${1}.txt"
-if [[ ! -f "$help_txt" ]]; then
-  echo >&2 "antidote: error: expected valid command but got '$@'"
+local fn_dir="${0:a:h}"
+local fn_file
+
+if [[ -z "$1" ]]; then
+  fn_file="${fn_dir}/antidote"
+else
+  fn_file="${fn_dir}/antidote-${1}"
+fi
+if [[ ! -f "$fn_file" ]]; then
+  echo >&2 "antidote: error: expected valid command but got '$@'."
   return 1
 fi
-command cat "$help_txt"
+
+grep "^##?" "${fn_file}" | cut -c 5-

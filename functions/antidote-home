@@ -1,6 +1,12 @@
 #!/usr/bin/env zsh
 
-### Get the directory where antidote stores its plugins.
+##? usage: antidote home
+##?
+##? Prints where antibody is cloning the bundles
+##?
+##? Flags:
+##?   -h, --help           Show context-sensitive help
+##?   -v, --version        Show application version
 
 # Can be overridden by setting `$ANTIDOTE_HOME`.
 

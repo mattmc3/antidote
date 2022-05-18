@@ -1,4 +1,13 @@
 #!/usr/bin/env zsh
+
+##? usage: antidote list
+##?
+##? Lists all currently installed bundles
+##?
+##? Flags:
+##?   -h, --help           Show context-sensitive help
+##?   -v, --version        Show application version
+
 setopt local_options extended_glob
 
 if [[ $# -ne 0 ]]; then

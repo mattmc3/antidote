@@ -1,5 +1,16 @@
 #!/usr/bin/env zsh
 
+##? usage: antidote purge <bundle>
+##?
+##? Purges a bundle from your computer
+##?
+##? Flags:
+##?   -h, --help           Show context-sensitive help
+##?   -v, --version        Show application version
+##?
+##? Args:
+##?   <bundle>  bundle to be purged
+
 if [[ $# -eq 0 ]]; then
   echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
   return 1
