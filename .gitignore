@@ -3,3 +3,4 @@
 *.zwc.old
 .ztap/
 .cache/
+.plugins/
