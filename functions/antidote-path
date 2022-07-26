@@ -1,15 +1,11 @@
 #!/usr/bin/env zsh
 
+##? antidote-path - print the path of a cloned bundle
+##?
 ##? usage: antidote path <bundle>
 ##?
-##? Prints the path of a currently cloned bundle
-##?
-##? Flags:
-##?   -h, --help           Show context-sensitive help
-##?   -v, --version        Show application version
-##?
-##? Args:
-##?   <bundle>  bundle in which to find and print cloned path
+##? args:
+##?   <bundle>  The bundle whose cloned path will be printed
 
 if [[ $# -eq 0 ]]; then
   echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"

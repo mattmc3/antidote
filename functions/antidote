@@ -1,43 +1,39 @@
 #!/usr/bin/env zsh
 
+##? antidote - the cure to slow zsh plugin management
+##?
 ##? usage: antidote [<flags>] <command> [<args> ...]
 ##?
-##? the cure to slow zsh plugin management
-##?
-##? Flags:
+##? flags:
 ##?   -h, --help           Show context-sensitive help
 ##?   -v, --version        Show application version
 ##?
-##? Commands:
-##?   help [<command>...]
-##?     Show help
+##? commands:
+##?   help      Show documentation
+##?   load      Statically source all bundles from the plugins file
+##?   bundle    Clone bundle(s) and generate the static load script
+##?   install   Clone a new bundle and add it to your plugins file
+##?   update    Update antidote and its cloned bundles
+##?   purge     Remove a cloned bundle
+##?   home      Print where antidote is cloning bundles
+##?   list      List cloned bundles
+##?   path      Print the path of a cloned bundle
+##?   init      Initialize the shell for dynamic bundles
 ##?
-##?   bundle [<bundles>...]
-##?     Downloads a bundle and prints its source line
 ##?
-##?   update
-##?     Updates all previously bundled bundles
+##? DESCRIPTION
+##? ===========
+##? To get started using antidote, simply add the following snippet to your .zshrc:
 ##?
-##?   home
-##?     Prints where antidote is cloning the bundles
+##? # --- antidote ----------------------------------------------------------------- {{{
+##? if ! [[ -e ${ZDOTDIR:-~}/.antidote ]]; then
+##?   git clone https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+##? fi
+##? source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+##? antidote load
+##? # ------------------------------------------------------------------------------ }}}
 ##?
-##?   purge <bundle>
-##?     Purges a bundle from your computer
-##?
-##?   list
-##?     Lists all currently installed bundles
-##?
-##?   path <bundle>
-##?     Prints the path of a currently cloned bundle
-##?
-##?   init
-##?     Initializes the shell so antidote can behave like legacy antibody/antigen
-##?
-##?   install
-##?     Add a new bundle to your plugins file
-##?
-##?   load
-##?     Source all bundles in your plugins file
+##? For more information, visit https://getantidote.github.io/
 
 # Note that this function gets overridden if using `antidote-init`.
 

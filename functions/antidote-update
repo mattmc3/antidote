@@ -1,12 +1,8 @@
 #!/usr/bin/env zsh
 
+##? antidote-update - update antidote and its cloned bundles
+##?
 ##? usage: antidote update
-##?
-##? Updates all previously bundled bundles
-##?
-##? Flags:
-##?   -h, --help           Show context-sensitive help
-##?   -v, --version        Show application version
 
 setopt local_options no_notify no_monitor
 

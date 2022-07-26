@@ -1,15 +1,14 @@
 #!/usr/bin/env zsh
 
-##? usage: antidote load [<file>]
+##? antidote-load - statically source all bundles from the plugins file.
 ##?
-##? Source all bundles in your plugins file
+##? usage: antidote load [<bundlefile> [<staticfile>]]
 ##?
-##? Flags:
-##?   -h, --help           Show context-sensitive help
-##?   -v, --version        Show application version
-##?
-##? Args:
-##?   [<file>]  The plugins file to source if not using the default
+##? args:
+##?   [<bundlefile>]  The plugins file to source if not using the default.
+##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.txt`.
+##?   [<staticfile>]  The static plugins file to generate if not using the default.
+##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.zsh`.
 
 local bundlefile="${1:-${ZDOTDIR:-$HOME}/.zsh_plugins.txt}"
 [[ -f "$bundlefile" ]] || touch "$bundlefile"

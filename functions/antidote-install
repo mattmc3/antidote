@@ -1,15 +1,14 @@
 #!/usr/bin/env zsh
 
-##? usage: antidote install <bundle>
+##? antidote-install -  clone a new bundle and add it to your plugins file
 ##?
-##? Add a new bundle to your plugins file
+##? usage: antidote install <bundle> [<bundlefile>]
 ##?
-##? Flags:
-##?   -h, --help           Show context-sensitive help
-##?   -v, --version        Show application version
-##?
-##? Args:
-##?   <bundle>  bundle to be installed
+##? args:
+##?   <bundle>        Bundle to be installed
+##?   [<bundlefile>]  Bundle file to write to if not using the default.
+##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.txt`.
+
 
 local bundle=$1
 local bundlefile=${2:-${ZDOTDIR:-$HOME}/.zsh_plugins.txt}

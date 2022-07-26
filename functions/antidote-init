@@ -1,12 +1,11 @@
 #!/usr/bin/env zsh
 
+##? antidote-init - initialize the shell for dynamic bundles
+##?
 ##? usage: antidote init
 ##?
-##? Initializes the shell so antidote can behave like legacy antibody/antigen
-##?
-##? Flags:
-##?   -h, --help           Show context-sensitive help
-##?   -v, --version        Show application version
+##? This behavior exists mainly to support legacy antigen/antibody usage, but
+##? static bundling is recommended for the best performance.
 
 # This function changes how the `antidote` command works by sourcing the results of
 # `antidote bundle` instead of just generating the Zsh script.

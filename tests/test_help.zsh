@@ -14,7 +14,7 @@ antidote --help &>/dev/null
 cmds=('' bundle help home init install list load path purge update)
 for c in $cmds; do
   actual_help=("${(@f)$(antidote -h $c 2>&1)}")
-  @test "antidote help text exists for '$c'" "${#actual_help}" -gt 3
+  @test "antidote help text exists for '$c'" "${#actual_help}" -ge 3
 done
 
 badcmds=(foo bar baz)
