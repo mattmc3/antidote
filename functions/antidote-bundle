@@ -12,7 +12,7 @@ setopt local_options no_notify no_monitor
 local zsh_bundles=()
 if [[ ! -t 0 ]]; then
   # handle both <redirected or piped| input
-  while read -r data; do
+  while IFS= read -r data || [[ -n "$data" ]]; do
     # skip comments
     [[ $data != \#* ]] && [[ -n $data ]] || continue
 
