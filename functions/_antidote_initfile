@@ -4,23 +4,21 @@
 
 setopt local_options extended_glob
 REPLY=
-local bundle=$1
-local bundledir
-if [[ -d "$bundle" ]]; then
-  bundledir=$bundle
-else
-  bundledir=$(_antidote_bundledir $bundle)
+local dir=$1
+if [[ ! -d "$dir" ]]; then
+  echo >&2 "antidote: bundle directory not found '$dir'."
+  return 1
 fi
-local bundlename=${bundle:t}
+local plugin_name=${dir:t}
 local initfiles=(
-  $bundledir/$bundlename.plugin.zsh(N)
-  $bundledir/$bundlename.zsh(N)
-  $bundledir/init.zsh(N)
-  $bundledir/*.plugin.{z,}sh(N)
-  $bundledir/*.{z,}sh{-theme,}(N)
+  $dir/$plugin_name.plugin.zsh(N)
+  $dir/$plugin_name.zsh(N)
+  $dir/init.zsh(N)
+  $dir/*.plugin.{z,}sh(N)
+  $dir/*.{z,}sh{-theme,}(N)
 )
 if [[ ${#initfiles[@]} -eq 0 ]]; then
-  echo >&2 "antidote: no init file found '$bundle' $bundlename."
+  echo >&2 "antidote: no init file detected in '$dir'."
   return 1
 fi
 REPLY=$initfiles[1]

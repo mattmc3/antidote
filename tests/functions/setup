@@ -1,6 +1,14 @@
 #!/usr/bin/env zsh
 
 0=${(%):-%x}
+
+local flag_no_source
+
+zmodload zsh/zutil
+zparseopts -D -F -K -- \
+  {z,-no-source}=flag_no_source ||
+  return 1
+
 for _fn in ${0:A:h}/*; do
   (( $+functions[${_fn:t}] )) || autoload -Uz $_fn
 done
@@ -14,3 +22,20 @@ ZTAP_LOG_HOME=$PRJ_HOME/.cache/logs
 
 export ANTIDOTE_HOME=$(mktemp -d -t ztap)
 @echo "temp ANTIDOTE_HOME=$ANTIDOTE_HOME"
+
+if ! (( $#flag_no_source )); then
+  source $PRJ_HOME/antidote.zsh
+fi
+
+### Mocks
+# This function mocks git operations.
+# You can disable this mock, but unless you somehow think git is broken or you need to
+# do full intergration testing, it's probably not necessary
+
+# uncomment to disable mocks
+# zstyle ':antidote:tests' disable-git-mock 'yes'
+
+if ! zstyle -t ':antidote:tests' disable-git-mock; then
+  @echo "Mocking git clone..."
+  function _antidote_gitclone { _mock_gitclone "$@" }
+fi

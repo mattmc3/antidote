@@ -2,7 +2,6 @@
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
-autoload -Uz $PRJ_HOME/functions/antidote-home
 
 @test "\$ANTIDOTE_HOME is an existing directory" -d "$ANTIDOTE_HOME"
 expected=$ANTIDOTE_HOME

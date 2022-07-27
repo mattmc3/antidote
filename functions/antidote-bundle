@@ -1,54 +1,45 @@
 #!/usr/bin/env zsh
 
+##? antidote-bundle - clone bundle(s) and generate the static load script
+##?
 ##? usage: antidote bundle [<bundles>...]
 ##?
-##? Downloads a bundle and prints its source line
-##?
-##? Flags:
-##?   -h, --help           Show context-sensitive help
-##?   -v, --version        Show application version
-##?
-##? Args:
-##?   [<bundles>]  bundle list
+##? args:
+##?   [<bundles>...]  bundle list
 
 setopt local_options no_notify no_monitor
 
-local zsh_bundles=()
-if [[ ! -t 0 ]]; then
-  # handle both <redirected or piped| input
-  while read -r data; do
-    # skip comments
-    [[ $data != \#* ]] && [[ -n $data ]] || continue
+local bundle
+local bundlestr=$(_antidote_parsebundles $@)
+local bundles=("${(@f)${bundlestr}}")
+[[ $#bundles -ne 0 ]] || return 1
 
-    # remove carriage returns from Windows files
-    data=${data//$'\r'}
+# loop the first time just to clone missing bundles
+for bundlestr in $bundles; do
+  # bundlestr sets an associative array, like so:
+  # typeset -A bundle=( [kind]=zsh [repo]=foo/bar )
+  eval $bundlestr
+  if [[ $bundle[repo] = \$* ]] || [[ $bundle[repo] = /* ]]; then
+    # path bundles
+    continue
+  elif [[ $bundle[repo] = */* ]]; then
+    # clone the requested repo bundles in the background
+    _antidote_clone $bundle[repo] $bundle[branch] &
+  fi
+done
 
-    zsh_bundles+=($data)
-  done
-elif [[ $# -gt 0 ]]; then
-  zsh_bundles=("${(@f)${@}}")
-else
-  # if stdin containts no data and no params were passed there's nothing to do
-  return 1
-fi
-
-# clone the requested bundles in the background
-_antidote_cloneall $zsh_bundles &
+# wait for cloning to complete
 wait
 
-# generate bundle load script
-local bundlestr parts bundle optstr opts
-typeset -A opts
+# now loop a second time to generate the bundle load script
 local prescript=() script=()
+for bundlestr in $bundles; do
+  # bundlestr sets an associative array, like so:
+  # typeset -A bundle=( [kind]=zsh [repo]=foo/bar )
+  eval $bundlestr
 
-for bundlestr in $zsh_bundles; do
-  parts=(${(@s/ /)bundlestr})
-  bundle=$parts[1]
-  optstr=(${parts[@]:1})
-  opts=(${(@s/:/)optstr})
-  opts[kind]=${opts[kind]:-zsh}
-
-  if [[ $opts[kind] = defer ]] && [[ $#prescript -eq 0 ]]; then
+  # special handling for deferred bundles
+  if [[ $bundle[kind] = defer ]] && [[ $#prescript -eq 0 ]]; then
     _antidote_clone romkatv/zsh-defer
     prescript=(
       "if ! (( \$+functions[zsh-defer] )); then"
@@ -58,10 +49,11 @@ for bundlestr in $zsh_bundles; do
   fi
 
   # nothing to do for clone-only bundles
-  [[ $opts[kind] != clone ]] || continue
+  [[ $bundle[kind] != clone ]] || continue
 
-  script+="$(_antidote_script $bundle $opts[kind] $opts[path])"
+  script+="$(_antidote_script $bundle[repo] $bundle[kind] $bundle[path])"
 done
 
+# generate bundle load script
 (( ! $#prescript )) || printf "%s\n" "${prescript[@]}"
 printf "%s\n" "${script[@]}"

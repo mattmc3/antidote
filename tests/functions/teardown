@@ -1,8 +1,9 @@
 #!/usr/bin/env zsh
 
+local dirname
 for dirname in "$ANTIDOTE_HOME" "$TEMP_HOME"; do
   if [[ -d "$dirname" ]] && [[ "$dirname" = *ztap* ]]; then
     rm -rf "$dirname"
   fi
 done
-unset ANTIDOTE_HOME TEMP_HOME dirname
+unset ANTIDOTE_HOME TEMP_HOME PRJ_HOME TEST_HOME ZTAP_HOME ZTAP_LOG_HOME

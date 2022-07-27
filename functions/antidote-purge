@@ -1,14 +1,10 @@
 #!/usr/bin/env zsh
 
+##? antidote-purge - remove a cloned bundle
+##?
 ##? usage: antidote purge <bundle>
 ##?
-##? Purges a bundle from your computer
-##?
-##? Flags:
-##?   -h, --help           Show context-sensitive help
-##?   -v, --version        Show application version
-##?
-##? Args:
+##? args:
 ##?   <bundle>  bundle to be purged
 
 if [[ $# -eq 0 ]]; then

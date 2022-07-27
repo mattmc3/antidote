@@ -7,7 +7,7 @@
 # function does.
 
 0=${(%):-%x}
-local ver='1.1.0'
+local ver='1.2.0'
 
 if ! (( $+functions[antidote-help] )); then
   for _fn in ${0:A:h}/*; do

@@ -1,0 +1,43 @@
+#!/usr/bin/env zsh
+
+local instructions=()
+if [[ ! -t 0 ]]; then
+  # handle both <redirected or piped| input
+  while IFS= read -r data || [[ -n "$data" ]]; do
+    instructions+=($data)
+  done
+elif [[ $# -gt 0 ]]; then
+  # handle bundle instructions as a param string
+  instructions=("${(@f)${@}}")
+else
+  # if stdin containts no data and no params were passed there's nothing to do
+  return 1
+fi
+
+local inst bundle parts optstr
+typeset -A bundle
+for inst in $instructions; do
+  # turn whitespace into spaces
+  inst=${inst//$'\t'/ }
+  inst=${inst//$'\r'/ }
+
+  # remove comments
+  inst=${inst%%\#*}
+
+  # split instruction on spaces into parts array
+  parts=(${(@s: :)inst})
+
+  # skip empty lines
+  [[ $#parts -gt 0 ]] || continue
+
+  # the first element is the repo, remaining is options
+  # split options into additional key/value pairs
+  bundle=()
+  bundle[repo]=$parts[1]
+  optstr=(${parts[@]:1})
+  bundle+=(${(@s/:/)optstr})
+  bundle[kind]=${bundle[kind]:-zsh}
+
+  # output the parsed associative array
+  typeset -p bundle
+done

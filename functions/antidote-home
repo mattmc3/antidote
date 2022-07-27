@@ -1,12 +1,8 @@
 #!/usr/bin/env zsh
 
+##? antidote-home - Print where antidote is cloning bundles.
+##?
 ##? usage: antidote home
-##?
-##? Prints where antibody is cloning the bundles
-##?
-##? Flags:
-##?   -h, --help           Show context-sensitive help
-##?   -v, --version        Show application version
 
 # Can be overridden by setting `$ANTIDOTE_HOME`.
 

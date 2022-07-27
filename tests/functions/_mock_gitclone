@@ -1,8 +1,9 @@
 #!/usr/bin/env zsh
 
 # this is a bit unusual, but we're going to echo to fd3 so that we can get debug info
-# fd3 is not an open fd, so this means that we need to redirect 3>/dev/null or to 3>&1
+# fd3 is not an open fd, so this means that we need to redirect 3 to something else
 # for anything that uses this mock
+# ie: &>/dev/null, 3>$tmpfile.log, 3>&1, etc.
 @echo "fakegit clone $@" >&3
 
 local giturl=${@[-2]}
