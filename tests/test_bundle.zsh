@@ -11,7 +11,7 @@ actual_repos=($ANTIDOTE_HOME/*(N/))
 
 # we need to redirect @echo fd3 output to somewhere
 # logs, /dev/null, &1...
-3>$ZTAP_LOG_HOME/${0:t:r}.git.log antidote bundle <$ZSH_PLUGINS_TXT >/dev/null
+3>$ZTAP_LOG_HOME/${0:t:r}.git.log 2>$ZTAP_LOG_HOME/${0:t:r}.err antidote bundle <$ZSH_PLUGINS_TXT >/dev/null
 @test "antidote bundle succeeds" $? -eq 0
 
 actual_repos=($ANTIDOTE_HOME/*(N/))
@@ -19,7 +19,7 @@ expected_repos=($TEST_HOME/fakerepos/*(N/))
 @test "all repos have been cloned" $#actual_repos -eq $#expected_repos
 
 STATICFILE=$ZTAP_LOG_HOME/${0:t:r}.actual.log
-3>$ZTAP_LOG_HOME/${0:t:r}_2.git.log antidote bundle <$ZSH_PLUGINS_TXT >$STATICFILE
+3>$ZTAP_LOG_HOME/${0:t:r}_2.git.log 2>$ZTAP_LOG_HOME/${0:t:r}_2.err antidote bundle <$ZSH_PLUGINS_TXT >$STATICFILE
 
 actual=("${(f)$(<$STATICFILE)}")
 expected=("${(f)$(<$ZSH_PLUGINS_ZSH)}")

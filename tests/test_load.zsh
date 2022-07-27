@@ -11,7 +11,7 @@ cp "${0:a:h}/misc/zsh_plugins.txt" "$BUNDLEFILE"
 
 # we need to redirect @echo fd3 output to somewhere
 # logs, /dev/null, &1...
-3>$ZTAP_LOG_HOME/${0:t:r}.git.log antidote load "$BUNDLEFILE"
+3>$ZTAP_LOG_HOME/${0:t:r}.git.log 2>$ZTAP_LOG_HOME/${0:t:r}.err antidote load "$BUNDLEFILE"
 @test "antidote load succeeds" $? -eq 0
 
 @test "a static file now exists" -f "$STATICFILE"
