@@ -31,4 +31,7 @@ fi
 # This function mocks git operations.
 # You can disable this mock, but unless you somehow think git is broken or you need to
 # do full intergration testing, it's probably not necessary
-function _antidote_gitclone { _mock_gitclone "$@" }
+if ! zstyle -t ':antidote:tests' 'disable-git-mock'; then
+  @echo "Mocking git clone..."
+  function _antidote_gitclone { _mock_gitclone "$@" }
+fi
