@@ -19,7 +19,7 @@ foo/bar kind:fpath
 foo/baz branch:dev
 EOBUNDLES
 )"
-@test "parsing multiline bundle with comments => $expected" "$actual" = "$expected"
+@test "parsing multiline bundle with comments" "$actual" = "$expected"
 
 bundle_list=(
   "# header comment"
@@ -38,6 +38,6 @@ typeset -A bundle=( [branch]=main [kind]=fpath [repo]=baz/foo )
 EOBUNDLES
 )
 actual="$(echo $clrf_bundlestr | _antidote_parsebundles)"
-@test "parsing complex bundle with crlf => $expected" "$actual" = "$expected"
+@test "parsing complex bundle with crlf" "$actual" = "$expected"
 
 teardown
