@@ -27,11 +27,15 @@ if ! (( $#flag_no_source )); then
   source $PRJ_HOME/antidote.zsh
 fi
 
-# mocks
+### Mocks
 # This function mocks git operations.
 # You can disable this mock, but unless you somehow think git is broken or you need to
 # do full intergration testing, it's probably not necessary
-if ! zstyle -t ':antidote:tests' 'disable-git-mock'; then
+
+# uncomment to disable mocks
+# zstyle ':antidote:tests' disable-git-mock 'yes'
+
+if ! zstyle -t ':antidote:tests' disable-git-mock; then
   @echo "Mocking git clone..."
   function _antidote_gitclone { _mock_gitclone "$@" }
 fi
