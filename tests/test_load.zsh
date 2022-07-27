@@ -3,11 +3,6 @@
 
 autoload -Uz ${0:a:h}/functions/setup && setup
 
-# mocks
-# comment this out to test actually cloning repos, but unless you somehow think git
-# or the git command is broken it's probably not necessary
-function _antidote_gitclone { _mock_gitclone "$@" }
-
 BUNDLEFILE=$TEMP_HOME/.zsh_plugins.txt
 STATICFILE="${BUNDLEFILE:r}.zsh"
 cp "${0:a:h}/misc/zsh_plugins.txt" "$BUNDLEFILE"

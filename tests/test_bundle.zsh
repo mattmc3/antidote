@@ -6,10 +6,6 @@ autoload -Uz ${0:a:h}/functions/setup && setup
 ZSH_PLUGINS_TXT=${0:a:h}/misc/zsh_plugins.txt
 ZSH_PLUGINS_ZSH=${ZSH_PLUGINS_TXT:r}.zsh
 
-# mocks
-# comment this out to test actually cloning repos
-function _antidote_gitclone { _mock_gitclone "$@" }
-
 actual_repos=($ANTIDOTE_HOME/*(N/))
 @test "nothing has been cloned" $#actual_repos -eq 0
 

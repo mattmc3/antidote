@@ -3,9 +3,6 @@
 
 autoload -Uz ${0:a:h}/functions/setup && setup
 
-# mock so we don't accidentally clone a real repo
-function _antidote_gitclone { _mock_gitclone "$@" }
-
 # test with no arg
 expected="antidote: error: required argument 'bundle' not provided, try --help"
 actual=$(antidote purge 2>&1)
@@ -22,11 +19,10 @@ expected="antidote: error: $repo does not exist at the expected location: $bundl
 actual=$(antidote purge $repo 2>&1)
 @test "'antidote purge' fails with the expected message" "$expected" = "$actual"
 
-# we need to redirect fd3 to somewhere when we mock cloning
-# Also, we aren't testing 'antidote bundle' here - we already have tests for that.
+# We aren't testing 'antidote bundle' here - we already have tests for that.
 # For this, we just need it to mock-clone so we can test the purge command
 @test "bundle directory does not exist yet" ! -d "$bundledir"
-3>/dev/null antidote bundle $repo &>/dev/null
+antidote bundle $repo &>/dev/null
 @test "antidote bundle succeeded" $? -eq 0
 @test "bundle directory exists" -d "$bundledir"
 

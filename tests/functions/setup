@@ -26,3 +26,9 @@ export ANTIDOTE_HOME=$(mktemp -d -t ztap)
 if ! (( $#flag_no_source )); then
   source $PRJ_HOME/antidote.zsh
 fi
+
+# mocks
+# This function mocks git operations.
+# You can disable this mock, but unless you somehow think git is broken or you need to
+# do full intergration testing, it's probably not necessary
+function _antidote_gitclone { _mock_gitclone "$@" }
