@@ -2,7 +2,6 @@
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
-autoload -Uz $PRJ_HOME/functions/_antidote_parsebundles
 
 expected="typeset -A bundle=( [kind]=zsh [repo]=foo/bar )"
 actual="$(_antidote_parsebundles foo/bar)"

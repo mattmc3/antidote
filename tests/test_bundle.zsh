@@ -2,7 +2,6 @@
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
-source $PRJ_HOME/antidote.zsh
 
 ZSH_PLUGINS_TXT=${0:a:h}/misc/zsh_plugins.txt
 ZSH_PLUGINS_ZSH=${ZSH_PLUGINS_TXT:r}.zsh

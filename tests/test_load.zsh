@@ -2,7 +2,6 @@
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
-source $PRJ_HOME/antidote.zsh
 
 # mocks
 # comment this out to test actually cloning repos, but unless you somehow think git

@@ -1,7 +1,7 @@
 0=${(%):-%x}
 @echo "=== ${0:t:r} ==="
 
-autoload -Uz ${0:a:h}/functions/setup && setup
+autoload -Uz ${0:a:h}/functions/setup && setup --no-source
 
 expected_cmds=(
   bundle

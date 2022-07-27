@@ -1,6 +1,14 @@
 #!/usr/bin/env zsh
 
 0=${(%):-%x}
+
+local flag_no_source
+
+zmodload zsh/zutil
+zparseopts -D -F -K -- \
+  {z,-no-source}=flag_no_source ||
+  return 1
+
 for _fn in ${0:A:h}/*; do
   (( $+functions[${_fn:t}] )) || autoload -Uz $_fn
 done
@@ -14,3 +22,7 @@ ZTAP_LOG_HOME=$PRJ_HOME/.cache/logs
 
 export ANTIDOTE_HOME=$(mktemp -d -t ztap)
 @echo "temp ANTIDOTE_HOME=$ANTIDOTE_HOME"
+
+if ! (( $#flag_no_source )); then
+  source $PRJ_HOME/antidote.zsh
+fi

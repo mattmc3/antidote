@@ -2,8 +2,6 @@
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
-autoload -Uz $PRJ_HOME/functions/_antidote_friendlyname
-autoload -Uz $PRJ_HOME/functions/antidote-home
 
 zstyle ':antidote:bundle' use-friendly-names on
 

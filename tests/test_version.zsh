@@ -2,7 +2,7 @@
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
-source $PRJ_HOME/antidote.zsh
+
 @test "sourcing antidote.zsh succeeds" $? -eq 0
 
 antidote -v &>/dev/null

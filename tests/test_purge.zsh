@@ -2,7 +2,6 @@
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
-source $PRJ_HOME/antidote.zsh
 
 # mock so we don't accidentally clone a real repo
 function _antidote_gitclone { _mock_gitclone "$@" }
