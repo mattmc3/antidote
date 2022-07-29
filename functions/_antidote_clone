@@ -13,5 +13,5 @@ local bundledir=$(_antidote_bundledir $giturl)
 if [[ ! -d $bundledir ]]; then
   [[ -z "$branch" ]] || branch="--branch=$branch"
   echo >&2 "# antidote cloning $bundle..."
-  _antidote_gitclone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir
+  _antidote_git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir
 fi

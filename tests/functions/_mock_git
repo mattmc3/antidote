@@ -4,7 +4,7 @@
 # fd3 is not an open fd, so this means that we need to redirect 3 to something else
 # for anything that uses this mock
 # ie: &>/dev/null, 3>$tmpfile.log, 3>&1, etc.
-@echo "fakegit clone $@" >&3
+@echo "fakegit $@" >&3
 
 local giturl=${@[-2]}
 local bundledir=${@[-1]}

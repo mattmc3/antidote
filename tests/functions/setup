@@ -36,6 +36,6 @@ fi
 # zstyle ':antidote:tests' disable-git-mock 'yes'
 
 if ! zstyle -t ':antidote:tests' disable-git-mock; then
-  @echo "Mocking git clone..."
-  function _antidote_gitclone { _mock_gitclone "$@" }
+  @echo "Mocking git..."
+  function _antidote_git { _mock_git "$@" }
 fi
