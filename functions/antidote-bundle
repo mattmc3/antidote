@@ -15,7 +15,7 @@ local bundles=("${(@f)${bundlestr}}")
 [[ $#bundles -ne 0 ]] || return 1
 
 # loop the first time just to clone missing bundles
-local giturl username reponame shortrepo cloning=()
+local giturl parts shortrepo cloning=()
 for bundlestr in $bundles; do
   # bundlestr sets an associative array, like so:
   # typeset -A bundle=( [kind]=zsh [repo]=foo/bar )
@@ -25,10 +25,12 @@ for bundlestr in $bundles; do
     continue
   elif [[ $bundle[repo] = */* ]]; then
     # clone the requested repo bundles in the background
-    giturl=$bundle[repo]
-    username=${${${giturl%/*}%.git}##*/}
-    reponame=${${giturl##*/}%.git}
-    shortrepo=$username/$reponame
+    # parse the git URL by converting ':' to '/', splitting on '/', and rejoining the
+    # final two elemets
+    giturl=${giturl%.git}
+    giturl=${giturl:gs/\:/\/}
+    parts=(${(@s:/:)giturl})
+    shortrepo=${(j:/:)${parts[-2,-1]}}
     if ! (($cloning[(Ie)$shortrepo])); then
       cloning+=($shortrepo)
       _antidote_clone $bundle[repo] $bundle[branch] &
