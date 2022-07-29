@@ -34,7 +34,7 @@ for bundlestr in $bundles; do
     shortrepo=${(j:/:)${parts[-2,-1]}}
     if ! (($cloning[(Ie)$shortrepo])); then
       cloning+=($shortrepo)
-      _antidote_clone $bundle[repo] $bundle[branch]
+      _antidote_clone --background $bundle[repo] $bundle[branch]
     fi
   fi
 done

@@ -5,4 +5,4 @@
 emulate -L zsh
 setopt local_options extended_glob
 
-command git "$@" &
+command git "$@"
