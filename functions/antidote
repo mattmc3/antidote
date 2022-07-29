@@ -37,6 +37,9 @@
 
 # Note that this function gets overridden if using `antidote-init`.
 
+emulate -L zsh
+setopt local_options extended_glob
+
 if ! (( $+functions[_antidote_main] )); then
   0=${(%):-%x}
   autoload -Uz ${0:h}/_antidote_main

@@ -6,8 +6,11 @@
 # code isn't in the core `antidote` function. `antidote-init` will change what that
 # function does.
 
+emulate -L zsh
+setopt local_options extended_glob
+
 0=${(%):-%x}
-local ver='1.2.0'
+local ver='1.2.1'
 
 if ! (( $+functions[antidote-help] )); then
   for _fn in ${0:A:h}/*; do

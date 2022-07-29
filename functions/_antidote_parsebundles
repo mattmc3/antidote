@@ -1,5 +1,8 @@
 #!/usr/bin/env zsh
 
+emulate -L zsh
+setopt local_options extended_glob
+
 local instructions=()
 if [[ ! -t 0 ]]; then
   # handle both <redirected or piped| input

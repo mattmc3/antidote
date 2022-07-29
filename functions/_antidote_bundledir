@@ -8,6 +8,9 @@
 # With `zstyle ':antidote:bundle' use-friendly-names on`, we can simplify to
 # $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
 
+emulate -L zsh
+setopt local_options extended_glob
+
 local bundle="$1"
 
 if [[ -d "$bundle" ]]; then

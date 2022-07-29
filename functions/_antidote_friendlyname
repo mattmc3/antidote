@@ -6,6 +6,9 @@
 # becomes simply
 # $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
 
+emulate -L zsh
+setopt local_options extended_glob
+
 repo=$1
 bundle=${repo%.git}
 bundle=${bundle:gs/\:/\/}

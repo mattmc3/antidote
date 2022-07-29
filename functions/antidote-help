@@ -8,6 +8,9 @@
 ##? args:
 ##?   [<command>]  Show help for this command
 
+emulate -L zsh
+setopt local_options extended_glob
+
 0=${(%):-%x}
 
 local fn_dir="${0:a:h}"

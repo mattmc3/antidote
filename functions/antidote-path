@@ -7,6 +7,9 @@
 ##? args:
 ##?   <bundle>  The bundle whose cloned path will be printed
 
+emulate -L zsh
+setopt local_options extended_glob
+
 if [[ $# -eq 0 ]]; then
   echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
   return 1

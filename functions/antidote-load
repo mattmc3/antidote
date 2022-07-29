@@ -10,6 +10,9 @@
 ##?   [<staticfile>]  The static plugins file to generate if not using the default.
 ##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.zsh`.
 
+emulate -L zsh
+setopt local_options extended_glob
+
 local bundlefile="${1:-${ZDOTDIR:-$HOME}/.zsh_plugins.txt}"
 [[ -f "$bundlefile" ]] || touch "$bundlefile"
 local staticfile="${2:-${bundlefile:r}.zsh}"
