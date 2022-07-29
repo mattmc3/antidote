@@ -4,7 +4,8 @@
 ##?
 ##? usage: antidote update
 
-setopt local_options no_notify no_monitor
+emulate -L zsh
+setopt local_options extended_glob no_notify no_monitor
 
 0=${(%):-%x}
 

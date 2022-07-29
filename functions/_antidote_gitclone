@@ -2,4 +2,7 @@
 
 ### Mockable wrapper for `git clone` to aid unit testing.
 
+emulate -L zsh
+setopt local_options extended_glob
+
 command git clone "$@"

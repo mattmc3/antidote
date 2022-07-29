@@ -7,6 +7,9 @@
 # - git@gitprovider.com:user/repo.git (already a URL)
 # - user/repo (needs to become a URL)
 
+emulate -L zsh
+setopt local_options extended_glob
+
 local bundle=$1
 local url=$bundle
 if [[ $bundle != *://* && $bundle != git@*:*/* ]]; then

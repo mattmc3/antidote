@@ -2,6 +2,9 @@
 
 ### Generate the Zsh script for statically loading a plugin.
 
+emulate -L zsh
+setopt local_options extended_glob
+
 # you can bundle a plugin directory, a zsh script, or a git repo
 # this function scripts that out for your zshrc
 local bundle=$1

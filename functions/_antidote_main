@@ -6,6 +6,9 @@
 # code isn't in the core `antidote` function. `antidote-init` will change what that
 # function does.
 
+emulate -L zsh
+setopt local_options extended_glob
+
 0=${(%):-%x}
 local ver='1.2.0'
 

@@ -7,7 +7,8 @@
 ##? args:
 ##?   [<bundles>...]  bundle list
 
-setopt local_options no_notify no_monitor
+emulate -L zsh
+setopt local_options extended_glob no_notify no_monitor
 
 local bundle
 local bundlestr=$(_antidote_parsebundles $@)

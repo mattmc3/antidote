@@ -9,6 +9,8 @@
 ##?   [<bundlefile>]  Bundle file to write to if not using the default.
 ##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.txt`.
 
+emulate -L zsh
+setopt local_options extended_glob
 
 local bundle=$1
 local bundlefile=${2:-${ZDOTDIR:-$HOME}/.zsh_plugins.txt}

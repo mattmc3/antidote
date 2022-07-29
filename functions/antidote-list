@@ -4,6 +4,7 @@
 ##?
 ##? usage: antidote list
 
+emulate -L zsh
 setopt local_options extended_glob
 
 if [[ $# -ne 0 ]]; then
