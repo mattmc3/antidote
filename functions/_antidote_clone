@@ -19,9 +19,6 @@ local bundledir=$(_antidote_bundledir $giturl)
 if [[ ! -d $bundledir ]]; then
   [[ -z "$branch" ]] || branch="--branch=$branch"
   echo >&2 "# antidote cloning $bundle..."
-  if [[ "$flag_bg" == true ]]; then
-    _antidote_git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir &
-  else
-    _antidote_git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir
-  fi
+  git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir &
+  [[ "$flag_bg" == true ]] || wait
 fi

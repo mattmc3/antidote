@@ -1,8 +1,0 @@
-#!/usr/bin/env zsh
-
-### Mockable wrapper for `git` to aid unit testing.
-
-emulate -L zsh
-setopt local_options extended_glob
-
-command git "$@"

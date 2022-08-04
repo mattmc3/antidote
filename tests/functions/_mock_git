@@ -1,21 +1,29 @@
 #!/usr/bin/env zsh
 
-# this is a bit unusual, but we're going to echo to fd3 so that we can get debug info
-# fd3 is not an open fd, so this means that we need to redirect 3 to something else
-# for anything that uses this mock
-# ie: &>/dev/null, 3>$tmpfile.log, 3>&1, etc.
-@echo "fakegit $@" >&3
+function _mock_git_clone {
+  # this is a bit unusual, but we're going to echo to fd3 so that we can get debug info
+  # fd3 is not an open fd, so this means that we need to redirect 3 to something else
+  # for anything that uses this mock
+  # ie: &>/dev/null, 3>$tmpfile.log, 3>&1, etc.
+  @echo "fakegit $@" >&3
 
-local giturl=${@[-2]}
-local bundledir=${@[-1]}
-local reponame=${${giturl%.git}:t}
+  local giturl=${@[-2]}
+  local bundledir=${@[-1]}
+  local reponame=${${giturl%.git}:t}
 
-if [[ ! -d "$TEST_HOME/fakerepos/$reponame" ]]; then
-  echo >&2 "Fake repo not found '$reponame'."
-  return 1
-elif [[ -d "$bundledir" ]]; then
-  echo >&2 "Fake repo already fake cloned '$giturl'."
-  return 1
+  if [[ ! -d "$TEST_HOME/fakerepos/$reponame" ]]; then
+    echo >&2 "Fake repo not found '$reponame'."
+    return 1
+  elif [[ -d "$bundledir" ]]; then
+    echo >&2 "Fake repo already fake cloned '$giturl'."
+    return 1
+  fi
+
+  cp -a "$TEST_HOME/fakerepos/$reponame" "$bundledir"
+}
+
+if [[ $1 == "clone" ]]; then
+  _mock_git_clone "$@"
+else
+  command git "$@"
 fi
-
-cp -a "$TEST_HOME/fakerepos/$reponame" "$bundledir"
