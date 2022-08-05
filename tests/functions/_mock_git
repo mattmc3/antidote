@@ -9,7 +9,11 @@ function _mock_git_clone {
 
   local giturl=${@[-2]}
   local bundledir=${@[-1]}
-  local reponame=${${giturl%.git}:t}
+
+  local repostr=${giturl%.git}
+  repostr=${repostr:gs/\:/\/}
+  local parts=(${(@s:/:)repostr})
+  local reponame=${(j:/:)${parts[-2,-1]}}
 
   if [[ ! -d "$TEST_HOME/fakerepos/$reponame" ]]; then
     echo >&2 "Fake repo not found '$reponame'."

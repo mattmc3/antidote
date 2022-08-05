@@ -9,8 +9,8 @@ actual=$(antidote purge 2>&1)
 @test "'antidote purge' with no args fails" "$expected" = "$actual"
 
 # test with repo arg but repo does not exist
-repo="ohmyzsh/ohmyzsh"
-bundledir="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh"
+repo="foo/bar"
+bundledir="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
 
 antidote purge $repo &>/dev/null
 @test "'antidote purge' fails when a bundle doesn't exist" $? -ne 0

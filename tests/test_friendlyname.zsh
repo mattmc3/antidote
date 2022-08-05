@@ -7,8 +7,8 @@ zstyle ':antidote:bundle' use-friendly-names on
 
 typeset -A repos
 repos=(
-  ohmyzsh/ohmyzsh                      $ANTIDOTE_HOME/ohmyzsh/ohmyzsh
-  http://github.com/sindresorhus/pure  $ANTIDOTE_HOME/sindresorhus/pure
+  foo/bar                    $ANTIDOTE_HOME/foo/bar
+  http://github.com/bar/baz  $ANTIDOTE_HOME/bar/baz
 )
 
 for k in ${(k)repos}; do

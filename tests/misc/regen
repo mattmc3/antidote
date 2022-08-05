@@ -24,6 +24,7 @@ antidote list >$listfile
 
 # use variables instead of absolute path
 sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $zshfile
+sed -i '' "s|/private${ANTIDOTE_HOME}|\$ANTIDOTE_HOME|g" $listfile
 sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $listfile
 
 # cleanup

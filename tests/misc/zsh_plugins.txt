@@ -1,0 +1,31 @@
+# plugins
+foo/bar
+https://github.com/foo/baz kind:clone
+git@github.com:foo/qux
+
+# kind:zsh
+bar/baz kind:zsh
+
+# kind:clone
+baz/cloneonly kind:clone
+
+# kind:fpath
+baz/myprompt kind:fpath
+
+# kind:path
+baz/util kind:path
+
+# branches
+baz/devbranch branch:develop
+
+# subpath plugins
+baz/ohmy path:lib/clipboard.zsh
+baz/ohmy path:plugins/extract
+
+# deferred
+baz/deferme kind:defer
+
+# non-conforming plugins
+baz/name.zsh
+baz/zsh-name
+baz/shellscript
