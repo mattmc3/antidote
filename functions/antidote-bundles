@@ -1,0 +1,10 @@
+#!/usr/bin/env zsh
+
+##? antidote-bundles - alias for antidote bundle to support legacy antigen
+##?
+##? usage: antidote bundles [<bundles>...]
+##?
+##? args:
+##?   [<bundles>...]  bundle list
+
+antidote-bundle $@
