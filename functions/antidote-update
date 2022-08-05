@@ -22,8 +22,7 @@ function __antidote_update {
 }
 
 # update antidote
-echo "Updating antidote..."
-git -C "${0:A:h:h}" pull --ff --rebase --autostash
+antidote selfupdate
 
 echo "Updating bundles..."
 local ANTIDOTE_HOME=$(antidote-home)
