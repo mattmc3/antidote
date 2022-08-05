@@ -11,7 +11,7 @@ if [[ ! -t 0 ]]; then
   done
 elif [[ $# -gt 0 ]]; then
   # handle bundle instructions as a param string
-  instructions=("${(@f)${@}}")
+  instructions=("${(s.\n.)${@}}")
 else
   # if stdin containts no data and no params were passed there's nothing to do
   return 1
@@ -33,12 +33,19 @@ for inst in $instructions; do
   # skip empty lines
   [[ $#parts -gt 0 ]] || continue
 
-  # the first element is the repo, remaining is options
-  # split options into additional key/value pairs
+  # the first element is the repo, the remaining are a:b annotations
+  # split annotations into key/value pairs
   bundle=()
   bundle[repo]=$parts[1]
   optstr=(${parts[@]:1})
-  bundle+=(${(@s/:/)optstr})
+  if [[ $#optstr -gt 0 ]]; then
+    parts=(${(@s/:/)optstr})
+    if [[ $(( $#parts % 2 )) -ne 0 ]]; then
+      echo >&2 "antidote: bad annotation '$optstr'."
+      return 1
+    fi
+    bundle+=($parts)
+  fi
   bundle[kind]=${bundle[kind]:-zsh}
 
   # output the parsed associative array
