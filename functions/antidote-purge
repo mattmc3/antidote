@@ -23,4 +23,10 @@ if [[ ! -d $bundledir ]]; then
 fi
 
 echo "Removing $bundle..."
-command rm -rf "$bundledir" && echo "removed!"
+command rm -rf "$bundledir"
+
+local bundlefile
+zstyle -s ':antidote:bundle' file 'bundlefile' || \
+  bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
+echo "removed!"
+echo "You may also need to remove $bundle from '$bundlefile'."

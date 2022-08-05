@@ -6,16 +6,25 @@
 ##?
 ##? args:
 ##?   [<bundlefile>]  The plugins file to source if not using the default.
-##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.txt`.
+##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.txt` or zstyle setting.
 ##?   [<staticfile>]  The static plugins file to generate if not using the default.
-##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.zsh`.
+##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.zsh` or zstyle setting.
 
 emulate -L zsh
 setopt local_options extended_glob
 
-local bundlefile="${1:-${ZDOTDIR:-$HOME}/.zsh_plugins.txt}"
+local bundlefile=$1
+if [[ -z "$bundlefile" ]]; then
+  zstyle -s ':antidote:bundle' file \
+    'bundlefile' || bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
+fi
 [[ -f "$bundlefile" ]] || touch "$bundlefile"
-local staticfile="${2:-${bundlefile:r}.zsh}"
+
+local staticfile=$2
+if [[ -z "$staticfile" ]]; then
+  zstyle -s ':antidote:static' file \
+    'staticfile' || staticfile=${bundlefile:r}.zsh
+fi
 [[ "$staticfile" != "$bundlefile" ]] || staticfile="${bundlefile:r}.static.zsh"
 
 # regenerate the static file based on whether the bundle file is newer
