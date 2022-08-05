@@ -1,6 +1,6 @@
 # plugins
 zsh-users/zsh-history-substring-search
-https://github.com/zsh-users/zsh-history-substring-search
+https://github.com/zsh-users/antigen kind:clone
 git@github.com:zsh-users/zsh-completions
 
 # kind:zsh
