@@ -25,10 +25,14 @@ expected_repo_count=$(cat ${0:a:h}/misc/real_clonelist.txt | wc -l | tr -d ' ')
 STATICFILE=$ZTAP_LOG_HOME/${0:t:r}.actual.log
 3>$ZTAP_LOG_HOME/${0:t:r}_2.git.log 2>$ZTAP_LOG_HOME/${0:t:r}_2.err antidote bundle <$ZSH_PLUGINS_TXT >$STATICFILE
 
+branched_plugin="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-antidote"
+actual="$(git -C $branched_plugin branch --show-current)"
+expected="pz"
+@test "'antidote bundle' switches branches properly" "$expected" = "$actual"
+
 actual=("${(f)$(<$STATICFILE)}")
 expected=("${(f)$(<$ZSH_PLUGINS_ZSH)}")
 expected=(${expected//\$ANTIDOTE_HOME/$ANTIDOTE_HOME})
-
 @test "antidote bundle produces the expected output line count" $#expected -eq $#actual
 
 # debuging help - let's not spam the output with the gory details
