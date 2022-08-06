@@ -3,8 +3,9 @@
 
 autoload -Uz ${0:a:h}/functions/setup && setup
 
-# remove mock git
+# remove mocks
 unfunction git
+unfunction zsh-defer
 
 ZSH_PLUGINS_TXT=${0:a:h}/misc/real_plugins.txt
 ZSH_PLUGINS_ZSH=${ZSH_PLUGINS_TXT:r}.zsh
