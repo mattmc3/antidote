@@ -37,7 +37,7 @@ else
   @test "antidote bundle produces the expected output" "compare $ZSH_PLUGINS_TXT" = "to $STATICFILE"
 fi
 
-antidote list
-@echo $ANTIDOTE_HOME
+# antidote list
+# @echo $ANTIDOTE_HOME
 
 teardown

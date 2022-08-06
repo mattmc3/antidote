@@ -25,6 +25,9 @@ ohmyzsh/ohmyzsh path:plugins/extract
 # deferred
 zdharma-continuum/fast-syntax-highlighting kind:defer
 
+# theme
+dracula/zsh
+
 # non-conforming plugins
 peterhurford/up.zsh
 rummik/zsh-tailf

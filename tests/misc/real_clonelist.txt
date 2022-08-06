@@ -1,4 +1,5 @@
 git@github.com:zsh-users/zsh-completions                         $ANTIDOTE_HOME/git-AT-github.com-COLON-zsh-users-SLASH-zsh-completions
+https://github.com/dracula/zsh                                   $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-dracula-SLASH-zsh
 https://github.com/mattmc3/antidote                              $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-antidote
 https://github.com/ohmyzsh/ohmyzsh                               $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh
 https://github.com/peterhurford/up.zsh                           $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-peterhurford-SLASH-up.zsh
