@@ -1,2 +1,2 @@
-echo "baz/name"
-plugins=($plugins baz/name)
+echo "sourcing baz/zsh-name..."
+plugins=($plugins baz/zsh-name)

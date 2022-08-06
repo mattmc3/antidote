@@ -1,1 +1,1 @@
-echo ohmy framework
+echo "sourcing baz/ohmy framework..."

@@ -1,3 +1,3 @@
 # fake foo/bar
-echo "foo/bar"
+echo "sourcing foo/bar..."
 plugins=($plugins foo/bar)
