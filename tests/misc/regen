@@ -6,11 +6,28 @@
 # the output really is correct. This is for convenience only.
 
 0=${(%):-%x}
+
+export ANTIDOTE_HOME=$(mktemp -d -t antidote-regen)
+echo "ANTIDOTE_HOME=$ANTIDOTE_HOME"
+
 prj_dir=${0:a:h:h:h}
 source $prj_dir/antidote.zsh
-txtfile=${0:h}/zsh_plugins.txt
-zshfile=${txtfile:r}.zsh
+
+# set the output files
+txtfile=${0:h}/real_plugins.txt
+zshfile=${0:h}/real_plugins.zsh
+listfile=${0:h}/real_clonelist.txt
+
+# drink the antidote
 antidote bundle <$txtfile >$zshfile
-antidote_homedir=$(antidote home)
-echo $antidote_homedir
-sed -i '' "s|$antidote_homedir|\$ANTIDOTE_HOME|g" $zshfile
+antidote list >$listfile
+
+# use variables instead of absolute path
+sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $zshfile
+sed -i '' "s|/private${ANTIDOTE_HOME}|\$ANTIDOTE_HOME|g" $listfile
+sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $listfile
+
+# cleanup
+if [[ -d "$ANTIDOTE_HOME" ]] && [[ "$ANTIDOTE_HOME" = *antidote-regen* ]]; then
+  rm -rf "$ANTIDOTE_HOME"
+fi

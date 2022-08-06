@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+
+##? antidote-selfupdate - update antidote
+##?
+##? usage: antidote selfupdate
+
+emulate -L zsh
+setopt local_options extended_glob
+
+0=${(%):-%x}
+
+# update antidote
+echo "Updating antidote..."
+git -C "${0:A:h:h}" pull --ff --rebase --autostash
+

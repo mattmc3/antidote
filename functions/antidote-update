@@ -13,7 +13,7 @@ function __antidote_update {
   bundledir="$1"
   local url=$(git -C "$bundledir" config remote.origin.url)
   local oldsha=$(git -C "$bundledir" rev-parse --short HEAD)
-  echo "antidote: updating: $url"
+  echo "antidote: checking for updates: $url"
   git -C "$bundledir" pull --quiet --ff --rebase --autostash
   local newsha=$(git -C "$bundledir" rev-parse --short HEAD)
   if [[ $oldsha != $newsha ]]; then
@@ -22,8 +22,7 @@ function __antidote_update {
 }
 
 # update antidote
-echo "Updating antidote..."
-git -C "${0:A:h:h}" pull --ff --rebase --autostash
+antidote selfupdate
 
 echo "Updating bundles..."
 local ANTIDOTE_HOME=$(antidote-home)

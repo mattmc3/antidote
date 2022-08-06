@@ -7,6 +7,22 @@ expected="typeset -A bundle=( [kind]=zsh [repo]=foo/bar )"
 actual="$(_antidote_parsebundles foo/bar)"
 @test "parsing bundle foo/bar => $expected" "$actual" = "$expected"
 
+expected="typeset -A bundle=( [abc]=xyz [kind]=fpath [repo]=foo/bar )"
+actual="$(_antidote_parsebundles foo/bar kind:fpath abc:xyz)"
+@test "parsing bundle 'foo/bar kind:fpath abc:xyz' => $expected" "$actual" = "$expected"
+
+expected=$(cat <<'EOBUNDLES'
+typeset -A bundle=( [abc]=xyz [kind]=fpath [repo]=foo/bar )
+typeset -A bundle=( [kind]=zsh [repo]=bar/baz )
+EOBUNDLES
+)
+actual="$(_antidote_parsebundles 'foo/bar kind:fpath abc:xyz\nbar/baz')"
+@test "parsing quoted bundle string with newline sep' => $expected" "$actual" = "$expected"
+
+expected="antidote: bad annotation 'whoops'."
+actual="$(_antidote_parsebundles 'foo/bar whoops' 2>&1)"
+@test "parsing 'foo/bar whoops' prints error' => $expected" "$actual" = "$expected"
+
 expected=$(cat <<'EOBUNDLES'
 typeset -A bundle=( [kind]=fpath [repo]=foo/bar )
 typeset -A bundle=( [branch]=dev [kind]=zsh [repo]=foo/baz )

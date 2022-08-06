@@ -1,31 +1,35 @@
 # plugins
-zsh-users/zsh-history-substring-search
-https://github.com/zsh-users/zsh-history-substring-search
-git@github.com:zsh-users/zsh-completions
+foo/bar
+https://github.com/foo/baz kind:clone
+git@github.com:foo/qux
 
 # kind:zsh
-zsh-users/zsh-syntax-highlighting kind:zsh
+bar/baz kind:zsh
 
 # kind:clone
-mattmc3/antidote
+baz/cloneonly kind:clone
 
 # kind:fpath
-sindresorhus/pure kind:fpath
+baz/myprompt kind:fpath
 
 # kind:path
-romkatv/zsh-bench kind:path
+baz/util kind:path
 
 # branches
-zsh-users/zsh-autosuggestions branch:develop
+baz/devbranch branch:develop
 
 # subpath plugins
-ohmyzsh/ohmyzsh path:lib/clipboard.zsh
-ohmyzsh/ohmyzsh path:plugins/extract
+baz/ohmy path:lib/clipboard.zsh
+baz/ohmy path:plugins/extract
 
 # deferred
-zdharma-continuum/fast-syntax-highlighting kind:defer
+baz/deferme kind:defer
+
+# theme
+baz/mytheme
 
 # non-conforming plugins
-peterhurford/up.zsh
-rummik/zsh-tailf
-rupa/z
+baz/name.zsh
+baz/zsh-name
+baz/shellscript
+baz/malformed

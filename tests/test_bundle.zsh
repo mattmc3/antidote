@@ -2,9 +2,13 @@
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
-
 ZSH_PLUGINS_TXT=${0:a:h}/misc/zsh_plugins.txt
 ZSH_PLUGINS_ZSH=${ZSH_PLUGINS_TXT:r}.zsh
+
+# you can regenerate the .zsh file with this statement
+# remember to use git diff to verify the output
+# antidote bundle <$ZSH_PLUGINS_TXT >$ZSH_PLUGINS_ZSH 2>/dev/null
+# sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $ZSH_PLUGINS_ZSH
 
 actual_repos=($ANTIDOTE_HOME/*(N/))
 @test "nothing has been cloned" $#actual_repos -eq 0
@@ -15,7 +19,7 @@ actual_repos=($ANTIDOTE_HOME/*(N/))
 @test "antidote bundle succeeds" $? -eq 0
 
 actual_repos=($ANTIDOTE_HOME/*(N/))
-expected_repos=($TEST_HOME/fakerepos/*(N/))
+expected_repos=($TEST_HOME/fakerepos/*/*(N/))
 @test "all repos have been cloned" $#actual_repos -eq $#expected_repos
 
 STATICFILE=$ZTAP_LOG_HOME/${0:t:r}.actual.log

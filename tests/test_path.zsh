@@ -3,7 +3,7 @@
 
 autoload -Uz ${0:a:h}/functions/setup && setup
 
-repo="ohmyzsh/ohmyzsh"
+repo="foo/bar"
 
 antidote path $repo &>/dev/null
 @test "'antidote path' fails when a bundle doesn't exist" $? -ne 0
@@ -20,7 +20,7 @@ antidote bundle $repo &>/dev/null
 antidote path $repo &>/dev/null
 @test "'antidote path' succeeds when a bundle exists" $? -eq 0
 
-expected="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh"
+expected="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
 actual=$(antidote path $repo 2>&1)
 @test "'antidote path' succeeds with the expected path output" "$expected" = "$actual"
 
