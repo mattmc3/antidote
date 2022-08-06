@@ -25,7 +25,11 @@ baz/ohmy path:plugins/extract
 # deferred
 baz/deferme kind:defer
 
+# theme
+baz/mytheme
+
 # non-conforming plugins
 baz/name.zsh
 baz/zsh-name
 baz/shellscript
+baz/malformed
