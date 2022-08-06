@@ -20,7 +20,7 @@ if ! (( $+functions[antidote-help] )); then
 fi
 
 local cmd="$1"
-shift
+[[ $# -gt 0 ]] && shift
 
 if (( $+functions[antidote-${cmd}] )); then
   antidote-${cmd} "$@"
