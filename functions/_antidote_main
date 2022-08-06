@@ -10,7 +10,7 @@ emulate -L zsh
 setopt local_options extended_glob
 
 0=${(%):-%x}
-local ver='1.2.1'
+local ver='1.3.0'
 
 if ! (( $+functions[antidote-help] )); then
   for _fn in ${0:A:h}/*; do
