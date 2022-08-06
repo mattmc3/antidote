@@ -1,5 +1,9 @@
 .DEFAULT_GOAL := help
 
+.PHONY: testall
+testall:
+	./tests/runtests ./tests/*.zsh
+
 .PHONY: test
 test:
 	./tests/runtests
