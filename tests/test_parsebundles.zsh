@@ -17,7 +17,7 @@ typeset -A bundle=( [kind]=zsh [repo]=bar/baz )
 EOBUNDLES
 )
 actual="$(_antidote_parsebundles 'foo/bar kind:fpath abc:xyz\nbar/baz')"
-@test "parsing quoted bundle string with newline sep' => $expected" "$actual" = "$expected"
+@test "parsing quoted bundle string with newline sep" "$actual" = "$expected"
 
 expected="antidote: bad annotation 'whoops'."
 actual="$(_antidote_parsebundles 'foo/bar whoops' 2>&1)"
