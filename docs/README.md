@@ -14,8 +14,10 @@
 
 > [Get the cure][getantidote]</blockquote>
 
-Antidote is a feature complete Zsh implementation of the legacy [Antibody][antibody]
-plugin manager.
+[Antidote][getantidote] is a feature-complete Zsh implementation of the legacy
+[Antibody][antibody] plugin manager, which in turn was derived from [Antigen][antigen].
+Antidote not only aims to provide continuity for those legacy plugin managers, but to
+also delight new users with high performance, easy to use Zsh plugin management.
 
 ## Documentation
 
@@ -64,6 +66,7 @@ A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
 [antigen]:        https://github.com/zsh-users/antigen
 [antibody]:       https://github.com/getantibody/antibody
 [getantidote]:    https://getantidote.github.io
+[getantibody]:    https://github.com/getantibody/antibody
 [benchmarks]:     https://github.com/romkatv/zsh-bench/blob/master/doc/linux-desktop.md
 [zsh]:            https://www.zsh.org
 
