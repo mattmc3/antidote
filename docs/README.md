@@ -16,8 +16,8 @@
 
 [Antidote][getantidote] is a feature-complete Zsh implementation of the legacy
 [Antibody][antibody] plugin manager, which in turn was derived from [Antigen][antigen].
-Antidote not only aims to provide continuity for those legacy plugin managers, but to
-also delight new users with high performance, easy to use Zsh plugin management.
+Antidote not only aims to provide continuity for those legacy plugin managers, but also
+to delight new users with high-performance, easy-to-use Zsh plugin management.
 
 ## Documentation
 
