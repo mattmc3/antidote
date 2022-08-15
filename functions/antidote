@@ -14,7 +14,7 @@ emulate -L zsh
 setopt local_options extended_glob
 0=${(%):-%x}
 
-if ! (( $+functions[_antidote_main] )); then
-  autoload -Uz ${0:h}/_antidote_main
+if ! (( $+functions[__antidote] )); then
+  autoload -Uz ${0:h}/__antidote
 fi
-_antidote_main "$@"
+__antidote "$@"
