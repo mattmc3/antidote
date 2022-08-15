@@ -1,0 +1,26 @@
+#!/usr/bin/env zsh
+
+# https://pandoc.org/demo/pandoc.1.md
+# https://eddieantonio.ca/blog/2015/12/18/authoring-manpages-in-markdown-with-pandoc/
+# https://jeromebelleman.gitlab.io/posts/publishing/manpages/
+
+0=${(%):-%N}
+PROJECT_HOME=${0:a:h:h}
+CACHE_DIR=$PROJECT_HOME/.cache/buildman
+[[ -d $CACHE_DIR ]] && rm -rf $CACHE_DIR
+mkdir -p $CACHE_DIR
+
+for manpage in $PROJECT_HOME/man/*.md; do
+  case ${manpage:t:r} in
+    footer|example) continue ;;
+  esac
+  echo "Building ${manpage:t:r} manpage..."
+  [[ -d $PROJECT_HOME/man/man1 ]] || mkdir -p $PROJECT_HOME/man/man1
+
+  mdfile=$CACHE_DIR/${manpage:t}.md
+  cat ${manpage} > $mdfile
+  echo "" >> $mdfile
+  cat $PROJECT_HOME/man/footer.md >> $mdfile
+
+  pandoc --standalone --to man ${mdfile} -o $PROJECT_HOME/man/man1/${manpage:t:r}.1
+done

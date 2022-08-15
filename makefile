@@ -2,6 +2,15 @@
 all : test testall testreal major minor rev help
 .PHONY : all
 
+.PHONY: build
+build:
+	./tools/buildman
+
+.PHONY: testall
+testall:
+	./tests/runtests ./tests/*.zsh
+
+.PHONY: test
 test:
 	./tests/runtests
 
