@@ -17,15 +17,16 @@ if (( $#o_help )); then
   return
 fi
 
+# turn the bundle string into an associative array
 local bundle
 local bundlestr=$(_antidote_parsebundles $@)
 local bundles=("${(@f)${bundlestr}}")
 [[ $#bundles -ne 0 ]] || return 1
 
-# loop the first time just to clone missing bundles
 local giturl parts shortrepo cloning
 typeset -a cloning
 
+# loop the first time just to clone missing bundles
 for bundlestr in $bundles; do
   # bundlestr sets an associative array, like so:
   # typeset -A bundle=( [kind]=zsh [repo]=foo/bar )
@@ -48,7 +49,7 @@ for bundlestr in $bundles; do
   fi
 done
 
-# wait for cloning to complete
+# wait for background cloning to complete
 wait
 
 # now loop a second time to generate the bundle load script
@@ -75,6 +76,6 @@ for bundlestr in $bundles; do
   [[ $? -eq 0 ]] || return 1
 done
 
-# generate bundle load script
+# print bundle load script
 (( ! $#prescript )) || printf "%s\n" "${prescript[@]}"
 printf "%s\n" "${script[@]}"
