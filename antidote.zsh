@@ -5,7 +5,7 @@ export MANPATH="$MANPATH:${0:A:h}/man"
 # setup the environment
 for _fn in ${0:A:h}/functions/*; do
   (( $+functions[${_fn:t}] )) && unfunction ${_fn:t}
-  autoload -Uz ${_fn:t}
+  autoload -Uz "${_fn}"
 done
 unset _fn
 
