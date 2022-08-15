@@ -4,7 +4,7 @@
 # https://eddieantonio.ca/blog/2015/12/18/authoring-manpages-in-markdown-with-pandoc/
 # https://jeromebelleman.gitlab.io/posts/publishing/manpages/
 
-0=${(%):-%N}
+0=${(%):-%x}
 PROJECT_HOME=${0:a:h:h}
 CACHE_DIR=$PROJECT_HOME/.cache/buildman
 [[ -d $CACHE_DIR ]] && rm -rf $CACHE_DIR

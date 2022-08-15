@@ -1,4 +1,4 @@
-0=${(%):-%N}
+0=${(%):-%x}
 fpath+=${0:A:h}/functions
 export MANPATH="$MANPATH:${0:A:h}/man"
 

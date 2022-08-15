@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-0=${(%):-%N}
+0=${(%):-%x}
 PRJ_HOME=${0:a:h:h}
 TESTS_HOME=${0:a:h}
 export ZTAP_HOME=$PRJ_HOME/.cache/ztap

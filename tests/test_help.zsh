@@ -1,4 +1,4 @@
-0=${(%):-%N}
+0=${(%):-%x}
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
