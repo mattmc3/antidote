@@ -72,6 +72,7 @@ for bundlestr in $bundles; do
   [[ $bundle[kind] != clone ]] || continue
 
   script+="$(_antidote_script $bundle[repo] $bundle[kind] $bundle[path])"
+  [[ $? -eq 0 ]] || return 1
 done
 
 # generate bundle load script
