@@ -8,29 +8,40 @@
 
 emulate -L zsh
 setopt local_options extended_glob
-
 0=${(%):-%x}
-local ver='1.3.0'
 
-if ! (( $+functions[antidote-help] )); then
-  for _fn in ${0:A:h}/*; do
-    (( $+functions[${_fn:t}] )) || autoload -Uz $_fn
-  done
-  unset _fn
-fi
+local o_help o_version
+zparseopts -D -F -K -- \
+  {h,-help}=o_help \
+  {v,-version}=o_version ||
+  return 1
 
-local cmd="$1"
-[[ $# -gt 0 ]] && shift
+# # make sure we're
+# if ! (( $+functions[antidote-help] )); then
+#   for _fn in ${0:A:h}/*; do
+#     (( $+functions[${_fn:t}] )) || autoload -Uz $_fn
+#   done
+#   unset _fn
+# fi
 
-if (( $+functions[antidote-${cmd}] )); then
-  antidote-${cmd} "$@"
-  return $?
-elif [[ -z "$cmd" ]] || [[ $cmd = (--help|-h) ]]; then
-  antidote-help "$@"
-elif [[ $cmd = (--version|-v) ]]; then
+if (( $#o_version )); then
+  local ver='1.3.0'
   local gitsha=$(git -C "${0:h:h}" rev-parse --short HEAD 2>/dev/null)
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   echo "antidote version $ver"
+
+elif (( $#o_help )); then
+  antidote-help "$@"
+
+elif [[ $# -eq 0 ]]; then
+  antidote-help
+  return 2
+
+elif (( $+functions[antidote-${1}] )); then
+  local cmd=$1; shift
+  antidote-${cmd} "$@"
+  return $?
+
 else
-  echo >&2 "antidote: command not found '${cmd}'" && return 1
+  echo >&2 "antidote: command not found '${1}'" && return 1
 fi

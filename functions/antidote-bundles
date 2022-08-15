@@ -1,10 +1,17 @@
 #!/usr/bin/env zsh
 
-##? antidote-bundles - alias for antidote bundle to support legacy antigen
-##?
-##? usage: antidote bundles [<bundles>...]
-##?
-##? args:
-##?   [<bundles>...]  bundle list
+### Alias for `antidote bundle` to support legacy syntax.
+###
+### usage: antidote bundles [-h|--help] <bundle>...
 
-antidote-bundle $@
+local o_help
+zparseopts -D -F -K -- \
+  {h,-help}=o_help ||
+  return 1
+
+if (( $#o_help )); then
+  antidote-help bundles
+  return
+fi
+
+antidote-bundle "$@"

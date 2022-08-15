@@ -1,47 +1,20 @@
 #!/usr/bin/env zsh
 
-##? antidote - the cure to slow zsh plugin management
-##?
-##? usage: antidote [<flags>] <command> [<args> ...]
-##?
-##? flags:
-##?   -h, --help           Show context-sensitive help
-##?   -v, --version        Show application version
-##?
-##? commands:
-##?   help      Show documentation
-##?   load      Statically source all bundles from the plugins file
-##?   bundle    Clone bundle(s) and generate the static load script
-##?   install   Clone a new bundle and add it to your plugins file
-##?   update    Update antidote and its cloned bundles
-##?   purge     Remove a cloned bundle
-##?   home      Print where antidote is cloning bundles
-##?   list      List cloned bundles
-##?   path      Print the path of a cloned bundle
-##?   init      Initialize the shell for dynamic bundles
-##?
-##?
-##? DESCRIPTION
-##? ===========
-##? To get started using antidote, simply add the following snippet to your .zshrc:
-##?
-##? # --- antidote ----------------------------------------------------------------- {{{
-##? if ! [[ -e ${ZDOTDIR:-~}/.antidote ]]; then
-##?   git clone https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
-##? fi
-##? source ${ZDOTDIR:-~}/.antidote/antidote.zsh
-##? antidote load
-##? # ------------------------------------------------------------------------------ }}}
-##?
-##? For more information, visit https://getantidote.github.io/
+###
+### antidote - the cure to slow zsh plugin management
+###
+### https://getantidote.github.io
+###
+### run `antidote -h` for usage
+###
 
-# Note that this function gets overridden if using `antidote-init`.
+# Note: this gets overridden if using `antidote init`.
 
 emulate -L zsh
 setopt local_options extended_glob
+0=${(%):-%x}
 
 if ! (( $+functions[_antidote_main] )); then
-  0=${(%):-%x}
   autoload -Uz ${0:h}/_antidote_main
 fi
 _antidote_main "$@"

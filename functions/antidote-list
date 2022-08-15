@@ -1,11 +1,21 @@
 #!/usr/bin/env zsh
 
-##? antidote-list - list cloned bundles
-##?
-##? usage: antidote list
+### List cloned bundles.
+###
+### usage: antidote list [-h|--help]
 
 emulate -L zsh
 setopt local_options extended_glob
+
+local o_help
+zparseopts -D -F -K -- \
+  {h,-help}=o_help ||
+  return 1
+
+if (( $#o_help )); then
+  antidote-help list
+  return
+fi
 
 if [[ $# -ne 0 ]]; then
   echo >&2 "antidote: error: unexpected $1, try --help"

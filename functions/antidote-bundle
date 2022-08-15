@@ -1,14 +1,21 @@
 #!/usr/bin/env zsh
 
-##? antidote-bundle - clone bundle(s) and generate the static load script
-##?
-##? usage: antidote bundle [<bundles>...]
-##?
-##? args:
-##?   [<bundles>...]  bundle list
+### Clone bundle(s) and generate the static load script.
+###
+### usage: antidote bundle [-h|--help] <bundle>...
 
 emulate -L zsh
 setopt local_options extended_glob no_notify no_monitor
+
+local o_help
+zparseopts -D -F -K -- \
+  {h,-help}=o_help ||
+  return 1
+
+if (( $#o_help )); then
+  antidote-help bundle
+  return
+fi
 
 local bundle
 local bundlestr=$(_antidote_parsebundles $@)

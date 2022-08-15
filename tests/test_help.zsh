@@ -1,26 +1,66 @@
-0=${(%):-%x}
+0=${(%):-%N}
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
 
-@test "sourcing antidote.zsh succeeds" $? -eq 0
+export MANPAGER=cat
+export PAGER=cat
 
-antidote -h &>/dev/null
-@test "antidote -h succeeds" $? -eq 0
+() {
+  antidote -h &>/dev/null
+  @test "antidote -h succeeds" $? -eq 0
+}
 
-antidote --help &>/dev/null
-@test "antidote --help succeeds" $? -eq 0
+() {
+  antidote --help &>/dev/null
+  @test "antidote --help succeeds" $? -eq 0
+}
 
-cmds=('' bundle help home init install list load path purge update)
-for c in $cmds; do
-  actual_help=("${(@f)$(antidote -h $c 2>&1)}")
-  @test "antidote help text exists for '$c'" "${#actual_help}" -ge 3
-done
+cmds=(
+  bundle
+  bundles
+  help
+  home
+  init
+  install
+  list
+  load
+  path
+  purge
+  selfupdate
+  update
+)
 
-badcmds=(foo bar baz)
-for c in $badcmds; do
-  actual_help=("${(@f)$(antidote -h $c 2>&1)}")
-  @test "antidote help should not exist for '$c'" "${#actual_help}" -eq 1
-done
+() {
+  local c expected actual
+  for c in '' $cmds; do
+    cmd="antidote -h $c"
+    if [[ "$c" = bundles ]]; then
+      expected="antidote-bundle(1)"
+    elif [[ -n "$c" ]]; then
+      expected="antidote-${c}(1)"
+    else
+      expected="antidote(1)"
+    fi
+    actual=($(eval $cmd 2>&1))
+    errcode=$?
+    @test "'$cmd' should succeed" $errcode -eq 0
+    @test "'$cmd' should show man page '$expected'" "$actual[1]" = "$expected"
+  done
+}
+
+() {
+  local cmd expected actual errcode
+  local badcmds=(foobar)
+  for c in $badcmds; do
+    cmd="antidote -h $c"
+    actual=$(eval $cmd 2>&1)
+    errcode=$?
+    actual=("${(@f)actual}")
+    expected="No manual entry for antidote-$c"
+    @test "'$cmd' should fail" $errcode -eq 1
+    @test "'$cmd' should print default help" "$expected" = "${actual[1]}"
+  done
+}
 
 teardown

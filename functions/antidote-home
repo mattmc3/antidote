@@ -1,13 +1,23 @@
 #!/usr/bin/env zsh
 
-##? antidote-home - Print where antidote is cloning bundles.
-##?
-##? usage: antidote home
+### Print where antidote is cloning bundles.
+###
+### usage: antidote home [-h|--help]
 
 # Can be overridden by setting `$ANTIDOTE_HOME`.
 
 emulate -L zsh
 setopt local_options extended_glob
+
+local o_help
+zparseopts -D -F -K -- \
+  {h,-help}=o_help ||
+  return 1
+
+if (( $#o_help )); then
+  antidote-help home
+  return
+fi
 
 local rootdir
 if [[ -n "$ANTIDOTE_HOME" ]]; then

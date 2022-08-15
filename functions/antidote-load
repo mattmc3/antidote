@@ -1,16 +1,20 @@
 #!/usr/bin/env zsh
 
-##? antidote-load - statically source all bundles from the plugins file.
-##?
-##? usage: antidote load [<bundlefile> [<staticfile>]]
-##?
-##? args:
-##?   [<bundlefile>]  The plugins file to source if not using the default.
-##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.txt` or zstyle setting.
-##?   [<staticfile>]  The static plugins file to generate if not using the default.
-##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.zsh` or zstyle setting.
+### Statically source all bundles from the plugins file.
+###
+### usage: antidote load [-h|--help] [<bundlefile> [<staticfile>]]
 
 setopt extended_glob
+
+local o_help
+zparseopts -D -F -K -- \
+  {h,-help}=o_help ||
+  return 1
+
+if (( $#o_help )); then
+  antidote-help load
+  return
+fi
 
 local bundlefile=$1
 if [[ -z "$bundlefile" ]]; then

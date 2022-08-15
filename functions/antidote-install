@@ -1,16 +1,21 @@
 #!/usr/bin/env zsh
 
-##? antidote-install -  clone a new bundle and add it to your plugins file
-##?
-##? usage: antidote install <bundle> [<bundlefile>]
-##?
-##? args:
-##?   <bundle>        Bundle to be installed
-##?   [<bundlefile>]  Bundle file to write to if not using the default.
-##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.txt` or zstyle setting.
+### Clone a new bundle and add it to your plugins file.
+###
+### usage: antidote install [-h|--help] <bundle> [<bundlefile>]
 
 emulate -L zsh
 setopt local_options extended_glob
+
+local o_help
+zparseopts -D -F -K -- \
+  {h,-help}=o_help ||
+  return 1
+
+if (( $#o_help )); then
+  antidote-help install
+  return
+fi
 
 local bundle=$1
 local bundlefile=$2

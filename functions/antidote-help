@@ -1,29 +1,35 @@
 #!/usr/bin/env zsh
 
-##? antidote-help - show documentation
-##?
-##? usage:
-##?   antidote help [<command>]
-##?
-##? args:
-##?   [<command>]  Show help for this command
+### Show antidote documentation.
+###
+### usage: antidote [-h|--help] [<command>]
+###        antidote help [<command>]
 
-emulate -L zsh
-setopt local_options extended_glob
+local usage=(
+  'antidote - the cure to slow zsh plugin management'
+  ''
+  'usage: antidote [-h|--help] [-v|--version]'
+  '       antidote <command> [<flags>] [<args>...]'
+  ''
+  'commands: bundle, home, init, install, list, load, path,'
+  '          purge, update'
+)
 
-0=${(%):-%x}
-
-local fn_dir="${0:a:h}"
-local fn_file
-
-if [[ -z "$1" ]]; then
-  fn_file="${fn_dir}/antidote"
-else
-  fn_file="${fn_dir}/antidote-${1}"
-fi
-if [[ ! -f "$fn_file" ]]; then
-  echo >&2 "antidote: error: expected valid command but got '$@'."
+local o_help
+zparseopts -D -F -K -- \
+  {h,-help}=o_help ||
   return 1
+
+local manpage=antidote
+
+if (( $#o_help )); then
+  manpage=antidote-help
+elif [[ "$1" == bundles ]]; then
+  manpage="antidote-bundle"
+elif [[ -n "$1" ]]; then
+  manpage="antidote-${1}"
 fi
 
-command grep "^##?" "${fn_file}" | cut -c 5-
+man "$manpage" || {
+  printf "%s\n" "${(@)usage}" && return 1
+}

@@ -1,13 +1,22 @@
 #!/usr/bin/env zsh
 
-##? antidote-selfupdate - update antidote
-##?
-##? usage: antidote selfupdate
+### Update antidote.
+###
+### usage: antidote selfupdate [-h|--help]
 
 emulate -L zsh
 setopt local_options extended_glob
-
 0=${(%):-%x}
+
+local o_help
+zparseopts -D -F -K -- \
+  {h,-help}=o_help ||
+  return 1
+
+if (( $#o_help )); then
+  antidote-help selfupdate
+  return
+fi
 
 # update antidote
 echo "Updating antidote..."

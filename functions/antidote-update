@@ -1,13 +1,22 @@
 #!/usr/bin/env zsh
 
-##? antidote-update - update antidote and its cloned bundles
-##?
-##? usage: antidote update
+### Update antidote and its cloned bundles.
+###
+### usage: antidote update [-h|--help]
 
 emulate -L zsh
 setopt local_options extended_glob no_notify no_monitor
-
 0=${(%):-%x}
+
+local o_help
+zparseopts -D -F -K -- \
+  {h,-help}=o_help ||
+  return 1
+
+if (( $#o_help )); then
+  antidote-help update
+  return
+fi
 
 function __antidote_update {
   bundledir="$1"
