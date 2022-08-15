@@ -10,8 +10,7 @@
 ##?   [<staticfile>]  The static plugins file to generate if not using the default.
 ##?                   Defaults to `${ZDOTDIR:-~}/.zsh_plugins.zsh` or zstyle setting.
 
-emulate -L zsh
-setopt local_options extended_glob
+setopt extended_glob
 
 local bundlefile=$1
 if [[ -z "$bundlefile" ]]; then
