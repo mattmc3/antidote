@@ -5,9 +5,6 @@ all : test testall testreal major minor rev help
 build:
 	./tools/buildman
 
-testall:
-	./tests/runtests ./tests/*.zsh
-
 test:
 	./tests/runtests
 
