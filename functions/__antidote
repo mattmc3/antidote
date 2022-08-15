@@ -7,8 +7,7 @@
 # The init command switches antidote from static mode to dynamic mode, but this
 # core controller functionality remains.
 
-emulate -L zsh
-setopt local_options extended_glob
+setopt extended_glob
 0=${(%):-%x}
 
 local o_help o_version
