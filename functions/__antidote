@@ -1,10 +1,11 @@
 #!/usr/bin/env zsh
 
-### The main antidote controller function.
+### The controller for antidote functionality.
 
-# __antidote allows `antidote` and `antidote-init` to co-exist, which is why this
-# code isn't in the core `antidote` function. `antidote-init` will change what that
-# function does.
+# The reason we use `__antidote` instead putting all of this in `antidote` directly,
+# is that this allows the `antidote` command to be overridden via `antidote init`.
+# The init command switches antidote from static mode to dynamic mode, but this
+# core controller functionality remains.
 
 emulate -L zsh
 setopt local_options extended_glob
