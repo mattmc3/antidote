@@ -2,7 +2,7 @@
 
 0=${(%):-%x}
 PRJ_HOME=${0:a:h:h}
-TESTS_HOME=${0:a:h}
+TESTS_HOME=${0:a:h:h}/tests
 export ZTAP_HOME=$PRJ_HOME/.cache/ztap
 export ZTAP_LOGS=$PRJ_HOME/.cache/logs
 

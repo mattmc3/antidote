@@ -6,13 +6,13 @@ build:
 	./tools/buildman
 
 test:
-	./tests/runtests
+	./tools/runtests
 
 testall:
-	./tests/runtests ./tests/*test_*.zsh
+	./tools/runtests ./tests/*test_*.zsh
 
 testreal:
-	./tests/runtests ./tests/realtest_*.zsh
+	./tools/runtests ./tests/realtest_*.zsh
 
 major:
 	bumpversion major
