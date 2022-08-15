@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-all : test testall testreal major minor rev help
+all : test testall testreal bumpmaj bumpmin bumprev help
 .PHONY : all
 
 build:
@@ -14,17 +14,17 @@ testall:
 testreal:
 	./tools/runtests ./tests/realtest_*.zsh
 
-major:
+bumpmaj:
 	bumpversion major
 	git add .
 	git commit -m "Bump major version number"
 
-minor:
+bumpmin:
 	bumpversion minor
 	git add .
 	git commit -m "Bump minor version number"
 
-rev:
+bumprev:
 	bumpversion revision
 	git add .
 	git commit -m "Bump revision version number"
@@ -37,6 +37,6 @@ help:
 	@echo "  test      run unit tests"
 	@echo "  testreal  run real tests"
 	@echo "  testall   run unit tests and real tests"
-	@echo "  major     bump major version (X.0.0)"
-	@echo "  minor     bump minor version (0.X.0)"
-	@echo "  rev       bump version revision (0.0.X)"
+	@echo "  bumpmaj   bump the major version (X.0.0)"
+	@echo "  bumpmin   bump the minor version (0.X.0)"
+	@echo "  bumprev   bump the revision ver (0.0.X)"
