@@ -9,6 +9,7 @@ zparseopts -D -F -K -- \
   {z,-no-source}=flag_no_source ||
   return 1
 
+# initialize test functions
 for _fn in ${0:A:h}/*; do
   (( $+functions[${_fn:t}] )) || autoload -Uz $_fn
 done
