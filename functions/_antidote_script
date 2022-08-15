@@ -10,7 +10,7 @@ setopt local_options extended_glob
 local bundle=$1
 local kind=${2:-zsh}
 local bundlepath=$3
-local bundledir initfile REPLY
+local bundledir initfile initfiles=() REPLY
 local skipfpath=false
 
 function __antidote_scriptout {
@@ -48,7 +48,7 @@ fi
 # handle specified bundlepath
 if [[ -n "$bundlepath" ]]; then
   if [[ -f $bundledir/$bundlepath ]]; then
-    initfile=$bundledir/$bundlepath
+    initfiles=($bundledir/$bundlepath)
     skipfpath=true
   elif [[ -d $bundledir/$bundlepath ]]; then
     bundledir=$bundledir/$bundlepath
@@ -59,10 +59,10 @@ if [[ -n "$bundlepath" ]]; then
 fi
 
 # detect the init file
-if [[ -z "$initfile" ]] && [[ $kind != (fpath|path) ]]; then
+if [[ $#initfiles -eq 0 ]] && [[ $kind != (fpath|path) ]]; then
   _antidote_initfile $bundledir >/dev/null || return 1
-  initfile=$REPLY
-  [[ -f "$initfile" ]] || { __antidote_err_filenotfound $initfile && return 1 }
+  initfiles=($REPLY)
+  [[ $#initfiles -ne 0 ]] || { __antidote_err_filenotfound $bundle && return 1 }
 fi
 
 # output the script
@@ -70,5 +70,7 @@ if [[ $kind = (path|fpath) ]]; then
   __antidote_scriptout $bundledir $kind
 else
   [[ $skipfpath = true ]] || __antidote_scriptout $bundledir fpath
-  __antidote_scriptout $initfile $kind
+  for initfile in $initfiles; do
+    __antidote_scriptout $initfile $kind
+  done
 fi

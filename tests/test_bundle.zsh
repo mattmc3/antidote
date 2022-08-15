@@ -2,40 +2,67 @@
 @echo "=== ${0:t:r} ==="
 
 autoload -Uz ${0:a:h}/functions/setup && setup
-ZSH_PLUGINS_TXT=${0:a:h}/misc/zsh_plugins.txt
-ZSH_PLUGINS_ZSH=${ZSH_PLUGINS_TXT:r}.zsh
 
-# you can regenerate the .zsh file with this statement
-# remember to use git diff to verify the output
-# antidote bundle <$ZSH_PLUGINS_TXT >$ZSH_PLUGINS_ZSH 2>/dev/null
-# sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $ZSH_PLUGINS_ZSH
+() {
+  local cmd='antidote bundle $TEMP_HOME/myfile.zsh'
+  echo "echo myfile" > $TEMP_HOME/myfile.zsh
+  local expected=(
+    "source $TEMP_HOME/myfile.zsh"
+  )
+  local actual=($(eval $cmd 3>/dev/null 2>/dev/null))
+  @test "'$cmd' works" "$expected" = "$actual"
+}
 
-actual_repos=($ANTIDOTE_HOME/*(N/))
-@test "nothing has been cloned" $#actual_repos -eq 0
+() {
+  local cmd='antidote bundle $TEMP_HOME/plugins/myplugin'
+  mkdir -p $TEMP_HOME/plugins/myplugin
+  echo "echo myplugin" > $TEMP_HOME/plugins/myplugin/myplugin.plugin.zsh
+  local expected=(
+    "fpath+=( $TEMP_HOME/plugins/myplugin )"
+    "source $TEMP_HOME/plugins/myplugin/myplugin.plugin.zsh"
+  )
+  local actual=($(eval $cmd 3>/dev/null 2>/dev/null))
+  @test "'$cmd' works" "$expected" = "$actual"
+}
 
-# we need to redirect @echo fd3 output to somewhere
-# logs, /dev/null, &1...
-3>$ZTAP_LOG_HOME/${0:t:r}.git.log 2>$ZTAP_LOG_HOME/${0:t:r}.err antidote bundle <$ZSH_PLUGINS_TXT >/dev/null
-@test "antidote bundle succeeds" $? -eq 0
+() {
+  local cmd='antidote bundle baz/ohmy path:plugins/extract'
+  local expected=(
+    "fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-ohmy/plugins/extract )"
+    "source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-ohmy/plugins/extract/extract.plugin.zsh"
+  )
+  local actual=($(eval $cmd 3>/dev/null 2>/dev/null))
+  @test "'$cmd' works" "$expected" = "$actual"
+}
 
-actual_repos=($ANTIDOTE_HOME/*(N/))
-expected_repos=($TEST_HOME/fakerepos/*/*(N/))
-@test "all repos have been cloned" $#actual_repos -eq $#expected_repos
+() {
+  local cmd='antidote bundle baz/ohmy path:plugins/extract/extract.plugin.zsh'
+  local expected=(
+    "source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-ohmy/plugins/extract/extract.plugin.zsh"
+  )
+  local actual=($(eval $cmd 3>/dev/null 2>/dev/null))
+  @test "'$cmd' works" "$expected" = "$actual"
+}
 
-STATICFILE=$ZTAP_LOG_HOME/${0:t:r}.actual.log
-3>$ZTAP_LOG_HOME/${0:t:r}_2.git.log 2>$ZTAP_LOG_HOME/${0:t:r}_2.err antidote bundle <$ZSH_PLUGINS_TXT >$STATICFILE
+() {
+  local cmd='antidote bundle baz/ohmy path:lib/history.zsh'
+  local expected=(
+    "source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-ohmy/lib/history.zsh"
+  )
+  local actual=($(eval $cmd 3>/dev/null 2>/dev/null))
+  @test "'$cmd' works" "$expected" = "$actual"
+}
 
-actual=("${(f)$(<$STATICFILE)}")
-expected=("${(f)$(<$ZSH_PLUGINS_ZSH)}")
-expected=(${expected//\$ANTIDOTE_HOME/$ANTIDOTE_HOME})
-
-@test "antidote bundle produces the expected output line count" $#expected -eq $#actual
-
-# debuging help - let's not spam the output with the gory details
-if [[ "$expected" = "$actual" ]]; then
-  @test "antidote bundle produces the expected output" 1 -eq 1
-else
-  @test "antidote bundle produces the expected output" "compare $ZSH_PLUGINS_TXT" = "to $STATICFILE"
-fi
+() {
+  local cmd='antidote bundle baz/ohmy path:lib'
+  local expected=(
+    "fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-ohmy/lib )"
+    "source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-ohmy/lib/clipboard.zsh"
+    "source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-ohmy/lib/git.zsh"
+    "source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-ohmy/lib/history.zsh"
+  )
+  local actual=($(eval $cmd 3>/dev/null 2>/dev/null))
+  @test "'$cmd' works" "$expected" = "$actual"
+}
 
 teardown

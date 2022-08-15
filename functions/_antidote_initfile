@@ -5,23 +5,24 @@
 emulate -L zsh
 setopt local_options extended_glob
 
-REPLY=
+REPLY=()
 local dir=$1
 if [[ ! -d "$dir" ]]; then
   echo >&2 "antidote: bundle directory not found '$dir'."
   return 1
 fi
-local plugin_name=${dir:t}
-local initfiles=(
-  $dir/$plugin_name.plugin.zsh(N)
-  $dir/$plugin_name.zsh(N)
-  $dir/init.zsh(N)
-  $dir/*.plugin.{z,}sh(N)
-  $dir/*.{z,}sh{-theme,}(N)
-)
-if [[ ${#initfiles[@]} -eq 0 ]]; then
+
+local initfiles=($dir/*.plugin.zsh(N))
+[[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh(N))
+[[ $#initfiles -gt 0 ]] || initfiles=($dir/*.sh(N))
+[[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh-theme(N))
+
+if [[ $#initfiles -eq 0 ]]; then
   echo >&2 "antidote: no init file detected in '$dir'."
   return 1
 fi
-REPLY=$initfiles[1]
-echo $REPLY
+REPLY=($initfiles)
+local f
+for f in $initfiles; do
+  echo $f
+done
