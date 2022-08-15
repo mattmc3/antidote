@@ -19,12 +19,12 @@ for teststr in $success_tests; do
   expected=$plugindir/$testdata[file]
   mkdir -p $plugindir && touch $expected
 
-  _antidote_initfile $plugindir &>/dev/null
+  _antidote_initfiles $plugindir &>/dev/null
   errcode=$?
-  @test "_antidote_initfile returns success for $testdata[dir]" $errcode -eq 0
+  @test "_antidote_initfiles returns success for $testdata[dir]" $errcode -eq 0
   @test "\$REPLY was set with initfile" "$REPLY" = $expected
 
-  actual=$(_antidote_initfile $plugindir)
+  actual=$(_antidote_initfiles $plugindir)
   @test "$testdata[file] initfile detected" "$actual" = $expected
 
   rm -rf "$plugindir"
@@ -40,9 +40,9 @@ for teststr in $fail_tests; do
   plugindir=$TEMP_HOME/$testdata[dir]
   mkdir -p $plugindir && touch $plugindir/$testdata[file]
 
-  _antidote_initfile $plugindir &>/dev/null
+  _antidote_initfiles $plugindir &>/dev/null
   errcode=$?
-  @test "_antidote_initfile returns fail code for $testdata[dir]" $errcode -ne 0
+  @test "_antidote_initfiles returns fail code for $testdata[dir]" $errcode -ne 0
   @test "\$REPLY was set to empty" "$REPLY" = ""
 
   rm -rf "$plugindir"

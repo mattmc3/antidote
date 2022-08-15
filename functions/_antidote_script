@@ -60,7 +60,7 @@ fi
 
 # detect the init file
 if [[ $#initfiles -eq 0 ]] && [[ $kind != (fpath|path) ]]; then
-  _antidote_initfile $bundledir >/dev/null || return 1
+  _antidote_initfiles $bundledir >/dev/null || return 1
   initfiles=($REPLY)
   [[ $#initfiles -ne 0 ]] || { __antidote_err_filenotfound $bundle && return 1 }
 fi
