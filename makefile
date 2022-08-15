@@ -1,35 +1,39 @@
 .DEFAULT_GOAL := help
+all : test testall testreal major minor rev help
+.PHONY : all
 
-.PHONY: testall
-testall:
-	./tests/runtests ./tests/*.zsh
-
-.PHONY: test
 test:
 	./tests/runtests
 
-.PHONY: major
+testall:
+	./tests/runtests ./tests/*test_*.zsh
+
+testreal:
+	./tests/runtests ./tests/realtest_*.zsh
+
 major:
 	bumpversion major
 	git add .
 	git commit -m "Bump major version number"
 
-.PHONY: minor
 minor:
 	bumpversion minor
 	git add .
 	git commit -m "Bump minor version number"
 
-.PHONY: rev
 rev:
 	bumpversion revision
 	git add .
 	git commit -m "Bump revision version number"
 
-.PHONY: help
 help:
 	@echo "Usage:  make <command>"
 	@echo ""
 	@echo "Commands:"
-	@echo "  help  shows this message"
-	@echo "  test  run unit tests"
+	@echo "  help      shows this message"
+	@echo "  test      run unit tests"
+	@echo "  testreal  run real tests"
+	@echo "  testall   run unit tests and real tests"
+	@echo "  major     bump major version (X.0.0)"
+	@echo "  minor     bump minor version (0.X.0)"
+	@echo "  rev       bump version revision (0.0.X)"
