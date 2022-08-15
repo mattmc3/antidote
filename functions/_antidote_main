@@ -16,14 +16,6 @@ zparseopts -D -F -K -- \
   {v,-version}=o_version ||
   return 1
 
-# # make sure we're
-# if ! (( $+functions[antidote-help] )); then
-#   for _fn in ${0:A:h}/*; do
-#     (( $+functions[${_fn:t}] )) || autoload -Uz $_fn
-#   done
-#   unset _fn
-# fi
-
 if (( $#o_version )); then
   local ver='1.3.0'
   local gitsha=$(git -C "${0:h:h}" rev-parse --short HEAD 2>/dev/null)
