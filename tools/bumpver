@@ -1,7 +1,6 @@
 #!/usr/bin/env zsh
 0=${(%):-%x}
-
 bumpversion --allow-dirty $1
 newver=$(grep 'current_version' ${0:h:h}/.bumpversion.cfg | sed -E 's/^[^0-9]+(.*)$/\1/')
-echo git add .
-echo git commit -m "Bump version to $newver"
+git add .
+git commit -m "Bump version to $newver"
