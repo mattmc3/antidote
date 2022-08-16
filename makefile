@@ -14,20 +14,14 @@ testall:
 testreal:
 	./tools/runtests ./tests/realtest_*.zsh
 
-bumpmaj:
-	bumpversion major
-	git add .
-	git commit -m "Bump major version number"
+bump-maj:
+	./tools/bumpver major
 
-bumpmin:
-	bumpversion minor
-	git add .
-	git commit -m "Bump minor version number"
+bump-min:
+	./tools/bumpver minor
 
-bumprev:
-	bumpversion revision
-	git add .
-	git commit -m "Bump revision version number"
+bump-rev:
+	./tools/bumpver revision
 
 help:
 	@echo "Usage:  make <command>"
@@ -37,6 +31,6 @@ help:
 	@echo "  test      run unit tests"
 	@echo "  testreal  run real tests"
 	@echo "  testall   run unit tests and real tests"
-	@echo "  bumpmaj   bump the major version (X.0.0)"
-	@echo "  bumpmin   bump the minor version (0.X.0)"
-	@echo "  bumprev   bump the revision ver (0.0.X)"
+	@echo "  bump-maj  bump the major version (X.0.0)"
+	@echo "  bump-min  bump the minor version (0.X.0)"
+	@echo "  bump-rev  bump the revision ver (0.0.X)"
