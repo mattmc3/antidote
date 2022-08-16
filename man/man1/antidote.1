@@ -24,27 +24,15 @@
 antidote [-v | \[en]version] [-h | \[en]help] [ \&...]
 .SH DESCRIPTION
 .PP
-\f[B]antidote\f[R] is used to manage zsh plugins.
+\f[B]antidote\f[R] is a Zsh plugin manager made from the ground up
+thinking about performance.
 .PP
-To install antidote, first you must clone it with git from an
-interactive zsh session:
-.IP
-.nf
-\f[C]
-git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-\[ti]}/.antidote
-\f[R]
-.fi
+It is fast because it can do things concurrently, and generates an
+ultra-fast static plugin file that you can easily load from your Zsh
+config.
 .PP
-Then, simply add the following snippet to your .zshrc:
-.IP
-.nf
-\f[C]
-source ${ZDOTDIR:-\[ti]}/.antidote/antidote.zsh
-antidote load
-\f[R]
-.fi
-.PP
-For more information, visit https://getantidote.github.io/
+It is written natively in Zsh, is well tested, and picks up where
+Antigen and Antibody left off.
 .SH OPTIONS
 .TP
 -h, --help
@@ -83,6 +71,138 @@ Print the path of a cloned bundle
 .TP
 \f[V]init\f[R]
 Initialize the shell for dynamic bundles
+.SH EXAMPLES
+.SS A Simple Config
+.PP
+Create a \f[I].zsh_plugins.txt\f[R] file with a list of the plugins you
+want:
+.PP
+\ \ \ # ${ZDOTDIR:-\[ti]}/.zsh_plugins.txt
+.PD 0
+.P
+.PD
+\ \ \ zsh-users/zsh-syntax-highlighting
+.PD 0
+.P
+.PD
+\ \ \ zsh-users/zsh-history-substring-search
+.PD 0
+.P
+.PD
+\ \ \ zsh-users/zsh-autosuggestions
+.PP
+Now, simply load your newly created static plugins file in your
+\f[I].zshrc\f[R].
+.PP
+\ \ \ # ${ZDOTDIR:-\[ti]}/.zshrc
+.PD 0
+.P
+.PD
+\ \ \ source /path/to/antidote/antidote.zsh
+.PD 0
+.P
+.PD
+\ \ \ antidote load
+.SS A More Advanced Config
+.PP
+Your \f[I].zsh_plugins.txt\f[R] file supports annotations.
+Annotations tell antidote how to do things like load plugins from
+alternate paths.
+This lets you use plugins from popular frameworks like Oh-My-Zsh:
+.PP
+\ \ \ # ${ZDOTDIR:-\[ti]}/.zsh_plugins.txt
+.PD 0
+.P
+.PD
+\ \ \ ohmyzsh/ohmyzsh path:lib
+.PD 0
+.P
+.PD
+\ \ \ ohmyzsh/ohmyzsh path:plugins/git
+.PD 0
+.P
+.PD
+\ \ \ ohmyzsh/ohmyzsh path:plugins/magic-enter
+.PD 0
+.P
+.PD
+\ \ \ etc\&...
+.SS Dynamic Bundling
+.PP
+Users familiar with legacy plugin managers like Antigen might prefer to
+use dynamic bundling.
+With dynamic bundling you sacrifice some performance to avoid having
+separate plugin files.
+To use dynamic bundling, we need to change how \f[B]antidote bundle\f[R]
+handles your plugins.
+We do this by sourcing the output from \f[B]antidote init\f[R].
+.PP
+An example config might look like this:
+.PP
+\ \ \ source /path/to/antidote/antidote.zsh
+.PD 0
+.P
+.PD
+\ \ \ source <(antidote init)
+.PD 0
+.P
+.PD
+\ \ \ antidote bundle zsh-users/zsh-autosuggestions
+.PD 0
+.P
+.PD
+\ \ \ antidote bundle ohmyzsh/ohmyzsh path:lib
+.PD 0
+.P
+.PD
+\ \ \ antidote bundle ohmyzsh/ohmyzsh path:plugins/git
+.PP
+Instead of calling \f[B]antidote bundle\f[R] over and over, you might
+prefer to load bundles with a HEREDOC.
+.PP
+\ \ \ antidote bundle <<EOBUNDLES
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ zsh-users/zsh-syntax-highlighting # regular plugins
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ $HOME/.myaliases # file paths
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ ohmyzsh/ohmyzsh path:lib # directories
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ ohmyzsh/ohmyzsh path:plugins/magic-enter # frameworks
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ https://github.com/zsh-users/zsh-history-substring-search
+# URLs
+.PD 0
+.P
+.PD
+\ \ \ EOBUNDLES
+.SS Installation
+.PP
+To install antidote you can clone it with git:
+.PP
+\ \ git clone \[en]depth=1 https://github.com/mattmc3/antidote.git
+${ZDOTDIR:-\[ti]}/.antidote
+.PP
+Then, simply add the following snippet to your .zshrc:
+.PP
+\ \ source ${ZDOTDIR:-\[ti]}/.antidote/antidote.zsh
+.PD 0
+.P
+.PD
+\ \ antidote load
+.SH SEE ALSO
+.PP
+For more information, visit https://getantidote.github.io/
 .SH BUGS
 .PP
 See GitHub Issues: <https://github.com/mattmc3/antidote/issues>
