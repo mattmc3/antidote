@@ -29,6 +29,10 @@ elif [[ $# -eq 0 ]]; then
   antidote-help
   return 2
 
+elif [[ "$1" = help ]]; then
+  local manpage=${2:-antidote}
+  antidote-help $manpage
+
 elif (( $+functions[antidote-${1}] )); then
   local cmd=$1; shift
   antidote-${cmd} "$@"

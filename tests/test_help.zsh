@@ -16,6 +16,15 @@ export PAGER=cat
   @test "antidote --help succeeds" $? -eq 0
 }
 
+() {
+  local actual expected err
+  expected="antidote - the cure to slow zsh plugin management"
+  actual=("${(@f)$(antidote 2>&1)}")
+  err=$?
+  @test "'antidote' without args fails" $err -ne 0
+  @test "'antidote' without args prints help" "$actual[1]" = "$expected"
+}
+
 cmds=(
   bundle
   bundles
@@ -32,8 +41,8 @@ cmds=(
 )
 
 () {
-  local c expected actual
-  for c in '' $cmds; do
+  local c expected actual err
+  for c in $cmds; do
     cmd="antidote -h $c"
     if [[ "$c" = bundles ]]; then
       expected="antidote-bundle(1)"
@@ -43,22 +52,22 @@ cmds=(
       expected="antidote(1)"
     fi
     actual=($(eval $cmd 2>&1))
-    errcode=$?
-    @test "'$cmd' should succeed" $errcode -eq 0
+    err=$?
+    @test "'$cmd' should succeed" $err -eq 0
     @test "'$cmd' should show man page '$expected'" "$actual[1]" = "$expected"
   done
 }
 
 () {
-  local cmd expected actual errcode
+  local cmd expected actual err
   local badcmds=(foobar)
   for c in $badcmds; do
     cmd="antidote -h $c"
     actual=$(eval $cmd 2>&1)
-    errcode=$?
+    err=$?
     actual=("${(@f)actual}")
     expected="No manual entry for antidote-$c"
-    @test "'$cmd' should fail" $errcode -eq 1
+    @test "'$cmd' should fail" $err -eq 1
     @test "'$cmd' should print default help" "$expected" = "${actual[1]}"
   done
 }

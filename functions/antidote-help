@@ -5,31 +5,51 @@
 ### usage: antidote [-h|--help] [<command>]
 ###        antidote help [<command>]
 
-local usage=(
-  'antidote - the cure to slow zsh plugin management'
-  ''
-  'usage: antidote [-h|--help] [-v|--version]'
-  '       antidote <command> [<flags>] [<args>...]'
-  ''
-  'commands: bundle, home, init, install, list, load, path,'
-  '          purge, update'
-)
+function __antidote_usage {
+  cat<<EOS
+antidote - the cure to slow zsh plugin management
+
+usage: antidote [<flags>] <command> [<args> ...]
+
+flags:
+  -h, --help           Show context-sensitive help
+  -v, --version        Show application version
+
+commands:
+  help      Show documentation
+  load      Statically source all bundles from the plugins file
+  bundle    Clone bundle(s) and generate the static load script
+  install   Clone a new bundle and add it to your plugins file
+  update    Update antidote and its cloned bundles
+  purge     Remove a cloned bundle
+  home      Print where antidote is cloning bundles
+  list      List cloned bundles
+  path      Print the path of a cloned bundle
+  init      Initialize the shell for dynamic bundles
+EOS
+}
 
 local o_help
 zparseopts -D -F -K -- \
   {h,-help}=o_help ||
   return 1
 
-local manpage=antidote
+local manpage
 
 if (( $#o_help )); then
   manpage=antidote-help
+elif [[ "$1" == antidote ]]; then
+  manpage=antidote
 elif [[ "$1" == bundles ]]; then
   manpage="antidote-bundle"
 elif [[ -n "$1" ]]; then
   manpage="antidote-${1}"
 fi
 
-man "$manpage" || {
-  printf "%s\n" "${(@)usage}" && return 1
-}
+if (( $+commands[man] )) && [[ -n "$manpage" ]]; then
+  man "$manpage" || {
+    __antidote_usage && return 1
+  }
+else
+  __antidote_usage
+fi
