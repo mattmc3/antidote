@@ -1,20 +1,27 @@
+#!/usr/bin/env zsh
 0=${(%):-%x}
 @echo "=== ${0:t:r} ==="
 
-autoload -Uz ${0:a:h}/functions/setup && setup
+# setup
+BASEDIR=${0:A:h:h}
+ANTIDOTE_HOME=$BASEDIR/tests/fakehome
+source $BASEDIR/antidote.zsh
 
-@test "sourcing antidote.zsh succeeds" $? -eq 0
+() {
+  antidote -v &>/dev/null
+  @test "'antidote -v' succeeds" $? -eq 0
+}
 
-antidote -v &>/dev/null
-@test "antidote -v succeeds" $? -eq 0
+() {
+  antidote --version &>/dev/null
+  @test "'antidote --version' succeeds" $? -eq 0
+}
 
-antidote --version &>/dev/null
-@test "antidote --version succeeds" $? -eq 0
-
-gitsha=$(git -C "$PRJ_HOME" rev-parse --short HEAD 2>/dev/null)
-expected_ver="antidote version 1.4.1 ($gitsha)"
-actual_ver="$(antidote -v)"
-
-@test "antidote version is correct" "$expected_ver" = "$actual_ver"
-
-teardown
+() {
+  local expected actual gitsha
+  gitsha=$(git -C "$BASEDIR" rev-parse --short HEAD 2>/dev/null)
+  expected="antidote version 1.4.1 ($gitsha)"
+  actual="$(antidote -v 2>&1)"
+  @test "'antidote -v' prints '$expected'" $expected = $actual
+  @test "'-v' and '--version' print identical outputs" "$actual" = "$(antidote --version 2>&1)"
+}
