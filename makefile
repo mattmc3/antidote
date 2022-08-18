@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-all : test testall testreal bumpmaj bumpmin bumprev help
+all : build test testall testreal bump-maj bump-min bump-rev help
 .PHONY : all
 
 build:
@@ -28,6 +28,7 @@ help:
 	@echo ""
 	@echo "Commands:"
 	@echo "  help      shows this message"
+	@echo "  build     run build tasks like generating man pages"
 	@echo "  test      run unit tests"
 	@echo "  testreal  run real tests"
 	@echo "  testall   run unit tests and real tests"
