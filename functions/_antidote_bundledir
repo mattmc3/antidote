@@ -20,6 +20,7 @@ elif zstyle -t ':antidote:bundle' use-friendly-names; then
 else
   # sanitize URL for safe use as a dir name
   local url=$(_antidote_tourl $bundle)
+  url=${url%.git}
   url=${url:gs/\@/-AT-}
   url=${url:gs/\:/-COLON-}
   url=${url:gs/\//-SLASH-}
