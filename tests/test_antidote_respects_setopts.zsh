@@ -44,6 +44,7 @@ autoload -Uz ${0:a:h}/functions/setup && setup
   typeset -A all_the_opts=($(set -o))
   typeset -a ignore_opts=(
     emacs
+    forcefloat
     noglobalrcs
     interactive
     kshoptionprint
@@ -77,15 +78,14 @@ autoload -Uz ${0:a:h}/functions/setup && setup
   setup_plugin foo/bar ${(o)opt_cmds}
 
   actual=($(setopt | wc -l))
-  expected=5
-  @test "enabled options is $expected" $expected = $actual
+  @test "few enabled options ($actual)" $actual -lt 10
 
   antidote load 2>&1; err=$?
   @test "'antidote load' succeeds" $err -eq 0
 
   actual=($(setopt | wc -l))
-  expected=161
-  @test "enabled options is $expected" $expected = $actual
+  setopt local_options
+  @test "zillions of enabled options ($actual)" $actual -gt 150
 }
 
 teardown
