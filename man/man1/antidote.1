@@ -160,15 +160,19 @@ An example config might look like this:
 Instead of calling \f[B]antidote bundle\f[R] over and over, you might
 prefer to load bundles with a HEREDOC.
 .PP
+\ \ \ source /path/to/antidote/antidote.zsh
+.PD 0
+.P
+.PD
+\ \ \ source <(antidote init)
+.PD 0
+.P
+.PD
 \ \ \ antidote bundle <<EOBUNDLES
 .PD 0
 .P
 .PD
 \ \ \ \ \ \ \ zsh-users/zsh-syntax-highlighting # regular plugins
-.PD 0
-.P
-.PD
-\ \ \ \ \ \ \ $HOME/.myaliases # file paths
 .PD 0
 .P
 .PD
