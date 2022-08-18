@@ -4,16 +4,20 @@ emulate -L zsh
 setopt local_options extended_glob
 
 local instructions=()
-if [[ ! -t 0 ]]; then
+if [[ $# -gt 0 ]]; then
+  # handle bundle instructions as a param string
+  # split on newlines
+  instructions=("${(s.\n.)${@}}")
+elif [[ ! -t 0 ]]; then
   # handle both <redirected or piped| input
+  local data
   while IFS= read -r data || [[ -n "$data" ]]; do
     instructions+=($data)
   done
-elif [[ $# -gt 0 ]]; then
-  # handle bundle instructions as a param string
-  instructions=("${(s.\n.)${@}}")
-else
-  # if stdin containts no data and no params were passed there's nothing to do
+fi
+
+# if stdin containts no data and no params were passed there's nothing to do
+if [[ $#instructions -eq 0 ]]; then
   return 1
 fi
 
