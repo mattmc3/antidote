@@ -45,20 +45,22 @@ cmds=(
 )
 
 () {
-  local c expected actual err
+  local c cc expected actual err
   for c in $cmds; do
-    cmd="antidote -h $c"
-    if [[ "$c" = bundles ]]; then
-      expected="antidote-bundle(1)"
-    elif [[ -n "$c" ]]; then
-      expected="antidote-${c}(1)"
-    else
-      expected="antidote(1)"
-    fi
-    actual=($(eval $cmd 2>&1))
-    err=$?
-    @test "'$cmd' should succeed" $err -eq 0
-    @test "'$cmd' should show man page '$expected'" "$actual[1]" = "$expected"
+    # there are probably too many ways to call help
+    for cmd in "antidote -h $c" "antidote $c -h"; do
+      if [[ "$c" = bundles ]]; then
+        expected="antidote-bundle(1)"
+      elif [[ -n "$c" ]]; then
+        expected="antidote-${c}(1)"
+      else
+        expected="antidote(1)"
+      fi
+      actual=($(eval $cmd 2>&1))
+      err=$?
+      @test "'$cmd' should succeed" $err -eq 0
+      @test "'$cmd' should show man page '$expected'" "$actual[1]" = "$expected"
+    done
   done
 }
 
