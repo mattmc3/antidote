@@ -21,7 +21,7 @@ source $BASEDIR/antidote.zsh
 () {
   local expected actual gitsha
   gitsha=$(git -C "$BASEDIR" rev-parse --short HEAD 2>/dev/null)
-  expected="antidote version 1.4.1 ($gitsha)"
+  expected="antidote version 1.5.0 ($gitsha)"
   actual="$(antidote -v 2>&1)"
   @test "'antidote -v' prints '$expected'" $expected = $actual
   @test "'-v' and '--version' print identical outputs" "$actual" = "$(antidote --version 2>&1)"
