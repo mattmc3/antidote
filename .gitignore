@@ -4,3 +4,6 @@
 .ztap/
 .cache/
 .plugins/
+.todo/
+*.old/
+**/realzdotdir/zsh_plugins.zsh
