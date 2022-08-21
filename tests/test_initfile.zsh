@@ -13,13 +13,13 @@ TMPDIR=$BASEDIR/.tmp/tests/initfile
   local plugindir teststr REPLY=
 
   local success_tests=(
-    "typeset -A testdata=( [dir]=myplugin     [file]=myplugin.plugin.zsh )"
-    "typeset -A testdata=( [dir]=malformed    [file]=whatever.plugin.zsh )"
-    "typeset -A testdata=( [dir]=myprompt     [file]=myprompt.zsh )"
-    "typeset -A testdata=( [dir]=mytheme      [file]=mytheme.zsh-theme )"
-    "typeset -A testdata=( [dir]=name         [file]=name.zsh )"
-    "typeset -A testdata=( [dir]=shellscript  [file]=shellscript.sh )"
-    "typeset -A testdata=( [dir]=zsh-name     [file]=name.zsh )"
+    "typeset -A testdata=( dir myplugin     file myplugin.plugin.zsh )"
+    "typeset -A testdata=( dir malformed    file whatever.plugin.zsh )"
+    "typeset -A testdata=( dir myprompt     file myprompt.zsh )"
+    "typeset -A testdata=( dir mytheme      file mytheme.zsh-theme )"
+    "typeset -A testdata=( dir name         file name.zsh )"
+    "typeset -A testdata=( dir shellscript  file shellscript.sh )"
+    "typeset -A testdata=( dir zsh-name     file name.zsh )"
   )
 
   for teststr in $success_tests; do
@@ -40,10 +40,10 @@ TMPDIR=$BASEDIR/.tmp/tests/initfile
 
 () {
   fail_tests=(
-    "typeset -A testdata=( [dir]=foo        [file]=foo.bash )"
-    "typeset -A testdata=( [dir]=bar        [file]=README.md )"
-    "typeset -A testdata=( [dir]=baz        [file]=baz )"
-    "typeset -A testdata=( [dir]=notaplugin [file]='' )"
+    "typeset -A testdata=( dir foo        file foo.bash )"
+    "typeset -A testdata=( dir bar        file README.md )"
+    "typeset -A testdata=( dir baz        file baz )"
+    "typeset -A testdata=( dir notaplugin file '' )"
   )
   for teststr in $fail_tests; do
     eval $teststr
