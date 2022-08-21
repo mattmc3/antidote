@@ -1,7 +1,11 @@
+#!/usr/bin/env zsh
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+autoload -Uz ${0:A:h}/functions/testinit && testinit
+ztap_header "${0:t:r}"
 
-autoload -Uz ${0:a:h}/functions/setup && setup
+# setup
+ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+source $BASEDIR/antidote.zsh
 
 export MANPAGER=cat
 export PAGER=cat
@@ -41,20 +45,22 @@ cmds=(
 )
 
 () {
-  local c expected actual err
+  local c cc expected actual err
   for c in $cmds; do
-    cmd="antidote -h $c"
-    if [[ "$c" = bundles ]]; then
-      expected="antidote-bundle(1)"
-    elif [[ -n "$c" ]]; then
-      expected="antidote-${c}(1)"
-    else
-      expected="antidote(1)"
-    fi
-    actual=($(eval $cmd 2>&1))
-    err=$?
-    @test "'$cmd' should succeed" $err -eq 0
-    @test "'$cmd' should show man page '$expected'" "$actual[1]" = "$expected"
+    # there are probably too many ways to call help
+    for cmd in "antidote -h $c" "antidote $c -h"; do
+      if [[ "$c" = bundles ]]; then
+        expected="antidote-bundle(1)"
+      elif [[ -n "$c" ]]; then
+        expected="antidote-${c}(1)"
+      else
+        expected="antidote(1)"
+      fi
+      actual=($(eval $cmd 2>&1))
+      err=$?
+      @test "'$cmd' should succeed" $err -eq 0
+      @test "'$cmd' should show man page '$expected'" "$actual[1]" = "$expected"
+    done
   done
 }
 
@@ -72,4 +78,4 @@ cmds=(
   done
 }
 
-teardown
+ztap_footer

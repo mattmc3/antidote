@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+
+# setup zsh home
+local name=${1:-temp}
+FAKEZDOTDIR=$BASEDIR/tests/fakezdotdir
+ZSHDIR=$BASEDIR/.tmp/tests/$name
+[[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
+mkdir -p ${ZSHDIR:h}
+cp -rf "$FAKEZDOTDIR" "$ZSHDIR"
+
+# setup antidote home
+ANTIDOTE_HOME=$ZSHDIR/antidote_home
+
+# switch ZDOTDIR
+OLD_ZDOTDIR=$ZDOTDIR
+ZDOTDIR=$ZSHDIR

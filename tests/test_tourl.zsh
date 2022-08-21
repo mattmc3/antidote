@@ -1,35 +1,41 @@
+#!/usr/bin/env zsh
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+autoload -Uz ${0:A:h}/functions/testinit && testinit
+ztap_header "${0:t:r}"
 
-autoload -Uz ${0:a:h}/functions/setup && setup
+# setup
+source $BASEDIR/antidote.zsh
 
-typeset -A shortrepos
-shortrepos=(
-  ohmyzsh/ohmyzsh    https://github.com/ohmyzsh/ohmyzsh
-  sindresorhus/pure  https://github.com/sindresorhus/pure
-  foo/bar            https://github.com/foo/bar
-)
+() {
+  local shortname repos expected actual
+  typeset -A repos=(
+    ohmyzsh/ohmyzsh    https://github.com/ohmyzsh/ohmyzsh
+    sindresorhus/pure  https://github.com/sindresorhus/pure
+    foo/bar            https://github.com/foo/bar
+  )
 
-for k in ${(k)shortrepos}; do
-  expected=$shortrepos[$k]
-  actual=$(_antidote_tourl $k)
-  @test "tourl $k => $expected" "$actual" = "$expected"
-done
+  for shortname expected in "${(@kv)repos}"; do
+    actual=$(_antidote_tourl $shortname)
+    @test "tourl $shortname => $expected" "$expected" = "$actual"
+  done
+}
 
-fullrepos=(
-  https://github.com/ohmyzsh/ohmyzsh
-  http://github.com/ohmyzsh/ohmyzsh
-  ssh://github.com/ohmyzsh/ohmyzsh
-  git://github.com/ohmyzsh/ohmyzsh
-  ftp://github.com/ohmyzsh/ohmyzsh
+() {
+  local repos expected actual
+  repos=(
+    https://github.com/ohmyzsh/ohmyzsh
+    http://github.com/ohmyzsh/ohmyzsh
+    ssh://github.com/ohmyzsh/ohmyzsh
+    git://github.com/ohmyzsh/ohmyzsh
+    ftp://github.com/ohmyzsh/ohmyzsh
+    git@github.com:sindresorhus/pure.git
+  )
 
-  git@github.com:sindresorhus/pure.git
-)
+  for url in $repos; do
+    expected=$url
+    actual=$(_antidote_tourl $url)
+    @test "tourl is unmodified for: $url" "$expected" = "$actual"
+  done
+}
 
-for url in $fullrepos; do
-  expected=$url
-  actual=$(_antidote_tourl $url)
-  @test "tourl $url is left unchanged" "$actual" = "$expected"
-done
-
-teardown
+ztap_footer

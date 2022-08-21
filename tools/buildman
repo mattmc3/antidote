@@ -5,22 +5,22 @@
 # https://jeromebelleman.gitlab.io/posts/publishing/manpages/
 
 0=${(%):-%x}
-PROJECT_HOME=${0:a:h:h}
-CACHE_DIR=$PROJECT_HOME/.cache/buildman
-[[ -d $CACHE_DIR ]] && rm -rf $CACHE_DIR
-mkdir -p $CACHE_DIR
+BASEDIR=${0:a:h:h}
+TMPDIR=$BASEDIR/.tmp/buildman
+[[ -d $TMPDIR ]] && rm -rf $TMPDIR
+mkdir -p $TMPDIR
 
-for manpage in $PROJECT_HOME/man/*.md; do
+for manpage in $BASEDIR/man/*.md; do
   case ${manpage:t:r} in
     footer|example) continue ;;
   esac
   echo "Building ${manpage:t:r} manpage..."
-  [[ -d $PROJECT_HOME/man/man1 ]] || mkdir -p $PROJECT_HOME/man/man1
+  [[ -d $BASEDIR/man/man1 ]] || mkdir -p $BASEDIR/man/man1
 
-  mdfile=$CACHE_DIR/${manpage:t}.md
+  mdfile=$TMPDIR/${manpage:t}.md
   cat ${manpage} > $mdfile
   echo "" >> $mdfile
-  cat $PROJECT_HOME/man/footer.md >> $mdfile
+  cat $BASEDIR/man/footer.md >> $mdfile
 
-  pandoc --standalone --to man ${mdfile} -o $PROJECT_HOME/man/man1/${manpage:t:r}.1
+  pandoc --standalone --to man ${mdfile} -o $BASEDIR/man/man1/${manpage:t:r}.1
 done

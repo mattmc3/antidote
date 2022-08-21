@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+0=${(%):-%x}
+BASEDIR=${0:A:h:h:h}
+TMPDIR=$BASEDIR/.tmp
+ZTAP_HOME=$TMPDIR/ztap
+
+# initialize test functions
+local func
+for func in ${0:A:h}/*; do
+  (( $+functions[${func:t}] )) || autoload -Uz $func
+done
+unset func
+
+source $ZTAP_HOME/ztap3.zsh

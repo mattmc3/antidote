@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+
+# setup zsh home
+local name=${1:-temp}
+ZSHDIR=$BASEDIR/.tmp/realtests/$name
+[[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
+mkdir -p $ZSHDIR
+REALZDOTDIR=$BASEDIR/tests/realzdotdir
+cp $REALZDOTDIR/zsh_plugins.txt $ZSHDIR/.zsh_plugins.txt
+
+# setup antidote home
+ANTIDOTE_HOME=$ZSHDIR/antidote_home
+mkdir -p $ANTIDOTE_HOME
+
+# switch ZDOTDIR
+OLD_ZDOTDIR=$ZDOTDIR
+ZDOTDIR=$ZSHDIR

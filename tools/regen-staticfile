@@ -1,0 +1,34 @@
+#!/usr/bin/env zsh
+
+# There's a chicken-and-egg problem here in that we could be using a broken antidote to
+# generate the expected output for tests. The reason this is okay is simply this: git.
+# Since we store the resulting file in git, can diff it and do manual verification that
+# the output really is correct. This is for convenience only.
+
+0=${(%):-%x}
+
+export ANTIDOTE_HOME=$(mktemp -d -t antidote-regen)
+echo "ANTIDOTE_HOME=$ANTIDOTE_HOME"
+
+BASEDIR=${0:A:h:h}
+source $BASEDIR/antidote.zsh
+REALZDOTDIR=$BASEDIR/tests/realzdotdir
+
+# set the output files
+txtfile=${REALZDOTDIR}/zsh_plugins.txt
+staticfile=${REALZDOTDIR}/zsh_plugins_expected.zsh
+listfile=${REALZDOTDIR}/zsh_plugins_repolist.txt
+
+# drink the antidote
+antidote bundle <$txtfile >$staticfile
+antidote list >$listfile
+
+# use variables instead of absolute path
+sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $staticfile
+sed -i '' "s|/private${ANTIDOTE_HOME}|\$ANTIDOTE_HOME|g" $listfile
+sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $listfile
+
+# cleanup
+if [[ -d "$ANTIDOTE_HOME" ]] && [[ "$ANTIDOTE_HOME" = *antidote-regen* ]]; then
+  rm -rf "$ANTIDOTE_HOME"
+fi

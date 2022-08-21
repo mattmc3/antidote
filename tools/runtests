@@ -1,24 +1,24 @@
 #!/usr/bin/env zsh
-
 0=${(%):-%x}
-PRJ_HOME=${0:a:h:h}
-TESTS_HOME=${0:a:h:h}/tests
-export ZTAP_HOME=$PRJ_HOME/.cache/ztap
-export ZTAP_LOGS=$PRJ_HOME/.cache/logs
+BASEDIR=${0:A:h:h}
+TMPDIR=$BASEDIR/.tmp
+ZTAP_HOME=$TMPDIR/ztap
+TESTS_HOME=$BASEDIR/tests
 
 # make sure our tests don't get hung up on git prompting
 export GIT_TERMINAL_PROMPT=0
 
-[[ -d $ZTAP_HOME ]] ||
-  command git clone --depth 1 -q https://github.com/mattmc3/ztap.git $ZTAP_HOME
-
-# clear any prior logs
-[[ ! -d "$ZTAP_LOGS" ]] || rm -rf "$ZTAP_LOGS"
-mkdir -p $ZTAP_LOGS
-
-source $ZTAP_HOME/ztap.zsh
-if [[ $# -gt 0 ]]; then
-  ztap "$@" | $ZTAP_HOME/bin/colortap
-else
-  ztap $TESTS_HOME/test_*.zsh | $ZTAP_HOME/bin/colortap
+if ! [[ -d $ZTAP_HOME ]]; then
+  command git clone --depth 1 --quiet --branch 'v3.0.0' https://github.com/mattmc3/ztap.git $ZTAP_HOME
 fi
+
+source $ZTAP_HOME/ztap3.zsh
+exitcode=0
+if [[ $# -gt 0 ]]; then
+  ztap3 "$@" | $ZTAP_HOME/bin/colortap
+  exitcode=$pipestatus[1]
+else
+  ztap3 $TESTS_HOME/test_*.zsh | $ZTAP_HOME/bin/colortap
+  exitcode=$pipestatus[1]
+fi
+return $exitcode
