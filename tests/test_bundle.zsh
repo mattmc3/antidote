@@ -1,8 +1,6 @@
 #!/usr/bin/env zsh
 0=${(%):-%x}
-BASEDIR=${0:A:h:h}
-
-source $BASEDIR/tests/ztap/ztap3.zsh
+autoload -Uz ${0:A:h}/functions/testinit && testinit
 ztap_header "${0:t:r}"
 
 # setup
@@ -208,6 +206,28 @@ source $BASEDIR/antidote.zsh
   )
   actual=("${(@f)$(antidote bundle $bundle)}")
   @test "bundle zsh-theme: '$bundle'" "$expected" = "$actual"
+}
+
+# full bundling with redirection
+() {
+  local expected actual exitcode
+  local pluginsfile staticfile expectedfile diffout repodirs branched_plugin
+
+  setup_fakezdotdir bundle2
+  source $BASEDIR/antidote.zsh
+  pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
+  staticfile=${ZDOTDIR:-~}/.zsh_plugins.zsh
+  expectedfile=$FAKEZDOTDIR/.zsh_plugins_expected.zsh
+
+  @test "static cache file does not exist" ! -f "$staticfile"
+  antidote bundle <$pluginsfile >$staticfile 2>/dev/null
+  exitcode=$?
+  @test "redirection: 'antidote bundle <~/.zsh_plugins.txt >~/.zsh_plugins.zsh' succeeds!" $exitcode -eq 0
+
+  sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $staticfile
+  diffout=$(diff $staticfile $expectedfile)
+  @test "'antidote bundle' redirection: static file diff succeeds" $exitcode -eq 0
+  @test "'antidote bundle' redirection: static file diff shows no differences" -z "$diffout"
 }
 
 ztap_footer
