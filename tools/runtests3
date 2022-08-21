@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+0=${(%):-%x}
+BASEDIR=${0:A:h:h}
+
+TESTS_HOME=$BASEDIR/tests
+ZTAP_HOME=$BASEDIR/tests/ztap
+
+# make sure our tests don't get hung up on git prompting
+export GIT_TERMINAL_PROMPT=0
+
+source $ZTAP_HOME/ztap3.zsh
+exitcode=0
+if [[ $# -gt 0 ]]; then
+  ztap3 "$@" | $ZTAP_HOME/colortap
+  exitcode=$pipestatus[1]
+else
+  ztap3 $TESTS_HOME/test_*.zsh | $ZTAP_HOME/colortap
+  exitcode=$pipestatus[1]
+fi
+return $exitcode
