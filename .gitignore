@@ -5,5 +5,5 @@
 .cache/
 .plugins/
 .todo/
-*.old/
+*.old
 **/realzdotdir/zsh_plugins.zsh
