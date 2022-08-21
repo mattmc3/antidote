@@ -12,7 +12,7 @@ setopt local_options extended_glob
 repo=$1
 bundle=${repo%.git}
 bundle=${bundle:gs/\:/\/}
-local parts=(${(@s:/:)bundle})
+local parts=( $(__antidote_split '/' $bundle) )
 if [[ $#parts -gt 1 ]]; then
   echo $(antidote-home)/${parts[-2]}/${parts[-1]}
 else
