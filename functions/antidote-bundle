@@ -16,34 +16,37 @@ if [[ -v opts[-h] ]] || [[ -v opts[--help] ]]; then
 fi
 
 # turn the bundle string into an associative array
-local bundle
 local bundlestr=$(_antidote_parsebundles $@)
 local bundles=("${(@f)${bundlestr}}")
 [[ $#bundles -ne 0 ]] || return 1
 
-local giturl parts shortrepo cloning
+local bundle cloning bundledir
 typeset -a cloning
+local zshdefer_bundle='romkatv/zsh-defer'
+local zshdefer_bundledir=$(_antidote_bundledir $zshdefer_bundle)
 
 # loop the first time just to clone missing bundles
 for bundlestr in $bundles; do
   # bundlestr sets an associative array, like so:
-  # typeset -A bundle=( [kind]=zsh [repo]=foo/bar )
-  eval $bundlestr
+  # typeset -A bundle=( [repo]=foo/bar [kind]=fpath )
+  typeset -A bundle=( $(__antidote_split $'\t' $bundlestr) )
+
+  # bundles could be paths or repos
   if [[ $bundle[repo] = \$* ]] || [[ $bundle[repo] = /* ]]; then
     # path bundles
     continue
   elif [[ $bundle[repo] = */* ]]; then
-    # clone the requested repo bundles in the background
-    # parse the git URL by converting ':' to '/', splitting on '/', and rejoining the
-    # final two elemets
-    giturl=${bundle[repo]%.git}
-    giturl=${giturl:gs/\:/\/}
-    parts=(${(@s:/:)giturl})
-    shortrepo=${(j:/:)${parts[-2,-1]}}
-    if ! (($cloning[(Ie)$shortrepo])); then
-      cloning+=($shortrepo)
+    bundledir=$(_antidote_bundledir $bundle[repo])
+    if ! (($cloning[(Ie)$bundledir])); then
+      cloning+=($bundledir)
       _antidote_clone --background $bundle[repo] $bundle[branch]
     fi
+  fi
+
+  # ensure we clone the plugin necessary for deferred bundles
+  if [[ $bundle[kind] = defer ]] && ! (($cloning[(Ie)$zshdefer_bundledir])); then
+    cloning+=($zshdefer_bundledir)
+    _antidote_clone --background $zshdefer_bundle
   fi
 done
 
@@ -54,15 +57,14 @@ wait
 local prescript=() script=()
 for bundlestr in $bundles; do
   # bundlestr sets an associative array, like so:
-  # typeset -A bundle=( [kind]=zsh [repo]=foo/bar )
-  eval $bundlestr
+  # typeset -A bundle=( [repo]=foo/bar [kind]=fpath )
+  typeset -A bundle=( $(__antidote_split $'\t' $bundlestr) )
 
   # special handling for deferred bundles
   if [[ $bundle[kind] = defer ]] && [[ $#prescript -eq 0 ]]; then
-    _antidote_clone romkatv/zsh-defer
     prescript=(
       "if ! (( \$+functions[zsh-defer] )); then"
-      "$(_antidote_script romkatv/zsh-defer | pr -to 2)"
+      "$(_antidote_script $zshdefer_bundle | pr -to 2)"
       "fi"
     )
   fi
@@ -70,6 +72,7 @@ for bundlestr in $bundles; do
   # nothing to do for clone-only bundles
   [[ $bundle[kind] != clone ]] || continue
 
+  bundle[kind]=${bundle[kind]:-zsh}
   script+="$(_antidote_script $bundle[repo] $bundle[kind] $bundle[path])"
   [[ $? -eq 0 ]] || return 1
 done

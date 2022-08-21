@@ -3,55 +3,52 @@
 emulate -L zsh
 setopt local_options extended_glob
 
-local instructions=()
+local bundles=()
 if [[ $# -gt 0 ]]; then
   # handle bundle instructions as a param string
   # split on newlines
-  instructions=("${(s.\n.)${@}}")
+  bundles=("${(s.\n.)${@}}")
 elif [[ ! -t 0 ]]; then
   # handle both <redirected or piped| input
   local data
   while IFS= read -r data || [[ -n "$data" ]]; do
-    instructions+=($data)
+    bundles+=($data)
   done
 fi
 
 # if stdin containts no data and no params were passed there's nothing to do
-if [[ $#instructions -eq 0 ]]; then
-  return 1
-fi
+(( $#bundles )) || return 1
 
-local inst bundle parts optstr
-typeset -A bundle
-for inst in $instructions; do
+local bundlestr bundle parts optstr
+typeset -a bundle
+for bundlestr in $bundles; do
   # turn whitespace into spaces
-  inst=${inst//$'\t'/ }
-  inst=${inst//$'\r'/ }
+  bundlestr=${bundlestr//$'\t'/ }
+  bundlestr=${bundlestr//$'\r'/ }
 
   # remove comments
-  inst=${inst%%\#*}
+  bundlestr=${bundlestr%%\#*}
 
-  # split instruction on spaces into parts array
-  parts=(${(@s: :)inst})
+  # split on spaces into parts array
+  parts=( ${(@s: :)bundlestr} )
 
   # skip empty lines
-  [[ $#parts -gt 0 ]] || continue
+  (( $#parts )) || continue
 
   # the first element is the repo, the remaining are a:b annotations
   # split annotations into key/value pairs
   bundle=()
-  bundle[repo]=$parts[1]
-  optstr=(${parts[@]:1})
-  if [[ $#optstr -gt 0 ]]; then
-    parts=(${(@s/:/)optstr})
+  bundle=( repo $parts[1] )
+  optstr=( ${parts[@]:1} )
+  if (( $#optstr )); then
+    parts=( ${(@s/:/)optstr} )
     if [[ $(( $#parts % 2 )) -ne 0 ]]; then
       echo >&2 "antidote: bad annotation '$optstr'."
       return 1
     fi
-    bundle+=($parts)
+    bundle+=( $parts )
   fi
-  bundle[kind]=${bundle[kind]:-zsh}
 
   # output the parsed associative array
-  typeset -p bundle
+  __antidote_join $'\t' $bundle
 done
