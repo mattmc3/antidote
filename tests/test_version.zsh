@@ -6,6 +6,7 @@
 BASEDIR=${0:A:h:h}
 ANTIDOTE_HOME=$BASEDIR/tests/fakehome
 source $BASEDIR/antidote.zsh
+@echo "ZSH_VERSION: $ZSH_VERSION"
 
 () {
   antidote -v &>/dev/null

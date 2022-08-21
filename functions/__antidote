@@ -10,19 +10,19 @@
 setopt extended_glob
 0=${(%):-%x}
 
-local o_help o_version
-zparseopts -D -F -K -- \
-  {h,-help}=o_help \
-  {v,-version}=o_version ||
+local opts
+zparseopts -A opts -D -F -M -- \
+  h -help=h \
+  v -version=v ||
   return 1
 
-if (( $#o_version )); then
+if [[ -v opts[-v] ]] || [[ -v opts[--version] ]]; then
   local ver='1.4.1'
   local gitsha=$(git -C "${0:h:h}" rev-parse --short HEAD 2>/dev/null)
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   echo "antidote version $ver"
 
-elif (( $#o_help )); then
+elif [[ -v opts[-h] ]] || [[ -v opts[--help] ]]; then
   antidote-help "$@"
 
 elif [[ $# -eq 0 ]]; then

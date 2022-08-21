@@ -8,13 +8,11 @@
 # This function changes how the `antidote` command works by sourcing the results of
 # `antidote bundle` instead of just generating the Zsh script.
 
-local o_help
-zparseopts -D -F -K -- \
-  {h,-help}=o_help ||
-  return 1
+local opts
+zparseopts -A opts -D -F -- h -help || return 1
 
-if (( $#o_help )); then
-  antidote-help init
+if [[ -v opts[-h] ]] || [[ -v opts[--help] ]]; then
+  antidote-help bundle
   return
 fi
 
