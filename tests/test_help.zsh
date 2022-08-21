@@ -1,7 +1,13 @@
+#!/usr/bin/env zsh
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+BASEDIR=${0:A:h:h}
 
-autoload -Uz ${0:a:h}/functions/setup && setup
+source $BASEDIR/tests/ztap/ztap3.zsh
+ztap_header "${0:t:r}"
+
+# setup
+ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+source $BASEDIR/antidote.zsh
 
 export MANPAGER=cat
 export PAGER=cat
@@ -72,4 +78,4 @@ cmds=(
   done
 }
 
-teardown
+ztap_footer

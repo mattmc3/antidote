@@ -1,11 +1,13 @@
 #!/usr/bin/env zsh
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+BASEDIR=${0:A:h:h}
+
+source $BASEDIR/tests/ztap/ztap3.zsh
+ztap_header "${0:t:r}"
 
 # setup
-BASEDIR=${0:A:h:h}
-ANTIDOTE_HOME=$BASEDIR/tests/fakehome
 source $BASEDIR/antidote.zsh
+ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
 
 () {
   antidote path bar/foo &>/dev/null
@@ -30,3 +32,5 @@ source $BASEDIR/antidote.zsh
   expected=$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
   @test "'antidote path' reports correct bundle path" $expected = $actual
 }
+
+ztap_footer

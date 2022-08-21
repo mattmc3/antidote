@@ -1,7 +1,9 @@
+#!/usr/bin/env zsh
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+BASEDIR=${0:A:h:h}
 
-autoload -Uz ${0:a:h}/functions/setup && setup --no-source
+source $BASEDIR/tests/ztap/ztap3.zsh
+ztap_header "${0:t:r}"
 
 expected_cmds=(
   bundle
@@ -16,15 +18,19 @@ expected_cmds=(
   update
 )
 
-for cmd in $expected_cmds; do
-  @test "antidote command not yet defined: '$cmd'" $+functions[antidote-$cmd] -eq 0
-done
+() {
+  local cmd
+  for cmd in $expected_cmds; do
+    @test "antidote command not yet defined: '$cmd'" $+functions[antidote-$cmd] -eq 0
+  done
+}
 
-source $PRJ_HOME/antidote.zsh
-@test "sourcing antidote.zsh succeeds" $? -eq 0
+() {
+  local cmd
+  source $BASEDIR/antidote.zsh
+  for cmd in $expected_cmds; do
+    @test "antidote command defined: '$cmd'" $+functions[antidote-$cmd] -eq 1
+  done
+}
 
-for cmd in $expected_cmds; do
-  @test "antidote command defined: '$cmd'" $+functions[antidote-$cmd] -eq 1
-done
-
-teardown
+ztap_footer

@@ -1,10 +1,21 @@
+#!/usr/bin/env zsh
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+BASEDIR=${0:A:h:h}
 
-PRJ_HOME=${0:A:h:h}
+source $BASEDIR/tests/ztap/ztap3.zsh
+ztap_header "${0:t:r}"
 
-@test "antidote function not yet defined" $+functions[antidote] -eq 0
+# setup
+ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
 
-source $PRJ_HOME/antidote.zsh
-@test "sourcing antidote.zsh succeeds" $? -eq 0
-@test "antidote function defined" $+functions[antidote] -eq 1
+() {
+  @test "antidote function not yet defined" $+functions[antidote] -eq 0
+}
+
+() {
+  source $BASEDIR/antidote.zsh
+  @test "sourcing antidote.zsh succeeds" $? -eq 0
+  @test "antidote function defined" $+functions[antidote] -eq 1
+}
+
+ztap_footer

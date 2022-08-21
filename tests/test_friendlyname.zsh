@@ -1,20 +1,27 @@
+#!/usr/bin/env zsh
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+BASEDIR=${0:A:h:h}
 
-autoload -Uz ${0:a:h}/functions/setup && setup
+source $BASEDIR/tests/ztap/ztap3.zsh
+ztap_header "${0:t:r}"
 
+# setup
+ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+source $BASEDIR/antidote.zsh
 zstyle ':antidote:bundle' use-friendly-names on
 
-typeset -A repos
-repos=(
-  foo/bar                    $ANTIDOTE_HOME/foo/bar
-  http://github.com/bar/baz  $ANTIDOTE_HOME/bar/baz
-)
+() {
+  typeset -A repos=(
+    foo/bar                     foo/bar
+    http://github.com/bar/baz   bar/baz
+    git@github.com:baz/qux.git  baz/qux
+  )
 
-for k in ${(k)repos}; do
-  expected=$repos[$k]
-  actual=$(_antidote_friendlyname $k)
-  @test "friendlyname $k => $expected" "$actual" = "$expected"
-done
+  local bundle expected
+  for bundle expected in ${(kv)repos}; do
+    actual=$(_antidote_friendlyname $bundle)
+    @test "friendlyname '$bundle' => $expected" "$actual" = "$ANTIDOTE_HOME/$expected"
+  done
+}
 
-teardown
+ztap_footer

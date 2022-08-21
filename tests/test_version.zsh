@@ -1,16 +1,17 @@
 #!/usr/bin/env zsh
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+BASEDIR=${0:A:h:h}
+
+source $BASEDIR/tests/ztap/ztap3.zsh
+ztap_header "${0:t:r}"
 
 # setup
-BASEDIR=${0:A:h:h}
-ANTIDOTE_HOME=$BASEDIR/tests/fakehome
 source $BASEDIR/antidote.zsh
 @echo "ZSH_VERSION: $ZSH_VERSION"
 
 () {
   antidote -v &>/dev/null
-  @test "'antidote -v' succeeds" $? -eq 0
+  @test "'antidote -v' succeeds" "$?" -eq 0
 }
 
 () {
@@ -26,3 +27,5 @@ source $BASEDIR/antidote.zsh
   @test "'antidote -v' prints '$expected'" $expected = $actual
   @test "'-v' and '--version' print identical outputs" "$actual" = "$(antidote --version 2>&1)"
 }
+
+ztap_footer
