@@ -64,7 +64,7 @@ function setup_plugin {
 }
 
 # Run this test last!
-# It sets all nearly every option.
+# It sets nearly every option
 # Cue Clark Grizwold lighting ceremony!!!
 () {
   local opt_cmds all_the_opts ignore_opts
