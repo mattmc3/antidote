@@ -9,6 +9,18 @@ for _fn in ${0:A:h}/functions/*; do
 done
 unset _fn
 
+#region: Helper Functions
+function __antidote_join {
+  local sep=$1; shift
+  echo ${(pj.$sep.)@}
+}
+
+function __antidote_split {
+  local sep=$1; shift
+  echo ${(ps.$sep.)@}
+}
+#endregion
+
 # setup completions
 _antidote() {
 	IFS=' ' read -A reply <<< "help bundle update home purge list load path init install"
