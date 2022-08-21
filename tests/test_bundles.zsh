@@ -5,9 +5,7 @@
 # Everything else should be tested in 'antidote bundle' tests.
 
 0=${(%):-%x}
-BASEDIR=${0:A:h:h}
-
-source $BASEDIR/tests/ztap/ztap3.zsh
+autoload -Uz ${0:A:h}/functions/testinit && testinit
 ztap_header "${0:t:r}"
 
 # setup
