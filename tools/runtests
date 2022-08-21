@@ -18,7 +18,7 @@ mkdir -p $ZTAP_LOGS
 
 source $ZTAP_HOME/ztap.zsh
 if [[ $# -gt 0 ]]; then
-  ztap "$@" | $ZTAP_HOME/bin/colorize_tap
+  ztap "$@" | $ZTAP_HOME/bin/colortap
 else
-  ztap $TESTS_HOME/test_*.zsh | $ZTAP_HOME/bin/colorize_tap
+  ztap $TESTS_HOME/test_*.zsh | $ZTAP_HOME/bin/colortap
 fi
