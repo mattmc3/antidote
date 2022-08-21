@@ -1,51 +1,62 @@
+#!/usr/bin/env zsh
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+autoload -Uz ${0:A:h}/functions/testinit && testinit
+ztap_header "${0:t:r}"
 
-autoload -Uz ${0:a:h}/functions/setup && setup
+# setup
+source $BASEDIR/antidote.zsh
+TMPDIR=$BASEDIR/.tmp/tests/initfile
+[[ -d $TMPDIR ]] && rm -rf "$TMPDIR"
 
-success_tests=(
-  "typeset -A testdata=( [dir]=foo        [file]=foo.zsh )"
-  "typeset -A testdata=( [dir]=bar        [file]=bar.plugin.zsh )"
-  "typeset -A testdata=( [dir]=baz        [file]=baz.zsh-theme )"
-  "typeset -A testdata=( [dir]=z          [file]=z.sh )"
-  "typeset -A testdata=( [dir]=zsh-plugin [file]=plugin.zsh )"
-  "typeset -A testdata=( [dir]=plugin.zsh [file]=whatever.zsh )"
-)
+() {
+  local expected actual exitcode
+  local plugindir teststr REPLY=
 
-REPLY=
-for teststr in $success_tests; do
-  eval $teststr
-  plugindir=$TEMP_HOME/$testdata[dir]
-  expected=$plugindir/$testdata[file]
-  mkdir -p $plugindir && touch $expected
+  local success_tests=(
+    "typeset -A testdata=( [dir]=myplugin     [file]=myplugin.plugin.zsh )"
+    "typeset -A testdata=( [dir]=malformed    [file]=whatever.plugin.zsh )"
+    "typeset -A testdata=( [dir]=myprompt     [file]=myprompt.zsh )"
+    "typeset -A testdata=( [dir]=mytheme      [file]=mytheme.zsh-theme )"
+    "typeset -A testdata=( [dir]=name         [file]=name.zsh )"
+    "typeset -A testdata=( [dir]=shellscript  [file]=shellscript.sh )"
+    "typeset -A testdata=( [dir]=zsh-name     [file]=name.zsh )"
+  )
 
-  _antidote_initfiles $plugindir &>/dev/null
-  errcode=$?
-  @test "_antidote_initfiles returns success for $testdata[dir]" $errcode -eq 0
-  @test "\$REPLY was set with initfile" "$REPLY" = $expected
+  for teststr in $success_tests; do
+    eval $teststr
+    plugindir=$TMPDIR/$testdata[dir]
+    expected=$plugindir/$testdata[file]
+    mkdir -p $plugindir && touch $expected
 
-  actual=$(_antidote_initfiles $plugindir)
-  @test "$testdata[file] initfile detected" "$actual" = $expected
+    _antidote_initfiles $plugindir &>/dev/null
+    exitcode=$?
+    @test "_antidote_initfiles returns success for $testdata[dir]" $exitcode -eq 0
+    @test "\$REPLY was correctly set to '$testdata[file]'" "$REPLY" = $expected
 
-  rm -rf "$plugindir"
-done
+    actual=$(_antidote_initfiles $plugindir)
+    @test "$testdata[file] initfile detected" "$actual" = $expected
+  done
+}
 
-fail_tests=(
-  "typeset -A testdata=( [dir]=foo        [file]=foo.bash )"
-  "typeset -A testdata=( [dir]=bar        [file]=README.md )"
-  "typeset -A testdata=( [dir]=baz        [file]=baz )"
-)
-for teststr in $fail_tests; do
-  eval $teststr
-  plugindir=$TEMP_HOME/$testdata[dir]
-  mkdir -p $plugindir && touch $plugindir/$testdata[file]
+() {
+  fail_tests=(
+    "typeset -A testdata=( [dir]=foo        [file]=foo.bash )"
+    "typeset -A testdata=( [dir]=bar        [file]=README.md )"
+    "typeset -A testdata=( [dir]=baz        [file]=baz )"
+    "typeset -A testdata=( [dir]=notaplugin [file]='' )"
+  )
+  for teststr in $fail_tests; do
+    eval $teststr
+    plugindir=$TMPDIR/$testdata[dir]
+    mkdir -p $plugindir
+    if [[ -n "$testdata[file]" ]]; then
+      touch $plugindir/$testdata[file]
+    fi
+    _antidote_initfiles $plugindir &>/dev/null
+    exitcode=$?
+    @test "_antidote_initfiles returns fail code for $testdata[dir]" $exitcode -ne 0
+    @test "\$REPLY is empty" -z "$REPLY"
+  done
+}
 
-  _antidote_initfiles $plugindir &>/dev/null
-  errcode=$?
-  @test "_antidote_initfiles returns fail code for $testdata[dir]" $errcode -ne 0
-  @test "\$REPLY was set to empty" "$REPLY" = ""
-
-  rm -rf "$plugindir"
-done
-
-teardown
+ztap_footer
