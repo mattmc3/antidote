@@ -28,8 +28,8 @@ local zshdefer_bundledir=$(_antidote_bundledir $zshdefer_bundle)
 # loop the first time just to clone missing bundles
 for bundlestr in $bundles; do
   # bundlestr sets an associative array, like so:
-  # typeset -A bundle=( [repo]=foo/bar )
-  eval $bundlestr
+  # typeset -A bundle=( [repo]=foo/bar [kind]=fpath )
+  typeset -A bundle=( $(__antidote_split $'\t' $bundlestr) )
 
   # bundles could be paths or repos
   if [[ $bundle[repo] = \$* ]] || [[ $bundle[repo] = /* ]]; then
