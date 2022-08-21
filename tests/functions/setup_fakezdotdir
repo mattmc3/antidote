@@ -3,7 +3,7 @@
 # setup zsh home
 local name=${1:-temp}
 FAKEZDOTDIR=$BASEDIR/tests/fakezdotdir
-ZSHDIR=$BASEDIR/.cache/tests/$name
+ZSHDIR=$BASEDIR/.tmp/tests/$name
 [[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
 mkdir -p ${ZSHDIR:h}
 cp -rf "$FAKEZDOTDIR" "$ZSHDIR"

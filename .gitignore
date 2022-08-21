@@ -3,6 +3,7 @@
 *.zwc.old
 .ztap/
 .cache/
+.tmp/
 .plugins/
 .todo/
 *.old

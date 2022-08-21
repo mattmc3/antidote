@@ -35,7 +35,7 @@ source $BASEDIR/antidote.zsh
 
   # test actually purging a bundle
   # for this we just need to set up a fake ANTIDOTE_HOME so we can purge it
-  ANTIDOTE_HOME=$BASEDIR/.cache/tests/purge
+  ANTIDOTE_HOME=$BASEDIR/.tmp/tests/purge
   [[ -d $ANTIDOTE_HOME ]] && rm -rf $ANTIDOTE_HOME
 
   bundle="foo/bar"

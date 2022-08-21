@@ -2,7 +2,7 @@
 
 # setup zsh home
 local name=${1:-temp}
-ZSHDIR=$BASEDIR/.cache/realtests/$name
+ZSHDIR=$BASEDIR/.tmp/realtests/$name
 [[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
 mkdir -p $ZSHDIR
 REALZDOTDIR=$BASEDIR/tests/realzdotdir

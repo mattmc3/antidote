@@ -12,7 +12,7 @@ function git {
 }
 
 function setup_plugin {
-  ZDOTDIR=$BASEDIR/.cache/tests/plugin_setopts
+  ZDOTDIR=$BASEDIR/.tmp/tests/plugin_setopts
   ANTIDOTE_HOME=$ZDOTDIR/antidote
   [[ -d $ANTIDOTE_HOME ]] && rm -rf $ANTIDOTE_HOME
 

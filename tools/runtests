@@ -1,10 +1,10 @@
 #!/usr/bin/env zsh
 
 0=${(%):-%x}
-PRJ_HOME=${0:a:h:h}
+BASEDIR=${0:a:h:h}
 TESTS_HOME=${0:a:h:h}/tests
-export ZTAP_HOME=$PRJ_HOME/.cache/ztap
-export ZTAP_LOGS=$PRJ_HOME/.cache/logs
+export ZTAP_HOME=$BASEDIR/.tmp/ztap
+export ZTAP_LOGS=$BASEDIR/.tmp/logs
 
 # make sure our tests don't get hung up on git prompting
 export GIT_TERMINAL_PROMPT=0

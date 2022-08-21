@@ -18,8 +18,8 @@ unset _fn
 PRJ_HOME=${0:a:h:h:h}
 TEST_HOME=${0:a:h:h}
 TEMP_HOME=$(mktemp -d -t ztap-antidote-tmp)
-ZTAP_HOME=$PRJ_HOME/.cache/ztap
-ZTAP_LOG_HOME=$PRJ_HOME/.cache/logs
+ZTAP_HOME=$PRJ_HOME/.tmp/ztap
+ZTAP_LOG_HOME=$PRJ_HOME/.tmp/logs
 
 export ANTIDOTE_HOME=$(mktemp -d -t ztap-antidote-home)
 @echo "temp ANTIDOTE_HOME=$ANTIDOTE_HOME"
