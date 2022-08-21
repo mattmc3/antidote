@@ -5,11 +5,10 @@ ztap_header "${0:t:r}"
 
 () {
   local expected actual exitcode
-  local pluginsfile staticfile expectedfile diffout repodirs clonelist branched_plugin
+  local stdout staticfile expectedfile diffout repodirs clonelist
 
-  setup_realtests bundle1
+  setup_realtests load1
   source $BASEDIR/antidote.zsh
-  pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
   staticfile=${ZDOTDIR:-~}/.zsh_plugins.zsh
   expectedfile=$REALZDOTDIR/zsh_plugins_expected.zsh
   clonelist=$REALZDOTDIR/zsh_plugins_repolist.txt
@@ -18,10 +17,12 @@ ztap_header "${0:t:r}"
   repodirs=($(ls $ANTIDOTE_HOME))
   @test "\$ANTIDOTE_HOME is empty" $#repodirs -eq 0
 
-  antidote bundle <$pluginsfile >$staticfile 2>/dev/null
+  stdout=$(antidote load 2>/dev/null)
   exitcode=$?
-  @test "antidote bundle succeeds" $exitcode -eq 0
-
+  @test "antidote load succeeds" $exitcode -eq 0
+  @test "antidote load produces no stdout" -z "$stdout"
+  @test "static cache file exists" -f "$staticfile"
+  [[ -f "$staticfile" ]] || @bailout "No further 'antidote load' tests can run"
   sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $staticfile
   diffout=$(diff $staticfile $expectedfile)
   @test "static file diff succeeds" $exitcode -eq 0
@@ -30,11 +31,6 @@ ztap_header "${0:t:r}"
   repodirs=($(ls $ANTIDOTE_HOME))
   expected=$(wc -l <$clonelist | tr -d ' ')
   @test "\$ANTIDOTE_HOME has $expected repos" $#repodirs -eq $expected
-
-  branched_plugin="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-antidote"
-  actual="$(git -C $branched_plugin branch --show-current 2>/dev/null)"
-  expected="pz"
-  @test "'antidote bundle' switches branches properly" "$expected" = "$actual"
 }
 
 ztap_footer
