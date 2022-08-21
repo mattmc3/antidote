@@ -1,3 +1,0 @@
-#!/usr/bin/env zsh
-# fake prompt
-echo "sourcing baz/myprompt prompt_myprompt_setup..."

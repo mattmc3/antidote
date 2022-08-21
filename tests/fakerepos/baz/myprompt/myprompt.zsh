@@ -1,1 +1,0 @@
-echo "sourcing baz/myprompt..."

@@ -11,25 +11,12 @@ function git {
   @echo mockgit "$@"
 }
 
-function setup_plugin {
-  ZDOTDIR=$BASEDIR/.tmp/tests/plugin_setopts
-  ANTIDOTE_HOME=$ZDOTDIR/antidote
-  [[ -d $ANTIDOTE_HOME ]] && rm -rf $ANTIDOTE_HOME
-
-  # create a fake plugin
-  local bundledir="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
-  mkdir -p $bundledir
-  REPLY=$bundledir/bar.zsh
-  touch $REPLY
-  echo $REPLY
-}
-
 () {
   local expected actual output exitcode plugin_file REPLY
 
   # setup
   # for this test we need to set up a fake plugin, ANTIDOTE_HOME, and ZDOTDIR
-  setup_plugin &>/dev/null
+  setup_plugin setopts_respected &>/dev/null
   plugin_file=$REPLY
   echo "unsetopt noaliases" >$plugin_file
   echo "setopt autocd" >>$plugin_file
