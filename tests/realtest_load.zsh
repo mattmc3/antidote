@@ -7,7 +7,7 @@ ztap_header "${0:t:r}"
   local expected actual exitcode
   local stdout staticfile expectedfile diffout repodirs clonelist
 
-  setup_realtests load1
+  setup_realzdotdir load1
   source $BASEDIR/antidote.zsh
   staticfile=${ZDOTDIR:-~}/.zsh_plugins.zsh
   expectedfile=$REALZDOTDIR/zsh_plugins_expected.zsh

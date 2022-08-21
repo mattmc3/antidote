@@ -7,7 +7,7 @@ ztap_header "${0:t:r}"
   local expected actual exitcode
   local pluginsfile staticfile expectedfile diffout repodirs clonelist branched_plugin
 
-  setup_realtests bundle1
+  setup_realzdotdir bundle1
   source $BASEDIR/antidote.zsh
   pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
   staticfile=${ZDOTDIR:-~}/.zsh_plugins.zsh
