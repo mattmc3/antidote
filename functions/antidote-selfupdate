@@ -19,4 +19,3 @@ fi
 # update antidote
 echo "Updating antidote..."
 git -C "${0:A:h:h}" pull --ff --rebase --autostash
-
