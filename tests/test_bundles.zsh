@@ -1,31 +1,39 @@
+#!/usr/bin/env zsh
+
+# bundles is just an alias for bundle, so we just need to test that it exists and
+# calls 'bundle' for its actual behavior.
+# Everything else should be tested in 'antidote bundle' tests.
+
 0=${(%):-%x}
-@echo "=== ${0:t:r} ==="
+BASEDIR=${0:A:h:h}
 
-# bundles is just an alias for bundle, so we just need to test that it properly passes
-# arguments, or redirected/piped input. Everything else should be tested in
-# 'antidote bundle' tests.
-autoload -Uz ${0:a:h}/functions/setup && setup
+source $BASEDIR/tests/ztap/ztap3.zsh
+ztap_header "${0:t:r}"
 
-antidote bundles &>/dev/null
-@test "'antidote bundles' succeeds" $? -eq 0
+# setup
+ZSHDIR=$BASEDIR/tests/fakezdotdir
+function git {
+  @echo mockgit "$@"
+}
+ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+source $BASEDIR/antidote.zsh
 
-msg="$(antidote bundles 2>&1)"
-@test "'antidote bundles' prints nothing" -z "$msg"
+() {
+  antidote bundles &>/dev/null
+  @test "'antidote bundles' succeeds" $? -eq 0
+}
 
-expected=$(cat <<EOBUNDLES
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-baz )
-EOBUNDLES
-)
-actual=$(antidote bundles 2>/dev/null 3>/dev/null <<EOBUNDLES
-# ensure comments and blank lines work
+# bundles shortrepo
+() {
+  local actual expected bundle bundledir
+  bundle="foo/bar"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
+  expected=(
+    "fpath+=( $ANTIDOTE_HOME/$bundledir )"
+    "source $ANTIDOTE_HOME/$bundledir/${bundle:t}.plugin.zsh"
+  )
+  actual=("${(@f)$(antidote bundles $bundle)}")
+  @test "bundles shortrepo: '$bundle'" "$expected" = "$actual"
+}
 
-foo/bar
-
-foo/baz kind:fpath
-EOBUNDLES
-)
-@test "'antidote bundles' with heredoc works" "$actual" = "$expected"
-
-teardown
+ztap_footer
