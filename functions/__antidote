@@ -17,7 +17,7 @@ zparseopts -A opts -D -F -M -- \
   return 1
 
 if [[ -v opts[-v] ]] || [[ -v opts[--version] ]]; then
-  local ver='1.5.0'
+  local ver='1.5.1'
   local gitsha=$(git -C "${0:h:h}" rev-parse --short HEAD 2>/dev/null)
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   echo "antidote version $ver"
