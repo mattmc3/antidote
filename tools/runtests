@@ -2,23 +2,21 @@
 0=${(%):-%x}
 BASEDIR=${0:A:h:h}
 TMPDIR=$BASEDIR/.tmp
-ZTAP_HOME=$TMPDIR/ztap
 TESTS_HOME=$BASEDIR/tests
 
 # make sure our tests don't get hung up on git prompting
 export GIT_TERMINAL_PROMPT=0
 
+export ZTAP_HOME=$TMPDIR/ztap
 if ! [[ -d $ZTAP_HOME ]]; then
-  command git clone --depth 1 --quiet --branch 'v3.0.0' https://github.com/mattmc3/ztap.git $ZTAP_HOME
+  command git clone --depth 1 --quiet https://github.com/mattmc3/ztap $ZTAP_HOME
 fi
 
 source $ZTAP_HOME/ztap3.zsh
 exitcode=0
 if [[ $# -gt 0 ]]; then
-  ztap3 "$@" | $ZTAP_HOME/bin/colortap
-  exitcode=$pipestatus[1]
+  ztap3 --color "$@"
 else
-  ztap3 $TESTS_HOME/test_*.zsh | $ZTAP_HOME/bin/colortap
-  exitcode=$pipestatus[1]
+  ztap3 --color $TESTS_HOME/test_*.zsh
 fi
-return $exitcode
+return $?
