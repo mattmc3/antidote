@@ -195,6 +195,35 @@ source $BASEDIR/antidote.zsh
   @test "bundle annotation path:libdir: '$bundle'" "$expected" = "$actual"
 }
 
+# bundle annotation conditionals
+() {
+  function cond_succeed {
+    return 0
+  }
+  function cond_fail {
+    return 1
+  }
+
+  local actual expected bundle bundledir exitcode
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
+  expected=(
+    "fpath+=( $ANTIDOTE_HOME/$bundledir )"
+    "source $ANTIDOTE_HOME/$bundledir/bar.plugin.zsh"
+  )
+
+  bundle="foo/bar conditional:cond_succeed"
+  actual=("${(@f)$(antidote bundle $bundle)}")
+  @test "bundle annotation conditional:success" "$expected" = "$actual"
+
+  bundle="foo/bar conditional:cond_fail"
+  actual=("${(@f)$(antidote bundle $bundle)}")
+  @test "bundle annotation conditional:cond_fail" -z "$actual"
+
+  bundle="foo/bar conditional:missing"
+  actual=("${(@f)$(antidote bundle $bundle)}")
+  @test "bundle annotation conditional:missing" -z "$actual"
+}
+
 # bundle zsh-theme
 () {
   local actual expected bundle bundledir

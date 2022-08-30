@@ -60,6 +60,14 @@ for bundlestr in $bundles; do
   # typeset -A bundle=( [repo]=foo/bar [kind]=fpath )
   typeset -A bundle=( $(__antidote_split $'\t' $bundlestr) )
 
+  # nothing to do for clone-only bundles
+  [[ $bundle[kind] != clone ]] || continue
+
+  # nothing to do if a conditional annotation fails
+  if [[ -v bundle[conditional] ]]; then
+    $bundle[conditional] &>/dev/null || continue
+  fi
+
   # special handling for deferred bundles
   if [[ $bundle[kind] = defer ]] && [[ $#prescript -eq 0 ]]; then
     prescript=(
@@ -68,9 +76,6 @@ for bundlestr in $bundles; do
       "fi"
     )
   fi
-
-  # nothing to do for clone-only bundles
-  [[ $bundle[kind] != clone ]] || continue
 
   bundle[kind]=${bundle[kind]:-zsh}
   script+="$(_antidote_script $bundle[repo] $bundle[kind] $bundle[path])"
