@@ -22,9 +22,17 @@ if [[ $# -ne 0 ]]; then
   return 1
 fi
 
+local bundles
+if zstyle -t ':antidote:bundle' use-friendly-names; then
+  bundles=($(antidote-home)/*/*/.git/..(N))
+else
+  bundles=($(antidote-home)/*/.git/..(N))
+fi
+bundles=(${(@)bundles:A})
+
 local bundledir
 local output=()
-for bundledir in $(antidote-home)/**/.git/..(N); do
+for bundledir in $bundles; do
   local url=$(git -C "${bundledir:A}" config remote.origin.url)
   if (( $#o_dirs )); then
     output+=(${bundledir:A})
