@@ -38,8 +38,6 @@ if (( $#o_help )); then
   manpage=antidote-help
 elif [[ "$1" == antidote ]]; then
   manpage=antidote
-elif [[ "$1" == bundles ]]; then
-  manpage="antidote-bundle"
 elif [[ -n "$1" ]]; then
   manpage="antidote-${1}"
 fi
