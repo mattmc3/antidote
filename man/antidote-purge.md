@@ -21,6 +21,9 @@ header: Antidote Manual
 -h, \--help
 :   Show the help documentation.
 
+-a, \--all
+:   Purge all cloned bundles.
+
 \<bundle\>
 :   Bundle to be purged.
 

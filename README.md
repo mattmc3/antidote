@@ -1,7 +1,7 @@
 # antidote
 
 [![MIT License](https://img.shields.io/badge/license-MIT-007EC7.svg)](/LICENSE)
-![version](https://img.shields.io/badge/version-v1.5.1-df5e88)
+![version](https://img.shields.io/badge/version-v1.6.0-df5e88)
 
 <a title="GetAntidote"
    href="https://getantidote.github.io"
@@ -69,4 +69,3 @@ A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
 [getantibody]:    https://github.com/getantibody/antibody
 [benchmarks]:     https://github.com/romkatv/zsh-bench/blob/master/doc/linux-desktop.md
 [zsh]:            https://www.zsh.org
-

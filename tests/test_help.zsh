@@ -31,7 +31,6 @@ export PAGER=cat
 
 cmds=(
   bundle
-  bundles
   help
   home
   init

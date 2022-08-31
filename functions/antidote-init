@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### Initialize the shell for dynamic bundles.
 ###
 ### usage: antidote init [-h|--help]
@@ -20,13 +18,15 @@ local script=(
   '#!/usr/bin/env zsh'
   'function antidote {'
   '  case "$1" in'
-  '    bundle|bundles)'
-  '      source <( __antidote $@ ) || __antidote $@'
+  '    bundle)'
+  '      source <( __antidote_main $@ ) || __antidote_main $@'
   '      ;;'
   '    *)'
-  '      __antidote $@'
+  '      __antidote_main $@'
   '      ;;'
   '  esac'
   '}'
 )
 printf "%s\n" "${script[@]}"
+
+# vim: ft=zsh

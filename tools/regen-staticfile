@@ -2,8 +2,8 @@
 
 # There's a chicken-and-egg problem here in that we could be using a broken antidote to
 # generate the expected output for tests. The reason this is okay is simply this: git.
-# Since we store the resulting file in git, can diff it and do manual verification that
-# the output really is correct. This is for convenience only.
+# Since we store the resulting file in git, we can diff it and do manual verification
+# that the output really is correct.
 
 0=${(%):-%x}
 

@@ -49,8 +49,36 @@ source $BASEDIR/antidote.zsh
   # purge!
   actual=$(antidote purge $bundle 2>&1)
   exitcode=$?
-  @test "'antidote purge' existing bundle succeeds" $exitcode -eq 0
-  @test "'antidote purge' existing bundle correctly removed" ! -d "$bundledir"
+  @test "'antidote purge $bundle' existing bundle succeeds" $exitcode -eq 0
+  @test "'antidote purge $bundle' existing bundle correctly removed" ! -d "$bundledir"
+}
+
+# antidote purge --all
+() {
+  local actual expected exitcode bundle bundledir
+
+  # to test purging all bundles, we've got to make a full fake zdotdir
+  setup_fakezdotdir purge2
+  pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
+
+  zstyle ':antidote:purge:all' answer 'n'
+  actual=$(antidote purge --all 2>&1)
+  exitcode=$?
+  @test "'antidote purge --all' with answer=no fails" $exitcode -ne 0
+
+
+  bakfiles=($ZDOTDIR/.zsh_plugins.*.bak(N))
+  @test "No backup zsh_plugins file exists" $#bakfiles -eq 0
+
+  zstyle ':antidote:purge:all' answer 'y'
+  actual=$(antidote purge --all 2>&1)
+  exitcode=$?
+  @test "'antidote purge --all' with answer=yes succeeds" $exitcode -eq 0
+  bakfiles=($ZDOTDIR/.zsh_plugins.*.bak(N))
+  @test "A backup zsh_plugins file exists" $#bakfiles -eq 1
+
+  # clean up
+  zstyle -d ':antidote:purge:all' answer
 }
 
 ztap_footer

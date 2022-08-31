@@ -10,7 +10,7 @@ source $BASEDIR/antidote.zsh
   local expected actual
   expected=( repo foo/bar )
   expected="$(__antidote_join $'\t' $expected)"
-  actual="$(_antidote_parsebundles foo/bar)"
+  actual="$(__antidote_parsebundles foo/bar)"
   @test "parsing bundle foo/bar => $expected" "$actual" = "$expected"
 }
 
@@ -18,7 +18,7 @@ source $BASEDIR/antidote.zsh
   local actual expected bundle exitcode
   bundle='foo/bar whoops'
   expected="antidote: bad annotation 'whoops'."
-  actual=$(_antidote_parsebundles $bundle 2>&1)
+  actual=$(__antidote_parsebundles $bundle 2>&1)
   exitcode=$?
   @test "parse bad bundle fails" $exitcode -ne 0
   @test "parse bad bundle prints error" "$actual" = "$expected"
@@ -51,7 +51,7 @@ source $BASEDIR/antidote.zsh
   for i in $(seq 1 2 $#testdata); do
     bundle=$testdata[i]
     expected=$testdata[(( i + 1 ))]
-    actual="$(_antidote_parsebundles $bundle)"
+    actual="$(__antidote_parsebundles $bundle)"
     actual=${actual//$'\t'/ }
     @test "parse bundle: '$bundle'" "${(q-)actual}" = "${(q-)expected}"
   done
@@ -65,7 +65,7 @@ repo bar/baz
 EOBUNDLES
   )
   bundle='foo/bar kind:fpath abc:xyz\nbar/baz'
-  actual=$(_antidote_parsebundles $bundle 2>&1)
+  actual=$(__antidote_parsebundles $bundle 2>&1)
   actual=${actual//$'\t'/ }
   @test "parsing quoted bundle string with newline sep" "$actual" = "$expected"
 }
@@ -77,7 +77,7 @@ repo foo/bar kind fpath
 repo foo/baz branch dev
 EOBUNDLES
   )
-  actual="$(_antidote_parsebundles <<EOBUNDLES
+  actual="$(__antidote_parsebundles <<EOBUNDLES
 # comments
 foo/bar kind:fpath
 foo/baz branch:dev
@@ -104,7 +104,7 @@ repo bar/baz kind clone
 repo baz/foo branch main kind fpath
 EOBUNDLES
   )
-  actual="$(printf "%s\r\n" "$bundle_list[@]" | _antidote_parsebundles)"
+  actual="$(printf "%s\r\n" "$bundle_list[@]" | __antidote_parsebundles)"
   actual=${actual//$'\t'/ }
   @test "parsing complex bundle with crlf" "$actual" = "$expected"
 }

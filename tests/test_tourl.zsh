@@ -15,7 +15,7 @@ source $BASEDIR/antidote.zsh
   )
 
   for shortname expected in "${(@kv)repos}"; do
-    actual=$(_antidote_tourl $shortname)
+    actual=$(__antidote_tourl $shortname)
     @test "tourl $shortname => $expected" "$expected" = "$actual"
   done
 }
@@ -33,7 +33,7 @@ source $BASEDIR/antidote.zsh
 
   for url in $repos; do
     expected=$url
-    actual=$(_antidote_tourl $url)
+    actual=$(__antidote_tourl $url)
     @test "tourl is unmodified for: $url" "$expected" = "$actual"
   done
 }
