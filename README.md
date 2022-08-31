@@ -69,4 +69,3 @@ A big thank you to [Carlos](https://twitter.com/caarlos0) for all his work on
 [getantibody]:    https://github.com/getantibody/antibody
 [benchmarks]:     https://github.com/romkatv/zsh-bench/blob/master/doc/linux-desktop.md
 [zsh]:            https://www.zsh.org
-
