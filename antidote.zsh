@@ -149,7 +149,7 @@ function __antidote_initfiles {
   [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh-theme(N))
 
   if [[ $#initfiles -eq 0 ]]; then
-    echo >&2 "antidote: no init file detected in '$dir'."
+    echo >&2 "antidote: no plugin init file detected in '$dir'."
     return 1
   fi
   REPLY=($initfiles)
