@@ -1,0 +1,56 @@
+#!/usr/bin/env zsh
+
+### Generate the Zsh script to load a plugin.
+
+# usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>] <bundle>
+# <kind>   : zsh,path,fpath,defer,clone
+# <bundle> : A bundle can be a directory, a zsh script, or a git repo
+
+emulate -L zsh
+setopt local_options extended_glob
+
+local o_help o_kind o_path
+zparseopts -D -M --  \
+  h=o_help  -help=h  \
+  k:=o_kind -kind:=k \
+  p:=o_path -path:=p ||
+  return 1
+
+[[ "$o_kind[-1]" != "clone" ]] || return
+
+local bundle=$1
+if [[ -z "$bundle" ]]; then
+  >&2 echo "antidote: error: bundle argument expected" && return 1
+fi
+
+# convert repo to dir if bundle does not exist on file system
+local bundle_path=$bundle
+if [[ ! -e "$bundle" ]]; then
+  bundle_path=$(_antidote_bundledir $bundle)
+fi
+
+# add path to bundle
+[[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
+
+if [[ ! -e "$bundle_path" ]]; then
+  >&2 echo "antidote: error: bundle path not found '$bundle_path'." && return 1
+fi
+
+local source_cmd="source"
+[[ "$o_kind[-1]" == "defer" ]] && source_cmd="zsh-defer source"
+
+if [[ "$o_kind[-1]" == fpath ]]; then
+  echo "fpath+=( $bundle_path )"
+elif [[ "$o_kind[-1]" == path ]]; then
+  echo "export PATH=\"$bundle_path:\$PATH\""
+elif [[ -f "$bundle_path" ]]; then
+  echo "$source_cmd $bundle_path"
+else
+  local initfile REPLY initfiles
+  _antidote_initfiles $bundle_path >/dev/null || return 1
+  initfiles=($REPLY)
+  echo "fpath+=( $bundle_path )"
+  for initfile in $initfiles; do
+    echo "$source_cmd $initfile"
+  done
+fi

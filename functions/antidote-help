@@ -29,12 +29,12 @@ commands:
 EOS
 }
 
-local opts
-zparseopts -A opts -D -F -- h -help || return 1
+local o_help
+zparseopts -D -M -- h=o_help -help=h || return 1
 
 local manpage
 
-if [[ -v opts[-h] ]] || [[ -v opts[--help] ]]; then
+if (( $#o_help )); then
   manpage=antidote-help
 elif [[ "$1" == antidote ]]; then
   manpage=antidote
