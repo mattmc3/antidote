@@ -17,7 +17,7 @@ zstyle ':antidote:bundle' use-friendly-names on
 
   local bundle expected
   for bundle expected in ${(kv)repos}; do
-    actual=$(_antidote_friendlyname $bundle)
+    actual=$(__antidote_friendlyname $bundle)
     @test "friendlyname '$bundle' => $expected" "$actual" = "$ANTIDOTE_HOME/$expected"
   done
 }

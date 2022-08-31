@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### Generate the Zsh script to load a plugin.
 
 # usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>] <bundle>
@@ -26,7 +24,7 @@ fi
 # convert repo to dir if bundle does not exist on file system
 local bundle_path=$bundle
 if [[ ! -e "$bundle" ]]; then
-  bundle_path=$(_antidote_bundledir $bundle)
+  bundle_path=$(__antidote_bundledir $bundle)
 fi
 
 # add path to bundle
@@ -47,10 +45,12 @@ elif [[ -f "$bundle_path" ]]; then
   echo "$source_cmd $bundle_path"
 else
   local initfile REPLY initfiles
-  _antidote_initfiles $bundle_path >/dev/null || return 1
+  __antidote_initfiles $bundle_path >/dev/null || return 1
   initfiles=($REPLY)
   echo "fpath+=( $bundle_path )"
   for initfile in $initfiles; do
     echo "$source_cmd $initfile"
   done
 fi
+
+# vim: ft=zsh

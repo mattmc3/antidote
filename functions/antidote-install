@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### Clone a new bundle and add it to your plugins file.
 ###
 ### usage: antidote install [-h|--help] <bundle> [<bundlefile>]
@@ -30,3 +28,5 @@ else
   echo $bundle >>| $bundlefile
   echo "Bundle '$bundle' added to '$bundlefile'."
 fi
+
+# vim: ft=zsh

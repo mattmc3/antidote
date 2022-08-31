@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### Update antidote and its cloned bundles.
 ###
 ### usage: antidote update [-h|--help]
@@ -38,3 +36,5 @@ for d in $ANTIDOTE_HOME/**/.git/..; do
   __antidote_update "${d:A}" &
 done
 wait
+
+# vim: ft=zsh

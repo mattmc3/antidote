@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ###
 ### antidote - the cure to slow zsh plugin management
 ###
@@ -9,4 +7,6 @@
 ###
 
 # Note: this gets overridden if using `antidote init`.
-__antidote "$@"
+__antidote_main "$@"
+
+# vim: ft=zsh

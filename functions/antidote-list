@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### List cloned bundles.
 ###
 ### usage: antidote list [-h|--help]
@@ -26,3 +24,5 @@ for d in $(antidote-home)/**/.git/..(N); do
   local url=$(git -C "${d:A}" config remote.origin.url)
   printf '%-64s %s\n' $url ${d:A}
 done
+
+# vim: ft=zsh

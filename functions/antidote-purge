@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### Remove a cloned bundle.
 ###
 ### usage: antidote purge [-h|--help] <bundle>
@@ -21,7 +19,7 @@ if [[ $# -eq 0 ]]; then
 fi
 
 local bundle=$1
-local bundledir=$(_antidote_bundledir $bundle)
+local bundledir=$(__antidote_bundledir $bundle)
 if [[ ! -d $bundledir ]]; then
   echo >&2 "antidote: error: $bundle does not exist at the expected location: $bundledir"
   return 1
@@ -35,3 +33,5 @@ zstyle -s ':antidote:bundle' file 'bundlefile' || \
   bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
 echo "removed!"
 echo "You may also need to remove $bundle from '$bundlefile'."
+
+# vim: ft=zsh

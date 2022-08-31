@@ -28,12 +28,12 @@ TMPDIR=$BASEDIR/.tmp/tests/initfile
     expected=$plugindir/$testdata[file]
     mkdir -p $plugindir && touch $expected
 
-    _antidote_initfiles $plugindir &>/dev/null
+    __antidote_initfiles $plugindir &>/dev/null
     exitcode=$?
-    @test "_antidote_initfiles returns success for $testdata[dir]" $exitcode -eq 0
+    @test "__antidote_initfiles returns success for $testdata[dir]" $exitcode -eq 0
     @test "\$REPLY was correctly set to '$testdata[file]'" "$REPLY" = $expected
 
-    actual=$(_antidote_initfiles $plugindir)
+    actual=$(__antidote_initfiles $plugindir)
     @test "$testdata[file] initfile detected" "$actual" = $expected
   done
 }
@@ -52,9 +52,9 @@ TMPDIR=$BASEDIR/.tmp/tests/initfile
     if [[ -n "$testdata[file]" ]]; then
       touch $plugindir/$testdata[file]
     fi
-    _antidote_initfiles $plugindir &>/dev/null
+    __antidote_initfiles $plugindir &>/dev/null
     exitcode=$?
-    @test "_antidote_initfiles returns fail code for $testdata[dir]" $exitcode -ne 0
+    @test "__antidote_initfiles returns fail code for $testdata[dir]" $exitcode -ne 0
     @test "\$REPLY is empty" -z "$REPLY"
   done
 }

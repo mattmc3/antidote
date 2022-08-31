@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### Print the path of a cloned bundle.
 ###
 ### usage: antidote path [-h|--help] <bundle>
@@ -21,10 +19,12 @@ if [[ $# -eq 0 ]]; then
 fi
 
 local bundle="$1"
-local bundledir=$(_antidote_bundledir $bundle)
+local bundledir=$(__antidote_bundledir $bundle)
 if [[ ! -d $bundledir ]]; then
   echo >&2 "antidote: error: $bundle does not exist in cloned paths"
   return 1
 else
   echo "$bundledir"
 fi
+
+# vim: ft=zsh

@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### Statically source all bundles from the plugins file.
 ###
 ### usage: antidote load [-h|--help] [<bundlefile> [<staticfile>]]
@@ -31,3 +29,5 @@ fi
 # regenerate the static file based on whether the bundle file is newer
 [[ $staticfile -nt $bundlefile ]] || antidote bundle <"$bundlefile" >|"$staticfile"
 source "$staticfile"
+
+# vim: ft=zsh

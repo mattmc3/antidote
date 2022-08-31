@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### Update antidote.
 ###
 ### usage: antidote selfupdate [-h|--help]
@@ -19,3 +17,5 @@ fi
 # update antidote
 echo "Updating antidote..."
 git -C "${0:A:h:h}" pull --ff --rebase --autostash
+
+# vim: ft=zsh

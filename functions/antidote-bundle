@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 ### Clone bundle(s) and generate the static load script.
 ###
 ### usage: antidote bundle [-h|--help] <bundle>...
@@ -16,14 +14,14 @@ if (( $#o_help )); then
 fi
 
 # turn the bundle string into an associative array
-local bundlestr=$(_antidote_parsebundles $@)
+local bundlestr=$(__antidote_parsebundles $@)
 local bundles=("${(@f)${bundlestr}}")
 [[ $#bundles -ne 0 ]] || return 1
 
 local bundle cloning bundledir
 typeset -a cloning
 local zshdefer_bundle='romkatv/zsh-defer'
-local zshdefer_bundledir=$(_antidote_bundledir $zshdefer_bundle)
+local zshdefer_bundledir=$(__antidote_bundledir $zshdefer_bundle)
 
 # loop the first time just to clone missing bundles
 for bundlestr in $bundles; do
@@ -36,17 +34,17 @@ for bundlestr in $bundles; do
     # path bundles
     continue
   elif [[ $bundle[repo] = */* ]]; then
-    bundledir=$(_antidote_bundledir $bundle[repo])
+    bundledir=$(__antidote_bundledir $bundle[repo])
     if ! (($cloning[(Ie)$bundledir])); then
       cloning+=($bundledir)
-      _antidote_clone --background $bundle[repo] $bundle[branch]
+      __antidote_clone --background $bundle[repo] $bundle[branch]
     fi
   fi
 
   # ensure we clone the plugin necessary for deferred bundles
   if [[ $bundle[kind] = defer ]] && ! (($cloning[(Ie)$zshdefer_bundledir])); then
     cloning+=($zshdefer_bundledir)
-    _antidote_clone --background $zshdefer_bundle
+    __antidote_clone --background $zshdefer_bundle
   fi
 done
 
@@ -85,3 +83,5 @@ done
 # print bundle load script
 (( ! $#prescript )) || printf "%s\n" "${prescript[@]}"
 printf "%s\n" "${script[@]}"
+
+# vim: ft=zsh
