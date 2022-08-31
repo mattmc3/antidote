@@ -10,10 +10,10 @@ emulate -L zsh
 setopt local_options extended_glob
 
 local o_help o_kind o_path
-zparseopts -D -K -F -- \
-  {h,-help}=o_help     \
-  {k,-kind}:=o_kind    \
-  {p,-path}:=o_path    ||
+zparseopts -D -M --  \
+  h=o_help  -help=h  \
+  k:=o_kind -kind:=k \
+  p:=o_path -path:=p ||
   return 1
 
 [[ "$o_kind[-1]" != "clone" ]] || return
