@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote list
+| antidote list [-h | --help] [-s | --short] [-d | --dirs]
 
 # DESCRIPTION
 
@@ -20,3 +20,9 @@ header: Antidote Manual
 
 -h, \--help
 :   Show the help documentation.
+
+-s, \--short
+:   Show shortened repos where possible.
+
+-d, \--dirs
+:   Show only bundle directories.
