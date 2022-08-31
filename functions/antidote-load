@@ -14,8 +14,8 @@ fi
 
 local bundlefile=$1
 if [[ -z "$bundlefile" ]]; then
-  zstyle -s ':antidote:bundle' file \
-    'bundlefile' || bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
+  zstyle -s ':antidote:bundle' file 'bundlefile' ||
+    bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
 fi
 [[ -f "$bundlefile" ]] || touch "$bundlefile"
 

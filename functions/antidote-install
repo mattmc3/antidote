@@ -15,10 +15,9 @@ fi
 
 local bundle=$1
 local bundlefile=$2
-
 if [[ -z "$bundlefile" ]]; then
-  zstyle -s ':antidote:bundle' file \
-    'bundlefile' || bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
+  zstyle -s ':antidote:bundle' file 'bundlefile' ||
+    bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
 fi
 
 _antidote_clone $bundle
