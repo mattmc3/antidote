@@ -72,13 +72,13 @@ for bundlestr in $bundles; do
   if [[ $bundle[kind] = defer ]] && [[ $#prescript -eq 0 ]]; then
     prescript=(
       "if ! (( \$+functions[zsh-defer] )); then"
-      "$(_antidote_script $zshdefer_bundle | pr -to 2)"
+      "$(antidote-script $zshdefer_bundle | pr -to 2)"
       "fi"
     )
   fi
 
   bundle[kind]=${bundle[kind]:-zsh}
-  script+="$(_antidote_script $bundle[repo] $bundle[kind] $bundle[path])"
+  script+="$(antidote-script --kind "$bundle[kind]" --path "$bundle[path]" $bundle[repo])"
   [[ $? -eq 0 ]] || return 1
 done
 
