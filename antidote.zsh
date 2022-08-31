@@ -3,8 +3,9 @@
 () {
   0=${(%):-%x}
   fpath+=${0:A:h}/functions
-  export MANPATH="$MANPATH:${0:A:h}/man"
-
+  if [[ "$MANPATH" != *"${0:A:h}/man"* ]]; then
+    export MANPATH="${0:A:h}/man:$MANPATH"
+  fi
   # setup the environment
   for _fn in ${0:A:h}/functions/*; do
     (( $+functions[${_fn:t}] )) && unfunction ${_fn:t}
