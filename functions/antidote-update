@@ -7,10 +7,10 @@ setopt local_options extended_glob no_monitor
 0=${(%):-%x}
 
 local o_help o_self o_bundles
-zparseopts $_zparseopts_flags -- \
-  h=o_help    -help=h     \
-  s=o_self    -self=s     \
-  b=o_bundles -bundles=b  ||
+zparseopts $_adote_zparopt_flags -- \
+  h=o_help    -help=h    \
+  s=o_self    -self=s    \
+  b=o_bundles -bundles=b ||
   return 1
 
 if (( $#o_help )); then

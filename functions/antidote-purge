@@ -6,9 +6,9 @@ emulate -L zsh
 setopt local_options extended_glob
 
 local o_help o_all
-zparseopts $_zparseopts_flags -- \
-  h=o_help -help=h  \
-  a=o_all  -all=a   ||
+zparseopts $_adote_zparopt_flags -- \
+  h=o_help -help=h \
+  a=o_all  -all=a  ||
   return 1
 
 if (( $#o_help )); then

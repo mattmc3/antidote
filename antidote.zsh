@@ -9,11 +9,11 @@
 
   # the -F option was added in 5.8
   autoload -Uz is-at-least
-  typeset -gHa _zparseopts_flags
+  typeset -gHa _adote_zparopt_flags
   if is-at-least 5.8; then
-    _zparseopts_flags=( -D -M -F )
+    _adote_zparopt_flags=( -D -M -F )
   else
-    _zparseopts_flags=( -D -M )
+    _adote_zparopt_flags=( -D -M )
   fi
 
   # setup the environment
@@ -39,7 +39,7 @@ function __antidote_main {
   0=${(%):-%x}
 
   local o_help o_version
-  zparseopts $_zparseopts_flags -- \
+  zparseopts $_adote_zparopt_flags -- \
     h=o_help    -help=h    \
     v=o_version -version=v ||
     return 1
