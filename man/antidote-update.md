@@ -12,12 +12,18 @@ header: Antidote Manual
 
 **antidote-update** updates antidote and its cloned bundles.
 
-|  antidote update
+|  antidote update [-h | --help] [-s | --self] [-b | --bundles]
 
 # OPTIONS
 
 -h, \--help
 :   Show the help documentation.
+
+-s, \--self
+:   Update antidote.
+
+-b, \--bundles
+:   Update bundles.
 
 # EXAMPLES
 
