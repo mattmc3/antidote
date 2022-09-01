@@ -3,7 +3,7 @@
 ### usage: antidote update [-h|--help]
 
 emulate -L zsh
-setopt local_options extended_glob no_notify no_monitor
+setopt local_options extended_glob no_monitor
 0=${(%):-%x}
 
 local o_help

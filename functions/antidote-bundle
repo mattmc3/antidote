@@ -3,7 +3,7 @@
 ### usage: antidote bundle [-h|--help] <bundle>...
 
 emulate -L zsh
-setopt local_options extended_glob no_notify no_monitor
+setopt local_options extended_glob no_monitor
 
 local o_help
 zparseopts -D -M -- h=o_help -help=h || return 1
