@@ -6,35 +6,41 @@ emulate -L zsh
 setopt local_options extended_glob no_monitor
 0=${(%):-%x}
 
-local o_help
-zparseopts -D -M -- h=o_help -help=h || return 1
+local o_help o_self o_bundles
+zparseopts -D -M --       \
+  h=o_help    -help=h     \
+  s=o_self    -self=s     \
+  b=o_bundles -bundles=b  ||
+  return 1
 
 if (( $#o_help )); then
   antidote-help update
   return
 fi
 
-function __antidote_update {
-  bundledir="$1"
-  local url=$(git -C "$bundledir" config remote.origin.url)
-  local oldsha=$(git -C "$bundledir" rev-parse --short HEAD)
-  echo "antidote: checking for updates: $url"
-  git -C "$bundledir" pull --quiet --ff --rebase --autostash
-  local newsha=$(git -C "$bundledir" rev-parse --short HEAD)
-  if [[ $oldsha != $newsha ]]; then
-    echo "antidote: updated: $url $oldsha -> $newsha"
-  fi
-}
-
 # update antidote
-antidote selfupdate
+if (( $#o_self )) || ! (( $#o_bundles )); then
+  echo "Updating antidote..."
+  git -C "${0:A:h:h}" pull --ff --rebase --autostash
+fi
 
-echo "Updating bundles..."
-local ANTIDOTE_HOME=$(antidote-home)
-local d
-for d in $ANTIDOTE_HOME/**/.git/..; do
-  __antidote_update "${d:A}" &
-done
-wait
+if (( $#o_bundles )) || ! (( $#o_self )); then
+  echo "Updating bundles..."
+  local d bundledir url oldsha newsha
+  for d in $(__antidote_bundles); do
+    () {
+      bundledir="$1"
+      url=$(git -C "$bundledir" config remote.origin.url)
+      oldsha=$(git -C "$bundledir" rev-parse --short HEAD)
+      echo "antidote: checking for updates: $url"
+      git -C "$bundledir" pull --quiet --ff --rebase --autostash
+      newsha=$(git -C "$bundledir" rev-parse --short HEAD)
+      if [[ $oldsha != $newsha ]]; then
+        echo "antidote: updated: $url $oldsha -> $newsha"
+      fi
+    } "$d" &
+  done
+  wait
+fi
 
 # vim: ft=zsh
