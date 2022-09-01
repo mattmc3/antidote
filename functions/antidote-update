@@ -18,12 +18,6 @@ if (( $#o_help )); then
   return
 fi
 
-# update antidote
-if (( $#o_self )) || ! (( $#o_bundles )); then
-  echo "Updating antidote..."
-  git -C "${0:A:h:h}" pull --ff --rebase --autostash
-fi
-
 if (( $#o_bundles )) || ! (( $#o_self )); then
   echo "Updating bundles..."
   local d bundledir url oldsha newsha
@@ -41,6 +35,14 @@ if (( $#o_bundles )) || ! (( $#o_self )); then
     } "$d" &
   done
   wait
+fi
+
+# update antidote
+if (( $#o_self )) || ! (( $#o_bundles )); then
+  echo "Updating antidote..."
+  git -C "${0:A:h:h}" pull --quiet --ff --rebase --autostash
+  source "${0:A:h:h}"/antidote.zsh
+  antidote -v
 fi
 
 # vim: ft=zsh

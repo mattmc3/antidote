@@ -7,6 +7,8 @@
 ###
 
 # Note: this gets overridden if using `antidote init`.
+0=${(%):-%x}
+(( $+functions[__antidote_main] )) || source ${0:A:h:h}/antidote.zsh
 __antidote_main "$@"
 
 # vim: ft=zsh
