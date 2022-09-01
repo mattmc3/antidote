@@ -39,7 +39,6 @@ cmds=(
   load
   path
   purge
-  selfupdate
   update
 )
 
