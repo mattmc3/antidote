@@ -8,7 +8,7 @@ emulate -L zsh
 setopt local_options extended_glob
 
 local o_help o_kind o_path
-zparseopts -D -M --  \
+zparseopts $_zparseopts_flags -- \
   h=o_help  -help=h  \
   k:=o_kind -kind:=k \
   p:=o_path -path:=p ||

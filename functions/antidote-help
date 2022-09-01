@@ -28,7 +28,7 @@ EOS
 }
 
 local o_help
-zparseopts -D -M -- h=o_help -help=h || return 1
+zparseopts $_zparseopts_flags -- h=o_help -help=h || return 1
 
 local manpage
 

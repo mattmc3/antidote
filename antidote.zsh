@@ -6,6 +6,16 @@
   if [[ "$MANPATH" != *"${0:A:h}/man"* ]]; then
     export MANPATH="${0:A:h}/man:$MANPATH"
   fi
+
+  # the -F option was added in 5.8
+  autoload -Uz is-at-least
+  typeset -gHa _zparseopts_flags
+  if is-at-least 5.8; then
+    _zparseopts_flags=( -D -M -F )
+  else
+    _zparseopts_flags=( -D -M )
+  fi
+
   # setup the environment
   for _fn in ${0:A:h}/functions/*; do
     (( $+functions[${_fn:t}] )) && unfunction ${_fn:t}
@@ -29,13 +39,13 @@ function __antidote_main {
   0=${(%):-%x}
 
   local o_help o_version
-  zparseopts -D -M -- \
+  zparseopts $_zparseopts_flags -- \
     h=o_help    -help=h    \
     v=o_version -version=v ||
     return 1
 
   if (( $#o_version )); then
-    local ver='1.6.1'
+    local ver='1.6.2'
     local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
     echo "antidote version $ver"

@@ -6,7 +6,7 @@ emulate -L zsh
 setopt local_options extended_glob
 
 local o_help o_short o_dirs
-zparseopts -D -M --  \
+zparseopts $_zparseopts_flags -- \
   h=o_help  -help=h  \
   s=o_short -short=s \
   d=o_dirs  -dirs=d  ||
