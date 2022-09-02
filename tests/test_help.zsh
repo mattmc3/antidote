@@ -11,13 +11,11 @@ export MANPAGER=cat
 export PAGER=cat
 
 () {
-  antidote -h &>/dev/null
-  @test "antidote -h succeeds" $? -eq 0
-}
-
-() {
-  antidote --help &>/dev/null
-  @test "antidote --help succeeds" $? -eq 0
+  for arg in 'help' '-h' '--help'
+  do
+    antidote $arg &>/dev/null
+    @test "'antidote $arg' succeeds" $? -eq 0
+  done
 }
 
 () {
@@ -39,14 +37,22 @@ cmds=(
   load
   path
   purge
+  # script
   update
 )
 
 () {
-  local c cc expected actual err
+  local c cc expected actual err helpcmds
   for c in $cmds; do
-    # there are probably too many ways to call help
-    for cmd in "antidote -h $c" "antidote $c -h"; do
+    # there are too many ways to call help, but there you have it
+    helpcmds=(
+      "antidote help $c"
+      "antidote -h $c"
+      "antidote --help $c"
+      "antidote $c -h"
+      "antidote $c --help"
+    )
+    for cmd in $helpcmds; do
       if [[ "$c" = bundles ]]; then
         expected="antidote-bundle(1)"
       elif [[ -n "$c" ]]; then
