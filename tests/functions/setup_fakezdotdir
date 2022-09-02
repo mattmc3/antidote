@@ -10,6 +10,10 @@ cp -rf "$FAKEZDOTDIR" "$ZSHDIR"
 
 # setup antidote home
 ANTIDOTE_HOME=$ZSHDIR/antidote_home
+for _d in $ANTIDOTE_HOME/*(/N); do
+  mkdir -p "$_d/.git"
+done
+unset _d
 
 # switch ZDOTDIR
 OLD_ZDOTDIR=$ZDOTDIR
