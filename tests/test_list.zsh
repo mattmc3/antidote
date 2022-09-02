@@ -71,4 +71,5 @@ function git {
 ztap_footer
 
 # teardown
+ZDOTDIR=$OLD_ZDOTDIR
 unfunction git
