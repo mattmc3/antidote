@@ -2,6 +2,7 @@
 
 # usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>] <bundle>
 # <kind>   : zsh,path,fpath,defer,clone
+# <path>   : Relative path from the bundle root
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 
 emulate -L zsh
@@ -18,7 +19,7 @@ zparseopts $_adote_zparopt_flags -- \
 
 local bundle=$1
 if [[ -z "$bundle" ]]; then
-  >&2 echo "antidote: error: bundle argument expected" && return 1
+  echo >&2 "antidote: error: bundle argument expected" && return 1
 fi
 
 # convert repo to dir if bundle does not exist on file system
@@ -31,7 +32,7 @@ fi
 [[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
 
 if [[ ! -e "$bundle_path" ]]; then
-  >&2 echo "antidote: error: bundle path not found '$bundle_path'." && return 1
+  echo >&2 "antidote: error: bundle path not found '$bundle_path'." && return 1
 fi
 
 local source_cmd="source"

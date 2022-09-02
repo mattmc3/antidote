@@ -117,11 +117,10 @@ function __antidote_clone {
   emulate -L zsh
   setopt local_options extended_glob
 
-  local flag_bg=false
-  if [[ "$1" == "--background" ]]; then
-    flag_bg=true
-    shift
-  fi
+  local o_background
+  zparseopts $_adote_zparopt_flags -- \
+    b=o_background -background=b ||
+    return 1
 
   local bundle=$1
   local branch=$2
@@ -132,7 +131,7 @@ function __antidote_clone {
     [[ -z "$branch" ]] || branch="--branch=$branch"
     echo >&2 "# antidote cloning $bundle..."
     git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir &
-    [[ "$flag_bg" == true ]] || wait
+    (( $#o_background )) || wait
   fi
 }
 
@@ -171,11 +170,11 @@ function __antidote_initfiles {
   [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh(N))
   [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.sh(N))
   [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh-theme(N))
-
-  if [[ $#initfiles -eq 0 ]]; then
+  [[ $#initfiles -gt 0 ]] || {
     echo >&2 "antidote: no plugin init file detected in '$dir'."
     return 1
-  fi
+  }
+
   REPLY=($initfiles)
   local f
   for f in $initfiles; do
