@@ -20,27 +20,29 @@ fi
 
 if (( $#o_bundles )) || ! (( $#o_self )); then
   echo "Updating bundles..."
-  local d bundledir url oldsha newsha
-  for d in $(__antidote_bundles); do
+  local bundledir url
+  for bundledir in $(__antidote_bundles); do
+    url=$(git -C "$bundledir" config remote.origin.url)
+    echo "antidote: checking for updates: $url"
     () {
-      bundledir="$1"
-      url=$(git -C "$bundledir" config remote.origin.url)
-      oldsha=$(git -C "$bundledir" rev-parse --short HEAD)
-      echo "antidote: checking for updates: $url"
-      git -C "$bundledir" pull --quiet --ff --rebase --autostash
-      newsha=$(git -C "$bundledir" rev-parse --short HEAD)
+      local oldsha=$(git -C "$1" rev-parse --short HEAD)
+      git -C "$1" pull --quiet --ff --rebase --autostash
+      local newsha=$(git -C "$1" rev-parse --short HEAD)
       if [[ $oldsha != $newsha ]]; then
-        echo "antidote: updated: $url $oldsha -> $newsha"
+        echo "antidote: updated: $2 $oldsha -> $newsha"
       fi
-    } "$d" &
+    } "$bundledir" "$url" &
   done
+  echo "Waiting for bundle updates to complete..."
   wait
+  echo "Bundle updates complete."
 fi
 
 # update antidote
 if (( $#o_self )) || ! (( $#o_bundles )); then
   echo "Updating antidote..."
   git -C "${0:A:h:h}" pull --quiet --ff --rebase --autostash
+  echo "Antidote self-update complete.\n"
   source "${0:A:h:h}"/antidote.zsh
   antidote -v
 fi
