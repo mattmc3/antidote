@@ -13,17 +13,20 @@ if (( $#o_help )); then
 fi
 
 local bundlefile=$1
+local default_bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
 if [[ -z "$bundlefile" ]]; then
   zstyle -s ':antidote:bundle' file 'bundlefile' ||
-    bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
+    bundlefile=$default_bundlefile
 fi
-[[ -f "$bundlefile" ]] || touch "$bundlefile"
+[[ -n "$bundlefile" ]] || bundlefile=$default_bundlefile
+[[ -e "$bundlefile" ]] || touch "$bundlefile"
 
 local staticfile=$2
 if [[ -z "$staticfile" ]]; then
   zstyle -s ':antidote:static' file \
     'staticfile' || staticfile=${bundlefile:r}.zsh
 fi
+[[ -n "$staticfile" ]] || staticfile=${bundlefile:r}.zsh
 [[ "$staticfile" != "$bundlefile" ]] || staticfile="${bundlefile:r}.static.zsh"
 
 # regenerate the static file based on whether the bundle file is newer
