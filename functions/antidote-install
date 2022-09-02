@@ -20,7 +20,7 @@ if [[ -z "$bundlefile" ]]; then
     bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
 fi
 
-_antidote_clone $bundle
+__antidote_clone $bundle
 if [[ $? -ne 0 ]]; then
   echo >&2 "antidote: unable to clone bundle '$bundle'."
 else
