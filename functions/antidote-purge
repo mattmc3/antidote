@@ -43,7 +43,7 @@ if (( $#o_all )); then
   # remove antidote home and bundle file
   command rm -rf "$antidote_dir"
   local dtstmp=$(date -u '+%Y%m%d_%H%M%S')
-  if [[ -f "$bundlefile" ]]; then
+  if [[ -e "$bundlefile" ]]; then
     mv -f "$bundlefile" "${bundlefile:r}.${dtstmp}.bak"
     echo "# TODO: Add antidote bundles to this file..." >| "$bundlefile"
     echo "'$bundlefile' backed up to '${bundlefile:t:r}.${dtstmp}.bak'"
@@ -69,7 +69,7 @@ else
   echo "Removed '$bundle'."
 
   # attempt to comment out the bundle from .zsh_plugins.txt
-  if [[ -f "$bundlefile" ]]; then
+  if [[ -e "$bundlefile" ]]; then
     local tmpfile="${bundlefile}.antidote.tmp"
     awk -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}{print}' <$bundlefile >|$tmpfile
     mv -f "$tmpfile" "$bundlefile" || rm -f "$tmpfile"
