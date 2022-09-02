@@ -6,7 +6,7 @@
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 
 emulate -L zsh
-setopt local_options extended_glob rematch_pcre
+setopt local_options extended_glob
 
 local o_help o_kind o_path
 zparseopts $_adote_zparopt_flags -- \
@@ -15,7 +15,7 @@ zparseopts $_adote_zparopt_flags -- \
   p:=o_path -path:=p ||
   return 1
 
-# strip '=' or ':' from arg values
+# strip '=' or ':' from beginning of arg values
 local re='^[=:]?(.+)$'
 [[ $o_kind[-1] =~ $re ]] && o_kind[-1]=$match
 [[ $o_path[-1] =~ $re ]] && o_path[-1]=$match

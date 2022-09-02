@@ -16,6 +16,25 @@ setup_fakezdotdir script
   @test "'antidote script' prints arg error" "$expected" = "$actual"
 }
 
+# accepts '--arg val', '--arg:val', '--arg=val' syntax
+() {
+  local actual expected bundle bundledir args variants v
+  variants=('--kind zsh' '--kind:zsh' '--kind=zsh')
+  bundle="foo/bar"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
+  expected=(
+    "fpath+=( $ANTIDOTE_HOME/$bundledir )"
+    "source $ANTIDOTE_HOME/$bundledir/bar.plugin.zsh"
+  )
+  for v in $variants; do
+    IFS=' ' read -A args <<<"$v"
+    actual=($(antidote script $args $bundle 2>&1)); exitcode=$?
+    actual=("${(@f)actual}")
+    @test "'antidote script --args' flag syntax check succeeds" $exitcode -eq 0
+    @test "'antidote script' arg syntax works for '$args'" "$expected" = "$actual"
+  done
+}
+
 # script a file
 () {
   local actual expected bundle
