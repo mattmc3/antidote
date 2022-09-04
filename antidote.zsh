@@ -87,9 +87,19 @@ function __antidote_bundledir {
   if [[ -d "$bundle" ]]; then
     echo $bundle
   elif zstyle -t ':antidote:bundle' use-friendly-names; then
-    echo $(__antidote_friendlyname "$bundle")
+    # user/repo format
+    # ex: $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
+    bundle=${bundle%.git}
+    bundle=${bundle:gs/\:/\/}
+    local parts=( $(__antidote_split '/' $bundle) )
+    if [[ $#parts -gt 1 ]]; then
+      echo $(antidote-home)/${parts[-2]}/${parts[-1]}
+    else
+      echo $(antidote-home)/$bundle
+    fi
   else
     # sanitize URL for safe use as a dir name
+    # ex: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
     local url=$(__antidote_tourl $bundle)
     url=${url%.git}
     url=${url:gs/\@/-AT-}
@@ -119,25 +129,6 @@ function __antidote_clone {
     echo >&2 "# antidote cloning $bundle..."
     git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir &
     (( $#o_background )) || wait
-  fi
-}
-
-### Get a friendly path for a bundle dir.
-function __antidote_friendlyname {
-  # $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
-  # becomes simply
-  # $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
-  emulate -L zsh
-  setopt local_options extended_glob
-
-  repo=$1
-  bundle=${repo%.git}
-  bundle=${bundle:gs/\:/\/}
-  local parts=( $(__antidote_split '/' $bundle) )
-  if [[ $#parts -gt 1 ]]; then
-    echo $(antidote-home)/${parts[-2]}/${parts[-1]}
-  else
-    echo $(antidote-home)/$bundle
   fi
 }
 
