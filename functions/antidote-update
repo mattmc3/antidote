@@ -21,7 +21,7 @@ fi
 if (( $#o_bundles )) || ! (( $#o_self )); then
   echo "Updating bundles..."
   local bundledir url
-  for bundledir in $(__antidote_bundles); do
+  for bundledir in $(antidote-list --dirs); do
     url=$(git -C "$bundledir" config remote.origin.url)
     echo "antidote: checking for updates: $url"
     () {

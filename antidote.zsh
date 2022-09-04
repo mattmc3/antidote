@@ -99,19 +99,6 @@ function __antidote_bundledir {
   fi
 }
 
-### Print the cloned bundles.
-function __antidote_bundles {
-  local b bundles
-  if zstyle -t ':antidote:bundle' use-friendly-names; then
-    bundles=($(antidote-home)/*/*/.git/..(N))
-  else
-    bundles=($(antidote-home)/*/.git/..(N))
-  fi
-  for b in $bundles; do
-    echo "${b:A}"
-  done
-}
-
 ### Clone a git repo containing a Zsh plugin.
 function __antidote_clone {
   emulate -L zsh
