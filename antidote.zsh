@@ -166,6 +166,30 @@ function __antidote_join {
   echo ${(pj.$sep.)@}
 }
 
+### Determine bundle type: file, dir, url, repo
+function __antidote_bundle_type {
+  REPLY=
+  if [[ -z "$1" ]]; then
+    echo >&2 "Expecting bundle argument"
+    return 1
+  elif [[ -f $1 ]]; then
+    REPLY=file
+  elif [[ -d $1 ]]; then
+    REPLY=dir
+  elif [[ $1 = /* ]]; then
+    echo >&2 "File/Directory bundle does not exist '$1'."
+    return 1
+  elif [[ $1 = *://* || $1 = git@*:*/* ]]; then
+    REPLY=url
+  elif [[ $1 = */* ]]; then
+    REPLY=repo
+  else
+    echo >&2 "Unrecognized bundle type '$1'."
+    return 1
+  fi
+  echo $REPLY
+}
+
 ### Parse antidote's bundle DSL.
 function __antidote_parsebundles {
   emulate -L zsh

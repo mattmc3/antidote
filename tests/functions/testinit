@@ -3,6 +3,7 @@
 BASEDIR=${0:A:h:h:h}
 TMPDIR=$BASEDIR/.tmp
 ZTAP_HOME=$TMPDIR/ztap
+FAKEZDOTDIR=$BASEDIR/tests/fakezdotdir
 
 # initialize test functions
 local func
