@@ -1,12 +1,18 @@
 ### Clone a new bundle and add it to your plugins file.
-###
-### usage: antidote install [-h|--help] <bundle> [<bundlefile>]
+
+# usage: antidote install [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
+#                         [-b|--branch <branch>] <bundle>
 
 emulate -L zsh
 setopt local_options extended_glob
 
-local o_help
-zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
+local o_help o_kind o_path o_branch
+zparseopts $_adote_zparopt_flags -- \
+  h=o_help    -help=h    \
+  b:=o_branch -branch:=b \
+  k:=o_kind   -kind:=k   \
+  p:=o_path   -path:=p   ||
+  return 1
 
 if (( $#o_help )); then
   antidote-help install
@@ -20,11 +26,15 @@ if [[ -z "$bundlefile" ]]; then
     bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
 fi
 
-__antidote_clone $bundle
+antidote-script $o_kind $o_branch $o_path $bundle >/dev/null
 if [[ $? -ne 0 ]]; then
   echo >&2 "antidote: unable to clone bundle '$bundle'."
 else
-  echo $bundle >>| $bundlefile
+  local annotations=()
+  (( $#o_kind ))   && annotations+=( "kind:$o_kind[-1]" )
+  (( $#o_branch )) && annotations+=( "branch:$o_branch[-1]" )
+  (( $#o_path ))   && annotations+=( "path:$o_path[-1]" )
+  echo $bundle $annotations >>| $bundlefile
   echo "Bundle '$bundle' added to '$bundlefile'."
 fi
 

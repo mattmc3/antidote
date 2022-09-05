@@ -50,7 +50,6 @@ function git {
   @test "bundle '${bundledir:t}' dir does not exist" ! -e $bundledir
 
   expected=(
-    "# antidote cloning foo/bar..."
     "Bundle '$bundle' added to '$bundlefile'."
   )
   actual=($(antidote install $bundle 2>&1)); exitcode=$?
