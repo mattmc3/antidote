@@ -78,12 +78,8 @@ function __antidote_bundledir {
   # $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
   # With `zstyle ':antidote:bundle' use-friendly-names on`, we can simplify to
   # $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
-
-  emulate -L zsh
-  setopt local_options extended_glob
-
+  emulate -L zsh; setopt local_options extended_glob
   local bundle="$1"
-
   if [[ -d "$bundle" ]]; then
     echo $bundle
   elif zstyle -t ':antidote:bundle' use-friendly-names; then
@@ -111,8 +107,7 @@ function __antidote_bundledir {
 
 ### Clone a git repo containing a Zsh plugin.
 function __antidote_clone {
-  emulate -L zsh
-  setopt local_options extended_glob
+  emulate -L zsh; setopt local_options extended_glob
 
   local o_background
   zparseopts $_adote_zparopt_flags -- \
@@ -134,8 +129,7 @@ function __antidote_clone {
 
 ### Get the path to a plugin's init file.
 function __antidote_initfiles {
-  emulate -L zsh
-  setopt local_options extended_glob
+  emulate -L zsh; setopt local_options extended_glob
 
   REPLY=()
   local dir=$1
@@ -168,6 +162,7 @@ function __antidote_join {
 
 ### Determine bundle type: file, dir, url, repo
 function __antidote_bundle_type {
+  emulate -L zsh; setopt local_options
   REPLY=
   if [[ -z "$1" ]]; then
     echo >&2 "Expecting bundle argument"
@@ -192,52 +187,39 @@ function __antidote_bundle_type {
 
 ### Parse antidote's bundle DSL.
 function __antidote_parsebundles {
-  emulate -L zsh
-  setopt local_options extended_glob
+  emulate -L zsh; setopt local_options extended_glob
 
-  local bundles=()
+  # handle bundles as newline delimited arg strings,
+  # or as <redirected or piped| input
+  local data bundles=()
   if [[ $# -gt 0 ]]; then
-    # handle bundle instructions as a param string
-    # split on newlines
     bundles=("${(s.\n.)${@}}")
   elif [[ ! -t 0 ]]; then
-    # handle both <redirected or piped| input
-    local data
     while IFS= read -r data || [[ -n "$data" ]]; do
       bundles+=($data)
     done
   fi
-
-  # if stdin containts no data and no params were passed there's nothing to do
   (( $#bundles )) || return 1
 
-  local bundlestr bundle parts optstr
-  typeset -a bundle
+  local bundlestr parts optstr bundle
   for bundlestr in $bundles; do
-    # turn whitespace into spaces
-    bundlestr=${bundlestr//$'\t'/ }
-    bundlestr=${bundlestr//$'\r'/ }
-
-    # remove comments
+    # normalize whitespace and remove comments
+    bundlestr=${bundlestr//[[:space:]]/ }
     bundlestr=${bundlestr%%\#*}
 
-    # split on spaces into parts array
+    # split on spaces into parts array and skip empty lines
     parts=( ${(@s: :)bundlestr} )
-
-    # skip empty lines
     (( $#parts )) || continue
 
-    # the first element is the repo, the remaining are a:b annotations
+    # the first element is the bundle name, and the remainder are a:b annotations
     # split annotations into key/value pairs
-    bundle=()
-    bundle=( repo $parts[1] )
+    bundle=( name $parts[1] )
     optstr=( ${parts[@]:1} )
     if (( $#optstr )); then
       parts=( ${(@s/:/)optstr} )
-      if [[ $(( $#parts % 2 )) -ne 0 ]]; then
-        echo >&2 "antidote: bad annotation '$optstr'."
-        return 1
-      fi
+      [[ $(( $#parts % 2 )) -eq 0 ]] || {
+        echo >&2 "antidote: bad annotation '$optstr'." && return 1
+      }
       bundle+=( $parts )
     fi
 

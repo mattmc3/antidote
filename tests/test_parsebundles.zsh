@@ -8,7 +8,7 @@ source $BASEDIR/antidote.zsh
 
 () {
   local expected actual
-  expected=( repo foo/bar )
+  expected=( name foo/bar )
   expected="$(__antidote_join $'\t' $expected)"
   actual="$(__antidote_parsebundles foo/bar)"
   @test "parsing bundle foo/bar => $expected" "$actual" = "$expected"
@@ -31,20 +31,20 @@ source $BASEDIR/antidote.zsh
   local testdata=(
     # repo only
          'foo/bar'
-    'repo foo/bar'
+    'name foo/bar'
     # repo and annotations
          'https://github.com/foo/bar path:lib branch:dev'
-    'repo https://github.com/foo/bar path lib branch dev'
+    'name https://github.com/foo/bar path lib branch dev'
          'git@github.com:foo/bar.git kind:clone branch:main'
-    'repo git@github.com:foo/bar.git kind clone branch main'
+    'name git@github.com:foo/bar.git kind clone branch main'
          'foo/bar kind:fpath abc:xyz'
-    'repo foo/bar kind fpath abc xyz'
+    'name foo/bar kind fpath abc xyz'
     # repo and different whitespace
-    #     "foo/bar${tab}kind:path${cr}${lf}"
-    #'repo foo/bar kind path'
+        "foo/bar${tab}kind:path${cr}${lf}"
+    'name foo/bar kind path'
     # comments
          'foo/bar path:plugins/myplugin kind:path  # trailing comment'
-    'repo foo/bar path plugins/myplugin kind path'
+    'name foo/bar path plugins/myplugin kind path'
     '# comment'
     ''
   )
@@ -60,8 +60,8 @@ source $BASEDIR/antidote.zsh
 () {
   local expected actual bundle
   expected=$(cat <<'EOBUNDLES'
-repo foo/bar kind fpath abc xyz
-repo bar/baz
+name foo/bar kind fpath abc xyz
+name bar/baz
 EOBUNDLES
   )
   bundle='foo/bar kind:fpath abc:xyz\nbar/baz'
@@ -73,8 +73,8 @@ EOBUNDLES
 () {
   local expected actual
   expected=$(cat <<'EOBUNDLES'
-repo foo/bar kind fpath
-repo foo/baz branch dev
+name foo/bar kind fpath
+name foo/baz branch dev
 EOBUNDLES
   )
   actual="$(__antidote_parsebundles <<EOBUNDLES
@@ -98,10 +98,10 @@ EOBUNDLES
     "baz/foo branch:main kind:fpath"
   )
   expected=$(cat <<'EOBUNDLES'
-repo foo/bar
-repo foo/baz
-repo bar/baz kind clone
-repo baz/foo branch main kind fpath
+name foo/bar
+name foo/baz
+name bar/baz kind clone
+name baz/foo branch main kind fpath
 EOBUNDLES
   )
   actual="$(printf "%s\r\n" "$bundle_list[@]" | __antidote_parsebundles)"

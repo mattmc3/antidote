@@ -14,11 +14,11 @@ if (( $#o_help )); then
 fi
 
 # turn the bundle string into an associative array
-local bundlestr=$(__antidote_parsebundles $@)
-local bundles=("${(@f)${bundlestr}}")
+local bundles=$(__antidote_parsebundles $@)
+bundles=("${(@f)${bundles}}")
 [[ $#bundles -ne 0 ]] || return 1
 
-local bundle cloning bundledir
+local bundle cloning bundledir bundlestr
 typeset -a cloning
 local zshdefer_bundle='romkatv/zsh-defer'
 local zshdefer_bundledir=$(__antidote_bundledir $zshdefer_bundle)
@@ -26,18 +26,18 @@ local zshdefer_bundledir=$(__antidote_bundledir $zshdefer_bundle)
 # loop the first time just to clone missing bundles
 for bundlestr in $bundles; do
   # bundlestr sets an associative array, like so:
-  # typeset -A bundle=( [repo]=foo/bar [kind]=fpath )
+  # typeset -A bundle=( [name]=foo/bar [repo]=https://github.com/foo/bar [kind]=fpath )
   typeset -A bundle=( $(__antidote_split $'\t' $bundlestr) )
 
   # bundles could be paths or repos
-  if [[ $bundle[repo] = \$* ]] || [[ $bundle[repo] = /* ]]; then
+  if [[ $bundle[name] = \$* ]] || [[ $bundle[name] = /* ]]; then
     # path bundles
     continue
-  elif [[ $bundle[repo] = */* ]]; then
-    bundledir=$(__antidote_bundledir $bundle[repo])
+  elif [[ $bundle[name] = */* ]]; then
+    bundledir=$(__antidote_bundledir $bundle[name])
     if ! (($cloning[(Ie)$bundledir])); then
       cloning+=($bundledir)
-      __antidote_clone --background $bundle[repo] $bundle[branch]
+      __antidote_clone --background $bundle[name] $bundle[branch]
     fi
   fi
 
@@ -55,7 +55,7 @@ wait
 local prescript=() script=()
 for bundlestr in $bundles; do
   # bundlestr sets an associative array, like so:
-  # typeset -A bundle=( [repo]=foo/bar [kind]=fpath )
+  # typeset -A bundle=( [name]=foo/bar [kind]=fpath )
   typeset -A bundle=( $(__antidote_split $'\t' $bundlestr) )
 
   # nothing to do for clone-only bundles
@@ -76,7 +76,7 @@ for bundlestr in $bundles; do
   fi
 
   bundle[kind]=${bundle[kind]:-zsh}
-  script+="$(antidote-script --kind "$bundle[kind]" --path "$bundle[path]" $bundle[repo])"
+  script+="$(antidote-script --kind "$bundle[kind]" --path "$bundle[path]" $bundle[name])"
   [[ $? -eq 0 ]] || return 1
 done
 
