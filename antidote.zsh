@@ -9,11 +9,10 @@
 
   # the -F option was added in 5.8
   autoload -Uz is-at-least
-  typeset -gHa _adote_zparopt_flags
   if is-at-least 5.8; then
-    _adote_zparopt_flags=( -D -M -F )
+    typeset -gHa _adote_zparopt_flags=( -D -M -F )
   else
-    _adote_zparopt_flags=( -D -M )
+    typeset -gHa _adote_zparopt_flags=( -D -M )
   fi
 
   typeset -gHa _adote_funcopts=(
@@ -22,11 +21,11 @@
   )
 
   # setup the environment
-  for _fn in ${0:A:h}/functions/*; do
-    (( $+functions[${_fn:t}] )) && unfunction ${_fn:t}
-    autoload -Uz "${_fn}"
+  local fn
+  for fn in ${0:A:h}/functions/*; do
+    (( $+functions[${fn:t}] )) && unfunction ${fn:t}
+    autoload -Uz "${fn}"
   done
-  unset _fn
 }
 
 #endregion
@@ -113,8 +112,8 @@ function __antidote_bundledir {
 ### Get the path to a plugin's init file.
 function __antidote_initfiles {
   emulate -L zsh; setopt $_adote_funcopts
+  typeset -ga reply=()
 
-  REPLY=()
   local dir=$1
   if [[ ! -d "$dir" ]]; then
     echo >&2 "antidote: bundle directory not found '$dir'."
@@ -130,7 +129,7 @@ function __antidote_initfiles {
     return 1
   }
 
-  REPLY=($initfiles)
+  typeset -ga reply=($initfiles)
   local f
   for f in $initfiles; do
     echo $f

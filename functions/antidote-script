@@ -62,9 +62,9 @@ elif [[ "$o_kind[-1]" == path ]]; then
 elif [[ -f "$bundle_path" ]]; then
   echo "$source_cmd $bundle_path"
 else
-  local initfile REPLY initfiles
+  local initfile reply initfiles
   __antidote_initfiles $bundle_path >/dev/null || return 1
-  initfiles=($REPLY)
+  initfiles=($reply)
   echo "fpath+=( $bundle_path )"
   for initfile in $initfiles; do
     echo "$source_cmd $initfile"

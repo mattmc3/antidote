@@ -10,7 +10,7 @@ TMPDIR=$BASEDIR/.tmp/tests/initfile
 
 () {
   local expected actual exitcode
-  local plugindir teststr REPLY=
+  local plugindir teststr reply=()
 
   local success_tests=(
     "typeset -A testdata=( dir myplugin     file myplugin.plugin.zsh )"
@@ -31,7 +31,7 @@ TMPDIR=$BASEDIR/.tmp/tests/initfile
     __antidote_initfiles $plugindir &>/dev/null
     exitcode=$?
     @test "__antidote_initfiles returns success for $testdata[dir]" $exitcode -eq 0
-    @test "\$REPLY was correctly set to '$testdata[file]'" "$REPLY" = $expected
+    @test "\$reply was correctly set to '$testdata[file]'" "$reply" = $expected
 
     actual=$(__antidote_initfiles $plugindir)
     @test "$testdata[file] initfile detected" "$actual" = $expected
@@ -39,6 +39,9 @@ TMPDIR=$BASEDIR/.tmp/tests/initfile
 }
 
 () {
+  local exitcode
+  local plugindir teststr reply=()
+
   fail_tests=(
     "typeset -A testdata=( dir foo        file foo.bash )"
     "typeset -A testdata=( dir bar        file README.md )"
@@ -55,7 +58,7 @@ TMPDIR=$BASEDIR/.tmp/tests/initfile
     __antidote_initfiles $plugindir &>/dev/null
     exitcode=$?
     @test "__antidote_initfiles returns fail code for $testdata[dir]" $exitcode -ne 0
-    @test "\$REPLY is empty" -z "$REPLY"
+    @test "\$reply is empty" -z "$reply"
   done
 }
 

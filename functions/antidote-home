@@ -6,6 +6,7 @@
 
 emulate -L zsh; setopt $_adote_funcopts
 
+typeset -g REPLY=
 local o_help
 zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
@@ -14,19 +15,20 @@ if (( $#o_help )); then
   return
 fi
 
-local rootdir
+local rootdir result
 if [[ -n "$ANTIDOTE_HOME" ]]; then
-  REPLY=$ANTIDOTE_HOME
+  result=$ANTIDOTE_HOME
 elif [[ "${OSTYPE}" == darwin* ]]; then
-  REPLY="$HOME/Library/Caches/antidote"
+  result="$HOME/Library/Caches/antidote"
 elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
-  REPLY="$LOCALAPPDATA/antidote"
+  result="$LOCALAPPDATA/antidote"
 elif [[ -n "$XDG_CACHE_HOME" ]]; then
-  REPLY="$XDG_CACHE_HOME/antidote"
+  result="$XDG_CACHE_HOME/antidote"
 else
-  REPLY="$HOME/.cache/antidote"
+  result="$HOME/.cache/antidote"
 fi
-[[ -d $REPLY ]] || mkdir -p $REPLY
-echo $REPLY
+[[ -d $result ]] || mkdir -p $result
+echo $result
+typeset -g REPLY=$result
 
 # vim: ft=zsh
