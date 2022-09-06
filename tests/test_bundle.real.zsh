@@ -31,6 +31,10 @@ ztap_header "${0:t:r}"
   repodirs=($(ls $ANTIDOTE_HOME))
   expected=$(wc -l <$clonelist | tr -d ' ')
   @test "\$ANTIDOTE_HOME has $expected repos" $#repodirs -eq $expected
+  if [[ $#repodirs -ne $expected ]]; then
+    @echo "Cloned repos..."
+    local d; for d in $repodirs; do @echo $d; done
+  fi
 
   branched_plugin="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-antidote"
   actual="$(git -C $branched_plugin branch --show-current 2>/dev/null)"
