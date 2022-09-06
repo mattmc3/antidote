@@ -105,28 +105,6 @@ function __antidote_bundledir {
   fi
 }
 
-### Clone a git repo containing a Zsh plugin.
-function __antidote_clone {
-  emulate -L zsh; setopt local_options extended_glob
-
-  local o_background
-  zparseopts $_adote_zparopt_flags -- \
-    b=o_background -background=b ||
-    return 1
-
-  local bundle=$1
-  local branch=$2
-  local giturl=$(__antidote_tourl $bundle)
-  local bundledir=$(__antidote_bundledir $giturl)
-
-  if [[ ! -d $bundledir ]]; then
-    [[ -z "$branch" ]] || branch="--branch=$branch"
-    echo >&2 "# antidote cloning $bundle..."
-    git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir &
-    (( $#o_background )) || wait
-  fi
-}
-
 ### Get the path to a plugin's init file.
 function __antidote_initfiles {
   emulate -L zsh; setopt local_options extended_glob
@@ -201,7 +179,7 @@ function __antidote_parsebundles {
   fi
   (( $#bundles )) || return 1
 
-  local bundlestr parts optstr bundle
+  local abundle bundlestr parts optstr bundle
   for bundlestr in $bundles; do
     # normalize whitespace and remove comments
     bundlestr=${bundlestr//[[:space:]]/ }
@@ -223,9 +201,24 @@ function __antidote_parsebundles {
       bundle+=( $parts )
     fi
 
+    # clone if necessary
+    local branch='' cloning=()
+    typeset -A abundle=($bundle)
+    local bundle_type=$(__antidote_bundle_type $abundle[name])
+    if [[ $bundle_type =~ '^(repo|url)$' ]]; then
+      [[ -v abundle[branch] ]] && branch="--branch=$abundle[branch]"
+      local bundledir=$(__antidote_bundledir $abundle[name])
+      local giturl=$(__antidote_tourl $abundle[name])
+      if [[ ! -e $bundledir ]] && ! (($cloning[(Ie)$bundledir])); then
+        cloning+=($bundledir)
+        git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir &
+      fi
+    fi
+
     # output the parsed associative array
     __antidote_join $'\t' $bundle
   done
+  wait
 }
 
 ### Split a string into an array
