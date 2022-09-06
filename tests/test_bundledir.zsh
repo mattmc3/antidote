@@ -35,8 +35,8 @@ source $BASEDIR/antidote.zsh
   local actual expected bundle repos
   typeset -A repos=(
     foo/bar                     foo/bar
-    http://github.com/bar/baz   bar/baz
-    git@github.com:baz/qux.git  baz/qux
+    git@github.com:bar/baz.git  bar/baz
+    https://github.com/baz/qux  baz/qux
   )
 
   zstyle ':antidote:bundle' use-friendly-names on

@@ -19,6 +19,7 @@ function git { mockgit "$@" }
   expected=(
     "Updating bundles..."
     "antidote: checking for updates: git@github.com:bar/baz"
+    "antidote: checking for updates: https://github.com/baz/qux"
     "antidote: checking for updates: https://github.com/foo/bar"
     "antidote: checking for updates: https://github.com/ohmyzsh/ohmyzsh"
     "antidote: checking for updates: https://github.com/romkatv/zsh-defer"

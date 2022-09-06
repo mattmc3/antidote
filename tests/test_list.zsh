@@ -12,6 +12,7 @@ function git { mockgit "$@" }
 () {
   local actual expected exitcode
   expected=(
+    "baz/qux"
     "foo/bar"
     "git@github.com:bar/baz"
     "ohmyzsh/ohmyzsh"
@@ -27,6 +28,7 @@ function git { mockgit "$@" }
   local actual expected exitcode
   expected=(
     "$ANTIDOTE_HOME/git-AT-github.com-COLON-bar-SLASH-baz"
+    "$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
     "$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
     "$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh"
     "$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer"
@@ -41,6 +43,7 @@ function git { mockgit "$@" }
   local actual expected exitcode
   expected=(
     "git@github.com:bar/baz"               "$ANTIDOTE_HOME/git-AT-github.com-COLON-bar-SLASH-baz"
+    "https://github.com/baz/qux"           "$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
     "https://github.com/foo/bar"           "$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
     "https://github.com/ohmyzsh/ohmyzsh"   "$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh"
     "https://github.com/romkatv/zsh-defer" "$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer"

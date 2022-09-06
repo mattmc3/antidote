@@ -52,7 +52,7 @@ function git { mockgit "$@" }
   for i in $(seq 1 2 $#testdata); do
     bundle=$testdata[i]
     expected=$testdata[(( i + 1 ))]
-    actual="$(__antidote_parsebundles $bundle)"
+    actual="$(__antidote_parsebundles $bundle 2>/dev/null)"
     actual=${actual//$'\t'/ }
     @test "parse bundle: '$bundle'" "${(q-)actual}" = "${(q-)expected}"
   done
@@ -66,7 +66,7 @@ name bar/baz
 EOBUNDLES
   )
   bundle='foo/bar kind:fpath abc:xyz\nbar/baz'
-  actual=$(__antidote_parsebundles $bundle 2>&1)
+  actual=$(__antidote_parsebundles $bundle 2>/dev/null)
   actual=${actual//$'\t'/ }
   @test "parsing quoted bundle string with newline sep" "$actual" = "$expected"
 }
@@ -78,7 +78,7 @@ name foo/bar kind fpath
 name foo/baz branch dev
 EOBUNDLES
   )
-  actual="$(__antidote_parsebundles <<EOBUNDLES
+  actual="$(__antidote_parsebundles 2>/dev/null <<EOBUNDLES
 # comments
 foo/bar kind:fpath
 foo/baz branch:dev
@@ -105,7 +105,7 @@ name bar/baz kind clone
 name baz/foo branch main kind fpath
 EOBUNDLES
   )
-  actual="$(printf "%s\r\n" "$bundle_list[@]" | __antidote_parsebundles)"
+  actual="$(printf "%s\r\n" "$bundle_list[@]" | __antidote_parsebundles 2>/dev/null)"
   actual=${actual//$'\t'/ }
   @test "parsing complex bundle with crlf" "$actual" = "$expected"
 }
