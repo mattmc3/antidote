@@ -15,7 +15,7 @@ function git { mockgit "$@" }
 
 # antidote update
 () {
-  local actual expected
+  local actual expected exitcode
   expected=(
     "Updating bundles..."
     "antidote: checking for updates: git@github.com:bar/baz"

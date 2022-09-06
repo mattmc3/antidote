@@ -7,7 +7,7 @@ ztap_header "${0:t:r}"
 source $BASEDIR/antidote.zsh
 
 () {
-  local actual exitcode
+  local actual exitcode teststr
   local REPLY=
 
   local success_tests=(
@@ -29,7 +29,7 @@ source $BASEDIR/antidote.zsh
 }
 
 () {
-  local actual exitcode stderr
+  local actual exitcode stderr bundle
   local REPLY=
 
   local fail_tests=(

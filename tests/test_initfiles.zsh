@@ -42,7 +42,7 @@ TMPDIR=$BASEDIR/.tmp/tests/initfile
   local exitcode
   local plugindir teststr reply=()
 
-  fail_tests=(
+  local fail_tests=(
     "typeset -A testdata=( dir foo        file foo.bash )"
     "typeset -A testdata=( dir bar        file README.md )"
     "typeset -A testdata=( dir baz        file baz )"

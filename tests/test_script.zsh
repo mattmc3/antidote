@@ -18,7 +18,7 @@ setup_fakezdotdir script
 
 # accepts '--arg val', '--arg:val', '--arg=val' syntax
 () {
-  local actual expected bundle bundledir args variants v
+  local actual expected exitcode bundle bundledir args variants v
   variants=('--kind zsh' '--kind:zsh' '--kind=zsh')
   bundle="foo/bar"
   bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"

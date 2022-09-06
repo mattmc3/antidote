@@ -11,6 +11,7 @@ export MANPAGER=cat
 export PAGER=cat
 
 () {
+  local arg
   for arg in 'help' '-h' '--help'
   do
     antidote $arg &>/dev/null
@@ -42,7 +43,7 @@ cmds=(
 )
 
 () {
-  local c cc expected actual err helpcmds
+  local c cmd expected actual err helpcmds
   for c in $cmds; do
     # there are too many ways to call help, but there you have it
     helpcmds=(
@@ -69,7 +70,7 @@ cmds=(
 }
 
 () {
-  local cmd expected actual err
+  local c cmd expected actual err
   local badcmds=(foobar)
   for c in $badcmds; do
     cmd="antidote -h $c"

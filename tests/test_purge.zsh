@@ -60,10 +60,11 @@ source $BASEDIR/antidote.zsh
 # antidote purge --all
 () {
   local actual expected exitcode bundle bundledir
+  local -a bakfiles
 
   # to test purging all bundles, we've got to make a full fake zdotdir
   setup_fakezdotdir purge_all
-  pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
+  local pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
 
   zstyle ':antidote:purge:all' answer 'n'
   actual=$(antidote purge --all 2>&1)

@@ -23,10 +23,10 @@ source $BASEDIR/antidote.zsh
 
 # bundle annotation kind:defer
 () {
-  local actual expected bundle bundledir
-  bundle="foo/bar kind:defer"
-  defer_dir='https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer'
-  foobar_dir='https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar'
+  local actual expected
+  local bundle="foo/bar kind:defer"
+  local defer_dir='https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer'
+  local foobar_dir='https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar'
   expected=(
     "if ! (( \$+functions[zsh-defer] )); then"
     "  fpath+=( \$ANTIDOTE_HOME/$defer_dir )"
@@ -49,8 +49,8 @@ source $BASEDIR/antidote.zsh
     return 1
   }
 
-  local actual expected bundle bundledir exitcode
-  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
+  local actual expected bundle exitcode
+  local bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
   expected=(
     "fpath+=( $ANTIDOTE_HOME/$bundledir )"
     "source $ANTIDOTE_HOME/$bundledir/bar.plugin.zsh"

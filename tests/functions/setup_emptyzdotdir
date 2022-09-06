@@ -1,16 +1,15 @@
 # setup zsh home
 local name=${1:-temp}
-ZSHDIR=$BASEDIR/.tmp/tests/$name
+typeset -g ZSHDIR=$BASEDIR/.tmp/tests/$name
 [[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
 mkdir -p $ZSHDIR
 
 # setup antidote home
-ANTIDOTE_HOME=$ZSHDIR/antidote_home
+typeset -g ANTIDOTE_HOME=$ZSHDIR/antidote_home
 mkdir -p $ANTIDOTE_HOME
-FAKEZDOTDIR=$BASEDIR/tests/fakezdotdir
 
 # switch ZDOTDIR
-OLD_ZDOTDIR=$ZDOTDIR
+typeset -g OLD_ZDOTDIR=$ZDOTDIR
 ZDOTDIR=$ZSHDIR
 
 # vim: ft=zsh
