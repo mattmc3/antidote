@@ -3,6 +3,7 @@
 # usage: antidote bundle [-h|--help] <bundle>...
 #
 emulate -L zsh; setopt $_adote_funcopts
+local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
 local o_help
 zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1

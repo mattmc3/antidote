@@ -8,9 +8,7 @@
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 #
 emulate -L zsh; setopt $_adote_funcopts
-
-# appease 'warn_create_global' for regex use
-local MATCH MBEGIN MEND; local -a match=() mbegin=() mend=()
+local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
 local o_help o_kind o_path o_branch o_cond
 zparseopts $_adote_zparopt_flags -- \

@@ -10,6 +10,6 @@ mkdir -p $ANTIDOTE_HOME
 
 # switch ZDOTDIR
 typeset -g OLD_ZDOTDIR=$ZDOTDIR
-ZDOTDIR=$ZSHDIR
+typeset -g ZDOTDIR=$ZSHDIR
 
 # vim: ft=zsh

@@ -6,6 +6,8 @@ typeset -g FAKEZDOTDIR=$BASEDIR/tests/fakezdotdir
 typeset -g REALZDOTDIR=$BASEDIR/tests/realzdotdir
 setopt warn_create_global warn_nested_var
 
+zstyle ':antidote:tests' set-warn-options 'on'
+
 # initialize test functions
 local func
 for func in ${0:A:h}/*; do

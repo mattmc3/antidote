@@ -2,6 +2,8 @@
 
 () {
   0=${(%):-%x}
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+
   fpath+=${0:A:h}/functions
   if [[ "$MANPATH" != *"${0:A:h}/man"* ]]; then
     export MANPATH="${0:A:h}/man:$MANPATH"
@@ -15,10 +17,10 @@
     typeset -gHa _adote_zparopt_flags=( -D -M )
   fi
 
-  typeset -gHa _adote_funcopts=(
-    local_options extended_glob no_monitor
-    warn_create_global warn_nested_var
-  )
+  typeset -gHa _adote_funcopts=( local_options extended_glob no_monitor )
+  if zstyle -t ':antidote:tests' set-warn-options; then
+    typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
+  fi
 
   # setup the environment
   local fn
@@ -82,7 +84,10 @@ function __antidote_bundledir {
   # $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
   # With `zstyle ':antidote:bundle' use-friendly-names on`, we can simplify to
   # $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
+
   emulate -L zsh; setopt $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+
   local bundle="$1"
   if [[ -d "$bundle" ]]; then
     echo $bundle
