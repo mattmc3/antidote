@@ -151,12 +151,12 @@ function __antidote_bundle_type {
     [[ -d $1 ]] && result=dir || result=file
   else
     case "$1" in
-      '')        echo >&2 "Expecting bundle argument"; return 1 ;;
-      /*)        echo >&2 "File/Directory bundle does not exist '$1'."; return 1 ;;
+      '')        echo >&2 "Expecting bundle argument." && return 1 ;;
+      /*)        echo >&2 "File/Directory bundle does not exist '$1'." && return 1 ;;
       *://*)     result=url  ;;
       git@*:*/*) result=url  ;;
       */*)       result=repo ;;
-      *)         echo >&2 "Unrecognized bundle type '$1'."; return 1 ;;
+      *)         echo >&2 "Unrecognized bundle type '$1'." && return 1 ;;
     esac
   fi
   typeset -g REPLY=$result
