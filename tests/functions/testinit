@@ -1,4 +1,3 @@
-#!/usr/bin/env zsh
 0=${(%):-%x}
 BASEDIR=${0:A:h:h:h}
 TMPDIR=$BASEDIR/.tmp
@@ -13,3 +12,5 @@ done
 unset func
 
 source $ZTAP_HOME/ztap3.zsh
+
+# vim: ft=zsh

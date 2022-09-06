@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 # setup zsh home
 local name=${1:-temp}
 FAKEZDOTDIR=$BASEDIR/tests/fakezdotdir
@@ -18,3 +16,5 @@ unset _d
 # switch ZDOTDIR
 OLD_ZDOTDIR=$ZDOTDIR
 ZDOTDIR=$ZSHDIR
+
+# vim: ft=zsh

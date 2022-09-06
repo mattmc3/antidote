@@ -8,3 +8,5 @@ mkdir -p $bundledir
 REPLY=$bundledir/bar.zsh
 touch $REPLY
 echo $REPLY
+
+# vim: ft=zsh
