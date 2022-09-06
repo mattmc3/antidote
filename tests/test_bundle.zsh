@@ -95,11 +95,7 @@ source $BASEDIR/antidote.zsh
 
   @test "static cache file exists" -f "$staticfile"
   [[ -f "$staticfile" ]] || return
-  if [[ "${OSTYPE}" == darwin* ]]; then
-    sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" "$staticfile"
-  else
-    sed -i "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" "$staticfile"
-  fi
+  sed-i "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" "$staticfile"
   diffout=$(diff $staticfile $expectedfile)
   @test "'antidote bundle' redirection: static file diff succeeds" $exitcode -eq 0
   @test "'antidote bundle' redirection: static file diff shows no differences" -z "$diffout"

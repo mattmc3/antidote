@@ -1,0 +1,4 @@
+function _sed-i {
+  sed --version &>/dev/null && sed -i -- "$@" || sed -i "" "$@"
+}
+_sed-i "$@"
