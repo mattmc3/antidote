@@ -182,7 +182,9 @@ function __antidote_parsebundles {
   fi
   (( $#bundles )) || return 1
 
-  local abundle bundlestr parts optstr bundle
+  local bundlestr bundle branch bundle_type bundledir giturl
+  local -a cloning annotations parts
+  local -A abundle
   for bundlestr in $bundles; do
     # normalize whitespace and remove comments
     bundlestr=${bundlestr//[[:space:]]/ }
@@ -195,23 +197,23 @@ function __antidote_parsebundles {
     # the first element is the bundle name, and the remainder are a:b annotations
     # split annotations into key/value pairs
     bundle=( name $parts[1] )
-    optstr=( ${parts[@]:1} )
-    if (( $#optstr )); then
-      parts=( ${(@s/:/)optstr} )
+    annotations=( ${parts[@]:1} )
+    if (( $#annotations )); then
+      parts=( ${(@s/:/)annotations} )
       [[ $(( $#parts % 2 )) -eq 0 ]] || {
-        echo >&2 "antidote: bad annotation '$optstr'." && return 1
+        echo >&2 "antidote: bad annotation '$annotations'." && return 1
       }
       bundle+=( $parts )
     fi
 
     # clone if necessary
-    local branch='' cloning=()
-    typeset -A abundle=($bundle)
-    local bundle_type=$(__antidote_bundle_type $abundle[name])
+    branch=''
+    abundle=($bundle)
+    bundle_type=$(__antidote_bundle_type $abundle[name])
     if [[ $bundle_type =~ '^(repo|url)$' ]]; then
       [[ -v abundle[branch] ]] && branch="--branch=$abundle[branch]"
-      local bundledir=$(__antidote_bundledir $abundle[name])
-      local giturl=$(__antidote_tourl $abundle[name])
+      bundledir=$(__antidote_bundledir $abundle[name])
+      giturl=$(__antidote_tourl $abundle[name])
       if [[ ! -e $bundledir ]] && ! (($cloning[(Ie)$bundledir])); then
         cloning+=($bundledir)
         echo >&2 "# antidote cloning $abundle[name]..."
