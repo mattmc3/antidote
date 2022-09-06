@@ -11,9 +11,7 @@ ztap_header "${0:t:r}"
 
 # setup
 ZSHDIR=$BASEDIR/tests/fakezdotdir
-function git {
-  @echo mockgit "$@"
-}
+function git { @echo mockgit "$@" }
 ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
 source $BASEDIR/antidote.zsh
 
@@ -100,3 +98,6 @@ source $BASEDIR/antidote.zsh
 }
 
 ztap_footer
+
+# teardown
+unfunction git

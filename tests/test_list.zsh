@@ -6,25 +6,7 @@ ztap_header "${0:t:r}"
 # setup
 source $BASEDIR/antidote.zsh
 setup_fakezdotdir list
-
-# mocks
-function git {
-  # handle `git -C "$dir" config remote.origin.url`
-  local args=("$@[@]")
-  local o_path
-  zparseopts -D -- C:=o_path || return 1
-  if [[ "$@" != "config remote.origin.url" ]]; then
-    echo >&2 "mocking failed for git command: git $args"
-    return 1
-  fi
-  # un-sanitize dir into URL
-  local url=$o_path[-1]
-  url=${url:t}
-  url=${url:gs/-AT-/\@}
-  url=${url:gs/-COLON-/\:}
-  url=${url:gs/-SLASH-/\/}
-  echo "$url"
-}
+function git { mockgit "$@" }
 
 # list short
 () {

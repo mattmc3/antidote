@@ -7,9 +7,7 @@ ztap_header "${0:t:r}"
 source $BASEDIR/antidote.zsh
 ANTIDOTE_HOME=
 OLD_ZDOTDIR=$ZDOTDIR
-function git {
-  @echo mockgit "$@"
-}
+function git { @echo mockgit "$@" }
 
 () {
   local expected actual output exitcode plugin_file REPLY
@@ -110,3 +108,7 @@ function git {
 }
 
 ztap_footer
+
+# teardown
+unfunction git
+ZDOTDIR=$OLD_ZDOTDIR

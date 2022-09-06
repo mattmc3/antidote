@@ -5,37 +5,7 @@ ztap_header "${0:t:r}"
 
 # setup
 source $BASEDIR/antidote.zsh
-
-function git {
-  # handle these commands:
-  # - `git clone --quiet --depth 1 --recurse-submodules --shallow-submodules --branch branch $url $dir`
-  local args=("$@[@]")
-  local o_path o_quiet o_depth o_recurse_submodules o_shallow_submodules o_branch
-  zparseopts -D -E --                        \
-    C:=o_path                                \
-    -quiet=o_quiet                           \
-    -recurse-submodules=o_recurse_submodules \
-    -shallow-submodules=o_shallow_submodules \
-    -depth:=o_depth                          \
-    -branch:=o_branch                        ||
-    return 1
-
-  if [[ "$1" = "clone" ]]; then
-    local giturl="$2"
-    local bundledir="$3"
-    src="$FAKEZDOTDIR/antidote_home/${bundledir:t}"
-    if [[ -d $src ]]; then
-      cp -r $src ${bundledir:h}
-    elif ! (( $#o_quiet )); then
-      echo "FAKEGIT: Cloning into '${url:t}'..."
-      echo "FAKEGIT: Repository not found."
-      echo "FAKEGIT: repository '$url' not found"
-    fi
-  else
-    echo >&2 "mocking failed for git command: git $@"
-    return 1
-  fi
-}
+function git { mockgit "$@" }
 
 () {
   local expected actual
@@ -141,3 +111,6 @@ EOBUNDLES
 }
 
 ztap_footer
+
+# teardown
+unfunction git

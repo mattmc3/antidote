@@ -6,41 +6,7 @@ ztap_header "${0:t:r}"
 # setup
 source $BASEDIR/antidote.zsh
 setup_fakezdotdir update
-
-# mocks
-function git {
-  # handle these commands:
-  # - `git -C "$dir" config remote.origin.url`
-  # - `git -C "$dir" pull --quiet --ff --rebase --autostash`
-  # - `git -C "$dir" rev-parse --short HEAD`
-  local args=("$@[@]")
-  local o_path o_quiet o_ff o_rebase o_autostash o_short
-  zparseopts -D -E --      \
-    C:=o_path              \
-    -short=o_short         \
-    -quiet=o_quiet         \
-    -ff=o_ff               \
-    -rebase=o_rebase       \
-    -autostash=o_autostash ||
-    return 1
-
-  if [[ "$@" = "config remote.origin.url" ]]; then
-    # un-sanitize dir into URL
-    local url=$o_path[-1]
-    url=${url:t}
-    url=${url:gs/-AT-/\@}
-    url=${url:gs/-COLON-/\:}
-    url=${url:gs/-SLASH-/\/}
-    echo "$url"
-  elif [[ "$@" = "pull" ]]; then
-    (( $#o_quiet )) || echo "FAKEGIT: Already up to date."
-  elif [[ "$@" = "rev-parse HEAD" ]]; then
-    echo "a123456"
-  else
-    echo >&2 "mocking failed for git command: git $@"
-    return 1
-  fi
-}
+function git { mockgit "$@" }
 
 () {
   antidote update -h &>/dev/null
