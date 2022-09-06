@@ -147,23 +147,17 @@ function __antidote_bundle_type {
   emulate -L zsh; setopt $_adote_funcopts
   typeset -g REPLY=
   local result
-  if [[ -z "$1" ]]; then
-    echo >&2 "Expecting bundle argument"
-    return 1
-  elif [[ -f $1 ]]; then
-    result=file
-  elif [[ -d $1 ]]; then
-    result=dir
-  elif [[ $1 = /* ]]; then
-    echo >&2 "File/Directory bundle does not exist '$1'."
-    return 1
-  elif [[ $1 = *://* || $1 = git@*:*/* ]]; then
-    result=url
-  elif [[ $1 = */* ]]; then
-    result=repo
+  if [[ -e "$1" ]]; then
+    [[ -d $1 ]] && result=dir || result=file
   else
-    echo >&2 "Unrecognized bundle type '$1'."
-    return 1
+    case "$1" in
+      '')        echo >&2 "Expecting bundle argument"; return 1 ;;
+      /*)        echo >&2 "File/Directory bundle does not exist '$1'."; return 1 ;;
+      *://*)     result=url  ;;
+      git@*:*/*) result=url  ;;
+      */*)       result=repo ;;
+      *)         echo >&2 "Unrecognized bundle type '$1'."; return 1 ;;
+    esac
   fi
   typeset -g REPLY=$result
   echo $result
