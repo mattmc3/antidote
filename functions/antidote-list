@@ -2,8 +2,7 @@
 ###
 ### usage: antidote list [-h|--help]
 
-emulate -L zsh
-setopt local_options extended_glob
+emulate -L zsh; setopt $_adote_funcopts
 
 local o_help o_short o_dirs
 zparseopts $_adote_zparopt_flags -- \

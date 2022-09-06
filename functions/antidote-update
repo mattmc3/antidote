@@ -2,8 +2,7 @@
 ###
 ### usage: antidote update [-h|--help]
 
-emulate -L zsh
-setopt local_options extended_glob no_monitor
+emulate -L zsh; setopt $_adote_funcopts
 0=${(%):-%x}
 
 local o_help o_self o_bundles

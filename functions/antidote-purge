@@ -2,8 +2,7 @@
 ###
 ### usage: antidote purge [-h|--help] <bundle>
 ###        antidote purge [-a|--all]
-emulate -L zsh
-setopt local_options extended_glob
+emulate -L zsh; setopt $_adote_funcopts
 
 local o_help o_all
 zparseopts $_adote_zparopt_flags -- \

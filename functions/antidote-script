@@ -7,8 +7,7 @@
 # <branch> : The git branch
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 
-emulate -L zsh
-setopt local_options extended_glob
+emulate -L zsh; setopt $_adote_funcopts
 
 local o_help o_kind o_path o_branch o_cond
 zparseopts $_adote_zparopt_flags -- \

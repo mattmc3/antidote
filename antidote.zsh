@@ -16,6 +16,11 @@
     _adote_zparopt_flags=( -D -M )
   fi
 
+  typeset -gHa _adote_funcopts=(
+    local_options extended_glob no_monitor
+    # warn_create_global warn_nested_var
+  )
+
   # setup the environment
   for _fn in ${0:A:h}/functions/*; do
     (( $+functions[${_fn:t}] )) && unfunction ${_fn:t}
@@ -78,7 +83,7 @@ function __antidote_bundledir {
   # $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
   # With `zstyle ':antidote:bundle' use-friendly-names on`, we can simplify to
   # $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
-  emulate -L zsh; setopt local_options extended_glob
+  emulate -L zsh; setopt $_adote_funcopts
   local bundle="$1"
   if [[ -d "$bundle" ]]; then
     echo $bundle
@@ -107,7 +112,7 @@ function __antidote_bundledir {
 
 ### Get the path to a plugin's init file.
 function __antidote_initfiles {
-  emulate -L zsh; setopt local_options extended_glob
+  emulate -L zsh; setopt $_adote_funcopts
 
   REPLY=()
   local dir=$1
@@ -165,7 +170,7 @@ function __antidote_bundle_type {
 
 ### Parse antidote's bundle DSL.
 function __antidote_parsebundles {
-  emulate -L zsh; setopt local_options extended_glob
+  emulate -L zsh; setopt $_adote_funcopts
 
   # handle bundles as newline delimited arg strings,
   # or as <redirected or piped| input
@@ -211,6 +216,7 @@ function __antidote_parsebundles {
       local giturl=$(__antidote_tourl $abundle[name])
       if [[ ! -e $bundledir ]] && ! (($cloning[(Ie)$bundledir])); then
         cloning+=($bundledir)
+        echo >&2 "# antidote cloning $abundle[name]..."
         git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir &
       fi
     fi
@@ -229,8 +235,7 @@ function __antidote_split {
 
 ### Get the url from a repo bundle.
 function __antidote_tourl {
-  emulate -L zsh
-  setopt local_options extended_glob
+  emulate -L zsh; setopt $_adote_funcopts
 
   local bundle=$1
   local url=$bundle
