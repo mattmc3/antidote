@@ -1,61 +1,29 @@
 ### Clone bundle(s) and generate the static load script.
-###
-### usage: antidote bundle [-h|--help] <bundle>...
-
-emulate -L zsh
-setopt local_options extended_glob no_monitor
+#
+# usage: antidote bundle [-h|--help] <bundle>...
+#
+emulate -L zsh; setopt $_adote_funcopts
+local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
 local o_help
-zparseopts $_zparseopts_flags -- h=o_help -help=h || return 1
+zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
 if (( $#o_help )); then
   antidote-help bundle
   return
 fi
 
-# turn the bundle string into an associative array
-local bundlestr=$(__antidote_parsebundles $@)
-local bundles=("${(@f)${bundlestr}}")
-[[ $#bundles -ne 0 ]] || return 1
+# parse the DSL for bundles
+local bundles=$(__antidote_parsebundles $@)
+bundles=("${(@f)${bundles}}")
+(( $#bundles )) || return 1
 
-local bundle cloning bundledir
-typeset -a cloning
-local zshdefer_bundle='romkatv/zsh-defer'
-local zshdefer_bundledir=$(__antidote_bundledir $zshdefer_bundle)
-
-# loop the first time just to clone missing bundles
-for bundlestr in $bundles; do
-  # bundlestr sets an associative array, like so:
-  # typeset -A bundle=( [repo]=foo/bar [kind]=fpath )
-  typeset -A bundle=( $(__antidote_split $'\t' $bundlestr) )
-
-  # bundles could be paths or repos
-  if [[ $bundle[repo] = \$* ]] || [[ $bundle[repo] = /* ]]; then
-    # path bundles
-    continue
-  elif [[ $bundle[repo] = */* ]]; then
-    bundledir=$(__antidote_bundledir $bundle[repo])
-    if ! (($cloning[(Ie)$bundledir])); then
-      cloning+=($bundledir)
-      __antidote_clone --background $bundle[repo] $bundle[branch]
-    fi
-  fi
-
-  # ensure we clone the plugin necessary for deferred bundles
-  if [[ $bundle[kind] = defer ]] && ! (($cloning[(Ie)$zshdefer_bundledir])); then
-    cloning+=($zshdefer_bundledir)
-    __antidote_clone --background $zshdefer_bundle
-  fi
-done
-
-# wait for background cloning to complete
-wait
-
-# now loop a second time to generate the bundle load script
+# loop through the bundles to generate the zsh load script
+local bundle bundlestr
 local prescript=() script=()
 for bundlestr in $bundles; do
   # bundlestr sets an associative array, like so:
-  # typeset -A bundle=( [repo]=foo/bar [kind]=fpath )
+  # typeset -A bundle=( [name]=foo/bar [kind]=fpath )
   typeset -A bundle=( $(__antidote_split $'\t' $bundlestr) )
 
   # nothing to do for clone-only bundles
@@ -70,13 +38,13 @@ for bundlestr in $bundles; do
   if [[ $bundle[kind] = defer ]] && [[ $#prescript -eq 0 ]]; then
     prescript=(
       "if ! (( \$+functions[zsh-defer] )); then"
-      "$(antidote-script $zshdefer_bundle | pr -to 2)"
+      "$(antidote-script 'romkatv/zsh-defer' | pr -to 2)"
       "fi"
     )
   fi
 
   bundle[kind]=${bundle[kind]:-zsh}
-  script+="$(antidote-script --kind "$bundle[kind]" --path "$bundle[path]" $bundle[repo])"
+  script+="$(antidote-script --kind "$bundle[kind]" --path "$bundle[path]" $bundle[name])"
   [[ $? -eq 0 ]] || return 1
 done
 

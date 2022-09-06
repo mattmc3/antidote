@@ -1,8 +1,8 @@
 ### Show antidote documentation.
-###
-### usage: antidote [-h|--help] [<command>]
-###        antidote help [<command>]
-
+#
+# usage: antidote [-h|--help] [<command>]
+#        antidote help [<command>]
+#
 function __antidote_usage {
   cat<<EOS
 antidote - the cure to slow zsh plugin management
@@ -28,7 +28,7 @@ EOS
 }
 
 local o_help
-zparseopts $_zparseopts_flags -- h=o_help -help=h || return 1
+zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
 local manpage
 

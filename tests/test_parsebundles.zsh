@@ -5,12 +5,13 @@ ztap_header "${0:t:r}"
 
 # setup
 source $BASEDIR/antidote.zsh
+function git { mockgit "$@" }
 
 () {
   local expected actual
-  expected=( repo foo/bar )
+  expected=( name foo/bar )
   expected="$(__antidote_join $'\t' $expected)"
-  actual="$(__antidote_parsebundles foo/bar)"
+  actual="$(__antidote_parsebundles foo/bar 2>/dev/null)"
   @test "parsing bundle foo/bar => $expected" "$actual" = "$expected"
 }
 
@@ -31,27 +32,27 @@ source $BASEDIR/antidote.zsh
   local testdata=(
     # repo only
          'foo/bar'
-    'repo foo/bar'
+    'name foo/bar'
     # repo and annotations
          'https://github.com/foo/bar path:lib branch:dev'
-    'repo https://github.com/foo/bar path lib branch dev'
+    'name https://github.com/foo/bar path lib branch dev'
          'git@github.com:foo/bar.git kind:clone branch:main'
-    'repo git@github.com:foo/bar.git kind clone branch main'
+    'name git@github.com:foo/bar.git kind clone branch main'
          'foo/bar kind:fpath abc:xyz'
-    'repo foo/bar kind fpath abc xyz'
+    'name foo/bar kind fpath abc xyz'
     # repo and different whitespace
-    #     "foo/bar${tab}kind:path${cr}${lf}"
-    #'repo foo/bar kind path'
+        "foo/bar${tab}kind:path${cr}${lf}"
+    'name foo/bar kind path'
     # comments
          'foo/bar path:plugins/myplugin kind:path  # trailing comment'
-    'repo foo/bar path plugins/myplugin kind path'
+    'name foo/bar path plugins/myplugin kind path'
     '# comment'
     ''
   )
   for i in $(seq 1 2 $#testdata); do
     bundle=$testdata[i]
     expected=$testdata[(( i + 1 ))]
-    actual="$(__antidote_parsebundles $bundle)"
+    actual="$(__antidote_parsebundles $bundle 2>/dev/null)"
     actual=${actual//$'\t'/ }
     @test "parse bundle: '$bundle'" "${(q-)actual}" = "${(q-)expected}"
   done
@@ -60,12 +61,12 @@ source $BASEDIR/antidote.zsh
 () {
   local expected actual bundle
   expected=$(cat <<'EOBUNDLES'
-repo foo/bar kind fpath abc xyz
-repo bar/baz
+name foo/bar kind fpath abc xyz
+name bar/baz
 EOBUNDLES
   )
   bundle='foo/bar kind:fpath abc:xyz\nbar/baz'
-  actual=$(__antidote_parsebundles $bundle 2>&1)
+  actual=$(__antidote_parsebundles $bundle 2>/dev/null)
   actual=${actual//$'\t'/ }
   @test "parsing quoted bundle string with newline sep" "$actual" = "$expected"
 }
@@ -73,11 +74,11 @@ EOBUNDLES
 () {
   local expected actual
   expected=$(cat <<'EOBUNDLES'
-repo foo/bar kind fpath
-repo foo/baz branch dev
+name foo/bar kind fpath
+name foo/baz branch dev
 EOBUNDLES
   )
-  actual="$(__antidote_parsebundles <<EOBUNDLES
+  actual="$(__antidote_parsebundles 2>/dev/null <<EOBUNDLES
 # comments
 foo/bar kind:fpath
 foo/baz branch:dev
@@ -98,15 +99,18 @@ EOBUNDLES
     "baz/foo branch:main kind:fpath"
   )
   expected=$(cat <<'EOBUNDLES'
-repo foo/bar
-repo foo/baz
-repo bar/baz kind clone
-repo baz/foo branch main kind fpath
+name foo/bar
+name foo/baz
+name bar/baz kind clone
+name baz/foo branch main kind fpath
 EOBUNDLES
   )
-  actual="$(printf "%s\r\n" "$bundle_list[@]" | __antidote_parsebundles)"
+  actual="$(printf "%s\r\n" "$bundle_list[@]" | __antidote_parsebundles 2>/dev/null)"
   actual=${actual//$'\t'/ }
   @test "parsing complex bundle with crlf" "$actual" = "$expected"
 }
 
 ztap_footer
+
+# teardown
+unfunction git

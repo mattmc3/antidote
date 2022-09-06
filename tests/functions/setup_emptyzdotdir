@@ -1,9 +1,8 @@
 # setup zsh home
 local name=${1:-temp}
-typeset -g ZSHDIR=$BASEDIR/.tmp/realtests/$name
+typeset -g ZSHDIR=$BASEDIR/.tmp/tests/$name
 [[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
 mkdir -p $ZSHDIR
-cp $REALZDOTDIR/zsh_plugins.txt $ZSHDIR/.zsh_plugins.txt
 
 # setup antidote home
 typeset -g ANTIDOTE_HOME=$ZSHDIR/antidote_home

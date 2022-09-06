@@ -1,7 +1,9 @@
 # plugins
 zsh-users/zsh-history-substring-search
 https://github.com/zsh-users/zsh-autosuggestions
-git@github.com:zsh-users/zsh-completions.git
+
+# git@ repo URLs aren't good for CI... revisit
+# git@github.com:zsh-users/zsh-completions.git
 
 # kind:zsh
 zsh-users/zsh-syntax-highlighting kind:zsh
@@ -21,6 +23,8 @@ mattmc3/antidote branch:pz
 # subpath plugins
 ohmyzsh/ohmyzsh path:lib/clipboard.zsh
 ohmyzsh/ohmyzsh path:plugins/extract
+ohmyzsh/ohmyzsh path:plugins/magic-enter
+ohmyzsh/ohmyzsh path:plugins/fancy-ctrl-z
 
 # deferred
 zdharma-continuum/fast-syntax-highlighting kind:defer

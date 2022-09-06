@@ -10,7 +10,8 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote install <bundle> [<bundlefile>]
+| antidote install [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
+|                  [-b|--branch <branch>] <bundle> [<bundlefile>]
 
 # DESCRIPTION
 
@@ -20,6 +21,15 @@ header: Antidote Manual
 
 -h, \--help
 :   Show the help documentation.
+
+-k, \--kind <kind>
+:   The kind of bundle. Valid values: fpath, path, clone, defer, zsh.
+
+-p, \--path <path>
+:   A relative subpath within the bundle where the plugin is located.
+
+-b, \--branch <path>
+:   The git branch to use.
 
 \<bundle\>
 :   Bundle to be installed.

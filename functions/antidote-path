@@ -1,12 +1,11 @@
 ### Print the path of a cloned bundle.
-###
-### usage: antidote path [-h|--help] <bundle>
-
-emulate -L zsh
-setopt local_options extended_glob
+#
+# usage: antidote path [-h|--help] <bundle>
+#
+emulate -L zsh; setopt $_adote_funcopts
 
 local o_help
-zparseopts $_zparseopts_flags -- h=o_help -help=h || return 1
+zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
 if (( $#o_help )); then
   antidote-help path

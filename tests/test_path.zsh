@@ -7,6 +7,14 @@ ztap_header "${0:t:r}"
 source $BASEDIR/antidote.zsh
 ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
 
+# -h|--help
+() {
+  antidote path -h &>/dev/null
+  @test "'antidote path -h' succeeds" "$?" -eq 0
+  antidote path --help &>/dev/null
+  @test "'antidote path --help' succeeds" "$?" -eq 0
+}
+
 () {
   antidote path bar/foo &>/dev/null
   @test "'antidote path' fails on missing bundle" $? -ne 0

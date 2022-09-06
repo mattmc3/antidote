@@ -1,14 +1,15 @@
 ### Remove a cloned bundle.
-###
-### usage: antidote purge [-h|--help] <bundle>
-###        antidote purge [-a|--all]
-emulate -L zsh
-setopt local_options extended_glob
+#
+# usage: antidote purge [-h|--help] <bundle>
+#        antidote purge [-a|--all]
+#
+emulate -L zsh; setopt $_adote_funcopts
+local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
 local o_help o_all
-zparseopts $_zparseopts_flags -- \
-  h=o_help -help=h  \
-  a=o_all  -all=a   ||
+zparseopts $_adote_zparopt_flags -- \
+  h=o_help -help=h \
+  a=o_all  -all=a  ||
   return 1
 
 if (( $#o_help )); then
@@ -21,29 +22,24 @@ if [[ $# -eq 0 ]] && ! (( $#o_all )); then
   return 1
 fi
 
-local antidote_dir="$(antidote-home)"
 local bundlefile
 zstyle -s ':antidote:bundle' file 'bundlefile' ||
   bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
 
 if (( $#o_all )); then
-  if [[ ! -d $antidote_dir ]]; then
-    echo >&2 "antidote: error: Cannot find '$antidote_dir'."
-    return 1
-  fi
-
   # last chance to save the user from themselves
+  local antidote_home="$(antidote-home)"
   local REPLY
   zstyle -s ':antidote:purge:all' answer 'REPLY' || {
-    read -q "REPLY?You are about to permanently remove '$antidote_dir' and all its contents!"$'\n'"Are you sure [Y/n]? "
+    read -q "REPLY?You are about to permanently remove '$antidote_home' and all its contents!"$'\n'"Are you sure [Y/n]? "
     echo
   }
   [[ ${REPLY:u} == "Y" ]] || return 1
 
   # remove antidote home and bundle file
-  command rm -rf "$antidote_dir"
+  command rm -rf "$antidote_home"
   local dtstmp=$(date -u '+%Y%m%d_%H%M%S')
-  if [[ -f "$bundlefile" ]]; then
+  if [[ -e "$bundlefile" ]]; then
     mv -f "$bundlefile" "${bundlefile:r}.${dtstmp}.bak"
     echo "# TODO: Add antidote bundles to this file..." >| "$bundlefile"
     echo "'$bundlefile' backed up to '${bundlefile:t:r}.${dtstmp}.bak'"
@@ -69,9 +65,9 @@ else
   echo "Removed '$bundle'."
 
   # attempt to comment out the bundle from .zsh_plugins.txt
-  if [[ -f "$bundlefile" ]]; then
+  if [[ -e "$bundlefile" ]]; then
     local tmpfile="${bundlefile}.antidote.tmp"
-    awk -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}{print}' <$bundlefile >|$tmpfile
+    awk -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}1' <$bundlefile >|$tmpfile
     mv -f "$tmpfile" "$bundlefile" || rm -f "$tmpfile"
     echo "Bundle '$bundle' was commented out in '$bundlefile'."
   fi

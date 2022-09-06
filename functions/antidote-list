@@ -1,12 +1,11 @@
 ### List cloned bundles.
-###
-### usage: antidote list [-h|--help]
-
-emulate -L zsh
-setopt local_options extended_glob
+#
+# usage: antidote list [-h|--help]
+#
+emulate -L zsh; setopt $_adote_funcopts
 
 local o_help o_short o_dirs
-zparseopts $_zparseopts_flags -- \
+zparseopts $_adote_zparopt_flags -- \
   h=o_help  -help=h  \
   s=o_short -short=s \
   d=o_dirs  -dirs=d  ||
@@ -24,7 +23,8 @@ fi
 
 local bundledir
 local output=()
-for bundledir in $(__antidote_bundles); do
+local bundles=($(antidote-home)/**/.git/..(/N))
+for bundledir in $bundles; do
   local url=$(git -C "${bundledir:A}" config remote.origin.url)
   if (( $#o_dirs )); then
     output+=(${bundledir:A})

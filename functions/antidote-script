@@ -1,37 +1,56 @@
 ### Generate the Zsh script to load a plugin.
-
-# usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>] <bundle>
+#
+# usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
+#                        [-b|--branch <branch>] <bundle>
 # <kind>   : zsh,path,fpath,defer,clone
+# <path>   : Relative path from the bundle root
+# <branch> : The git branch
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
+#
+emulate -L zsh; setopt $_adote_funcopts
+local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
-emulate -L zsh
-setopt local_options extended_glob
-
-local o_help o_kind o_path
-zparseopts $_zparseopts_flags -- \
-  h=o_help  -help=h  \
-  k:=o_kind -kind:=k \
-  p:=o_path -path:=p ||
+local o_help o_kind o_path o_branch o_cond
+zparseopts $_adote_zparopt_flags -- \
+  h=o_help    -help=h    \
+  b:=o_branch -branch:=b \
+  k:=o_kind   -kind:=k   \
+  p:=o_path   -path:=p   ||
   return 1
 
-[[ "$o_kind[-1]" != "clone" ]] || return
+# strip '=' or ':' from beginning of arg values
+local re='^[=:]?(.+)$'
+[[ $o_kind[-1] =~ $re ]] && o_kind[-1]=$match
+[[ $o_path[-1] =~ $re ]] && o_path[-1]=$match
+
+local supported_kind_vals=(zsh path fpath defer clone)
+if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
+  echo >&2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
+fi
 
 local bundle=$1
 if [[ -z "$bundle" ]]; then
-  >&2 echo "antidote: error: bundle argument expected" && return 1
+  echo >&2 "antidote: error: bundle argument expected" && return 1
 fi
 
 # convert repo to dir if bundle does not exist on file system
-local bundle_path=$bundle
-if [[ ! -e "$bundle" ]]; then
-  bundle_path=$(__antidote_bundledir $bundle)
+local bundle_path
+[[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(__antidote_bundledir $bundle)
+
+# handle cloning repo bundles
+if [[ ! -e "$bundle_path" ]] && [[ $bundle != /* ]]; then
+  local giturl=$(__antidote_tourl $bundle)
+  git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path
 fi
+
+# if we only needed to clone the bundle, we're done
+[[ "$o_kind[-1]" != "clone" ]] || return
 
 # add path to bundle
 [[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
 
 if [[ ! -e "$bundle_path" ]]; then
-  >&2 echo "antidote: error: bundle path not found '$bundle_path'." && return 1
+  echo >&2 "antidote: error: bundle path not found '$bundle_path'." && return 1
 fi
 
 local source_cmd="source"
@@ -44,9 +63,9 @@ elif [[ "$o_kind[-1]" == path ]]; then
 elif [[ -f "$bundle_path" ]]; then
   echo "$source_cmd $bundle_path"
 else
-  local initfile REPLY initfiles
+  local initfile reply initfiles
   __antidote_initfiles $bundle_path >/dev/null || return 1
-  initfiles=($REPLY)
+  initfiles=($reply)
   echo "fpath+=( $bundle_path )"
   for initfile in $initfiles; do
     echo "$source_cmd $initfile"

@@ -21,7 +21,11 @@
 \f[B]antidote install\f[R] - install a bundle
 .SH SYNOPSIS
 .PP
-antidote install []
+antidote install [-h|\[en]help] [-k|\[en]kind ] [-p|\[en]path ]
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [-b|\[en]branch ] []
 .SH DESCRIPTION
 .PP
 \f[B]antidote-install\f[R] clones a new bundle and adds it to your
@@ -30,6 +34,16 @@ plugins file.
 .TP
 -h, --help
 Show the help documentation.
+.TP
+-k, --kind 
+The kind of bundle.
+Valid values: fpath, path, clone, defer, zsh.
+.TP
+-p, --path 
+A relative subpath within the bundle where the plugin is located.
+.TP
+-b, --branch 
+The git branch to use.
 .TP
 <bundle>
 Bundle to be installed.

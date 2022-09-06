@@ -21,7 +21,7 @@ source $BASEDIR/antidote.zsh
 }
 
 () {
-  local repos expected actual
+  local repos expected actual url
   repos=(
     https://github.com/ohmyzsh/ohmyzsh
     http://github.com/ohmyzsh/ohmyzsh

@@ -3,8 +3,14 @@
 0=${(%):-%x}
 BASEDIR=${0:A:h:h}
 
+function sed-i {
+  sed --version &>/dev/null && sed -i -- "$@" || sed -i "" "$@"
+}
+
 source $BASEDIR/antidote.zsh
 fakedir=$BASEDIR/tests/fakezdotdir
 ANTIDOTE_HOME=$fakedir/antidote_home
 antidote bundle <$fakedir/.zsh_plugins.txt >|$fakedir/.zsh_plugins_expected.zsh
-sed -i '' "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $fakedir/.zsh_plugins_expected.zsh
+sed-i "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $fakedir/.zsh_plugins_expected.zsh
+
+unfunction sed-i
