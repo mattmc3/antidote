@@ -21,6 +21,14 @@ source $BASEDIR/antidote.zsh
   @test "'antidote bundle' succeeds" $? -eq 0
 }
 
+# -h|--help
+() {
+  antidote bundle -h &>/dev/null
+  @test "'antidote bundle -h' succeeds" "$?" -eq 0
+  antidote bundle --help &>/dev/null
+  @test "'antidote bundle --help' succeeds" "$?" -eq 0
+}
+
 # bundle annotation kind:defer
 () {
   local actual expected

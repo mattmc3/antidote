@@ -12,6 +12,14 @@ ANTIDOTE_HOME=
   @test "'antidote home' succeeds" $? -eq 0
 }
 
+# -h|--help
+() {
+  antidote home -h &>/dev/null
+  @test "'antidote home -h' succeeds" "$?" -eq 0
+  antidote home --help &>/dev/null
+  @test "'antidote home --help' succeeds" "$?" -eq 0
+}
+
 () {
   local actual
   ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home

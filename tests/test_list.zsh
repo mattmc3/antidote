@@ -8,6 +8,14 @@ source $BASEDIR/antidote.zsh
 setup_fakezdotdir list
 function git { mockgit "$@" }
 
+# -h|--help
+() {
+  antidote list -h &>/dev/null
+  @test "'antidote list -h' succeeds" "$?" -eq 0
+  antidote list --help &>/dev/null
+  @test "'antidote list --help' succeeds" "$?" -eq 0
+}
+
 # list short
 () {
   local actual expected exitcode

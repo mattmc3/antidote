@@ -50,8 +50,6 @@ cmds=(
       "antidote help $c"
       "antidote -h $c"
       "antidote --help $c"
-      "antidote $c -h"
-      "antidote $c --help"
     )
     for cmd in $helpcmds; do
       if [[ "$c" = bundles ]]; then

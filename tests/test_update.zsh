@@ -8,9 +8,12 @@ source $BASEDIR/antidote.zsh
 setup_fakezdotdir update
 function git { mockgit "$@" }
 
+# -h|--help
 () {
   antidote update -h &>/dev/null
   @test "'antidote update -h' succeeds" "$?" -eq 0
+  antidote update --help &>/dev/null
+  @test "'antidote update --help' succeeds" "$?" -eq 0
 }
 
 # antidote update

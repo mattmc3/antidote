@@ -7,6 +7,14 @@ ztap_header "${0:t:r}"
 source $BASEDIR/antidote.zsh
 function git { mockgit "$@" }
 
+# -h|--help
+() {
+  antidote install -h &>/dev/null
+  @test "'antidote install -h' succeeds" "$?" -eq 0
+  antidote install --help &>/dev/null
+  @test "'antidote install --help' succeeds" "$?" -eq 0
+}
+
 () {
   local actual expected exitcode
 

@@ -57,6 +57,14 @@ source $BASEDIR/antidote.zsh
   ZDOTDIR=$OLD_ZDOTDIR
 }
 
+# -h|--help
+() {
+  antidote purge -h &>/dev/null
+  @test "'antidote purge -h' succeeds" "$?" -eq 0
+  antidote purge --help &>/dev/null
+  @test "'antidote purge --help' succeeds" "$?" -eq 0
+}
+
 # antidote purge --all
 () {
   local actual expected exitcode bundle bundledir
