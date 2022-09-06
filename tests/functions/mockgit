@@ -23,7 +23,7 @@ zparseopts -D -E --      \
 if [[ "$1" = "clone" ]]; then
   local giturl="$2"
   local bundledir="$3"
-  src="$FAKEZDOTDIR/antidote_home/${bundledir:t}"
+  local src="$FAKEZDOTDIR/antidote_home/${bundledir:t}"
   if [[ -d $src ]]; then
     cp -r $src ${bundledir:h}
   elif ! (( $#o_quiet )); then

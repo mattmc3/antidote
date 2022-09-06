@@ -17,7 +17,7 @@
 
   typeset -gHa _adote_funcopts=(
     local_options extended_glob no_monitor
-    # warn_create_global warn_nested_var
+    warn_create_global warn_nested_var
   )
 
   # setup the environment
@@ -170,6 +170,9 @@ function __antidote_bundle_type {
 ### Parse antidote's bundle DSL.
 function __antidote_parsebundles {
   emulate -L zsh; setopt $_adote_funcopts
+
+  # appease 'warn_create_global' for regex use
+  local -a match=() mbegin=() mend=()
 
   # handle bundles as newline delimited arg strings,
   # or as <redirected or piped| input
