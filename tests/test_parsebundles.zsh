@@ -11,7 +11,7 @@ function git { mockgit "$@" }
   local expected actual
   expected=( name foo/bar )
   expected="$(__antidote_join $'\t' $expected)"
-  actual="$(__antidote_parsebundles foo/bar)"
+  actual="$(__antidote_parsebundles foo/bar 2>/dev/null)"
   @test "parsing bundle foo/bar => $expected" "$actual" = "$expected"
 }
 

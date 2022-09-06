@@ -10,7 +10,7 @@
 emulate -L zsh; setopt $_adote_funcopts
 
 # appease 'warn_create_global' for regex use
-local -a match=() mbegin=() mend=()
+local MATCH MBEGIN MEND; local -a match=() mbegin=() mend=()
 
 local o_help o_kind o_path o_branch o_cond
 zparseopts $_adote_zparopt_flags -- \

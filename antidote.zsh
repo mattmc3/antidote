@@ -172,7 +172,7 @@ function __antidote_parsebundles {
   emulate -L zsh; setopt $_adote_funcopts
 
   # appease 'warn_create_global' for regex use
-  local -a match=() mbegin=() mend=()
+  local MATCH MBEGIN MEND; local -a match=() mbegin=() mend=()
 
   # handle bundles as newline delimited arg strings,
   # or as <redirected or piped| input
