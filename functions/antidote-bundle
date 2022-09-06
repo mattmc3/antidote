@@ -1,7 +1,7 @@
 ### Clone bundle(s) and generate the static load script.
-###
-### usage: antidote bundle [-h|--help] <bundle>...
-
+#
+# usage: antidote bundle [-h|--help] <bundle>...
+#
 emulate -L zsh; setopt $_adote_funcopts
 
 local o_help

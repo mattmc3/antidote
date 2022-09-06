@@ -1,7 +1,7 @@
 ### Update antidote and its cloned bundles.
-###
-### usage: antidote update [-h|--help]
-
+#
+# usage: antidote update [-h|--help]
+#
 emulate -L zsh; setopt $_adote_funcopts
 0=${(%):-%x}
 

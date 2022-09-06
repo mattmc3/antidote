@@ -1,7 +1,8 @@
 ### Remove a cloned bundle.
-###
-### usage: antidote purge [-h|--help] <bundle>
-###        antidote purge [-a|--all]
+#
+# usage: antidote purge [-h|--help] <bundle>
+#        antidote purge [-a|--all]
+#
 emulate -L zsh; setopt $_adote_funcopts
 
 local o_help o_all

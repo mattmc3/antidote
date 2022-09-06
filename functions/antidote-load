@@ -1,7 +1,7 @@
 ### Statically source all bundles from the plugins file.
-###
-### usage: antidote load [-h|--help] [<bundlefile> [<staticfile>]]
-
+#
+# usage: antidote load [-h|--help] [<bundlefile> [<staticfile>]]
+#
 setopt extended_glob
 
 local o_help

@@ -1,8 +1,8 @@
 ### Show antidote documentation.
-###
-### usage: antidote [-h|--help] [<command>]
-###        antidote help [<command>]
-
+#
+# usage: antidote [-h|--help] [<command>]
+#        antidote help [<command>]
+#
 function __antidote_usage {
   cat<<EOS
 antidote - the cure to slow zsh plugin management

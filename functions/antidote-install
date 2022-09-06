@@ -1,8 +1,8 @@
 ### Clone a new bundle and add it to your plugins file.
-
+#
 # usage: antidote install [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
 #                         [-b|--branch <branch>] <bundle> [<bundlefile>]
-
+#
 emulate -L zsh; setopt $_adote_funcopts
 
 local o_help o_kind o_path o_branch

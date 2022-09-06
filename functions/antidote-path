@@ -1,7 +1,7 @@
 ### Print the path of a cloned bundle.
-###
-### usage: antidote path [-h|--help] <bundle>
-
+#
+# usage: antidote path [-h|--help] <bundle>
+#
 emulate -L zsh; setopt $_adote_funcopts
 
 local o_help
