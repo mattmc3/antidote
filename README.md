@@ -25,16 +25,33 @@ The full documentation can be found at [https://getantidote.github.io][getantido
 
 ## Installation
 
-The easiest way to get stated using antidote is to call the `antidote load` command from your `.zshrc`:
+### Install with git
+
+You can install the latest release of antidote by cloning it with `git`:
 
 ```zsh
-# clone antidote if necessary
-if ! [[ -e ${ZDOTDIR:-~}/.antidote ]]; then
-  git clone https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
-fi
+# first, run this from an interactive zsh terminal session:
+git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+```
 
-# source antidote and load plugins from `${ZDOTDIR:-~}/.zsh_plugins.txt`
+### Install with a plugin manager
+
+antidote may also be available in your system's plugin manager:
+
+- [homebrew](https://formulae.brew.sh/formula/antidote): `brew install antidote`
+- [Arch AUR](https://aur.archlinux.org/packages/zsh-antidote): `yay -S antidote`
+
+### .zshrc
+
+After installation, the simplest way to use antidote is to call the `antidote load` command from your `.zshrc`:
+
+```zsh
+# now, simply add these two lines in your ~/.zshrc
+
+# source antidote
 source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+
+# initialize plugins statically with ${ZDOTDIR:-~}/.zsh_plugins.txt
 antidote load
 ```
 
