@@ -39,7 +39,7 @@ git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antid
 antidote may also be available in your system's plugin manager:
 
 - [macOS homebrew](https://formulae.brew.sh/formula/antidote): `brew install antidote`
-- [Arch AUR](https://aur.archlinux.org/packages/zsh-antidote): `yay -S antidote`
+- [Arch AUR](https://aur.archlinux.org/packages/zsh-antidote): `yay -S zsh-antidote`
 
 ### .zshrc
 
