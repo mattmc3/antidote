@@ -46,6 +46,29 @@ function git { @echo mockgit "$@" }
   ZDOTDIR=$OLD_ZDOTDIR
 }
 
+() {
+  setopt posix_identifiers
+  local stderr exitcode
+
+  stderr=$(antidote -v 3>&1 1>/dev/null 2>&3)
+  exitcode=$?
+  @test "'antidote -v' succeeds with 'setopt posix_identifiers'" "$exitcode" -eq 0
+  @test "'antidote -v' empty stderr with 'setopt posix_identifiers'" "$stderr" = ""
+
+  stderr=$(antidote -h 3>&1 1>/dev/null 2>&3)
+  exitcode=$?
+  @test "'antidote -h' succeeds with 'setopt posix_identifiers'" "$exitcode" -eq 0
+  @test "'antidote -h' empty stderr with 'setopt posix_identifiers'" "$stderr" = ""
+
+  stderr=$(antidote help 3>&1 1>/dev/null 2>&3)
+  exitcode=$?
+  @test "'antidote help' succeeds with 'setopt posix_identifiers'" "$exitcode" -eq 0
+  @test "'antidote help' empty stderr with 'setopt posix_identifiers'" "$stderr" = ""
+
+  # teardown
+  setopt local_options
+}
+
 # Run this test last!
 # It sets nearly every option
 # Cue Clark Grizwold lighting ceremony!!!

@@ -45,30 +45,30 @@ function __antidote_main {
   0=${(%):-%x}
 
   local o_help o_version
-  zparseopts $_adote_zparopt_flags -- \
+  zparseopts ${_adote_zparopt_flags} -- \
     h=o_help    -help=h    \
     v=o_version -version=v ||
     return 1
 
-  if (( $#o_version )); then
+  if (( ${#o_version} )); then
     local ver='1.6.4'
     local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
     echo "antidote version $ver"
 
-  elif (( $#o_help )); then
+  elif (( ${#o_help} )); then
     antidote-help "$@"
 
-  elif [[ $# -eq 0 ]]; then
+  elif [[ ${#} -eq 0 ]]; then
     antidote-help
     return 2
 
-  elif [[ "$1" = help ]]; then
+  elif [[ "${1}" = help ]]; then
     local manpage=${2:-antidote}
     antidote-help $manpage
 
   elif (( $+functions[antidote-${1}] )); then
-    local cmd=$1; shift
+    local cmd=${1}; shift
     antidote-${cmd} "$@"
     return $?
 
