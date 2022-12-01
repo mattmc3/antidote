@@ -51,7 +51,7 @@ function __antidote_main {
     return 1
 
   if (( ${#o_version} )); then
-    local ver='1.6.4'
+    local ver='1.6.5'
     local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
     echo "antidote version $ver"
