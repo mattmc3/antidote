@@ -54,14 +54,17 @@ Using the **kind:** annotation...
 |   # a regular plugin (kind:zsh is implied, so it's unnecessary)
 |   antidote bundle zsh-users/zsh-history-substring-search kind:zsh
 
-|   # add prompt plugins to fpath
+|   # add prompt plugins to $fpath
 |   antidote bundle sindresorhus/pure kind:fpath
 
-|   # add utility plugins to path
+|   # add utility plugins to $PATH
 |   antidote bundle romkatv/zsh-bench kind:path
 
 |   # clone a repo for use in other ways
 |   antidote bundle mbadolato/iTerm2-Color-Schemes kind:clone
+
+|   # autoload a functions directory
+|   antidote bundle sorin-ionescu/prezto path:modules/utility/functions kind:autoload
 
 |   # defer a plugin to speed up load times
 |   antidote bundle olets/zsh-abbr kind:defer
@@ -76,3 +79,14 @@ Using the **path:** annotation...
 |   # load oh-my-zsh
 |   antidote bundle ohmyzsh/ohmyzsh path:lib
 |   antidote bundle ohmyzsh/ohmyzsh path:plugins/git
+
+Using the **conditional:** annotation...
+
+|   # define a conditional function prior to loading antidote
+|   function is_macos {
+|     [[ $OSTYPE == darwin* ]] && return 0 || return 1
+|   }
+|
+|   # conditionally load a plugin using the function you made
+|   antidote bundle ohmyzsh/ohmyzsh path:plugins/macos conditional:is_macos
+

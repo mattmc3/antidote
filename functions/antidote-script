@@ -23,7 +23,7 @@ local re='^[=:]?(.+)$'
 [[ $o_kind[-1] =~ $re ]] && o_kind[-1]=$match
 [[ $o_path[-1] =~ $re ]] && o_path[-1]=$match
 
-local supported_kind_vals=(zsh path fpath defer clone)
+local supported_kind_vals=(zsh path fpath defer clone autoload)
 if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
   echo >&2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
 fi
@@ -60,6 +60,9 @@ if [[ "$o_kind[-1]" == fpath ]]; then
   echo "fpath+=( $bundle_path )"
 elif [[ "$o_kind[-1]" == path ]]; then
   echo "export PATH=\"$bundle_path:\$PATH\""
+elif [[ "$o_kind[-1]" == autoload ]]; then
+  echo "fpath+=( $bundle_path )"
+  echo "autoload -Uz \$fpath[-1]/*(.:t)"
 elif [[ -f "$bundle_path" ]]; then
   echo "$source_cmd $bundle_path"
 else

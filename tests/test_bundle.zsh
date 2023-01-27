@@ -48,6 +48,20 @@ source $BASEDIR/antidote.zsh
   @test "bundle annotation kind:defer: '$bundle'" "$expected" = "$actual"
 }
 
+# bundle annotation kind:autoload
+() {
+  local actual expected bundle exitcode
+  local bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
+  expected=(
+    "fpath+=( $ANTIDOTE_HOME/$bundledir/functions )"
+    "autoload -Uz \$fpath[-1]/*(.:t)"
+  )
+
+  bundle="baz/qux path:functions kind:autoload"
+  actual=("${(@f)$(antidote bundle $bundle)}")
+  @test "bundle annotation kind:autoload" "$expected" = "$actual"
+}
+
 # bundle annotation conditionals
 () {
   function cond_succeed {
