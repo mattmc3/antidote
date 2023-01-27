@@ -59,8 +59,12 @@ if [[ ! -e "$bundle_path" ]]; then
   echo >&2 "antidote: error: bundle path not found '$bundle_path'." && return 1
 fi
 
+local dopts
+zstyle -s ":antidote:plugin:${bundle}" defer-options 'dopts'
+[[ -n "$dopts" ]] && dopts=" $dopts"
+
 local source_cmd="source"
-[[ "$o_kind[-1]" == "defer" ]] && source_cmd="zsh-defer source"
+[[ "$o_kind[-1]" == "defer" ]] && source_cmd="zsh-defer${dopts} source"
 
 local -a script=()
 if [[ "$o_kind[-1]" == fpath ]]; then
