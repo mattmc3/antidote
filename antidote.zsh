@@ -1,3 +1,20 @@
+#region: Requirements
+
+function is542 () {
+  local ver=${1:-$ZSH_VERSION}
+  [[ $ver == 5.4.<2->* || $ver == 5.<5->* || $ver == <6->* ]] && return 0
+  return 1
+}
+
+if ! is542; then
+  echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting >5.4.2."
+  return 1
+fi
+
+unfunction is542
+
+#endregion
+
 #region: Init
 
 () {
@@ -26,7 +43,7 @@
   local fn
   for fn in ${0:A:h}/functions/*; do
     (( $+functions[${fn:t}] )) && unfunction ${fn:t}
-    autoload -Uz "${fn}"
+    autoload -Uz "${fn:t}"
   done
 }
 
