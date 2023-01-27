@@ -20,6 +20,9 @@ romkatv/zsh-bench kind:path
 # kind:autoload
 mattmc3/zman path:functions kind:autoload
 
+# conditional
+ohmyzsh/ohmyzsh path:plugins/macos conditional:is-macos
+
 # branches
 mattmc3/antidote branch:pz
 

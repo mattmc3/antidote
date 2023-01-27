@@ -1,0 +1,7 @@
+# is-macos: conditional function
+# you have to define this somewhere in your config before loading antidote
+#function is_macos {
+  [[ $OSTYPE == darwin* ]] && return 0 || return 1
+#}
+
+# vim: ft=zsh sw=2 ts=2 et
