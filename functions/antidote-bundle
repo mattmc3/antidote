@@ -52,4 +52,4 @@ done
 (( ! $#prescript )) || printf "%s\n" "${prescript[@]}"
 printf "%s\n" "${script[@]}"
 
-# vim: ft=zsh
+# vim: ft=zsh sw=2 ts=2 et

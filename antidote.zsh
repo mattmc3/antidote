@@ -273,7 +273,7 @@ function __antidote_tourl {
 #region Completions
 
 _antidote() {
-	IFS=' ' read -A reply <<< "help bundle update home purge list load path init install"
+  IFS=' ' read -A reply <<< "help bundle update home purge list load path init install"
 }
 compctl -K _antidote antidote
 

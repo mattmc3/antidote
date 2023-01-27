@@ -9,4 +9,4 @@
 (( $+functions[__antidote_main] )) || source ${0:A:h:h}/antidote.zsh
 __antidote_main "$@"
 
-# vim: ft=zsh
+# vim: ft=zsh sw=2 ts=2 et
