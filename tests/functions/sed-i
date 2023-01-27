@@ -2,3 +2,5 @@ function _sed-i {
   sed --version &>/dev/null && sed -i -- "$@" || sed -i "" "$@"
 }
 _sed-i "$@"
+
+# vim: ft=zsh sw=2 ts=2 et
