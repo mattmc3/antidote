@@ -1,6 +1,7 @@
 #region: Requirements
 
 function is542 () {
+  emulate -L zsh; setopt local_options extended_glob
   local ver=${1:-$ZSH_VERSION}
   [[ $ver == 5.4.<2->* || $ver == 5.<5->* || $ver == <6->* ]] && return 0
   return 1
@@ -43,7 +44,7 @@ unfunction is542
   local fn
   for fn in ${0:A:h}/functions/*; do
     (( $+functions[${fn:t}] )) && unfunction ${fn:t}
-    autoload -Uz "${fn:t}"
+    autoload -Uz "${fn}"
   done
 }
 
