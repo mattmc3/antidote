@@ -31,4 +31,4 @@ fi
 echo $result
 typeset -g REPLY=$result
 
-# vim: ft=zsh
+# vim: ft=zsh sw=2 ts=2 et

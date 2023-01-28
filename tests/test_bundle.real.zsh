@@ -25,6 +25,7 @@ ztap_header "${0:t:r}"
 
   sed-i "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $staticfile
   diffout=$(diff $staticfile $expectedfile)
+  exitcode=$?
   @test "static file diff succeeds" $exitcode -eq 0
   @test "static file diff shows no differences" -z "$diffout"
 

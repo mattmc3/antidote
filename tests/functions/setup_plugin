@@ -9,4 +9,4 @@ typeset -g REPLY=$bundledir/bar.zsh
 touch $REPLY
 echo $REPLY
 
-# vim: ft=zsh
+# vim: ft=zsh sw=2 ts=2 et
