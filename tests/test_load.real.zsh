@@ -25,12 +25,37 @@ ztap_header "${0:t:r}"
   [[ -f "$staticfile" ]] || @bailout "No further 'antidote load' tests can run"
   sed-i "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $staticfile
   diffout=$(diff $staticfile $expectedfile)
+  exitcode=$?
   @test "static file diff succeeds" $exitcode -eq 0
   @test "static file diff shows no differences" -z "$diffout"
 
   repodirs=($(ls $ANTIDOTE_HOME))
   expected=$(wc -l <$clonelist | tr -d ' ')
   @test "\$ANTIDOTE_HOME has $expected repos" $#repodirs -eq $expected
+}
+
+# antidote load makes a source-able static bundle file
+() {
+  local expected actual exitcode
+  local pluginsfile staticfile output
+
+  # plugin pre-reqs
+  autoload -Uz compinit && compinit
+
+  setup_realzdotdir bundle1
+  source $BASEDIR/antidote.zsh
+  pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
+  staticfile=${ZDOTDIR:-~}/.zsh_plugins.zsh
+
+  @test "static file does not exist" ! -f "$staticfile"
+  output=$(antidote load 2>/dev/null)
+  exitcode=$?
+  @test "antidote load succeeds" $exitcode -eq 0
+
+  output=$(source $staticfile 2>&1)
+  exitcode=$?
+  @test "sourcing the static file succeeds" 0 = $exitcode
+  @test "sourcing the static file produced no output" -z "$output"
 }
 
 ztap_footer

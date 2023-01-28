@@ -160,6 +160,32 @@ setup_fakezdotdir script
   @test "'antidote script $args $bundle' works" "$expected" = "$actual"
 }
 
+# script --kind defer with zstyle
+() {
+  local actual expected bundle bundledir args
+  zstyle ':antidote:plugin:*' defer-options '-a'
+  zstyle ':antidote:plugin:foo/bar' defer-options '-p'
+  args=(--kind defer)
+
+  bundle="foo/bar"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
+  expected=(
+    "fpath+=( $ANTIDOTE_HOME/$bundledir )"
+    "zsh-defer -p source $ANTIDOTE_HOME/$bundledir/bar.plugin.zsh"
+  )
+  actual=("${(@f)$(antidote script $args $bundle)}")
+  @test "'antidote script $args $bundle' works" "$expected" = "$actual"
+
+  bundle="baz/qux"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
+  expected=(
+    "fpath+=( $ANTIDOTE_HOME/$bundledir )"
+    "zsh-defer -a source $ANTIDOTE_HOME/$bundledir/qux.plugin.zsh"
+  )
+  actual=("${(@f)$(antidote script $args $bundle)}")
+  @test "'antidote script $args $bundle' works" "$expected" = "$actual"
+}
+
 # script --path plugin
 () {
   local actual expected bundle bundledir args

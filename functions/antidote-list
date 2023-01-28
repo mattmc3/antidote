@@ -38,4 +38,4 @@ for bundledir in $bundles; do
 done
 printf '%s\n' "${(o)output[@]}"
 
-# vim: ft=zsh
+# vim: ft=zsh sw=2 ts=2 et

@@ -48,33 +48,34 @@ source $BASEDIR/antidote.zsh
   @test "bundle annotation kind:defer: '$bundle'" "$expected" = "$actual"
 }
 
+# bundle annotation kind:autoload
+() {
+  local actual expected bundle exitcode
+  local bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
+  expected=(
+    "fpath+=( $ANTIDOTE_HOME/$bundledir/functions )"
+    "autoload -Uz \$fpath[-1]/*(.:t)"
+  )
+
+  bundle="baz/qux path:functions kind:autoload"
+  actual=("${(@f)$(antidote bundle $bundle)}")
+  @test "bundle annotation kind:autoload" "$expected" = "$actual"
+}
+
 # bundle annotation conditionals
 () {
-  function cond_succeed {
-    return 0
-  }
-  function cond_fail {
-    return 1
-  }
-
   local actual expected bundle exitcode
   local bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
   expected=(
-    "fpath+=( $ANTIDOTE_HOME/$bundledir )"
-    "source $ANTIDOTE_HOME/$bundledir/bar.plugin.zsh"
+    "if is-macos; then"
+    "  fpath+=( $ANTIDOTE_HOME/$bundledir )"
+    "  source $ANTIDOTE_HOME/$bundledir/bar.plugin.zsh"
+    "fi"
   )
 
-  bundle="foo/bar conditional:cond_succeed"
+  bundle="foo/bar conditional:is-macos"
   actual=("${(@f)$(antidote bundle $bundle)}")
-  @test "bundle annotation conditional:success" "$expected" = "$actual"
-
-  bundle="foo/bar conditional:cond_fail"
-  actual=("${(@f)$(antidote bundle $bundle)}")
-  @test "bundle annotation conditional:cond_fail" -z "$actual"
-
-  bundle="foo/bar conditional:missing"
-  actual=("${(@f)$(antidote bundle $bundle)}")
-  @test "bundle annotation conditional:missing" -z "$actual"
+  @test "bundle annotation conditional" "$expected" = "$actual"
 }
 
 # full bundling with redirection

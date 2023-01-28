@@ -1,7 +1,7 @@
 ### Generate the Zsh script to load a plugin.
 #
 # usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
-#                        [-b|--branch <branch>] <bundle>
+#                        [-c|--conditional <conditional>]  [-b|--branch <branch>] <bundle>
 # <kind>   : zsh,path,fpath,defer,clone
 # <path>   : Relative path from the bundle root
 # <branch> : The git branch
@@ -12,18 +12,24 @@ local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_glob
 
 local o_help o_kind o_path o_branch o_cond
 zparseopts $_adote_zparopt_flags -- \
-  h=o_help    -help=h    \
-  b:=o_branch -branch:=b \
-  k:=o_kind   -kind:=k   \
-  p:=o_path   -path:=p   ||
+  h=o_help     -help=h     \
+  b:=o_branch  -branch:=b  \
+  k:=o_kind    -kind:=k    \
+  p:=o_path    -path:=p    \
+  c:=o_cond    -conditional:=c  ||
   return 1
+
+# set defaults
+(( $#o_kind )) || o_kind=(--kind zsh)
 
 # strip '=' or ':' from beginning of arg values
 local re='^[=:]?(.+)$'
 [[ $o_kind[-1] =~ $re ]] && o_kind[-1]=$match
 [[ $o_path[-1] =~ $re ]] && o_path[-1]=$match
+[[ $o_cond[-1] =~ $re ]] && o_cond[-1]=$match
+[[ $o_branch[-1] =~ $re ]] && o_branch[-1]=$match
 
-local supported_kind_vals=(zsh path fpath defer clone)
+local supported_kind_vals=(zsh path fpath defer clone autoload)
 if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
   echo >&2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
 fi
@@ -53,23 +59,41 @@ if [[ ! -e "$bundle_path" ]]; then
   echo >&2 "antidote: error: bundle path not found '$bundle_path'." && return 1
 fi
 
-local source_cmd="source"
-[[ "$o_kind[-1]" == "defer" ]] && source_cmd="zsh-defer source"
+local dopts
+zstyle -s ":antidote:plugin:${bundle}" defer-options 'dopts'
+[[ -n "$dopts" ]] && dopts=" $dopts"
 
+local source_cmd="source"
+[[ "$o_kind[-1]" == "defer" ]] && source_cmd="zsh-defer${dopts} source"
+
+local -a script=()
 if [[ "$o_kind[-1]" == fpath ]]; then
-  echo "fpath+=( $bundle_path )"
+  script+="fpath+=( $bundle_path )"
 elif [[ "$o_kind[-1]" == path ]]; then
-  echo "export PATH=\"$bundle_path:\$PATH\""
+  script+="export PATH=\"$bundle_path:\$PATH\""
+elif [[ "$o_kind[-1]" == autoload ]]; then
+  script+=(
+    "fpath+=( $bundle_path )"
+    "autoload -Uz \$fpath[-1]/*(.:t)"
+  )
 elif [[ -f "$bundle_path" ]]; then
-  echo "$source_cmd $bundle_path"
+  script+="$source_cmd $bundle_path"
 else
   local initfile reply initfiles
   __antidote_initfiles $bundle_path >/dev/null || return 1
   initfiles=($reply)
-  echo "fpath+=( $bundle_path )"
+  script+="fpath+=( $bundle_path )"
   for initfile in $initfiles; do
-    echo "$source_cmd $initfile"
+    script+="$source_cmd $initfile"
   done
 fi
 
-# vim: ft=zsh
+if [[ -n "$o_cond[-1]" ]]; then
+  echo "if $o_cond[-1]; then"
+  printf "  %s\n" $script
+  echo "fi"
+else
+  printf "%s\n" $script
+fi
+
+# vim: ft=zsh sw=2 ts=2 et

@@ -1,3 +1,21 @@
+#region: Requirements
+
+function is542 () {
+  emulate -L zsh; setopt local_options extended_glob
+  local ver=${1:-$ZSH_VERSION}
+  [[ $ver == 5.4.<2->* || $ver == 5.<5->* || $ver == <6->* ]] && return 0
+  return 1
+}
+
+if ! is542; then
+  echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting >5.4.2."
+  return 1
+fi
+
+unfunction is542
+
+#endregion
+
 #region: Init
 
 () {
@@ -51,7 +69,7 @@ function __antidote_main {
     return 1
 
   if (( ${#o_version} )); then
-    local ver='1.6.5'
+    local ver='1.7.1'
     local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
     echo "antidote version $ver"
@@ -256,7 +274,7 @@ function __antidote_tourl {
 #region Completions
 
 _antidote() {
-	IFS=' ' read -A reply <<< "help bundle update home purge list load path init install"
+  IFS=' ' read -A reply <<< "help bundle update home purge list load path init install"
 }
 compctl -K _antidote antidote
 

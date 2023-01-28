@@ -17,4 +17,4 @@ unset func
 
 source $ZTAP_HOME/ztap3.zsh
 
-# vim: ft=zsh
+# vim: ft=zsh sw=2 ts=2 et

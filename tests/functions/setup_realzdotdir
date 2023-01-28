@@ -13,4 +13,4 @@ mkdir -p $ANTIDOTE_HOME
 typeset -g OLD_ZDOTDIR=$ZDOTDIR
 typeset -g ZDOTDIR=$ZSHDIR
 
-# vim: ft=zsh
+# vim: ft=zsh sw=2 ts=2 et
