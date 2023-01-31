@@ -4,6 +4,8 @@ all : build test bump-maj bump-min bump-rev help
 
 build:
 	./tools/buildman
+	./tools/runtests
+	./tools/bumpver revision
 
 test:
 	./tools/runtests
