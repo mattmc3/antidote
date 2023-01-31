@@ -88,13 +88,13 @@ Using the \f[B]kind:\f[R] annotation\&...
 .PD
 \ \ antidote bundle zsh-users/zsh-history-substring-search kind:zsh
 .PP
-\ \ # add prompt plugins to fpath
+\ \ # add prompt plugins to $fpath
 .PD 0
 .P
 .PD
 \ \ antidote bundle sindresorhus/pure kind:fpath
 .PP
-\ \ # add utility plugins to path
+\ \ # add utility plugins to $PATH
 .PD 0
 .P
 .PD
@@ -105,6 +105,13 @@ Using the \f[B]kind:\f[R] annotation\&...
 .P
 .PD
 \ \ antidote bundle mbadolato/iTerm2-Color-Schemes kind:clone
+.PP
+\ \ # autoload a functions directory
+.PD 0
+.P
+.PD
+\ \ antidote bundle sorin-ionescu/prezto path:modules/utility/functions
+kind:autoload
 .PP
 \ \ # defer a plugin to speed up load times
 .PD 0
@@ -131,6 +138,34 @@ Using the \f[B]path:\f[R] annotation\&...
 .P
 .PD
 \ \ antidote bundle ohmyzsh/ohmyzsh path:plugins/git
+.PP
+Using the \f[B]conditional:\f[R] annotation\&...
+.PP
+\ \ # define a conditional function prior to loading antidote
+.PD 0
+.P
+.PD
+\ \ function is_macos {
+.PD 0
+.P
+.PD
+\ \ \ \ [[ $OSTYPE == darwin* ]] && return 0 || return 1
+.PD 0
+.P
+.PD
+\ \ }
+.PD 0
+.P
+.PD
+.PD 0
+.P
+.PD
+\ \ # conditionally load a plugin using the function you made
+.PD 0
+.P
+.PD
+\ \ antidote bundle ohmyzsh/ohmyzsh path:plugins/macos
+conditional:is_macos
 .SH BUGS
 .PP
 See GitHub Issues: <https://github.com/mattmc3/antidote/issues>

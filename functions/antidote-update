@@ -41,10 +41,14 @@ fi
 # update antidote
 if (( $#o_self )) || ! (( $#o_bundles )); then
   echo "Updating antidote..."
-  git -C "${0:A:h:h}" pull --quiet --ff --rebase --autostash
-  echo "Antidote self-update complete.\n"
-  source "${0:A:h:h}"/antidote.zsh
-  antidote -v
+  if [[ -d "${0:A:h:h}/.git" ]]; then
+    git -C "${0:A:h:h}" pull --quiet --ff --rebase --autostash
+    echo "Antidote self-update complete.\n"
+    source "${0:A:h:h}"/antidote.zsh
+    antidote -v
+  else
+    echo "Self updating is disabled in this build"
+  fi
 fi
 
 # vim: ft=zsh sw=2 ts=2 et
