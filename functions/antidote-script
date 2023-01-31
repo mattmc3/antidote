@@ -8,115 +8,150 @@
 # <branch> : The git branch
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 #
-emulate -L zsh; setopt $_adote_funcopts
-local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
-local o_help o_kind o_path o_branch o_cond o_autoload
-zparseopts $_adote_zparopt_flags -- \
-  h=o_help       -help=h       \
-  a:=o_autoload  -autoload:=a  \
-  b:=o_branch    -branch:=b    \
-  k:=o_kind      -kind:=k      \
-  p:=o_path      -path:=p      \
-  c:=o_cond      -conditional:=c  ||
-  return 1
+#region private funcs
 
-# set defaults
-(( $#o_kind )) || o_kind=(--kind zsh)
+### Get the path to a plugin's init file.
+function __antidote_initfiles {
+  emulate -L zsh; setopt $_adote_funcopts
+  typeset -ga reply=()
 
-# strip '=' or ':' from beginning of arg values
-local re='^[=:]?(.+)$'
-[[ $o_kind[-1] =~ $re ]] && o_kind[-1]=$match
-[[ $o_autoload[-1] =~ $re ]] && o_autoload[-1]=$match
-[[ $o_path[-1] =~ $re ]] && o_path[-1]=$match
-[[ $o_cond[-1] =~ $re ]] && o_cond[-1]=$match
-[[ $o_branch[-1] =~ $re ]] && o_branch[-1]=$match
+  local dir=$1
+  if [[ ! -d "$dir" ]]; then
+    echo >&2 "antidote: bundle directory not found '$dir'."
+    return 1
+  fi
 
-local supported_kind_vals=(zsh path fpath defer clone autoload)
-if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
-  echo >&2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
-fi
+  local initfiles=($dir/*.plugin.zsh(N))
+  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh(N))
+  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.sh(N))
+  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh-theme(N))
+  [[ $#initfiles -gt 0 ]] || {
+    echo >&2 "antidote: no plugin init file detected in '$dir'."
+    return 1
+  }
 
-local bundle=$1
-if [[ -z "$bundle" ]]; then
-  echo >&2 "antidote: error: bundle argument expected" && return 1
-fi
-
-# replace ~/ with $HOME/
-if [[ "$bundle" == '~/'* ]]; then
-  bundle=$HOME/${bundle#'~/'*}
-fi
-
-# convert repo to dir if bundle does not exist on file system
-local bundle_path
-[[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(__antidote_bundledir $bundle)
-
-# handle cloning repo bundles
-if [[ ! -e "$bundle_path" ]] && [[ $bundle != '/'* ]]; then
-  local giturl=$(__antidote_tourl $bundle)
-  echo >&2 "# antidote cloning $bundle..."
-  git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path
-fi
-
-# if we only needed to clone the bundle, we're done
-[[ "$o_kind[-1]" != "clone" ]] || return
-
-# add path to bundle
-[[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
-
-if [[ ! -e "$bundle_path" ]]; then
-  echo >&2 "antidote: error: bundle path not found '$bundle_path'." && return 1
-fi
-
-local dopts
-zstyle -s ":antidote:plugin:${bundle}" defer-options 'dopts'
-[[ -n "$dopts" ]] && dopts=" $dopts"
-
-local -a script=()
-local source_cmd="source"
-if [[ "$o_kind[-1]" == "defer" ]]; then
-  source_cmd="zsh-defer${dopts} source"
-  script+=(
-    'if ! (( $+functions[zsh-defer] )); then'
-    "$(antidote-script 'romkatv/zsh-defer' | pr -to 2)"
-    'fi'
-  )
-fi
-
-if [[ "$o_kind[-1]" == fpath ]]; then
-  script+="fpath+=( $bundle_path )"
-elif [[ "$o_kind[-1]" == path ]]; then
-  script+="export PATH=\"$bundle_path:\$PATH\""
-elif [[ "$o_kind[-1]" == autoload ]]; then
-  script+=(
-    "fpath+=( $bundle_path )"
-    "autoload -Uz \$fpath[-1]/*(N.:t)"
-  )
-elif [[ -f "$bundle_path" ]]; then
-  script+="$source_cmd $bundle_path"
-else
-  local initfile reply initfiles
-  __antidote_initfiles $bundle_path >/dev/null || return 1
-  initfiles=($reply)
-  script+="fpath+=( $bundle_path )"
-  for initfile in $initfiles; do
-    script+="$source_cmd $initfile"
+  typeset -ga reply=($initfiles)
+  local f
+  for f in $initfiles; do
+    echo $f
   done
-fi
+}
 
-if (( $#o_autoload )); then
-  script+=(
-    "fpath+=( ${bundle_path}/${o_autoload[-1]} )"
-    "autoload -Uz \$fpath[-1]/*(N.:t)"
-  )
-fi
+#endregion
 
-if [[ -n "$o_cond[-1]" ]]; then
-  echo "if $o_cond[-1]; then"
-  printf "  %s\n" $script
-  echo "fi"
-else
-  printf "%s\n" $script
-fi
+function antidote-script {
+  emulate -L zsh; setopt $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+
+  local o_help o_kind o_path o_branch o_cond o_autoload
+  zparseopts $_adote_zparopt_flags -- \
+    h=o_help       -help=h       \
+    a:=o_autoload  -autoload:=a  \
+    b:=o_branch    -branch:=b    \
+    k:=o_kind      -kind:=k      \
+    p:=o_path      -path:=p      \
+    c:=o_cond      -conditional:=c  ||
+    return 1
+
+  # set defaults
+  (( $#o_kind )) || o_kind=(--kind zsh)
+
+  # strip '=' or ':' from beginning of arg values
+  local re='^[=:]?(.+)$'
+  [[ $o_kind[-1] =~ $re ]] && o_kind[-1]=$match
+  [[ $o_autoload[-1] =~ $re ]] && o_autoload[-1]=$match
+  [[ $o_path[-1] =~ $re ]] && o_path[-1]=$match
+  [[ $o_cond[-1] =~ $re ]] && o_cond[-1]=$match
+  [[ $o_branch[-1] =~ $re ]] && o_branch[-1]=$match
+
+  local supported_kind_vals=(zsh path fpath defer clone autoload)
+  if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
+    echo >&2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
+  fi
+
+  local bundle=$1
+  if [[ -z "$bundle" ]]; then
+    echo >&2 "antidote: error: bundle argument expected" && return 1
+  fi
+
+  # replace ~/ with $HOME/
+  if [[ "$bundle" == '~/'* ]]; then
+    bundle=$HOME/${bundle#'~/'*}
+  fi
+
+  # convert repo to dir if bundle does not exist on file system
+  local bundle_path
+  [[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(__antidote_bundledir $bundle)
+
+  # handle cloning repo bundles
+  if [[ ! -e "$bundle_path" ]] && [[ $bundle != '/'* ]]; then
+    local giturl=$(__antidote_tourl $bundle)
+    echo >&2 "# antidote cloning $bundle..."
+    git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path
+  fi
+
+  # if we only needed to clone the bundle, we're done
+  [[ "$o_kind[-1]" != "clone" ]] || return
+
+  # add path to bundle
+  [[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
+
+  if [[ ! -e "$bundle_path" ]]; then
+    echo >&2 "antidote: error: bundle path not found '$bundle_path'." && return 1
+  fi
+
+  local dopts
+  zstyle -s ":antidote:plugin:${bundle}" defer-options 'dopts'
+  [[ -n "$dopts" ]] && dopts=" $dopts"
+
+  local -a script=()
+  local source_cmd="source"
+  if [[ "$o_kind[-1]" == "defer" ]]; then
+    source_cmd="zsh-defer${dopts} source"
+    script+=(
+      'if ! (( $+functions[zsh-defer] )); then'
+      "$(antidote-script 'romkatv/zsh-defer' | pr -to 2)"
+      'fi'
+    )
+  fi
+
+  if [[ "$o_kind[-1]" == fpath ]]; then
+    script+="fpath+=( $bundle_path )"
+  elif [[ "$o_kind[-1]" == path ]]; then
+    script+="export PATH=\"$bundle_path:\$PATH\""
+  elif [[ "$o_kind[-1]" == autoload ]]; then
+    script+=(
+      "fpath+=( $bundle_path )"
+      "autoload -Uz \$fpath[-1]/*(N.:t)"
+    )
+  elif [[ -f "$bundle_path" ]]; then
+    script+="$source_cmd $bundle_path"
+  else
+    local initfile reply initfiles
+    __antidote_initfiles $bundle_path >/dev/null || return 1
+    initfiles=($reply)
+    script+="fpath+=( $bundle_path )"
+    for initfile in $initfiles; do
+      script+="$source_cmd $initfile"
+    done
+  fi
+
+  if (( $#o_autoload )); then
+    script+=(
+      "fpath+=( ${bundle_path}/${o_autoload[-1]} )"
+      "autoload -Uz \$fpath[-1]/*(N.:t)"
+    )
+  fi
+
+  if [[ -n "$o_cond[-1]" ]]; then
+    echo "if $o_cond[-1]; then"
+    printf "  %s\n" $script
+    echo "fi"
+  else
+    printf "%s\n" $script
+  fi
+}
+antidote-script "$@"
 
 # vim: ft=zsh sw=2 ts=2 et

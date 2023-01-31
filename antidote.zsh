@@ -132,33 +132,6 @@ function __antidote_bundledir {
   fi
 }
 
-### Get the path to a plugin's init file.
-function __antidote_initfiles {
-  emulate -L zsh; setopt $_adote_funcopts
-  typeset -ga reply=()
-
-  local dir=$1
-  if [[ ! -d "$dir" ]]; then
-    echo >&2 "antidote: bundle directory not found '$dir'."
-    return 1
-  fi
-
-  local initfiles=($dir/*.plugin.zsh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.sh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh-theme(N))
-  [[ $#initfiles -gt 0 ]] || {
-    echo >&2 "antidote: no plugin init file detected in '$dir'."
-    return 1
-  }
-
-  typeset -ga reply=($initfiles)
-  local f
-  for f in $initfiles; do
-    echo $f
-  done
-}
-
 ### Join an array into a string.
 function __antidote_join {
   local sep=$1; shift

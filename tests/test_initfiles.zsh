@@ -8,6 +8,9 @@ source $BASEDIR/antidote.zsh
 TMPDIR=$BASEDIR/.tmp/tests/initfile
 [[ -d $TMPDIR ]] && rm -rf "$TMPDIR"
 
+# load antidote-script and its private functions
+antidote-script &>/dev/null
+
 () {
   local expected actual exitcode
   local plugindir teststr reply=()
