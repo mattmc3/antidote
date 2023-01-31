@@ -5,25 +5,50 @@
 
 #region private funcs
 
-### Determine bundle type: file, dir, url, repo
-function __antidote_bundle_type {
+### Filter bundle list to just git repos
+function __antidote_get_bundle_repos {
   emulate -L zsh; setopt $_adote_funcopts
-  typeset -g REPLY=
-  local result
-  if [[ -e "$1" ]]; then
-    [[ -d $1 ]] && result=dir || result=file
-  else
-    case "$1" in
-      '')        echo >&2 "Expecting bundle argument." && return 1 ;;
-      /*)        echo >&2 "File/Directory bundle does not exist '$1'." && return 1 ;;
-      *://*)     result=url  ;;
-      git@*:*/*) result=url  ;;
-      */*)       result=repo ;;
-      *)         echo >&2 "Unrecognized bundle type '$1'." && return 1 ;;
-    esac
-  fi
-  typeset -g REPLY=$result
-  echo $result
+
+  local -a awk_script=(
+    # initialize branch variable
+    '{b=""; u=$1}'
+    # skip blank or commented lines
+    '/^ *(#.+)?$/{next}'
+    # skip :extensions and local paths (lines beginning with :,~,/)
+    '/^[:~\/]/{next}'
+    # skip when the first field has no '/' (all repos should have a slash)
+    '$1!~/\//{next}'
+    # prefix user/repo form with full URL
+    '$1!~/^(https?:|(ssh|git)@)/{u="https://github.com/" $1}'
+    # find branch annotation
+    'match($0, /branch:[^\t ]+/) { b="--branch " substr($0, RSTART+7, RLENGTH-7) }'
+    # print result
+    '{print $1, u, b}'
+  )
+  printf '%s\n' $@ | awk "$awk_script" | sort | uniq
+}
+
+### Clone all missing bundles in background
+function __antidote_clone_all_missing {
+  emulate -L zsh; setopt $_adote_funcopts
+
+  local -a clone_repos parts gitopts cloning
+  local repo_line plugin giturl bundledir
+  clone_repos=("${(@f)$(__antidote_get_bundle_repos $@)}")
+  for repo_line in $clone_repos; do
+    parts=(${=repo_line})
+    plugin=$parts[1]
+    giturl=$parts[2]
+    bundledir=$(__antidote_bundledir $giturl)
+    (( $#parts > 2 )) && gitopts=($parts[3,-1]) || gitopts=()
+
+    if [[ ! -e $bundledir ]] && ! (($cloning[(Ie)$bundledir])); then
+      cloning+=($bundledir)
+      echo >&2 "# antidote cloning $plugin..."
+      git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $gitopts $giturl $bundledir &
+    fi
+  done
+  wait
 }
 
 ### Parse antidote's bundle DSL.
@@ -45,9 +70,11 @@ function __antidote_parsebundles {
   fi
   (( $#bundles )) || return 1
 
-  local bundlestr bundle branch bundle_type bundledir giturl
-  local -a cloning annotations parts
-  local -A abundle
+  # antidote-script also clones, but let's do it all at once and in parallel!
+  __antidote_clone_all_missing $bundles
+
+  local bundlestr bundle bundledir
+  local -a annotations parts
   for bundlestr in $bundles; do
     # normalize whitespace and remove comments
     bundlestr=${bundlestr//[[:space:]]/ }
@@ -69,25 +96,9 @@ function __antidote_parsebundles {
       bundle+=( $parts )
     fi
 
-    # clone if necessary
-    branch=''
-    abundle=($bundle)
-    bundle_type=$(__antidote_bundle_type $abundle[name])
-    if [[ $bundle_type =~ '^(repo|url)$' ]]; then
-      [[ -v abundle[branch] ]] && branch="--branch=$abundle[branch]"
-      bundledir=$(__antidote_bundledir $abundle[name])
-      giturl=$(__antidote_tourl $abundle[name])
-      if [[ ! -e $bundledir ]] && ! (($cloning[(Ie)$bundledir])); then
-        cloning+=($bundledir)
-        echo >&2 "# antidote cloning $abundle[name]..."
-        git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir &
-      fi
-    fi
-
     # output the parsed associative array
     __antidote_join $'\t' $bundle
   done
-  wait
 }
 
 #endregion
