@@ -20,7 +20,7 @@ bundles=("${(@f)${bundles}}")
 
 # loop through the bundles to generate the zsh load script
 local bundlestr opt val
-local -a prescript=() script=() args=()
+local -a script=() args=()
 for bundlestr in $bundles; do
   # bundlestr sets an associative array, like so:
   # typeset -A bundle=( [name]=foo/bar [kind]=fpath )
@@ -28,15 +28,6 @@ for bundlestr in $bundles; do
 
   # nothing to do for clone-only bundles
   [[ $bundle[kind] != clone ]] || continue
-
-  # special handling for deferred bundles
-  if [[ $bundle[kind] = defer ]] && [[ $#prescript -eq 0 ]]; then
-    prescript=(
-      "if ! (( \$+functions[zsh-defer] )); then"
-      "$(antidote-script 'romkatv/zsh-defer' | pr -to 2)"
-      "fi"
-    )
-  fi
 
   bundle[kind]=${bundle[kind]:-zsh}
   args=()
@@ -50,8 +41,16 @@ for bundlestr in $bundles; do
   [[ $? -eq 0 ]] || return 1
 done
 
+# special handling for deferred bundles
+# filter all but the first if/source block for loading zsh-defer for perf reasons
+local -a awk_keep_first_defer=(
+  'BEGIN{skip=0;found=0}'
+  'skip>0{skip--}'
+  '/^if.+functions\[zsh\-defer\]/{ if(!found)found=1; else skip=4 }'
+  'skip==0{print}'
+)
+
 # print bundle load script
-(( ! $#prescript )) || printf "%s\n" "${prescript[@]}"
-printf "%s\n" "${script[@]}"
+printf "%s\n" "${script[@]}" | awk "$awk_keep_first_defer"
 
 # vim: ft=zsh sw=2 ts=2 et
