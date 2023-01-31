@@ -14,14 +14,15 @@
 
 > [Get the cure][getantidote]</blockquote>
 
-[Antidote][getantidote] is a feature-complete Zsh implementation of the legacy
-[Antibody][antibody] plugin manager, which in turn was derived from [Antigen][antigen].
-Antidote not only aims to provide continuity for those legacy plugin managers, but also
-to delight new users with high-performance, easy-to-use Zsh plugin management.
+[Antidote][getantidote] is a feature-complete Zsh implementation of the legacy [Antibody][antibody] plugin manager, which in turn was derived from [Antigen][antigen]. Antidote not only aims to provide continuity for those legacy plugin managers, but also to delight new users with high-performance, easy-to-use Zsh plugin management.
 
 ## Documentation
 
 The full documentation can be found at [https://getantidote.github.io][getantidote]
+
+## Help getting started
+
+If you want to see a full-featured example Zsh configuration using antidote, you can have a look at this [example zdotdir](https://github.com/getantidote/zdotdir) project. Feel free to incorporate code or plugins from it into your own dotfiles, or you can fork it to get started building your own Zsh config from scratch driven by antidote.
 
 ## Installation
 
