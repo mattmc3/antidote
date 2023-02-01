@@ -11,19 +11,17 @@ function __antidote_get_bundle_repos {
 
   local -a awk_script=(
     # initialize branch variable
-    '{b=""; u=$1}'
+    '{b=""; u=""}'
     # skip blank or commented lines
     '/^ *(#.+)?$/{next}'
-    # skip :extensions and local paths (lines beginning with :,~,/)
-    '/^[:~\/]/{next}'
-    # skip when the first field has no '/' (all repos should have a slash)
-    '$1!~/\//{next}'
     # prefix user/repo form with full URL
-    '$1!~/^(https?:|(ssh|git)@)/{u="https://github.com/" $1}'
-    # find branch annotation
+    '$1~/^[^\/]+\/[^\/]+$/{u="https://github.com/" $1}'
+    # take full URL lines
+    '$1~/^(https?:|(ssh|git)@)/{u=$1}'
+    # find branch annotation if it exists
     'match($0, /branch:[^\t ]+/) { b="--branch " substr($0, RSTART+7, RLENGTH-7) }'
     # print result
-    '{print $1, u, b}'
+    'u!=""{print u, b}'
   )
   printf '%s\n' $@ | awk "$awk_script" | sort | uniq
 }
@@ -37,14 +35,13 @@ function __antidote_clone_all_missing {
   clone_repos=("${(@f)$(__antidote_get_bundle_repos $@)}")
   for repo_line in $clone_repos; do
     parts=(${=repo_line})
-    plugin=$parts[1]
-    giturl=$parts[2]
+    giturl=$parts[1]
     bundledir=$(__antidote_bundledir $giturl)
-    (( $#parts > 2 )) && gitopts=($parts[3,-1]) || gitopts=()
+    (( $#parts > 1 )) && gitopts=($parts[2,-1]) || gitopts=()
 
     if [[ ! -e $bundledir ]] && ! (($cloning[(Ie)$bundledir])); then
       cloning+=($bundledir)
-      echo >&2 "# antidote cloning $plugin..."
+      echo >&2 "# antidote cloning $giturl..."
       git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $gitopts $giturl $bundledir &
     fi
   done
