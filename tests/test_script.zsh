@@ -7,6 +7,13 @@ ztap_header "${0:t:r}"
 source $BASEDIR/antidote.zsh
 setup_fakezdotdir script
 
+typeset -g zsh_defer_prefix=(
+  'if ! (( $+functions[zsh-defer] )); then'
+  "  fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )"
+  "  source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh"
+  'fi'
+)
+
 # missing arg script command fails
 () {
   local actual expected exitcode
@@ -153,6 +160,7 @@ setup_fakezdotdir script
   bundle="foo/bar"
   bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
   expected=(
+    $zsh_defer_prefix
     "fpath+=( $ANTIDOTE_HOME/$bundledir )"
     "zsh-defer source $ANTIDOTE_HOME/$bundledir/bar.plugin.zsh"
   )
@@ -170,6 +178,7 @@ setup_fakezdotdir script
   bundle="foo/bar"
   bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
   expected=(
+    $zsh_defer_prefix
     "fpath+=( $ANTIDOTE_HOME/$bundledir )"
     "zsh-defer -p source $ANTIDOTE_HOME/$bundledir/bar.plugin.zsh"
   )
@@ -179,6 +188,7 @@ setup_fakezdotdir script
   bundle="baz/qux"
   bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
   expected=(
+    $zsh_defer_prefix
     "fpath+=( $ANTIDOTE_HOME/$bundledir )"
     "zsh-defer -a source $ANTIDOTE_HOME/$bundledir/qux.plugin.zsh"
   )

@@ -69,7 +69,7 @@ function __antidote_main {
     return 1
 
   if (( ${#o_version} )); then
-    local ver='1.7.2'
+    local ver='1.7.3'
     local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
     echo "antidote version $ver"
@@ -132,122 +132,10 @@ function __antidote_bundledir {
   fi
 }
 
-### Get the path to a plugin's init file.
-function __antidote_initfiles {
-  emulate -L zsh; setopt $_adote_funcopts
-  typeset -ga reply=()
-
-  local dir=$1
-  if [[ ! -d "$dir" ]]; then
-    echo >&2 "antidote: bundle directory not found '$dir'."
-    return 1
-  fi
-
-  local initfiles=($dir/*.plugin.zsh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.sh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh-theme(N))
-  [[ $#initfiles -gt 0 ]] || {
-    echo >&2 "antidote: no plugin init file detected in '$dir'."
-    return 1
-  }
-
-  typeset -ga reply=($initfiles)
-  local f
-  for f in $initfiles; do
-    echo $f
-  done
-}
-
 ### Join an array into a string.
 function __antidote_join {
   local sep=$1; shift
   echo ${(pj.$sep.)@}
-}
-
-### Determine bundle type: file, dir, url, repo
-function __antidote_bundle_type {
-  emulate -L zsh; setopt $_adote_funcopts
-  typeset -g REPLY=
-  local result
-  if [[ -e "$1" ]]; then
-    [[ -d $1 ]] && result=dir || result=file
-  else
-    case "$1" in
-      '')        echo >&2 "Expecting bundle argument." && return 1 ;;
-      /*)        echo >&2 "File/Directory bundle does not exist '$1'." && return 1 ;;
-      *://*)     result=url  ;;
-      git@*:*/*) result=url  ;;
-      */*)       result=repo ;;
-      *)         echo >&2 "Unrecognized bundle type '$1'." && return 1 ;;
-    esac
-  fi
-  typeset -g REPLY=$result
-  echo $result
-}
-
-### Parse antidote's bundle DSL.
-function __antidote_parsebundles {
-  emulate -L zsh; setopt $_adote_funcopts
-
-  # appease 'warn_create_global' for regex use
-  local MATCH MBEGIN MEND; local -a match=() mbegin=() mend=()
-
-  # handle bundles as newline delimited arg strings,
-  # or as <redirected or piped| input
-  local data bundles=()
-  if [[ $# -gt 0 ]]; then
-    bundles=("${(s.\n.)${@}}")
-  elif [[ ! -t 0 ]]; then
-    while IFS= read -r data || [[ -n "$data" ]]; do
-      bundles+=($data)
-    done
-  fi
-  (( $#bundles )) || return 1
-
-  local bundlestr bundle branch bundle_type bundledir giturl
-  local -a cloning annotations parts
-  local -A abundle
-  for bundlestr in $bundles; do
-    # normalize whitespace and remove comments
-    bundlestr=${bundlestr//[[:space:]]/ }
-    bundlestr=${bundlestr%%\#*}
-
-    # split on spaces into parts array and skip empty lines
-    parts=( ${(@s: :)bundlestr} )
-    (( $#parts )) || continue
-
-    # the first element is the bundle name, and the remainder are a:b annotations
-    # split annotations into key/value pairs
-    bundle=( name $parts[1] )
-    annotations=( ${parts[@]:1} )
-    if (( $#annotations )); then
-      parts=( ${(@s/:/)annotations} )
-      [[ $(( $#parts % 2 )) -eq 0 ]] || {
-        echo >&2 "antidote: bad annotation '$annotations'." && return 1
-      }
-      bundle+=( $parts )
-    fi
-
-    # clone if necessary
-    branch=''
-    abundle=($bundle)
-    bundle_type=$(__antidote_bundle_type $abundle[name])
-    if [[ $bundle_type =~ '^(repo|url)$' ]]; then
-      [[ -v abundle[branch] ]] && branch="--branch=$abundle[branch]"
-      bundledir=$(__antidote_bundledir $abundle[name])
-      giturl=$(__antidote_tourl $abundle[name])
-      if [[ ! -e $bundledir ]] && ! (($cloning[(Ie)$bundledir])); then
-        cloning+=($bundledir)
-        echo >&2 "# antidote cloning $abundle[name]..."
-        git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $branch $giturl $bundledir &
-      fi
-    fi
-
-    # output the parsed associative array
-    __antidote_join $'\t' $bundle
-  done
-  wait
 }
 
 ### Split a string into an array

@@ -7,6 +7,9 @@ ztap_header "${0:t:r}"
 source $BASEDIR/antidote.zsh
 function git { mockgit "$@" }
 
+# load antidote-bundle and its private functions
+antidote-bundle &>/dev/null
+
 () {
   local expected actual
   expected=( name foo/bar )

@@ -54,7 +54,7 @@ source $BASEDIR/antidote.zsh
   local bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
   expected=(
     "fpath+=( $ANTIDOTE_HOME/$bundledir/functions )"
-    "autoload -Uz \$fpath[-1]/*(.:t)"
+    "autoload -Uz \$fpath[-1]/*(N.:t)"
   )
 
   bundle="baz/qux path:functions kind:autoload"

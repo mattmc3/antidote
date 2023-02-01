@@ -6,5 +6,6 @@
 .tmp/
 .plugins/
 .todo/
+sandbox/
 *.old
 **/realzdotdir/zsh_plugins.zsh
