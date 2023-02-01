@@ -43,6 +43,7 @@ function __antidote_initfiles {
 function antidote-script {
   emulate -L zsh; setopt $_adote_funcopts
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+  local REPLY=
 
   local o_help o_kind o_path o_branch o_cond o_autoload
   zparseopts $_adote_zparopt_flags -- \
@@ -85,7 +86,8 @@ function antidote-script {
   [[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(__antidote_bundledir $bundle)
 
   # handle cloning repo bundles
-  if [[ ! -e "$bundle_path" ]] && [[ $bundle != '/'* ]]; then
+  local bundle_type="$(__antidote_bundle_type $bundle)"
+  if [[ "$bundle_type" == (repo|url|sshurl) ]] && [[ ! -e "$bundle_path" ]]; then
     local giturl=$(__antidote_tourl $bundle)
     echo >&2 "# antidote cloning $bundle..."
     git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path
@@ -96,10 +98,6 @@ function antidote-script {
 
   # add path to bundle
   [[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
-
-  if [[ ! -e "$bundle_path" ]]; then
-    echo >&2 "antidote: error: bundle path not found '$bundle_path'." && return 1
-  fi
 
   local dopts
   zstyle -s ":antidote:plugin:${bundle}" defer-options 'dopts'
