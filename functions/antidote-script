@@ -15,27 +15,16 @@
 function __antidote_initfiles {
   emulate -L zsh; setopt $_adote_funcopts
   typeset -ga reply=()
-
-  local dir=$1
-  if [[ ! -d "$dir" ]]; then
-    echo >&2 "antidote: bundle directory not found '$dir'."
-    return 1
-  fi
-
-  local initfiles=($dir/*.plugin.zsh(N))
+  local dir=${1:A}
+  local initfiles=($dir/${dir:A:t}.plugin.zsh(N))
+  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.plugin.zsh(N))
   [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh(N))
   [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.sh(N))
   [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh-theme(N))
-  [[ $#initfiles -gt 0 ]] || {
-    echo >&2 "antidote: no plugin init file detected in '$dir'."
-    return 1
-  }
 
   typeset -ga reply=($initfiles)
-  local f
-  for f in $initfiles; do
-    echo $f
-  done
+  printf "%s\n" ${(u)initfiles[@]}
+  (( $#initfiles )) || return 1
 }
 
 #endregion
@@ -81,7 +70,7 @@ function antidote-script {
     bundle=$HOME/${bundle#'~/'*}
   fi
 
-  # convert repo to dir if bundle does not exist on file system
+  # set the path to the bundle (repo or local)
   local bundle_path
   [[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(__antidote_bundledir $bundle)
 
@@ -126,9 +115,8 @@ function antidote-script {
   elif [[ -f "$bundle_path" ]]; then
     script+="$source_cmd $bundle_path"
   else
-    local initfile reply initfiles
-    __antidote_initfiles $bundle_path >/dev/null || return 1
-    initfiles=($reply)
+    local initfile initfiles
+    initfiles=("${(@f)$(__antidote_initfiles $bundle_path)}")
     script+="fpath+=( $bundle_path )"
     for initfile in $initfiles; do
       script+="$source_cmd $initfile"
