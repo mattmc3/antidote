@@ -242,12 +242,11 @@ typeset -g zsh_defer_prefix=(
 # script --path theme
 () {
   local actual expected bundle bundledir args
-  args=(--path custom/themes/pure)
+  args=(--path custom/themes/pretty.zsh-theme)
   bundle="ohmyzsh/ohmyzsh"
-  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/custom/themes/pure"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/custom/themes"
   expected=(
-    "fpath+=( $ANTIDOTE_HOME/$bundledir )"
-    "source $ANTIDOTE_HOME/$bundledir/pure.zsh-theme"
+    "source $ANTIDOTE_HOME/$bundledir/pretty.zsh-theme"
   )
   actual=("${(@f)$(antidote script $args $bundle)}")
   @test "'antidote script $args $bundle' theme works" "$expected" = "$actual"

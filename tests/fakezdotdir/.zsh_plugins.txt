@@ -26,4 +26,4 @@ ohmyzsh/ohmyzsh path:plugins/extract
 ohmyzsh/ohmyzsh path:plugins/magic-enter kind:defer
 
 # theme
-ohmyzsh/ohmyzsh path:custom/themes/pure
+ohmyzsh/ohmyzsh path:custom/themes/pretty.zsh-theme

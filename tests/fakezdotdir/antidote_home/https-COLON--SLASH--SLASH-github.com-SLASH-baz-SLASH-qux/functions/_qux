@@ -1,2 +1,2 @@
 #!/bin/zsh
-echo _qux function
+echo _qux completion
