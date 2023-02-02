@@ -1,18 +1,18 @@
 #region: Requirements
 
-function is542 () {
+function __is542 () {
   emulate -L zsh; setopt local_options extended_glob
   local ver=${1:-$ZSH_VERSION}
   [[ $ver == 5.4.<2->* || $ver == 5.<5->* || $ver == <6->* ]] && return 0
   return 1
 }
 
-if ! is542; then
+if ! __is542; then
   echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting >5.4.2."
   return 1
 fi
 
-unfunction is542
+unfunction __is542
 
 #endregion
 
