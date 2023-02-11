@@ -1,18 +1,18 @@
 #region: Requirements
 
-function is542 () {
+function __is542 () {
   emulate -L zsh; setopt local_options extended_glob
   local ver=${1:-$ZSH_VERSION}
   [[ $ver == 5.4.<2->* || $ver == 5.<5->* || $ver == <6->* ]] && return 0
   return 1
 }
 
-if ! is542; then
+if ! __is542; then
   echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting >5.4.2."
   return 1
 fi
 
-unfunction is542
+unfunction __is542
 
 #endregion
 
@@ -69,7 +69,7 @@ function __antidote_main {
     return 1
 
   if (( ${#o_version} )); then
-    local ver='1.7.3'
+    local ver='1.7.4'
     local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
     echo "antidote version $ver"
@@ -95,40 +95,71 @@ function __antidote_main {
   fi
 }
 
+### Determine bundle type: empty,file,dir,sshurl,url,unk,relpath,path,repo,word
+function __antidote_bundle_type {
+  emulate -L zsh; setopt $_adote_funcopts
+  local result
+  if [[ -e "$1" ]]; then
+    [[ -f $1 ]] && result=file || result=dir
+  elif [[ -z "${1// }" ]]; then
+    result=empty
+  else
+    case "$1" in
+      (/|~|'$')*)  result=path     ;;
+      *://*)       result=url      ;;
+      *@*:*/*)     result=sshurl   ;;
+      *(:|@)*)     result=unk      ;;
+      */*/*)       result=relpath  ;;
+      */)          result=relpath  ;;
+      */*)         result=repo     ;;
+      *)           result=word     ;;
+    esac
+  fi
+  typeset -g REPLY=$result
+  echo $result
+}
+
 ### Get the name of the bundle dir.
 function __antidote_bundledir {
-  # If the bundle is a directory, then we just use that.
-  # Otherwise, we assume a git repo. For that, by default, use the legacy antibody format:
-  # $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
+  # If the bundle is a repo/URL, then by default we use the legacy antibody format:
+  # `$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions`
   # With `zstyle ':antidote:bundle' use-friendly-names on`, we can simplify to
-  # $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
+  # `$ANTIDOTE_HOME/zsh-users/zsh-autosuggestions`
+  # If the bundle is a file, use its parent directory.
+  # Otherwise, just assume the bundle is a directory.
 
   emulate -L zsh; setopt $_adote_funcopts
-  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
   local bundle="$1"
-  if [[ -d "$bundle" ]]; then
-    echo $bundle
-  elif zstyle -t ':antidote:bundle' use-friendly-names; then
-    # user/repo format
-    # ex: $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
-    bundle=${bundle%.git}
-    bundle=${bundle:gs/\:/\/}
-    local parts=( $(__antidote_split '/' $bundle) )
-    if [[ $#parts -gt 1 ]]; then
-      echo $(antidote-home)/${parts[-2]}/${parts[-1]}
+  local bundle_type="$(__antidote_bundle_type $bundle)"
+
+  # handle repo bundle paths
+  if [[ "$bundle_type" == (repo|url|sshurl) ]] && [[ ! -e "$bundle_path" ]]; then
+    if zstyle -t ':antidote:bundle' use-friendly-names; then
+      # user/repo format
+      # ex: $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
+      bundle=${bundle%.git}
+      bundle=${bundle:gs/\:/\/}
+      local parts=( $(__antidote_split '/' $bundle) )
+      if [[ $#parts -gt 1 ]]; then
+        echo $(antidote-home)/${parts[-2]}/${parts[-1]}
+      else
+        echo $(antidote-home)/$bundle
+      fi
     else
-      echo $(antidote-home)/$bundle
+      # sanitize URL for safe use as a dir name
+      # ex: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
+      local url=$(__antidote_tourl $bundle)
+      url=${url%.git}
+      url=${url:gs/\@/-AT-}
+      url=${url:gs/\:/-COLON-}
+      url=${url:gs/\//-SLASH-}
+      echo $(antidote-home)/$url
     fi
+  elif [[ -f "$bundle" ]]; then
+    echo ${bundle:A:h}
   else
-    # sanitize URL for safe use as a dir name
-    # ex: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
-    local url=$(__antidote_tourl $bundle)
-    url=${url%.git}
-    url=${url:gs/\@/-AT-}
-    url=${url:gs/\:/-COLON-}
-    url=${url:gs/\//-SLASH-}
-    echo $(antidote-home)/$url
+    echo ${bundle}
   fi
 }
 
