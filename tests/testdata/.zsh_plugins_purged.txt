@@ -1,9 +1,8 @@
-# local plugins
-foo
-~/.zsh/bar
-$ZDOTDIR/plugins/baz
-
-# repo plugins
+# . ./antidote.zsh
+# fakedir=./tests/zdotdir
+# ANTIDOTE_HOME=$fakedir/antidote_home
+# antidote bundle <$fakedir/.zsh_plugins.txt >|$fakedir/.zsh_plugins.zsh
+# plugins
 # foo/bar
 git@github.com:bar/baz.git  # trailing comments
 
@@ -28,10 +27,3 @@ ohmy/ohmy path:plugins/magic-enter kind:defer
 
 # theme
 ohmy/ohmy path:custom/themes/pretty.zsh-theme
-
-# use statement
-:use ohmy
-
-# ohmy subplugins
-copybuffer
-fancy-ctrl-z

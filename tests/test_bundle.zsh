@@ -87,7 +87,7 @@ source $BASEDIR/antidote.zsh
   source $BASEDIR/antidote.zsh
   pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
   staticfile=${ZDOTDIR:-~}/.zsh_plugins.zsh
-  expectedfile=$FAKEZDOTDIR/.zsh_plugins_expected.zsh
+  expectedfile=$TESTDIR/testdata/.zsh_plugins.zsh
 
   @test "static cache file does not exist" ! -f "$staticfile"
   antidote bundle <$pluginsfile >$staticfile 2>/dev/null

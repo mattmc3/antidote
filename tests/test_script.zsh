@@ -55,11 +55,11 @@ typeset -g zsh_defer_prefix=(
 # script lib directory
 () {
   local actual expected bundle
-  bundle="$ZDOTDIR/zshrc.d"
+  bundle="$ZDOTDIR/custom/lib"
   expected=(
     "fpath+=( $bundle )"
-    "source $bundle/conf1.zsh"
-    "source $bundle/conf2.zsh"
+    "source $bundle/lib1.zsh"
+    "source $bundle/lib2.zsh"
   )
   actual=("${(@f)$(antidote script $bundle)}")
   @test "the bundle is a directory" -d "$bundle"
