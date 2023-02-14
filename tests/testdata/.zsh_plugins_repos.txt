@@ -1,0 +1,30 @@
+# comments
+user/repo
+
+# blank lines
+
+# regular repos
+https://github.com/user/repo
+http://github.com/user/repo.git
+https://github.com/user/repo
+git@github.com:user/repo
+
+# annotations
+bar/baz path:plugins/qux
+bar/baz path:themes/qux.zsh-theme
+
+# branch
+foobar/foobar branch:baz
+
+# defer
+https://github.com/baz/qux kind:defer
+https://github.com/qux/baz kind:defer
+
+# non repos
+foo
+~/.zplugins/bar
+$ZDOTDIR/plugins/bar
+
+# dupes
+user/repo
+https://github.com/user/repo
