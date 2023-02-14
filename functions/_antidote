@@ -1,0 +1,5 @@
+#!/bin/zsh
+function _antidote {
+  IFS=' ' read -A reply <<< "help bundle update home purge list load path init install"
+}
+_antidote "$@"

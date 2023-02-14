@@ -1,34 +1,27 @@
-#region: Requirements
+#!/bin/zsh
 
-function __is542 () {
-  emulate -L zsh; setopt local_options extended_glob
-  local ver=${1:-$ZSH_VERSION}
-  [[ $ver == 5.4.<2->* || $ver == 5.<5->* || $ver == <6->* ]] && return 0
-  return 1
-}
+#region: Helper Functions
 
-if ! __is542; then
-  echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting >5.4.2."
-  return 1
-fi
+### Initialize antidote.
+function __antidote_setup {
+  # pre-reqs
+  autoload -Uz is-at-least
+  if ! is-at-least 5.4.2; then
+    echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting >5.4.2."
+    return 1
+  fi
 
-unfunction __is542
-
-#endregion
-
-#region: Init
-
-() {
+  # setup
   0=${(%):-%x}
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+  setopt extended_glob
 
-  fpath+=${0:A:h}/functions
-  if [[ "$MANPATH" != *"${0:A:h}/man"* ]]; then
-    export MANPATH="${0:A:h}/man:$MANPATH"
+  # man pages
+  if [[ "$MANPATH" != *"${0:A:h:h}/man"* ]]; then
+    export MANPATH="${0:A:h:h}/man:$MANPATH"
   fi
 
   # the -F option was added in 5.8
-  autoload -Uz is-at-least
   if is-at-least 5.8; then
     typeset -gHa _adote_zparopt_flags=( -D -M -F )
   else
@@ -41,58 +34,17 @@ unfunction __is542
   fi
 
   # setup the environment
+  fpath+="${0:A:h}"
   local fn
-  for fn in ${0:A:h}/functions/*; do
+  for fn in ${0:A:h}/*; do
+    # only autoload extensionless files
+    [[ "${fn:t}" != "antidote-main" ]] && [[ -z "${fn:e}" ]] || continue
     (( $+functions[${fn:t}] )) && unfunction ${fn:t}
     autoload -Uz "${fn}"
   done
-}
 
-#endregion
-
-
-#region: Functions
-
-### The main controller for antidote.
-function __antidote_main {
-  # The reason we use `__antidote_main` instead putting all of this in `antidote`
-  # is that this allows the `antidote` function to be overridden via `antidote init`.
-  # The init command switches antidote from static mode to dynamic mode, but this
-  # core functionality remains.
-  setopt extended_glob
-  0=${(%):-%x}
-
-  local o_help o_version
-  zparseopts ${_adote_zparopt_flags} -- \
-    h=o_help    -help=h    \
-    v=o_version -version=v ||
-    return 1
-
-  if (( ${#o_version} )); then
-    local ver='1.7.4'
-    local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
-    [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
-    echo "antidote version $ver"
-
-  elif (( ${#o_help} )); then
-    antidote-help "$@"
-
-  elif [[ ${#} -eq 0 ]]; then
-    antidote-help
-    return 2
-
-  elif [[ "${1}" = help ]]; then
-    local manpage=${2:-antidote}
-    antidote-help $manpage
-
-  elif (( $+functions[antidote-${1}] )); then
-    local cmd=${1}; shift
-    antidote-${cmd} "$@"
-    return $?
-
-  else
-    echo >&2 "antidote: command not found '${1}'" && return 1
-  fi
+  # completions
+  compctl -K _antidote antidote
 }
 
 ### Determine bundle type: empty,file,dir,sshurl,url,unk,relpath,path,repo,word
@@ -163,6 +115,19 @@ function __antidote_bundledir {
   fi
 }
 
+### Collect and print: --args, |piped, and <redirected
+function __antidote_collect {
+  local arg data
+  for arg in "$@"; do
+    echo "$arg"
+  done
+  if [[ ! -t 0 ]]; then
+    while IFS= read -r data || [[ -n "$data" ]]; do
+      echo "$data"
+    done
+  fi
+}
+
 ### Join an array into a string.
 function __antidote_join {
   local sep=$1; shift
@@ -190,11 +155,50 @@ function __antidote_tourl {
 #endregion
 
 
-#region Completions
+### The main controller for antidote.
+# The reason we use `antidote-main` instead putting all of this in `antidote`
+# is that this allows the `antidote` function to be overridden via `antidote init`.
+# The init command switches antidote from static mode to dynamic mode, but this
+# core functionality remains.
+function antidote-main {
+  0=${(%):-%x}
 
-_antidote() {
-  IFS=' ' read -A reply <<< "help bundle update home purge list load path init install"
+  # initialize
+  if [[ "$1" == setup ]]; then
+    __antidote_setup
+    return
+  fi
+
+  local o_help o_version
+  zparseopts ${_adote_zparopt_flags} -- \
+    h=o_help    -help=h    \
+    v=o_version -version=v ||
+    return 1
+
+  if (( ${#o_version} )); then
+    local ver='1.7.4'
+    local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
+    [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
+    echo "antidote version $ver"
+
+  elif (( ${#o_help} )); then
+    antidote-help "$@"
+
+  elif [[ ${#} -eq 0 ]]; then
+    antidote-help
+    return 2
+
+  elif [[ "${1}" = help ]]; then
+    local manpage=${2:-antidote}
+    antidote-help $manpage
+
+  elif (( $+functions[antidote-${1}] )); then
+    local cmd=${1}; shift
+    antidote-${cmd} "$@"
+    return $?
+
+  else
+    echo >&2 "antidote: command not found '${1}'" && return 1
+  fi
 }
-compctl -K _antidote antidote
-
-#endregion
+antidote-main "$@"

@@ -9,7 +9,7 @@
 #
 function antidote {
   0=${(%):-%x}
-  (( $+functions[__antidote_main] )) || source ${0:A:h:h}/antidote.zsh
-  __antidote_main "$@"
+  (( $+functions[antidote-main] )) || source ${0:A:h:h}/antidote.zsh
+  antidote-main "$@"
 }
 antidote "$@"
