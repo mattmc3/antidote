@@ -19,11 +19,11 @@ foo/bar kind:fpath
 foo/bar kind:path
 
 # subpath plugins
-ohmyzsh/ohmyzsh path:lib
-ohmyzsh/ohmyzsh path:plugins/extract
+ohmy/ohmy path:lib
+ohmy/ohmy path:plugins/extract
 
 # deferred
-ohmyzsh/ohmyzsh path:plugins/magic-enter kind:defer
+ohmy/ohmy path:plugins/magic-enter kind:defer
 
 # theme
-ohmyzsh/ohmyzsh path:custom/themes/pretty.zsh-theme
+ohmy/ohmy path:custom/themes/pretty.zsh-theme
