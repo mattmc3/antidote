@@ -1,6 +1,5 @@
 #!/bin/zsh
-
-function _sed-i {
+function sed-i {
   sed --version &>/dev/null && sed -i -- "$@" || sed -i "" "$@"
 }
-_sed-i "$@"
+sed-i "$@"

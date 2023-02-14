@@ -1,20 +1,23 @@
 #!/bin/zsh
 
-0=${(%):-%x}
-typeset -g BASEDIR=${0:A:h:h:h}
-typeset -g TMPDIR=$BASEDIR/.tmp
-typeset -g ZTAP_HOME=${ZTAP_HOME:-$TMPDIR/ztap}
-typeset -g FAKEZDOTDIR=$BASEDIR/tests/fakezdotdir
-typeset -g REALZDOTDIR=$BASEDIR/tests/realzdotdir
-setopt warn_create_global warn_nested_var
+function testinit {
+  0=${(%):-%x}
+  typeset -g BASEDIR=${0:A:h:h:h}
+  typeset -g TMPDIR=$BASEDIR/.tmp
+  typeset -g ZTAP_HOME=${ZTAP_HOME:-$TMPDIR/ztap}
+  typeset -g FAKEZDOTDIR=$BASEDIR/tests/fakezdotdir
+  typeset -g REALZDOTDIR=$BASEDIR/tests/realzdotdir
+  setopt warn_create_global warn_nested_var
 
-zstyle ':antidote:tests' set-warn-options 'on'
+  zstyle ':antidote:tests' set-warn-options 'on'
 
-# initialize test functions
-local func
-for func in ${0:A:h}/*; do
-  (( $+functions[${func:t}] )) || autoload -Uz $func
-done
-unset func
+  # initialize test functions
+  local func
+  for func in ${0:A:h}/*; do
+    (( $+functions[${func:t}] )) || autoload -Uz $func
+  done
+  unset func
 
-source $ZTAP_HOME/ztap3.zsh
+  source $ZTAP_HOME/ztap3.zsh
+}
+testinit "$@"

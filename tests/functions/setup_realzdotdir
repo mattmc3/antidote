@@ -1,16 +1,19 @@
 #!/bin/zsh
 
-# setup zsh home
-local name=${1:-temp}
-typeset -g ZSHDIR=$BASEDIR/.tmp/realtests/$name
-[[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
-mkdir -p $ZSHDIR
-cp $REALZDOTDIR/zsh_plugins.txt $ZSHDIR/.zsh_plugins.txt
+function setup_realzdotdir {
+  # setup zsh home
+  local name=${1:-temp}
+  typeset -g ZSHDIR=$BASEDIR/.tmp/realtests/$name
+  [[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
+  mkdir -p $ZSHDIR
+  cp $REALZDOTDIR/zsh_plugins.txt $ZSHDIR/.zsh_plugins.txt
 
-# setup antidote home
-typeset -g ANTIDOTE_HOME=$ZSHDIR/antidote_home
-mkdir -p $ANTIDOTE_HOME
+  # setup antidote home
+  typeset -g ANTIDOTE_HOME=$ZSHDIR/antidote_home
+  mkdir -p $ANTIDOTE_HOME
 
-# switch ZDOTDIR
-typeset -g OLD_ZDOTDIR=$ZDOTDIR
-typeset -g ZDOTDIR=$ZSHDIR
+  # switch ZDOTDIR
+  typeset -g OLD_ZDOTDIR=$ZDOTDIR
+  typeset -g ZDOTDIR=$ZSHDIR
+}
+setup_realzdotdir "$@"
