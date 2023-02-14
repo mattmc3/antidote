@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote list [-h | --help] [-s | --short] [-d | --dirs]
+| antidote list [-h|-\-help] [-s|-\-short] [-d|-\-dirs]
 
 # DESCRIPTION
 

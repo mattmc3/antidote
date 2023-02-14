@@ -8,11 +8,13 @@ header: Antidote Manual
 
 **antidote update** - update bundles
 
+# SYNOPSIS
+
+| antidote update [-h|-\-help] [-s|-\-self] [-b|-\-bundles]
+
 # DESCRIPTION
 
 **antidote-update** updates antidote and its cloned bundles.
-
-|  antidote update [-h | --help] [-s | --self] [-b | --bundles]
 
 # OPTIONS
 

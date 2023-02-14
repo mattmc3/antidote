@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote load [<bundlefile> [<staticfile>]]
+| antidote load [\<bundlefile\> [\<staticfile\>]]
 
 # DESCRIPTION
 

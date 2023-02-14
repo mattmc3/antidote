@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote bundle [*\<bundles\>...*]
+| antidote bundle [\<bundles\>...]
 
 # DESCRIPTION
 
@@ -20,24 +20,31 @@ header: Antidote Manual
 |   antidote bundle ${ZDOTDIR:-}/.zplugins/myplugin
 |   antidote bundle ${ZDOTDIR:-~}/.zlibs/myfile.zsh
 
-Bundles also support annotations. Annotations allow you have finer grained control over your plugins. Annotations are used in the form $keyword:value$.
+Bundles also support annotations. Annotations allow you have finer grained control over your plugins. Annotations are used in the form \'keyword:value\'.
 
 `kind`
 :   - **zsh**: A zsh plugin. This is the default kind of bundle.
 :   - **fpath**: Only add the plugin to your _\$fpath_.
 :   - **path**: Add the plugin to your _\$PATH_.
 :   - **clone**: Only clone a plugin, but don't do anything else with it.
-:   - **defer**: Defers loading of a plugin using $romkatv/zsh-defer$.
-
-`path`
-:   The path annotation allows you to use a subdirectory or file within a plugins' structure instead of the root plugin.
+:   - **defer**: Defers loading of a plugin using \'romkatv/zsh-defer\'.
+:   - **autoload**: Autoload all the files in the plugin directory as zsh functions.
 
 `branch`
-:   The branch annotation allows you to change the default branch of a plugins' repo from **main** to a branch of your choosing.
+:   The branch annotation allows you to change the default branch of a plugin's repo from **main** to a branch of your choosing.
+
+`path`
+:   The path annotation allows you to use a subdirectory or file within a plugin's structure instead of the root plugin (eg: \'path:plugins/subplugin\').
+
+`conditional`
+:   The conditonal annotation allows you to wrap an **if** statement around a plugin's load script. Supply the name of a zero argument zsh function to conditional to perform the test (eg: \'conditional:is-macos\').
+
+`autoload`
+:   The autoload annotation allows you to autoload a zsh functions directory in addition to however the plugin was loaded as specified by \'kind\'. Supply a relative path to autoload (eg: \'autoload:functions\').
 
 Cloned repo directory names can be overridden with the following **zstyle**:
 
-|   zstyle ':antidote:bundle' use-friendly-names 'yes'
+|   zstyle \':antidote:bundle\' use-friendly-names \'yes\'
 
 # OPTIONS
 

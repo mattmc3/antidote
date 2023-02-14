@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote path <bundle>
+| antidote path \<bundle\>
 
 # DESCRIPTION
 

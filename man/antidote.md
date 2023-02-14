@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote [-v | --version] [-h | --help] <command> [<args> ...]
+| antidote [-v | --version] [-h | --help] \<command\> [\<args\> ...]
 
 # DESCRIPTION
 

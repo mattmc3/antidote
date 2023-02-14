@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| source <$(antidote init)
+| source <(antidote init)
 
 # DESCRIPTION
 
