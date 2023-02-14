@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ZDOTDIR=$BASEDIR/.tmp/tests/${1:-tmp}
 ANTIDOTE_HOME=$ZDOTDIR/antidote
 [[ -d $ANTIDOTE_HOME ]] && rm -rf $ANTIDOTE_HOME
@@ -8,5 +10,3 @@ mkdir -p $bundledir
 typeset -g REPLY=$bundledir/bar.zsh
 touch $REPLY
 echo $REPLY
-
-# vim: ft=zsh sw=2 ts=2 et

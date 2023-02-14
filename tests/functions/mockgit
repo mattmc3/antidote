@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 # handle these commands:
 # - `git -C "$dir" config remote.origin.url`
 # - `git -C "$dir" pull --quiet --ff --rebase --autostash`
@@ -47,5 +49,3 @@ else
   echo >&2 "mocking not implemented for git command: git $@"
   return 1
 fi
-
-# vim: ft=zsh sw=2 ts=2 et

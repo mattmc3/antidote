@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ### Initialize the shell for dynamic bundles.
 #
 # usage: antidote init [-h|--help]
@@ -28,5 +30,3 @@ local script=(
   '}'
 )
 printf "%s\n" "${script[@]}"
-
-# vim: ft=zsh sw=2 ts=2 et

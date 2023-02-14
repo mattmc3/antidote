@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ### Update antidote and its cloned bundles.
 #
 # usage: antidote update [-h|--help]
@@ -50,5 +52,3 @@ if (( $#o_self )) || ! (( $#o_bundles )); then
     echo "Self updating is disabled in this build"
   fi
 fi
-
-# vim: ft=zsh sw=2 ts=2 et

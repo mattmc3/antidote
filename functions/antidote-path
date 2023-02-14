@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ### Print the path of a cloned bundle.
 #
 # usage: antidote path [-h|--help] <bundle>
@@ -25,5 +27,3 @@ if [[ ! -d $bundledir ]]; then
 else
   echo "$bundledir"
 fi
-
-# vim: ft=zsh sw=2 ts=2 et

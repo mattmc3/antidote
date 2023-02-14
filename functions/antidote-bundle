@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ### Clone bundle(s) and generate the static load script.
 #
 # usage: antidote bundle [-h|--help] <bundle>...
@@ -154,5 +156,3 @@ function antidote-bundle {
   printf "%s\n" "${script[@]}" | awk "$awk_keep_first_defer"
 }
 antidote-bundle "$@"
-
-# vim: ft=zsh sw=2 ts=2 et

@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ### Print where antidote is cloning bundles.
 #
 # usage: antidote home [-h|--help]
@@ -30,5 +32,3 @@ fi
 [[ -d $result ]] || mkdir -p $result
 echo $result
 typeset -g REPLY=$result
-
-# vim: ft=zsh sw=2 ts=2 et

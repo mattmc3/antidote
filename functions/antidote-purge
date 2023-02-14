@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ### Remove a cloned bundle.
 #
 # usage: antidote purge [-h|--help] <bundle>
@@ -72,5 +74,3 @@ else
     echo "Bundle '$bundle' was commented out in '$bundlefile'."
   fi
 fi
-
-# vim: ft=zsh sw=2 ts=2 et

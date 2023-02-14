@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 # setup zsh home
 local name=${1:-temp}
 typeset -g ZSHDIR=$BASEDIR/.tmp/realtests/$name
@@ -12,5 +14,3 @@ mkdir -p $ANTIDOTE_HOME
 # switch ZDOTDIR
 typeset -g OLD_ZDOTDIR=$ZDOTDIR
 typeset -g ZDOTDIR=$ZSHDIR
-
-# vim: ft=zsh sw=2 ts=2 et

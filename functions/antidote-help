@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ### Show antidote documentation.
 #
 # usage: antidote [-h|--help] [<command>]
@@ -49,5 +51,3 @@ if (( $+commands[man] )) && [[ -n "$manpage" ]]; then
 else
   __antidote_usage
 fi
-
-# vim: ft=zsh sw=2 ts=2 et

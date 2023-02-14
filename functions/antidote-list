@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ### List cloned bundles.
 #
 # usage: antidote list [-h|--help]
@@ -37,5 +39,3 @@ for bundledir in $bundles; do
   fi
 done
 printf '%s\n' "${(o)output[@]}"
-
-# vim: ft=zsh sw=2 ts=2 et

@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 ### Generate the Zsh script to load a plugin.
 #
 # usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
@@ -139,5 +141,3 @@ function antidote-script {
   fi
 }
 antidote-script "$@"
-
-# vim: ft=zsh sw=2 ts=2 et
