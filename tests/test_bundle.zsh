@@ -10,9 +10,9 @@ autoload -Uz ${0:A:h}/functions/testinit && testinit
 ztap_header "${0:t:r}"
 
 # setup
-ZSHDIR=$BASEDIR/tests/fakezdotdir
+ZSHDIR=$BASEDIR/tests/zdotdir
 function git { @echo mockgit "$@" }
-ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+ANTIDOTE_HOME=$BASEDIR/tests/zdotdir/antidote_home
 source $BASEDIR/antidote.zsh
 
 # empty bundle command succeeds

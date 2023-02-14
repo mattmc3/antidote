@@ -5,7 +5,7 @@ ztap_header "${0:t:r}"
 
 # setup
 source $BASEDIR/antidote.zsh
-ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+ANTIDOTE_HOME=$BASEDIR/tests/zdotdir/antidote_home
 
 # -h|--help
 () {

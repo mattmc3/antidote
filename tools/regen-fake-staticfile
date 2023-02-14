@@ -8,7 +8,7 @@ function sed-i {
 }
 
 source $BASEDIR/antidote.zsh
-fakedir=$BASEDIR/tests/fakezdotdir
+fakedir=$BASEDIR/tests/zdotdir
 ANTIDOTE_HOME=$fakedir/antidote_home
 antidote bundle <$fakedir/.zsh_plugins.txt >|$fakedir/.zsh_plugins_expected.zsh
 sed-i "s|$ANTIDOTE_HOME|\$ANTIDOTE_HOME|g" $fakedir/.zsh_plugins_expected.zsh

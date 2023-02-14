@@ -1,5 +1,5 @@
 # . ./antidote.zsh
-# fakedir=./tests/fakezdotdir
+# fakedir=./tests/zdotdir
 # ANTIDOTE_HOME=$fakedir/antidote_home
 # antidote bundle <$fakedir/.zsh_plugins.txt >|$fakedir/.zsh_plugins_expected.zsh
 # plugins

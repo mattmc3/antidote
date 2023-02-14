@@ -5,7 +5,7 @@ function testinit {
   typeset -g BASEDIR=${0:A:h:h:h}
   typeset -g TMPDIR=$BASEDIR/.tmp
   typeset -g ZTAP_HOME=${ZTAP_HOME:-$TMPDIR/ztap}
-  typeset -g FAKEZDOTDIR=$BASEDIR/tests/fakezdotdir
+  typeset -g FAKEZDOTDIR=$BASEDIR/tests/zdotdir
   typeset -g REALZDOTDIR=$BASEDIR/tests/realzdotdir
   setopt warn_create_global warn_nested_var
 
