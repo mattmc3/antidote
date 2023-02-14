@@ -28,7 +28,8 @@ function git { mockgit "$@" }
 
   expected=(
     "# antidote cloning foo/bar..."
-    "Bundle '$bundle' added to '$bundlefile'."
+    "Adding bundle to '$bundlefile':"
+    "foo/bar"
   )
   actual=($(antidote install $bundle 2>&1)); exitcode=$?
   actual=("${(@f)actual}")
