@@ -120,13 +120,13 @@ function git { @echo mockgit "$@" }
   @test "few enabled options ($actual)" $actual -lt 10
 
   antidote load 2>&1; exitcode=$?
-  @test "'antidote load' succeeds" $exitcode -eq 0
-
   actual=($(setopt | wc -l))
-  setopt local_options
-  @test "zillions of enabled options ($actual)" $actual -gt 150
+  setopt NO_posixstrings
+  @test "'antidote load' succeeds" $exitcode -eq 0
+  @test "zillions of enabled options (>150)" $actual -gt 150
 
   # teardown
+  setopt local_options
   ZDOTDIR=$OLD_ZDOTDIR
 }
 
