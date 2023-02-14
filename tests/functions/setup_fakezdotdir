@@ -11,7 +11,7 @@ function setup_fakezdotdir {
   typeset -g ANTIDOTE_HOME=$ZSHDIR/antidote_home
   local _d
   for _d in $ANTIDOTE_HOME/*(/N); do
-    mkdir -p "$_d/.git"
+    [[ -d "$_d/.mockgit" ]] || mkdir -p "$_d/.mockgit"
   done
 
   # switch ZDOTDIR

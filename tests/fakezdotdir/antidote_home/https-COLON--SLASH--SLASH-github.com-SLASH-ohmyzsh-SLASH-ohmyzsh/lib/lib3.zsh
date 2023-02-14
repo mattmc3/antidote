@@ -1,1 +1,2 @@
-echo "sourcing ohmyzsh/lib/lib3.zsh..."
+echo "sourcing ohmy/lib/lib3.zsh..."
+libs=($libs ohmy:lib2)

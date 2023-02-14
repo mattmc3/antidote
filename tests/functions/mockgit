@@ -5,6 +5,9 @@ function mockgit {
   # - `git -C "$dir" pull --quiet --ff --rebase --autostash`
   # - `git -C "$dir" rev-parse --short HEAD`
   # - `git clone --quiet --depth 1 --recurse-submodules --shallow-submodules --branch branch $url $dir`
+  # - `git --version`
+  emulate -L zsh; setopt local_options extended_glob
+  0=${(%):-%x}
 
   local args=("$@[@]")
   local o_path o_quiet o_ff o_rebase o_autostash o_short
@@ -22,7 +25,9 @@ function mockgit {
     -branch:=o_branch                        ||
     return 1
 
-  if [[ "$1" = "clone" ]]; then
+  if [[ "$@" = "--version" ]]; then
+    echo "0.0.0"
+  elif [[ "$1" = "clone" ]]; then
     local giturl="$2"
     local bundledir="$3"
     local src="$FAKEZDOTDIR/antidote_home/${bundledir:t}"

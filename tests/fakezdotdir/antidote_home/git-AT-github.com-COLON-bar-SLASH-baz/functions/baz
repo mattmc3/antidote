@@ -1,0 +1,5 @@
+#!/bin/zsh
+function baz {
+  echo baz function
+}
+baz "$@"

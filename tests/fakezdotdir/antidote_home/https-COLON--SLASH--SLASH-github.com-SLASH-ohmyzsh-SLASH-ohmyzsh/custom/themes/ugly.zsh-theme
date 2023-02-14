@@ -1,2 +1,2 @@
 echo "sourcing ugly.zsh-theme..."
-themes=($themes ohmyzsh:ugly)
+themes=($themes ohmy:ugly)
