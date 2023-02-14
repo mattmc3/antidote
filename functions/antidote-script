@@ -90,6 +90,7 @@ function antidote-script {
   # add path to bundle
   [[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
 
+  # handle defer pre-reqs first
   local dopts
   zstyle -s ":antidote:plugin:${bundle}" defer-options 'dopts'
   [[ -n "$dopts" ]] && dopts=" $dopts"
@@ -105,6 +106,15 @@ function antidote-script {
     )
   fi
 
+  # handle autoloading before sourcing
+  if (( $#o_autoload )); then
+    script+=(
+      "fpath+=( ${bundle_path}/${o_autoload[-1]} )"
+      "autoload -Uz \$fpath[-1]/*(N.:t)"
+    )
+  fi
+
+  # generate load script
   if [[ "$o_kind[-1]" == fpath ]]; then
     script+="fpath+=( $bundle_path )"
   elif [[ "$o_kind[-1]" == path ]]; then
@@ -125,13 +135,7 @@ function antidote-script {
     done
   fi
 
-  if (( $#o_autoload )); then
-    script+=(
-      "fpath+=( ${bundle_path}/${o_autoload[-1]} )"
-      "autoload -Uz \$fpath[-1]/*(N.:t)"
-    )
-  fi
-
+  # wrap conditional
   if [[ -n "$o_cond[-1]" ]]; then
     echo "if $o_cond[-1]; then"
     printf "  %s\n" $script
