@@ -4,51 +4,54 @@
 #
 # usage: antidote update [-h|--help]
 #
-0=${(%):-%x}
-emulate -L zsh; setopt $_adote_funcopts
-local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+function antidote-update {
+  0=${(%):-%x}
+  emulate -L zsh; setopt $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
-local o_help o_self o_bundles
-zparseopts $_adote_zparopt_flags -- \
-  h=o_help    -help=h    \
-  s=o_self    -self=s    \
-  b=o_bundles -bundles=b ||
-  return 1
+  local o_help o_self o_bundles
+  zparseopts $_adote_zparopt_flags -- \
+    h=o_help    -help=h    \
+    s=o_self    -self=s    \
+    b=o_bundles -bundles=b ||
+    return 1
 
-if (( $#o_help )); then
-  antidote-help update
-  return
-fi
-
-if (( $#o_bundles )) || ! (( $#o_self )); then
-  echo "Updating bundles..."
-  local bundledir url
-  for bundledir in $(antidote-list --dirs); do
-    url=$(git -C "$bundledir" config remote.origin.url)
-    echo "antidote: checking for updates: $url"
-    () {
-      local oldsha=$(git -C "$1" rev-parse --short HEAD)
-      git -C "$1" pull --quiet --ff --rebase --autostash
-      local newsha=$(git -C "$1" rev-parse --short HEAD)
-      if [[ $oldsha != $newsha ]]; then
-        echo "antidote: updated: $2 $oldsha -> $newsha"
-      fi
-    } "$bundledir" "$url" &
-  done
-  echo "Waiting for bundle updates to complete..."
-  wait
-  echo "Bundle updates complete."
-fi
-
-# update antidote
-if (( $#o_self )) || ! (( $#o_bundles )); then
-  echo "Updating antidote..."
-  if [[ -d "${0:A:h:h}/.git" ]]; then
-    git -C "${0:A:h:h}" pull --quiet --ff --rebase --autostash
-    echo "Antidote self-update complete.\n"
-    source "${0:A:h:h}"/antidote.zsh
-    antidote -v
-  else
-    echo "Self updating is disabled in this build"
+  if (( $#o_help )); then
+    antidote-help update
+    return
   fi
-fi
+
+  if (( $#o_bundles )) || ! (( $#o_self )); then
+    echo "Updating bundles..."
+    local bundledir url
+    for bundledir in $(antidote-list --dirs); do
+      url=$(git -C "$bundledir" config remote.origin.url)
+      echo "antidote: checking for updates: $url"
+      () {
+        local oldsha=$(git -C "$1" rev-parse --short HEAD)
+        git -C "$1" pull --quiet --ff --rebase --autostash
+        local newsha=$(git -C "$1" rev-parse --short HEAD)
+        if [[ $oldsha != $newsha ]]; then
+          echo "antidote: updated: $2 $oldsha -> $newsha"
+        fi
+      } "$bundledir" "$url" &
+    done
+    echo "Waiting for bundle updates to complete..."
+    wait
+    echo "Bundle updates complete."
+  fi
+
+  # update antidote
+  if (( $#o_self )) || ! (( $#o_bundles )); then
+    echo "Updating antidote..."
+    if [[ -d "${0:A:h:h}/.git" ]]; then
+      git -C "${0:A:h:h}" pull --quiet --ff --rebase --autostash
+      echo "Antidote self-update complete.\n"
+      source "${0:A:h:h}"/antidote.zsh
+      antidote -v
+    else
+      echo "Self updating is disabled in this build"
+    fi
+  fi
+}
+antidote-update "$@"

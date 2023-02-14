@@ -4,33 +4,36 @@
 #
 # usage: antidote load [-h|--help] [<bundlefile> [<staticfile>]]
 #
-setopt extended_glob
+function antidote-load {
+  setopt extended_glob
 
-local o_help
-zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
+  local o_help
+  zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
-if (( $#o_help )); then
-  antidote-help load
-  return
-fi
+  if (( $#o_help )); then
+    antidote-help load
+    return
+  fi
 
-local bundlefile=$1
-local default_bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
-if [[ -z "$bundlefile" ]]; then
-  zstyle -s ':antidote:bundle' file 'bundlefile' ||
-    bundlefile=$default_bundlefile
-fi
-[[ -n "$bundlefile" ]] || bundlefile=$default_bundlefile
-[[ -e "$bundlefile" ]] || touch "$bundlefile"
+  local bundlefile=$1
+  local default_bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
+  if [[ -z "$bundlefile" ]]; then
+    zstyle -s ':antidote:bundle' file 'bundlefile' ||
+      bundlefile=$default_bundlefile
+  fi
+  [[ -n "$bundlefile" ]] || bundlefile=$default_bundlefile
+  [[ -e "$bundlefile" ]] || touch "$bundlefile"
 
-local staticfile=$2
-if [[ -z "$staticfile" ]]; then
-  zstyle -s ':antidote:static' file \
-    'staticfile' || staticfile=${bundlefile:r}.zsh
-fi
-[[ -n "$staticfile" ]] || staticfile=${bundlefile:r}.zsh
-[[ "$staticfile" != "$bundlefile" ]] || staticfile="${bundlefile:r}.static.zsh"
+  local staticfile=$2
+  if [[ -z "$staticfile" ]]; then
+    zstyle -s ':antidote:static' file \
+      'staticfile' || staticfile=${bundlefile:r}.zsh
+  fi
+  [[ -n "$staticfile" ]] || staticfile=${bundlefile:r}.zsh
+  [[ "$staticfile" != "$bundlefile" ]] || staticfile="${bundlefile:r}.static.zsh"
 
-# regenerate the static file based on whether the bundle file is newer
-[[ $staticfile -nt $bundlefile ]] || antidote bundle <"$bundlefile" >|"$staticfile"
-source "$staticfile"
+  # regenerate the static file based on whether the bundle file is newer
+  [[ $staticfile -nt $bundlefile ]] || antidote bundle <"$bundlefile" >|"$staticfile"
+  source "$staticfile"
+}
+antidote-load "$@"

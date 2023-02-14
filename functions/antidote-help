@@ -5,7 +5,6 @@
 # usage: antidote [-h|--help] [<command>]
 #        antidote help [<command>]
 #
-emulate -L zsh; setopt $_adote_funcopts
 
 function __antidote_usage {
   cat<<EOS
@@ -31,23 +30,28 @@ commands:
 EOS
 }
 
-local o_help
-zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
+function antidote-help {
+  emulate -L zsh; setopt $_adote_funcopts
 
-local manpage
+  local o_help
+  zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
-if (( $#o_help )); then
-  manpage=antidote-help
-elif [[ "$1" == antidote ]]; then
-  manpage=antidote
-elif [[ -n "$1" ]]; then
-  manpage="antidote-${1}"
-fi
+  local manpage
 
-if (( $+commands[man] )) && [[ -n "$manpage" ]]; then
-  man "$manpage" || {
-    __antidote_usage && return 1
-  }
-else
-  __antidote_usage
-fi
+  if (( $#o_help )); then
+    manpage=antidote-help
+  elif [[ "$1" == antidote ]]; then
+    manpage=antidote
+  elif [[ -n "$1" ]]; then
+    manpage="antidote-${1}"
+  fi
+
+  if (( $+commands[man] )) && [[ -n "$manpage" ]]; then
+    man "$manpage" || {
+      __antidote_usage && return 1
+    }
+  else
+    __antidote_usage
+  fi
+}
+antidote-help "$@"
