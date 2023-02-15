@@ -1,41 +1,45 @@
+#!/bin/zsh
+
 ### List cloned bundles.
 #
 # usage: antidote list [-h|--help]
 #
-emulate -L zsh; setopt $_adote_funcopts
+function antidote-list {
+  emulate -L zsh; setopt $_adote_funcopts
 
-local o_help o_short o_dirs
-zparseopts $_adote_zparopt_flags -- \
-  h=o_help  -help=h  \
-  s=o_short -short=s \
-  d=o_dirs  -dirs=d  ||
-  return 1
+  local o_help o_short o_dirs
+  zparseopts $_adote_zparopt_flags -- \
+    h=o_help  -help=h  \
+    s=o_short -short=s \
+    d=o_dirs  -dirs=d  ||
+    return 1
 
-if (( $#o_help )); then
-  antidote-help list
-  return
-fi
-
-if [[ $# -ne 0 ]]; then
-  echo >&2 "antidote: error: unexpected $1, try --help"
-  return 1
-fi
-
-local bundledir
-local output=()
-local bundles=($(antidote-home)/**/.git/..(/N))
-for bundledir in $bundles; do
-  local url=$(git -C "${bundledir:A}" config remote.origin.url)
-  if (( $#o_dirs )); then
-    output+=(${bundledir:A})
-  elif (( $#o_short )); then
-    url=${url%.git}
-    url=${url#https://github.com/}
-    output+=($url)
-  else
-    output+=("$(printf '%-64s %s\n' $url ${bundledir:A})")
+  if (( $#o_help )); then
+    antidote-help list
+    return
   fi
-done
-printf '%s\n' "${(o)output[@]}"
 
-# vim: ft=zsh sw=2 ts=2 et
+  if [[ $# -ne 0 ]]; then
+    echo >&2 "antidote: error: unexpected $1, try --help"
+    return 1
+  fi
+
+  local bundledir
+  local output=()
+  local bundles=($(antidote-home)/**/.{mock,}git/..(/N))
+
+  for bundledir in $bundles; do
+    local url=$(git -C "${bundledir:A}" config remote.origin.url)
+    if (( $#o_dirs )); then
+      output+=(${bundledir:A})
+    elif (( $#o_short )); then
+      url=${url%.git}
+      url=${url#https://github.com/}
+      output+=($url)
+    else
+      output+=("$(printf '%-64s %s\n' $url ${bundledir:A})")
+    fi
+  done
+  printf '%s\n' "${(o)output[@]}"
+}
+antidote-list "$@"

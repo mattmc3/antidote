@@ -1,15 +1,17 @@
-# setup zsh home
-local name=${1:-temp}
-typeset -g ZSHDIR=$BASEDIR/.tmp/tests/$name
-[[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
-mkdir -p $ZSHDIR
+#!/bin/zsh
+function setup_emptyzdotdir {
+  # setup zsh home
+  local name=${1:-temp}
+  typeset -g ZSHDIR=$BASEDIR/.tmp/tests/$name
+  [[ -d $ZSHDIR ]] && rm -rf $ZSHDIR
+  mkdir -p $ZSHDIR
 
-# setup antidote home
-typeset -g ANTIDOTE_HOME=$ZSHDIR/antidote_home
-mkdir -p $ANTIDOTE_HOME
+  # setup antidote home
+  typeset -g ANTIDOTE_HOME=$ZSHDIR/antidote_home
+  mkdir -p $ANTIDOTE_HOME
 
-# switch ZDOTDIR
-typeset -g OLD_ZDOTDIR=$ZDOTDIR
-typeset -g ZDOTDIR=$ZSHDIR
-
-# vim: ft=zsh sw=2 ts=2 et
+  # switch ZDOTDIR
+  typeset -g OLD_ZDOTDIR=$ZDOTDIR
+  typeset -g ZDOTDIR=$ZSHDIR
+}
+setup_emptyzdotdir "$@"

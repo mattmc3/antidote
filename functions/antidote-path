@@ -1,29 +1,32 @@
+#!/bin/zsh
+
 ### Print the path of a cloned bundle.
 #
 # usage: antidote path [-h|--help] <bundle>
 #
-emulate -L zsh; setopt $_adote_funcopts
+function antidote-path {
+  emulate -L zsh; setopt $_adote_funcopts
 
-local o_help
-zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
+  local o_help
+  zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
-if (( $#o_help )); then
-  antidote-help path
-  return
-fi
+  if (( $#o_help )); then
+    antidote-help path
+    return
+  fi
 
-if [[ $# -eq 0 ]]; then
-  echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
-  return 1
-fi
+  if [[ $# -eq 0 ]]; then
+    echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
+    return 1
+  fi
 
-local bundle="$1"
-local bundledir=$(__antidote_bundledir $bundle)
-if [[ ! -d $bundledir ]]; then
-  echo >&2 "antidote: error: $bundle does not exist in cloned paths"
-  return 1
-else
-  echo "$bundledir"
-fi
-
-# vim: ft=zsh sw=2 ts=2 et
+  local bundle="$1"
+  local bundledir=$(__antidote_bundledir $bundle)
+  if [[ ! -d $bundledir ]]; then
+    echo >&2 "antidote: error: $bundle does not exist in cloned paths"
+    return 1
+  else
+    echo "$bundledir"
+  fi
+}
+antidote-path "$@"

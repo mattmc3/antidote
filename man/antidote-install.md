@@ -10,8 +10,8 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote install [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
-|                  [-b|--branch <branch>] <bundle> [<bundlefile>]
+| antidote install [-h|-\-help] [-k|-\-kind \<kind\>] [-p|-\-path \<path\>]
+|                  [-b|-\-branch \<branch\>] \<bundle\> [\<bundlefile\>]
 
 # DESCRIPTION
 

@@ -1,0 +1,45 @@
+# plugins
+zsh-users/zsh-history-substring-search
+https://github.com/zsh-users/zsh-completions
+
+# git@ repo URLs aren't good for CI... revisit
+# git@github.com:zsh-users/zsh-completions.git
+
+# kind:zsh
+zsh-users/zsh-syntax-highlighting kind:zsh
+
+# kind:clone
+zsh-users/antigen kind:clone
+
+# kind:fpath
+sindresorhus/pure kind:fpath
+
+# kind:path
+romkatv/zsh-bench kind:path
+
+# kind:autoload
+mattmc3/zman path:functions kind:autoload
+
+# conditional
+ohmyzsh/ohmyzsh path:plugins/macos conditional:is-macos
+
+# branches
+mattmc3/antidote branch:pz
+
+# subpath plugins
+ohmyzsh/ohmyzsh path:lib/clipboard.zsh
+ohmyzsh/ohmyzsh path:plugins/extract
+ohmyzsh/ohmyzsh path:plugins/magic-enter
+ohmyzsh/ohmyzsh path:plugins/fancy-ctrl-z
+
+# deferred
+zsh-users/zsh-autosuggestions kind:defer
+zdharma-continuum/fast-syntax-highlighting kind:defer
+
+# theme
+dracula/zsh
+
+# non-conforming plugins
+peterhurford/up.zsh
+rummik/zsh-tailf
+rupa/z

@@ -10,9 +10,9 @@ autoload -Uz ${0:A:h}/functions/testinit && testinit
 ztap_header "${0:t:r}"
 
 # setup
-ZSHDIR=$BASEDIR/tests/fakezdotdir
+ZSHDIR=$BASEDIR/tests/zdotdir
 function git { @echo mockgit "$@" }
-ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+ANTIDOTE_HOME=$BASEDIR/tests/zdotdir/antidote_home
 source $BASEDIR/antidote.zsh
 
 # empty bundle command succeeds
@@ -51,13 +51,13 @@ source $BASEDIR/antidote.zsh
 # bundle annotation kind:autoload
 () {
   local actual expected bundle exitcode
-  local bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
+  local bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz"
   expected=(
     "fpath+=( $ANTIDOTE_HOME/$bundledir/functions )"
     "autoload -Uz \$fpath[-1]/*(N.:t)"
   )
 
-  bundle="baz/qux path:functions kind:autoload"
+  bundle="bar/baz path:functions kind:autoload"
   actual=("${(@f)$(antidote bundle $bundle)}")
   @test "bundle annotation kind:autoload" "$expected" = "$actual"
 }
@@ -87,7 +87,7 @@ source $BASEDIR/antidote.zsh
   source $BASEDIR/antidote.zsh
   pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
   staticfile=${ZDOTDIR:-~}/.zsh_plugins.zsh
-  expectedfile=$FAKEZDOTDIR/.zsh_plugins_expected.zsh
+  expectedfile=$TESTDIR/testdata/.zsh_plugins.zsh
 
   @test "static cache file does not exist" ! -f "$staticfile"
   antidote bundle <$pluginsfile >$staticfile 2>/dev/null

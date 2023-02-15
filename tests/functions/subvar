@@ -1,0 +1,7 @@
+#!/bin/zsh
+function subvar {
+  local sedexp="s|${(P)1}|\$$1|g"
+  shift
+  sed "$sedexp" "$@"
+}
+subvar "$@"

@@ -1,11 +1,15 @@
+#!/bin/zsh
+
 ### antidote - the cure to slow zsh plugin management
 #
 # https://getantidote.github.io
 # run `antidote -h` for usage
 #
-
-0=${(%):-%x}
-(( $+functions[__antidote_main] )) || source ${0:A:h}/antidote.zsh
-__antidote_main "$@"
-
-# vim: ft=zsh sw=2 ts=2 et
+# Note: this gets overridden if using `antidote init`.
+#
+function antidote {
+  0=${(%):-%x}
+  (( $+functions[antidote-main] )) || source ${0:A:h}/antidote.zsh
+  antidote-main "$@"
+}
+antidote "$@"

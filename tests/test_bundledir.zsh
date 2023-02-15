@@ -4,7 +4,7 @@ autoload -Uz ${0:A:h}/functions/testinit && testinit
 ztap_header "${0:t:r}"
 
 # setup
-ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+ANTIDOTE_HOME=$BASEDIR/tests/zdotdir/antidote_home
 source $BASEDIR/antidote.zsh
 
 () {
@@ -35,8 +35,8 @@ source $BASEDIR/antidote.zsh
   local actual expected bundle repos
   typeset -A repos=(
     foo/bar                     foo/bar
-    git@github.com:bar/baz.git  bar/baz
-    https://github.com/baz/qux  baz/qux
+    git@github.com:baz/qux.git  baz/qux
+    https://github.com/bar/baz  bar/baz
   )
 
   zstyle ':antidote:bundle' use-friendly-names on

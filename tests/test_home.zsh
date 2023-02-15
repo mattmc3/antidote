@@ -22,7 +22,7 @@ typeset -g ANTIDOTE_HOME=
 
 () {
   local actual
-  typeset -g ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+  typeset -g ANTIDOTE_HOME=$BASEDIR/tests/zdotdir/antidote_home
   @test "\$ANTIDOTE_HOME is set" -n "$ANTIDOTE_HOME"
   actual=$(antidote home)
   @test "'antidote home' prints \$ANTIDOTE_HOME when it is set" $ANTIDOTE_HOME = "$actual"

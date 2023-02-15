@@ -65,10 +65,10 @@ antidote-bundle &>/dev/null
   local expected actual bundle
   expected=$(cat <<'EOBUNDLES'
 name foo/bar kind fpath abc xyz
-name bar/baz
+name baz/qux
 EOBUNDLES
   )
-  bundle='foo/bar kind:fpath abc:xyz\nbar/baz'
+  bundle='foo/bar kind:fpath abc:xyz\nbaz/qux'
   actual=$(__antidote_parsebundles $bundle 2>/dev/null)
   actual=${actual//$'\t'/ }
   @test "parsing quoted bundle string with newline sep" "$actual" = "$expected"
@@ -98,13 +98,13 @@ EOBUNDLES
     "foo/bar"
     ""
     "foo/baz  # trailing comment baz"
-    "bar/baz kind:clone"
+    "baz/qux kind:clone"
     "baz/foo branch:main kind:fpath"
   )
   expected=$(cat <<'EOBUNDLES'
 name foo/bar
 name foo/baz
-name bar/baz kind clone
+name baz/qux kind clone
 name baz/foo branch main kind fpath
 EOBUNDLES
   )

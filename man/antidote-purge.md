@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote purge <bundle>
+| antidote purge \<bundle\>
 
 # DESCRIPTION
 

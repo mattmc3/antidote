@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote help [*\<command\>*]
+| antidote help [\<command\>]
 
 # DESCRIPTION
 

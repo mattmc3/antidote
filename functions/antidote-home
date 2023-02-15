@@ -1,34 +1,37 @@
+#!/bin/zsh
+
 ### Print where antidote is cloning bundles.
 #
 # usage: antidote home [-h|--help]
 #
 # Can be overridden by setting `$ANTIDOTE_HOME`.
 #
-emulate -L zsh; setopt $_adote_funcopts
+function antidote-home {
+  emulate -L zsh; setopt $_adote_funcopts
 
-typeset -g REPLY=
-local o_help
-zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
+  typeset -g REPLY=
+  local o_help
+  zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
-if (( $#o_help )); then
-  antidote-help home
-  return
-fi
+  if (( $#o_help )); then
+    antidote-help home
+    return
+  fi
 
-local rootdir result
-if [[ -n "$ANTIDOTE_HOME" ]]; then
-  result=$ANTIDOTE_HOME
-elif [[ "${OSTYPE}" == darwin* ]]; then
-  result="$HOME/Library/Caches/antidote"
-elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
-  result="$LOCALAPPDATA/antidote"
-elif [[ -n "$XDG_CACHE_HOME" ]]; then
-  result="$XDG_CACHE_HOME/antidote"
-else
-  result="$HOME/.cache/antidote"
-fi
-[[ -d $result ]] || mkdir -p $result
-echo $result
-typeset -g REPLY=$result
-
-# vim: ft=zsh sw=2 ts=2 et
+  local rootdir result
+  if [[ -n "$ANTIDOTE_HOME" ]]; then
+    result=$ANTIDOTE_HOME
+  elif [[ "${OSTYPE}" == darwin* ]]; then
+    result="$HOME/Library/Caches/antidote"
+  elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
+    result="$LOCALAPPDATA/antidote"
+  elif [[ -n "$XDG_CACHE_HOME" ]]; then
+    result="$XDG_CACHE_HOME/antidote"
+  else
+    result="$HOME/.cache/antidote"
+  fi
+  [[ -d $result ]] || mkdir -p $result
+  echo $result
+  typeset -g REPLY=$result
+}
+antidote-home "$@"

@@ -4,7 +4,7 @@ autoload -Uz ${0:A:h}/functions/testinit && testinit
 ztap_header "${0:t:r}"
 
 # setup
-ANTIDOTE_HOME=$BASEDIR/tests/fakezdotdir/antidote_home
+ANTIDOTE_HOME=$BASEDIR/tests/zdotdir/antidote_home
 source $BASEDIR/antidote.zsh
 
 # purge missing arg
@@ -40,7 +40,7 @@ source $BASEDIR/antidote.zsh
   bundle="foo/bar"
   bundledir="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
   pluginsfile=${ZDOTDIR:-~}/.zsh_plugins.txt
-  expectedfile=$FAKEZDOTDIR/.zsh_plugins_after_purge.txt
+  expectedfile=$TESTDIR/testdata/.zsh_plugins_purged.txt
 
   # we don't need to test this, but it helps tell the test story
   @test "purge setup: bundle dir exists" -d "$bundledir"

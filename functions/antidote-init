@@ -1,32 +1,34 @@
+#!/bin/zsh
+
 ### Initialize the shell for dynamic bundles.
 #
 # usage: antidote init [-h|--help]
-#        source <$(antidote init)
+#        source <(antidote init)
 #
 # This function changes how the `antidote` command works by sourcing the results of
 # `antidote bundle` instead of just generating the Zsh script.
+function antidote-init {
+  local o_help
+  zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
-local o_help
-zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
+  if (( $#o_help )); then
+    antidote-help init
+    return
+  fi
 
-if (( $#o_help )); then
-  antidote-help init
-  return
-fi
-
-local script=(
-  '#!/usr/bin/env zsh'
-  'function antidote {'
-  '  case "$1" in'
-  '    bundle)'
-  '      source <( __antidote_main $@ ) || __antidote_main $@'
-  '      ;;'
-  '    *)'
-  '      __antidote_main $@'
-  '      ;;'
-  '  esac'
-  '}'
-)
-printf "%s\n" "${script[@]}"
-
-# vim: ft=zsh sw=2 ts=2 et
+  local script=(
+    '#!/usr/bin/env zsh'
+    'function antidote {'
+    '  case "$1" in'
+    '    bundle)'
+    '      source <( antidote-main $@ ) || antidote-main $@'
+    '      ;;'
+    '    *)'
+    '      antidote-main $@'
+    '      ;;'
+    '  esac'
+    '}'
+  )
+  printf "%s\n" "${script[@]}"
+}
+antidote-init "$@"

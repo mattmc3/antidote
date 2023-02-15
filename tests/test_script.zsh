@@ -55,11 +55,11 @@ typeset -g zsh_defer_prefix=(
 # script lib directory
 () {
   local actual expected bundle
-  bundle="$ZDOTDIR/zshrc.d"
+  bundle="$ZDOTDIR/custom/lib"
   expected=(
     "fpath+=( $bundle )"
-    "source $bundle/conf1.zsh"
-    "source $bundle/conf2.zsh"
+    "source $bundle/lib1.zsh"
+    "source $bundle/lib2.zsh"
   )
   actual=("${(@f)$(antidote script $bundle)}")
   @test "the bundle is a directory" -d "$bundle"
@@ -85,11 +85,11 @@ typeset -g zsh_defer_prefix=(
     foo/bar
     https://github.com/foo/bar
     https://github.com/foo/bar.git
-    git@github.com:bar/baz.git
+    git@github.com:baz/qux.git
   )
   for bundle in $bundles; do
     if [[ $bundle = git@* ]]; then
-      bundledir="git-AT-github.com-COLON-bar-SLASH-baz"
+      bundledir="git-AT-github.com-COLON-baz-SLASH-qux"
     else
       bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
     fi
@@ -185,12 +185,12 @@ typeset -g zsh_defer_prefix=(
   actual=("${(@f)$(antidote script $args $bundle)}")
   @test "'antidote script $args $bundle' works" "$expected" = "$actual"
 
-  bundle="baz/qux"
-  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
+  bundle="bar/baz"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz"
   expected=(
     $zsh_defer_prefix
     "fpath+=( $ANTIDOTE_HOME/$bundledir )"
-    "zsh-defer -a source $ANTIDOTE_HOME/$bundledir/qux.plugin.zsh"
+    "zsh-defer -a source $ANTIDOTE_HOME/$bundledir/baz.plugin.zsh"
   )
   actual=("${(@f)$(antidote script $args $bundle)}")
   @test "'antidote script $args $bundle' works" "$expected" = "$actual"
@@ -200,8 +200,8 @@ typeset -g zsh_defer_prefix=(
 () {
   local actual expected bundle bundledir args
   args=(--path plugins/extract)
-  bundle="ohmyzsh/ohmyzsh"
-  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/plugins/extract"
+  bundle="ohmy/ohmy"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/extract"
   expected=(
     "fpath+=( $ANTIDOTE_HOME/$bundledir )"
     "source $ANTIDOTE_HOME/$bundledir/extract.plugin.zsh"
@@ -214,8 +214,8 @@ typeset -g zsh_defer_prefix=(
 () {
   local actual expected bundle bundledir args
   args=(--path lib/lib1.zsh)
-  bundle="ohmyzsh/ohmyzsh"
-  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/lib"
+  bundle="ohmy/ohmy"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib"
   expected=(
     "source $ANTIDOTE_HOME/$bundledir/lib1.zsh"
   )
@@ -227,8 +227,8 @@ typeset -g zsh_defer_prefix=(
 () {
   local actual expected bundle bundledir args
   args=(--path lib)
-  bundle="ohmyzsh/ohmyzsh"
-  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/lib"
+  bundle="ohmy/ohmy"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib"
   expected=(
     "fpath+=( $ANTIDOTE_HOME/$bundledir )"
     "source $ANTIDOTE_HOME/$bundledir/lib1.zsh"
@@ -243,8 +243,8 @@ typeset -g zsh_defer_prefix=(
 () {
   local actual expected bundle bundledir args
   args=(--path custom/themes/pretty.zsh-theme)
-  bundle="ohmyzsh/ohmyzsh"
-  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/custom/themes"
+  bundle="ohmy/ohmy"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/custom/themes"
   expected=(
     "source $ANTIDOTE_HOME/$bundledir/pretty.zsh-theme"
   )

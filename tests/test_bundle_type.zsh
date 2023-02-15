@@ -27,8 +27,8 @@ antidote-script &>/dev/null
     "typeset -A testdata=( bundle '~/foo/bar'    type path )"
     "typeset -A testdata=( bundle '$foo/bar'     type path )"
     "typeset -A testdata=( bundle foo/bar        type repo )"
-    "typeset -A testdata=( bundle bar/baz.git    type repo )"
-    "typeset -A testdata=( bundle 'foo/bar/baz'  type relpath )"
+    "typeset -A testdata=( bundle baz/qux.git    type repo )"
+    "typeset -A testdata=( bundle 'foo/baz/qux'  type relpath )"
     "typeset -A testdata=( bundle foobar         type word )"
     "typeset -A testdata=( bundle 'foo bar baz'  type word )"
   )
