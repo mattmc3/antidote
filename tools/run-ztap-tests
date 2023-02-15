@@ -15,7 +15,7 @@ zparseopts -D -M -- -unit=o_unit || return 1
 # make sure tests are executable
 chmod 755 $TESTS_HOME/*test_*.zsh
 
-export ZTAP_HOME=${ZTAP_HOME:-$TMPDIR/ztap}
+export ZTAP_HOME=${ZTAP_HOME:-$BASEDIR/.tmp/ztap}
 if ! [[ -d $ZTAP_HOME ]]; then
   command git clone --depth 1 --quiet https://github.com/mattmc3/ztap $ZTAP_HOME
 fi

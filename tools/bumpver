@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 0=${(%):-%x}
-bumpversion --allow-dirty $1
+bumpversion --allow-dirty ${1:-revision}
 newver=$(grep 'current_version' ${0:h:h}/.bumpversion.cfg | sed -E 's/^[^0-9]+(.*)$/\1/')
 echo "Version bumped to $newver."
 echo "Now run:"

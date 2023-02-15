@@ -3,6 +3,6 @@
 BASEDIR=${0:h:h}
 cd $BASEDIR
 echo "loc:"
-wc -l antidote.zsh ./functions/*
+wc -l antidote.zsh ./functions/*(.)
 echo "sloc:"
-awk '/^[^#]+$/{print}' antidote.zsh ./functions/* | wc -l
+awk '/^ *[^#]+$/{print}' antidote.zsh ./functions/*(.) | wc -l

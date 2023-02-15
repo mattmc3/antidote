@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+0=${(%):-%x}
+setopt extended_glob
+
+cd ${0:A:h:h}
+
+# foo example test command
+# env -i PATH=$PATH FPATH=$FPATH \
+#  zsh -f -- =clitest --list-run --progress dot --prompt '%' --color always $PWD/tests/foo.md
+
+env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
+    zsh -f -- \
+    =clitest \
+        --list-run --progress dot --prompt '%' \
+        --color always \
+        --pre-flight 'git --version; print $PWD $VENDOR $OSTYPE =zsh $ZSH_VERSION $ZSH_PATCHLEVEL' \
+        -- $PWD/tests/*.md~*_local.md
