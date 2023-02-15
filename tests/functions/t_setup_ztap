@@ -1,0 +1,9 @@
+#!/bin/zsh
+function t_setup_ztap {
+  0=${(%):-%x}
+  export ZTAP_HOME=${0:A:h:h:h}/.tmp/ztap
+  [[ -d $ZTAP_HOME ]] ||
+    command git clone --depth 1 --quiet https://github.com/mattmc3/ztap $ZTAP_HOME
+  source $ZTAP_HOME/ztap3.zsh
+}
+t_setup_ztap "$@"

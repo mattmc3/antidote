@@ -49,7 +49,8 @@ function mockgit {
   elif [[ "$@" = "pull" ]]; then
     (( $#o_quiet )) || echo "FAKEGIT: Already up to date."
   elif [[ "$@" = "rev-parse HEAD" ]]; then
-    echo "a123456"
+    #echo "a123456"
+    echo ""
   else
     echo >&2 "mocking not implemented for git command: git $@"
     return 1
