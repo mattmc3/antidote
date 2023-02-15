@@ -45,14 +45,14 @@ function git { mockgit "$@" }
   @test "bundle file contains newly installed bundle" "$expected" = "$actual"
 
   # install a second bundle
-  bundle="git@github.com:bar/baz"
-  bundledir="$ANTIDOTE_HOME/git-AT-github.com-COLON-bar-SLASH-baz"
+  bundle="git@github.com:baz/qux"
+  bundledir="$ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux"
   @test "bundle '${bundledir:t}' dir does not exist" ! -e $bundledir
   antidote install $bundle &>/dev/null; exitcode=$?
   @test "bundle '${bundledir:t}' dir exists" -e $bundledir
   expected=(
     'foo/bar'
-    'git@github.com:bar/baz'
+    'git@github.com:baz/qux'
   )
   actual=("${(f)"$(<$bundlefile)"}")
   @test "bundle file contains newly installed bundle" "$expected" = "$actual"

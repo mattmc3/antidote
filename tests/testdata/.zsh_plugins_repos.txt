@@ -10,14 +10,14 @@ https://github.com/user/repo
 git@github.com:user/repo
 
 # annotations
-bar/baz path:plugins/qux
-bar/baz path:themes/qux.zsh-theme
+baz/qux path:plugins/qux
+baz/qux path:themes/qux.zsh-theme
 
 # branch
 foobar/foobar branch:baz
 
 # defer
-https://github.com/baz/qux kind:defer
+https://github.com/bar/baz kind:defer
 https://github.com/qux/baz kind:defer
 
 # non repos

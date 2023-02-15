@@ -1,2 +1,2 @@
-fpath+=( $ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux )
-source $ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux/qux.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/git-AT-github.com-COLON-bar-SLASH-baz )
+source $ANTIDOTE_HOME/git-AT-github.com-COLON-bar-SLASH-bar/baz.plugin.zsh

@@ -85,11 +85,11 @@ typeset -g zsh_defer_prefix=(
     foo/bar
     https://github.com/foo/bar
     https://github.com/foo/bar.git
-    git@github.com:bar/baz.git
+    git@github.com:baz/qux.git
   )
   for bundle in $bundles; do
     if [[ $bundle = git@* ]]; then
-      bundledir="git-AT-github.com-COLON-bar-SLASH-baz"
+      bundledir="git-AT-github.com-COLON-baz-SLASH-qux"
     else
       bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
     fi
@@ -185,12 +185,12 @@ typeset -g zsh_defer_prefix=(
   actual=("${(@f)$(antidote script $args $bundle)}")
   @test "'antidote script $args $bundle' works" "$expected" = "$actual"
 
-  bundle="baz/qux"
-  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-baz-SLASH-qux"
+  bundle="bar/baz"
+  bundledir="https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz"
   expected=(
     $zsh_defer_prefix
     "fpath+=( $ANTIDOTE_HOME/$bundledir )"
-    "zsh-defer -a source $ANTIDOTE_HOME/$bundledir/qux.plugin.zsh"
+    "zsh-defer -a source $ANTIDOTE_HOME/$bundledir/baz.plugin.zsh"
   )
   actual=("${(@f)$(antidote script $args $bundle)}")
   @test "'antidote script $args $bundle' works" "$expected" = "$actual"

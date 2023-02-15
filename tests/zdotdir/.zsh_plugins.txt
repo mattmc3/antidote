@@ -4,7 +4,7 @@
 # antidote bundle <$fakedir/.zsh_plugins.txt >|$fakedir/.zsh_plugins.zsh
 # plugins
 foo/bar
-git@github.com:bar/baz.git  # trailing comments
+git@github.com:baz/qux.git  # trailing comments
 
 # kind:clone
 romkatv/zsh-defer kind:clone		# more trailing comments

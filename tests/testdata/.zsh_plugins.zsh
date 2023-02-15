@@ -1,7 +1,7 @@
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
-fpath+=( $ANTIDOTE_HOME/git-AT-github.com-COLON-bar-SLASH-baz )
-source $ANTIDOTE_HOME/git-AT-github.com-COLON-bar-SLASH-baz/baz.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux )
+source $ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux/qux.plugin.zsh
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
