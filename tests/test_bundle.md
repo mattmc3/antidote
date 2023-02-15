@@ -105,6 +105,85 @@ antidote bundle foo/bar
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
 
+## Private functions
+
+### __antidote_bundledir
+
+short repo
+
+```zsh
+% __antidote_bundledir foo/bar | subvar ANTIDOTE_HOME
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
+%
+```
+
+repo url
+
+```zsh
+% __antidote_bundledir https://github.com/foo/bar | subvar ANTIDOTE_HOME
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
+%
+```
+
+repo url.git
+
+```zsh
+% __antidote_bundledir https://github.com/foo/bar.git | subvar ANTIDOTE_HOME
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
+%
+```
+
+repo ssh
+
+```zsh
+% __antidote_bundledir git@github.com:foo/bar.git | subvar ANTIDOTE_HOME
+$ANTIDOTE_HOME/git-AT-github.com-COLON-foo-SLASH-bar
+%
+```
+
+short repo - friendly name
+
+```zsh
+% zstyle ':antidote:bundle' use-friendly-names on
+% __antidote_bundledir foo/bar | subvar ANTIDOTE_HOME
+$ANTIDOTE_HOME/foo/bar
+%
+```
+
+repo url - friendly name
+
+```zsh
+% zstyle ':antidote:bundle' use-friendly-names on
+% __antidote_bundledir https://github.com/bar/baz | subvar ANTIDOTE_HOME
+$ANTIDOTE_HOME/bar/baz
+%
+```
+
+ssh repo - friendly name
+
+```zsh
+% zstyle ':antidote:bundle' use-friendly-names on
+% __antidote_bundledir git@github.com:baz/qux.git | subvar ANTIDOTE_HOME
+$ANTIDOTE_HOME/baz/qux
+%
+```
+
+local dir
+
+```zsh
+% __antidote_bundledir ~/foo/bar | subvar HOME
+$HOME/foo/bar
+%
+```
+
+another local dir
+
+```zsh
+% __antidote_bundledir $ZDOTDIR/bar/baz | subvar ZDOTDIR
+$ZDOTDIR/bar/baz
+%
+```
+
 ## Teardown
 
 ```zsh

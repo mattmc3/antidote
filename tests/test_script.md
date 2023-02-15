@@ -217,6 +217,101 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 %
 ```
 
+## Private functions
+
+### __antidote_initfiles
+
+setup
+
+```zsh
+% PLUGINDIR=$T_TEMPDIR/initfiles/myplugin
+% mkdir -p $PLUGINDIR
+% touch $PLUGINDIR/myplugin.plugin.zsh
+% touch $PLUGINDIR/whatever.plugin.zsh
+% touch $PLUGINDIR/file.zsh
+% touch $PLUGINDIR/file.sh
+% touch $PLUGINDIR/file.bash
+% touch $PLUGINDIR/mytheme.zsh-theme
+% touch $PLUGINDIR/README.md
+% touch $PLUGINDIR/file
+% mkdir -p $PLUGINDIR/lib
+% touch $PLUGINDIR/lib/lib1.zsh
+% touch $PLUGINDIR/lib/lib2.zsh
+% touch $PLUGINDIR/lib/lib3.zsh
+%
+```
+
+myplugin.plugin.zsh
+
+```zsh
+% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+$PLUGINDIR/myplugin.plugin.zsh
+% rm $PLUGINDIR/myplugin.plugin.zsh
+%
+```
+
+whatever.plugin.zsh
+
+```zsh
+% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+$PLUGINDIR/whatever.plugin.zsh
+% rm $PLUGINDIR/whatever.plugin.zsh
+%
+```
+
+file.zsh
+
+```zsh
+% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+$PLUGINDIR/file.zsh
+% rm $PLUGINDIR/file.zsh
+%
+```
+
+file.sh
+
+```zsh
+% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+$PLUGINDIR/file.sh
+% rm $PLUGINDIR/file.sh
+%
+```
+
+mytheme.zsh-theme
+
+```zsh
+% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+$PLUGINDIR/mytheme.zsh-theme
+% rm $PLUGINDIR/mytheme.zsh-theme
+%
+```
+
+lib
+
+```zsh
+% __antidote_initfiles $PLUGINDIR/lib | subvar PLUGINDIR
+$PLUGINDIR/lib/lib1.zsh
+$PLUGINDIR/lib/lib2.zsh
+$PLUGINDIR/lib/lib3.zsh
+%
+```
+
+FAIL: no files left that match
+
+```zsh
+% __antidote_initfiles $PLUGINDIR  #=> --exit 1
+%
+```
+
+FAIL: Empty
+
+```zsh
+% PLUGINDIR=$T_TEMPDIR/initfiles/foo
+% mkdir -p $PLUGINDIR
+% __antidote_initfiles $PLUGINDIR  #=> --exit 1
+%
+```
+
 ## Teardown
 
 ```zsh
