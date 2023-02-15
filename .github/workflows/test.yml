@@ -6,35 +6,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-macos:
-    runs-on: macos-latest
+  test:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, ubuntu-18.04]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
-          repository: 'aureliojargas/clitest'
-          path: bin
-      - run: make test
-        shell: zsh {0}
-  test-ubuntu:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/checkout@v2
-        with:
-          repository: 'aureliojargas/clitest'
-          path: bin
+          repository: "aureliojargas/clitest"
+          path: bin/clitest
       - run: sudo apt install zsh
-      - run: make test
-        shell: zsh {0}
-  test-ubuntu18:
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/checkout@v2
-        with:
-          repository: 'aureliojargas/clitest'
-          path: bin
-      - run: sudo apt install zsh
-      - run: make test
+        if: ${{ runner.os == 'Linux' }}
+      - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
         shell: zsh {0}
