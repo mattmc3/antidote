@@ -7,6 +7,7 @@ function mockgit {
   # - `git clone --quiet --depth 1 --recurse-submodules --shallow-submodules --branch branch $url $dir`
   # - `git --version`
   emulate -L zsh; setopt local_options extended_glob
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   0=${(%):-%x}
 
   local args=("$@[@]")
