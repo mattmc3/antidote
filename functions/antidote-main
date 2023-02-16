@@ -13,7 +13,6 @@ function __antidote_setup {
 
   # setup
   0=${(%):-%x}
-  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   setopt extended_glob
 
   # man pages
@@ -73,6 +72,8 @@ function __antidote_bundle_type {
 
 ### Get the short name of the bundle
 function __antidote_bundle_name {
+  emulate -L zsh; setopt $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   local bundle=$1
   local bundle_type="$(__antidote_bundle_type $bundle)"
   if [[ "$bundle_type" == (url|sshurl) ]] ; then
@@ -93,8 +94,8 @@ function __antidote_bundledir {
   # `$ANTIDOTE_HOME/zsh-users/zsh-autosuggestions`
   # If the bundle is a file, use its parent directory.
   # Otherwise, just assume the bundle is a directory.
-
   emulate -L zsh; setopt $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
   local bundle="$1"
   local bundle_type="$(__antidote_bundle_type $bundle)"
