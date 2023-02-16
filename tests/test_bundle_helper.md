@@ -1,4 +1,4 @@
-# antidote bundle tests
+# antidote bundle helper tests
 
 ## Setup
 
@@ -38,6 +38,8 @@ Test empty
 
 ### Filter dupe defers
 
+Test that only the first defer block is kept...
+
 ```zsh
 % awk -f $AWKDIR/filter-extra-defers.awk $TESTDIR/testdata/.zsh_plugins_multi_defer.zsh | subvar ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search )
@@ -67,24 +69,12 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z/z.
 %
 ```
 
-```zsh
-% awk -f $AWKDIR/filter-extra-defers.awk $TESTDIR/testdata/.zsh_plugins_no_defer.zsh | subvar ANTIDOTE_HOME  #=> --file ./testdata/.zsh_plugins_no_defer.zsh
-%
-```
-
-## Kind Annotations
+Test that with no defers, nothing is altered...
 
 ```zsh
-% echo 'foo/bar' | antidote bundle | subvar ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+% awk -f $AWKDIR/filter-extra-defers.awk $TESTDIR/testdata/.zsh_plugins_no_defer.zsh  #=> --file testdata/.zsh_plugins_no_defer.zsh
 %
 ```
-
-TODO:
-antidote bundle foo/bar
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
 
 ## Teardown
 
