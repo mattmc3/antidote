@@ -4,6 +4,13 @@ setopt extended_glob
 
 cd ${0:A:h:h}
 
+testfiles=()
+if (( $# > 0 )); then
+  testfiles=($@)
+else
+  testfiles=($PWD/tests/*.md~*_local.md)
+fi
+
 # foo example test command
 # env -i PATH=$PATH FPATH=$FPATH \
 #  zsh -f -- =clitest --list-run --progress dot --prompt '%' --color always $PWD/tests/foo.md
@@ -14,4 +21,4 @@ env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
         --list-run --progress dot --prompt '%' \
         --color always \
         --pre-flight 'git --version; print $PWD $VENDOR $OSTYPE =zsh $ZSH_VERSION $ZSH_PATCHLEVEL' \
-        -- $PWD/tests/*.md~*_local.md
+        -- $testfiles
