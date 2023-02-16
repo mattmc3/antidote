@@ -12,25 +12,6 @@
 
 ## Awk parsers
 
-### Bundle parser
-
-The bundle parser is an awk script that turns the bundle DSL into antidote-script statements.
-
-```zsh
-% awk -f $AWKDIR/bundle-parser.awk $ZDOTDIR/.zsh_plugins.txt
-antidote-script foo/bar
-antidote-script git@github.com:baz/qux.git
-antidote-script --kind clone romkatv/zsh-defer
-antidote-script --kind zsh foo/bar
-antidote-script --kind fpath foo/bar
-antidote-script --kind path foo/bar
-antidote-script --path lib ohmy/ohmy
-antidote-script --path plugins/extract ohmy/ohmy
-antidote-script --path plugins/magic-enter --kind defer ohmy/ohmy
-antidote-script --path custom/themes/pretty.zsh-theme ohmy/ohmy
-%
-```
-
 ### Get bundle repos
 
 The repo parser pulls a list of all git URLs in a bundle file so that we can clone missing ones in parallel.
@@ -104,85 +85,6 @@ TODO:
 antidote bundle foo/bar
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
-
-## Private functions
-
-### __antidote_bundledir
-
-short repo
-
-```zsh
-% __antidote_bundledir foo/bar | subvar ANTIDOTE_HOME
-$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
-%
-```
-
-repo url
-
-```zsh
-% __antidote_bundledir https://github.com/foo/bar | subvar ANTIDOTE_HOME
-$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
-%
-```
-
-repo url.git
-
-```zsh
-% __antidote_bundledir https://github.com/foo/bar.git | subvar ANTIDOTE_HOME
-$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
-%
-```
-
-repo ssh
-
-```zsh
-% __antidote_bundledir git@github.com:foo/bar.git | subvar ANTIDOTE_HOME
-$ANTIDOTE_HOME/git-AT-github.com-COLON-foo-SLASH-bar
-%
-```
-
-short repo - friendly name
-
-```zsh
-% zstyle ':antidote:bundle' use-friendly-names on
-% __antidote_bundledir foo/bar | subvar ANTIDOTE_HOME
-$ANTIDOTE_HOME/foo/bar
-%
-```
-
-repo url - friendly name
-
-```zsh
-% zstyle ':antidote:bundle' use-friendly-names on
-% __antidote_bundledir https://github.com/bar/baz | subvar ANTIDOTE_HOME
-$ANTIDOTE_HOME/bar/baz
-%
-```
-
-ssh repo - friendly name
-
-```zsh
-% zstyle ':antidote:bundle' use-friendly-names on
-% __antidote_bundledir git@github.com:baz/qux.git | subvar ANTIDOTE_HOME
-$ANTIDOTE_HOME/baz/qux
-%
-```
-
-local dir
-
-```zsh
-% __antidote_bundledir ~/foo/bar | subvar HOME
-$HOME/foo/bar
-%
-```
-
-another local dir
-
-```zsh
-% __antidote_bundledir $ZDOTDIR/bar/baz | subvar ZDOTDIR
-$ZDOTDIR/bar/baz
-%
-```
 
 ## Teardown
 
