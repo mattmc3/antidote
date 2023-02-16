@@ -1,0 +1,11 @@
+#!/bin/zsh
+function t_setup_real {
+  # undo setup so we clone for real
+  zstyle ':antidote:tests' cloning 'on'
+  unfunction git
+
+  # clean out antidote home
+  rm -rf -- "$ANTIDOTE_HOME"
+  mkdir -p "$ANTIDOTE_HOME"
+}
+t_setup_real "$@"

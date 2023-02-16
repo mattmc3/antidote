@@ -1,0 +1,15 @@
+https://github.com/dracula/zsh                                   $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-dracula-SLASH-zsh
+https://github.com/mattmc3/antidote                              $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-antidote
+https://github.com/mattmc3/zman                                  $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zman
+https://github.com/ohmyzsh/ohmyzsh                               $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh
+https://github.com/peterhurford/up.zsh                           $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-peterhurford-SLASH-up.zsh
+https://github.com/romkatv/zsh-bench                             $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-bench
+https://github.com/romkatv/zsh-defer                             $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer
+https://github.com/rummik/zsh-tailf                              $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rummik-SLASH-zsh-tailf
+https://github.com/rupa/z                                        $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z
+https://github.com/sindresorhus/pure                             $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-sindresorhus-SLASH-pure
+https://github.com/zdharma-continuum/fast-syntax-highlighting    $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zdharma-continuum-SLASH-fast-syntax-highlighting
+https://github.com/zsh-users/antigen                             $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-antigen
+https://github.com/zsh-users/zsh-autosuggestions                 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
+https://github.com/zsh-users/zsh-history-substring-search        $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search
+https://github.com/zsh-users/zsh-syntax-highlighting             $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-syntax-highlighting
