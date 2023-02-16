@@ -7,7 +7,7 @@ function __antidote_setup {
   # pre-reqs
   autoload -Uz is-at-least
   if ! is-at-least 5.4.2; then
-    echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting >5.4.2."
+    echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >5.4.2."
     return 1
   fi
 
@@ -28,7 +28,7 @@ function __antidote_setup {
     typeset -gHa _adote_zparopt_flags=( -D -M )
   fi
 
-  typeset -gHa _adote_funcopts=( local_options extended_glob no_monitor )
+  typeset -gHa _adote_funcopts=( extended_glob no_monitor )
   if zstyle -t ':antidote:tests' set-warn-options; then
     typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
   fi
@@ -69,6 +69,20 @@ function __antidote_bundle_type {
   fi
   typeset -g REPLY=$result
   echo $result
+}
+
+### Get the short name of the bundle
+function __antidote_bundle_name {
+  local bundle=$1
+  local bundle_type="$(__antidote_bundle_type $bundle)"
+  if [[ "$bundle_type" == (url|sshurl) ]] ; then
+    bundle=${bundle%.git}
+    bundle=${bundle:gs/\:/\/}
+    local parts=(${(ps./.)bundle})
+    echo ${parts[-2]}/${parts[-1]}
+  else
+    echo $bundle | sed -e "s|^\~/|$HOME/|" -e "s|^$HOME|\$HOME|"
+  fi
 }
 
 ### Get the name of the bundle dir.
