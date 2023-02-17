@@ -3,7 +3,7 @@
 ## Setup
 
 ```zsh
-% source $PWD/tests/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 
@@ -21,7 +21,7 @@ Trying to install an existing bundle fails.
 
 ```zsh
 % antidote install foo/bar &>/dev/null  #=> --exit 1
-% antidote install foo/bar 2>&1 | subvar ANTIDOTE_HOME >&2
+% antidote install foo/bar 2>&1 | subenv ANTIDOTE_HOME >&2
 antidote: error: foo/bar already installed: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 %
 ```
@@ -29,7 +29,7 @@ antidote: error: foo/bar already installed: $ANTIDOTE_HOME/https-COLON--SLASH--S
 Install a bundle
 
 ```zsh
-% antidote install rupa/z | subvar ZDOTDIR
+% antidote install rupa/z | subenv ZDOTDIR
 # antidote cloning rupa/z...
 Adding bundle to '$ZDOTDIR/.zsh_plugins.txt':
 rupa/z
@@ -41,7 +41,7 @@ rupa/z
 Install a complicated bundle
 
 ```zsh
-% antidote install --path plugins/macos --conditional is-macos ohmyzsh/ohmyzsh | subvar ZDOTDIR
+% antidote install --path plugins/macos --conditional is-macos ohmyzsh/ohmyzsh | subenv ZDOTDIR
 # antidote cloning ohmyzsh/ohmyzsh...
 Adding bundle to '$ZDOTDIR/.zsh_plugins.txt':
 ohmyzsh/ohmyzsh path:plugins/macos conditional:is-macos

@@ -3,10 +3,9 @@
 ## Setup
 
 ```zsh
-% TESTDIR=$PWD/tests
 % echo $+functions[antidote]
 0
-% source $TESTDIR/scripts/setup.zsh
+% source ./tests/_setup.zsh
 % echo $+functions[antidote]
 1
 % git --version

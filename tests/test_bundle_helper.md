@@ -3,10 +3,9 @@
 ## Setup
 
 ```zsh
-% TESTDIR=$PWD/tests
 % AWKDIR=$PWD/functions/scripts
-% TESTDATA=$TESTDIR/testdata
-% source $TESTDIR/scripts/setup.zsh
+% TESTDATA=$PWD/tests/testdata
+% source ./tests/_setup.zsh
 %
 ```
 
@@ -41,7 +40,7 @@ Test empty
 Test that only the first defer block is kept...
 
 ```zsh
-% awk -f $AWKDIR/filter-extra-defers.awk $TESTDIR/testdata/.zsh_plugins_multi_defer.zsh | subvar ANTIDOTE_HOME
+% awk -f $AWKDIR/filter-extra-defers.awk $PWD/tests/testdata/.zsh_plugins_multi_defer.zsh | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search/zsh-history-substring-search.plugin.zsh
 if ! (( $+functions[zsh-defer] )); then
@@ -72,7 +71,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z/z.
 Test that with no defers, nothing is altered...
 
 ```zsh
-% awk -f $AWKDIR/filter-extra-defers.awk $TESTDIR/testdata/.zsh_plugins_no_defer.zsh  #=> --file testdata/.zsh_plugins_no_defer.zsh
+% awk -f $AWKDIR/filter-extra-defers.awk $PWD/tests/testdata/.zsh_plugins_no_defer.zsh  #=> --file testdata/.zsh_plugins_no_defer.zsh
 %
 ```
 

@@ -3,7 +3,7 @@
 ## Setup
 
 ```zsh
-% source $PWD/tests/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 
@@ -23,7 +23,7 @@ handling a single bundle, and 'antidote bundle' handling them in bulk.
 
 ```zsh
 % antidote bundle <$ZDOTDIR/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh
-% cat $ZDOTDIR/.zsh_plugins.zsh | subvar ANTIDOTE_HOME  #=> --file testdata/.zsh_plugins.zsh
+% cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME  #=> --file testdata/.zsh_plugins.zsh
 %
 ```
 
@@ -32,10 +32,10 @@ handling a single bundle, and 'antidote bundle' handling them in bulk.
 Test \|piping, \<redirection, and --args
 
 ```zsh
-% antidote bundle foo/bar | subvar ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
-% echo 'foo/bar' | antidote bundle | subvar ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
+% antidote bundle foo/bar | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
+% echo 'foo/bar' | antidote bundle | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
 % echo 'foo/bar' >$ZDOTDIR/.zsh_plugins_simple.txt
-% antidote bundle <$ZDOTDIR/.zsh_plugins_simple.txt | subvar ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
+% antidote bundle <$ZDOTDIR/.zsh_plugins_simple.txt | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
 %
 ```
 

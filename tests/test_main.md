@@ -3,7 +3,7 @@
 ## Setup
 
 ```zsh
-% source $PWD/tests/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 
@@ -95,22 +95,22 @@ foo bar baz
 
 ```zsh
 % # short repo
-% __antidote_bundledir foo/bar | subvar ANTIDOTE_HOME
+% __antidote_bundledir foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 % # repo url
-% __antidote_bundledir https://github.com/foo/bar | subvar ANTIDOTE_HOME
+% __antidote_bundledir https://github.com/foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 % # repo url.git
-% __antidote_bundledir https://github.com/foo/bar.git | subvar ANTIDOTE_HOME
+% __antidote_bundledir https://github.com/foo/bar.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 % # repo ssh
-% __antidote_bundledir git@github.com:foo/bar.git | subvar ANTIDOTE_HOME
+% __antidote_bundledir git@github.com:foo/bar.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/git-AT-github.com-COLON-foo-SLASH-bar
 % # local dir
-% __antidote_bundledir ~/foo/bar | subvar HOME
+% __antidote_bundledir ~/foo/bar | subenv HOME
 $HOME/foo/bar
 % # another local dir
-% __antidote_bundledir $ZDOTDIR/bar/baz | subvar ZDOTDIR
+% __antidote_bundledir $ZDOTDIR/bar/baz | subenv ZDOTDIR
 $ZDOTDIR/bar/baz
 %
 ```
@@ -120,13 +120,13 @@ Use friendly names
 ```zsh
 % # short repo - friendly name
 % zstyle ':antidote:bundle' use-friendly-names on
-% __antidote_bundledir foo/bar | subvar ANTIDOTE_HOME
+% __antidote_bundledir foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/foo/bar
 % # repo url - friendly name
-% __antidote_bundledir https://github.com/bar/baz | subvar ANTIDOTE_HOME
+% __antidote_bundledir https://github.com/bar/baz | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/bar/baz
 % # ssh repo - friendly name
-% __antidote_bundledir git@github.com:baz/qux.git | subvar ANTIDOTE_HOME
+% __antidote_bundledir git@github.com:baz/qux.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/baz/qux
 %
 ```

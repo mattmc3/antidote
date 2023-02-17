@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 0=${(%):-%x}
-autoload -Uz ${0:A:h}/functions/testinit && testinit
-ztap_header "${0:t:r}"
+autoload -Uz ${0:A:h:h}/functions/testinit && testinit
+#ztap_header "${0:t:r}"
 
 # setup
 source $BASEDIR/antidote.zsh

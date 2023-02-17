@@ -26,7 +26,7 @@ source ./antidote.zsh
 But you probably just want to source setup...
 
 ```zsh
-% source $PWD/tests/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 

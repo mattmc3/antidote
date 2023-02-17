@@ -3,8 +3,7 @@
 ## Setup
 
 ```zsh
-% TESTDIR=$PWD/tests
-% source $TESTDIR/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 
@@ -32,7 +31,7 @@
 
 ```zsh
 % ANTIDOTE_HOME=$HOME/.cache/antidote
-% antidote home | subvar HOME
+% antidote home | subenv HOME
 $HOME/.cache/antidote
 % unset ANTIDOTE_HOME
 %
@@ -42,7 +41,7 @@ $HOME/.cache/antidote
 
 ```zsh
 % OLD_OSTYPE=$OSTYPE; OSTYPE=darwin21.3.0
-% antidote home | subvar HOME
+% antidote home | subenv HOME
 $HOME/Library/Caches/antidote
 % OSTYPE=$OLD_OSTYPE
 %
@@ -53,7 +52,7 @@ $HOME/Library/Caches/antidote
 ```zsh
 % OLD_OSTYPE=$OSTYPE; OSTYPE=msys
 % LOCALAPPDATA=$HOME/AppData
-% antidote home | subvar HOME
+% antidote home | subenv HOME
 $HOME/AppData/antidote
 % OSTYPE=$OLD_OSTYPE
 %
@@ -66,7 +65,7 @@ $HOME/AppData/antidote
 % OLD_OSTYPE=$OSTYPE; OSTYPE=foobar
 % OLD_XDG_CACHE_HOME=$XDG_CACHE_HOME; XDG_CACHE_HOME=$HOME/.xdg-cache
 % # Run test
-% antidote home | subvar XDG_CACHE_HOME
+% antidote home | subenv XDG_CACHE_HOME
 $XDG_CACHE_HOME/antidote
 % # Teardown
 % OSTYPE=$OLD_OSTYPE; XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME
@@ -80,7 +79,7 @@ $XDG_CACHE_HOME/antidote
 % OLD_OSTYPE=$OSTYPE; OSTYPE=foobar
 % OLD_XDG_CACHE_HOME=$XDG_CACHE_HOME; XDG_CACHE_HOME=
 % # Run test
-% antidote home | subvar HOME
+% antidote home | subenv HOME
 $HOME/.cache/antidote
 % # Teardown
 % OSTYPE=$OLD_OSTYPE; XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME

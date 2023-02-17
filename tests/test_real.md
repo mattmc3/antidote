@@ -6,7 +6,7 @@
 
 ```zsh
 % TESTDATA=$PWD/tests/testdata/real
-% source $PWD/tests/scripts/setup.zsh
+% source ./tests/_setup.zsh
 % # do it for real!
 % t_setup_real
 %
@@ -18,14 +18,14 @@ Clone and generate bundle script
 
 ```zsh
 $ antidote bundle <$TESTDATA/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
-$ cat $ZDOTDIR/.zsh_plugins.zsh | subvar ANTIDOTE_HOME  #=> --file testdata/real/.zsh_plugins.zsh
+$ cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME  #=> --file testdata/real/.zsh_plugins.zsh
 $
 ```
 
 Check to see that everything cloned
 
 ```zsh
-$ antidote list | subvar ANTIDOTE_HOME  #=> --file testdata/real/repo-list.txt
+$ antidote list | subenv ANTIDOTE_HOME  #=> --file testdata/real/repo-list.txt
 $
 ```
 
@@ -51,7 +51,7 @@ $
 
 ```zsh
 % TESTDATA=$PWD/tests/testdata/real
-% source $PWD/tests/scripts/setup.zsh
+% source ./tests/_setup.zsh
 % t_setup_real
 %
 ```
@@ -89,12 +89,12 @@ completions are not in fpath
 ```zsh
 % wc -l <$ZDOTDIR/.zsh_plugins.txt | sed 's/ //g'
 1
-% cat $ZDOTDIR/.zsh_plugins.zsh | subvar ANTIDOTE_HOME
+% cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/rupa/z )
 source $ANTIDOTE_HOME/rupa/z/z.sh
 % echo "zsh-users/zsh-completions path:src kind:fpath" >> $ZDOTDIR/.zsh_plugins.txt
 % # static cache file hasn't changed yet
-% cat $ZDOTDIR/.zsh_plugins.zsh | subvar ANTIDOTE_HOME
+% cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/rupa/z )
 source $ANTIDOTE_HOME/rupa/z/z.sh
 %
@@ -105,7 +105,7 @@ source $ANTIDOTE_HOME/rupa/z/z.sh
 ```zsh
 % antidote load 2>&1
 # antidote cloning https://github.com/zsh-users/zsh-completions...
-% cat $ZDOTDIR/.zsh_plugins.zsh | subvar ANTIDOTE_HOME
+% cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/rupa/z )
 source $ANTIDOTE_HOME/rupa/z/z.sh
 fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-completions/src )

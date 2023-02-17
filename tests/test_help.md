@@ -3,8 +3,7 @@
 ## Setup
 
 ```zsh
-% TESTDIR=$PWD/tests
-% source $TESTDIR/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 

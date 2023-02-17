@@ -25,7 +25,6 @@ buildman:
 
 ##? test        run tests
 test:
-	./tools/run-ztap-tests
 	./tools/run-clitests
 
 ##? bump-maj    bump the major version (X.0.0)

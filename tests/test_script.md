@@ -3,7 +3,7 @@
 ## Setup
 
 ```zsh
-% source $PWD/tests/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 
@@ -36,7 +36,7 @@ antidote: error: bundle argument expected
 Script a file:
 
 ```zsh
-% antidote-script $ZDOTDIR/aliases.zsh | subvar ZDOTDIR
+% antidote-script $ZDOTDIR/aliases.zsh | subenv ZDOTDIR
 source $ZDOTDIR/aliases.zsh
 %
 ```
@@ -44,7 +44,7 @@ source $ZDOTDIR/aliases.zsh
 Script a lib directory:
 
 ```zsh
-% antidote-script $ZDOTDIR/custom/lib | subvar ZDOTDIR
+% antidote-script $ZDOTDIR/custom/lib | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/custom/lib )
 source $ZDOTDIR/custom/lib/lib1.zsh
 source $ZDOTDIR/custom/lib/lib2.zsh
@@ -54,7 +54,7 @@ source $ZDOTDIR/custom/lib/lib2.zsh
 Script a plugin directory:
 
 ```zsh
-% antidote-script $ZDOTDIR/custom/plugins/myplugin | subvar ZDOTDIR
+% antidote-script $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/custom/plugins/myplugin )
 source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 %
@@ -63,10 +63,10 @@ source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 Script repos:
 
 ```zsh
-% antidote-script foo/bar                        | subvar ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script https://github.com/foo/bar     | subvar ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script https://github.com/foo/bar.git | subvar ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script git@github.com:baz/qux.git     | subvar ANTIDOTE_HOME  #=> --file ./testdata/script-bazqux.zsh
+% antidote-script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
+% antidote-script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
+% antidote-script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
+% antidote-script git@github.com:baz/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-bazqux.zsh
 ```
 
 ## Annotations
@@ -91,7 +91,7 @@ Clone a missing plugin.
 ### kind:zsh
 
 ```zsh
-% antidote-script --kind zsh foo/bar | subvar ANTIDOTE_HOME
+% antidote-script --kind zsh foo/bar | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
 %
@@ -100,7 +100,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/b
 ### kind:path
 
 ```zsh
-% antidote-script --kind path foo/bar | subvar ANTIDOTE_HOME
+% antidote-script --kind path foo/bar | subenv ANTIDOTE_HOME
 export PATH="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar:$PATH"
 %
 ```
@@ -108,7 +108,7 @@ export PATH="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH
 ### kind:fpath
 
 ```zsh
-% antidote-script --kind fpath foo/bar | subvar ANTIDOTE_HOME
+% antidote-script --kind fpath foo/bar | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 %
 ```
@@ -116,7 +116,7 @@ fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 ### kind:autoload
 
 ```zsh
-% antidote-script --kind autoload $ZDOTDIR/functions | subvar ZDOTDIR
+% antidote-script --kind autoload $ZDOTDIR/functions | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/functions )
 autoload -Uz $fpath[-1]/*(N.:t)
 %
@@ -125,7 +125,7 @@ autoload -Uz $fpath[-1]/*(N.:t)
 ### kind:defer
 
 ```zsh
-% antidote-script --kind defer foo/bar | subvar ANTIDOTE_HOME
+% antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
   source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh
@@ -140,7 +140,7 @@ Test defer zstyle settings
 ```zsh
 % zstyle ':antidote:plugin:*' defer-options '-a'
 % zstyle ':antidote:plugin:foo/bar' defer-options '-p'
-% antidote-script --kind defer foo/bar | subvar ANTIDOTE_HOME
+% antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
   source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh
@@ -149,7 +149,7 @@ fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 zsh-defer -p source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
 %
 % # Uses different defer options due to zstyle matching
-% antidote-script --kind defer bar/baz | subvar ANTIDOTE_HOME
+% antidote-script --kind defer bar/baz | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
   source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh
@@ -162,7 +162,7 @@ zsh-defer -a source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ba
 ### path:plugin-dir
 
 ```zsh
-% antidote-script --path plugins/extract ohmy/ohmy | subvar ANTIDOTE_HOME
+% antidote-script --path plugins/extract ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/extract )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/extract/extract.plugin.zsh
 %
@@ -171,7 +171,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ### path:file
 
 ```zsh
-% antidote-script --path lib/lib1.zsh ohmy/ohmy | subvar ANTIDOTE_HOME
+% antidote-script --path lib/lib1.zsh ohmy/ohmy | subenv ANTIDOTE_HOME
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib1.zsh
 %
 ```
@@ -179,7 +179,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ### path:lib-dir
 
 ```zsh
-% antidote-script --path lib ohmy/ohmy | subvar ANTIDOTE_HOME
+% antidote-script --path lib ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib1.zsh
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib2.zsh
@@ -190,7 +190,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ### path:theme
 
 ```zsh
-% antidote-script --path themes/pretty.zsh-theme ohmy/ohmy | subvar ANTIDOTE_HOME
+% antidote-script --path themes/pretty.zsh-theme ohmy/ohmy | subenv ANTIDOTE_HOME
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/themes/pretty.zsh-theme
 %
 ```
@@ -198,7 +198,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ### conditional:testfunc
 
 ```zsh
-% antidote-script --conditional is-macos --path plugins/macos ohmy/ohmy | subvar ANTIDOTE_HOME
+% antidote-script --conditional is-macos --path plugins/macos ohmy/ohmy | subenv ANTIDOTE_HOME
 if is-macos; then
   fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos )
   source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos/macos.plugin.zsh
@@ -209,7 +209,7 @@ fi
 ### autoload:funcdir
 
 ```zsh
-% antidote-script --path plugins/macos --autoload functions ohmy/ohmy | subvar ANTIDOTE_HOME
+% antidote-script --path plugins/macos --autoload functions ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos/functions )
 autoload -Uz $fpath[-1]/*(N.:t)
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos )
@@ -244,7 +244,7 @@ setup
 myplugin.plugin.zsh
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/myplugin.plugin.zsh
 % rm $PLUGINDIR/myplugin.plugin.zsh
 %
@@ -253,7 +253,7 @@ $PLUGINDIR/myplugin.plugin.zsh
 whatever.plugin.zsh
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/whatever.plugin.zsh
 % rm $PLUGINDIR/whatever.plugin.zsh
 %
@@ -262,7 +262,7 @@ $PLUGINDIR/whatever.plugin.zsh
 file.zsh
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/file.zsh
 % rm $PLUGINDIR/file.zsh
 %
@@ -271,7 +271,7 @@ $PLUGINDIR/file.zsh
 file.sh
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/file.sh
 % rm $PLUGINDIR/file.sh
 %
@@ -280,7 +280,7 @@ $PLUGINDIR/file.sh
 mytheme.zsh-theme
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subvar PLUGINDIR
+% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/mytheme.zsh-theme
 % rm $PLUGINDIR/mytheme.zsh-theme
 %
@@ -289,7 +289,7 @@ $PLUGINDIR/mytheme.zsh-theme
 lib
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR/lib | subvar PLUGINDIR
+% __antidote_initfiles $PLUGINDIR/lib | subenv PLUGINDIR
 $PLUGINDIR/lib/lib1.zsh
 $PLUGINDIR/lib/lib2.zsh
 $PLUGINDIR/lib/lib3.zsh

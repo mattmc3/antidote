@@ -3,8 +3,7 @@
 ## Setup
 
 ```zsh
-% TESTDIR=$PWD/tests
-% source $TESTDIR/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 
@@ -14,7 +13,7 @@
 
 ```zsh
 % antidote path foo/bar &>/dev/null  #=> --exit 0
-% antidote path foo/bar | subvar ANTIDOTE_HOME
+% antidote path foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 %
 ```

@@ -5,7 +5,7 @@
 ```zsh
 % AWKDIR=$PWD/functions/scripts
 % TESTDATA=$PWD/tests/testdata
-% source $PWD/tests/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 

@@ -3,8 +3,7 @@
 ## Setup
 
 ```zsh
-% TESTDIR=$PWD/tests
-% source $TESTDIR/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 
@@ -15,7 +14,7 @@
 `antidote list --short`
 
 ```zsh
-% antidote list --short | subvar ANTIDOTE_HOME
+% antidote list --short | subenv ANTIDOTE_HOME
 bar/baz
 foo/bar
 git@github.com:baz/qux
@@ -29,7 +28,7 @@ romkatv/zsh-defer
 `antidote list --dirs`
 
 ```zsh
-% antidote list --dirs | subvar ANTIDOTE_HOME
+% antidote list --dirs | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
@@ -43,7 +42,7 @@ $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defe
 `antidote list`
 
 ```zsh
-% antidote list | subvar ANTIDOTE_HOME
+% antidote list | subenv ANTIDOTE_HOME
 git@github.com:baz/qux                                           $ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux
 https://github.com/bar/baz                                       $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz
 https://github.com/foo/bar                                       $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar

@@ -3,8 +3,7 @@
 ## Setup
 
 ```zsh
-% TESTDIR=$PWD/tests
-% source $TESTDIR/scripts/setup.zsh
+% source ./tests/_setup.zsh
 %
 ```
 
@@ -23,7 +22,7 @@ Trying to purge a missing bundle fails.
 
 ```zsh
 % antidote purge bar/foo &>/dev/null  #=> --exit 1
-% antidote purge bar/foo 2>&1 | subvar ANTIDOTE_HOME >&2
+% antidote purge bar/foo 2>&1 | subenv ANTIDOTE_HOME >&2
 antidote: error: bar/foo does not exist at the expected location: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-foo
 %
 ```
@@ -35,7 +34,7 @@ Purging a bundle deletes the directory and comments out instances of the bundle 
 % bundledir=$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 % test -d $bundledir  #=> --exit 0
 % # purge works
-% antidote purge foo/bar | subvar ZDOTDIR
+% antidote purge foo/bar | subenv ZDOTDIR
 Removed 'foo/bar'.
 Bundle 'foo/bar' was commented out in '$ZDOTDIR/.zsh_plugins.txt'.
 % # bundle dir was removed
