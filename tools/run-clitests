@@ -1,0 +1,29 @@
+#!/usr/bin/env zsh
+0=${(%):-%x}
+setopt extended_glob
+
+cd ${0:A:h:h}
+
+local o_unit
+zparseopts -D -M -- -unit=o_unit || return 1
+
+testfiles=()
+if (( $# > 0 )); then
+  testfiles=($@)
+elif (( $#o_unit )); then
+  testfiles=($PWD/tests/*.md~test_real*.md)
+else
+  testfiles=($PWD/tests/*.md)
+fi
+
+# foo example test command
+# env -i PATH=$PATH FPATH=$FPATH \
+#  zsh -f -- =clitest --list-run --progress dot --prompt '%' --color always $PWD/tests/foo.md
+
+env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
+    zsh -f -- \
+    =clitest \
+        --list-run --progress dot --prompt '%' \
+        --color always \
+        --pre-flight 'git --version; print $PWD $VENDOR $OSTYPE =zsh $ZSH_VERSION $ZSH_PATCHLEVEL' \
+        -- $testfiles

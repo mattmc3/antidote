@@ -7,7 +7,6 @@
 function antidote-update {
   0=${(%):-%x}
   emulate -L zsh; setopt $_adote_funcopts
-  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
   local o_help o_self o_bundles
   zparseopts $_adote_zparopt_flags -- \

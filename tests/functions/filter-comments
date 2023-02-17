@@ -1,0 +1,5 @@
+#!/bin/zsh
+function filter-comments {
+  awk '/^A/{next};1'
+}
+filter-comments "$@"

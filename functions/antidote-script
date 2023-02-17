@@ -66,6 +66,7 @@ function antidote-script {
   if [[ -z "$bundle" ]]; then
     echo >&2 "antidote: error: bundle argument expected" && return 1
   fi
+  local bundle_name=$(__antidote_bundle_name $bundle)
 
   # replace ~/ with $HOME/
   if [[ "$bundle" == '~/'* ]]; then
@@ -134,6 +135,9 @@ function antidote-script {
       script+="$source_cmd $initfile"
     done
   fi
+
+  # mark bundle as loaded
+  # script+="zstyle ':antidote:plugin:${bundle_name}' loaded yes"
 
   # wrap conditional
   if [[ -n "$o_cond[-1]" ]]; then

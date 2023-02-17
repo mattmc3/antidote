@@ -7,13 +7,12 @@ function __antidote_setup {
   # pre-reqs
   autoload -Uz is-at-least
   if ! is-at-least 5.4.2; then
-    echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting >5.4.2."
+    echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >5.4.2."
     return 1
   fi
 
   # setup
   0=${(%):-%x}
-  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   setopt extended_glob
 
   # man pages
@@ -28,7 +27,7 @@ function __antidote_setup {
     typeset -gHa _adote_zparopt_flags=( -D -M )
   fi
 
-  typeset -gHa _adote_funcopts=( local_options extended_glob no_monitor )
+  typeset -gHa _adote_funcopts=( extended_glob no_monitor )
   if zstyle -t ':antidote:tests' set-warn-options; then
     typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
   fi
@@ -71,6 +70,22 @@ function __antidote_bundle_type {
   echo $result
 }
 
+### Get the short name of the bundle
+function __antidote_bundle_name {
+  emulate -L zsh; setopt $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+  local bundle=$1
+  local bundle_type="$(__antidote_bundle_type $bundle)"
+  if [[ "$bundle_type" == (url|sshurl) ]] ; then
+    bundle=${bundle%.git}
+    bundle=${bundle:gs/\:/\/}
+    local parts=(${(ps./.)bundle})
+    echo ${parts[-2]}/${parts[-1]}
+  else
+    echo $bundle | sed -e "s|^\~/|$HOME/|" -e "s|^$HOME|\$HOME|"
+  fi
+}
+
 ### Get the name of the bundle dir.
 function __antidote_bundledir {
   # If the bundle is a repo/URL, then by default we use the legacy antibody format:
@@ -79,8 +94,8 @@ function __antidote_bundledir {
   # `$ANTIDOTE_HOME/zsh-users/zsh-autosuggestions`
   # If the bundle is a file, use its parent directory.
   # Otherwise, just assume the bundle is a directory.
-
   emulate -L zsh; setopt $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
   local bundle="$1"
   local bundle_type="$(__antidote_bundle_type $bundle)"
@@ -176,7 +191,7 @@ function antidote-main {
     return 1
 
   if (( ${#o_version} )); then
-    local ver='1.7.5'
+    local ver='1.7.6'
     local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
     echo "antidote version $ver"

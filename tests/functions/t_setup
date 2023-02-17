@@ -1,0 +1,31 @@
+#!/bin/zsh
+function t_setup {
+  0=${(%):-%x}
+  local prjdir="${0:A:h:h:h}"
+  local testdir="${0:A:h:h}"
+
+  # mock git
+  function git { mockgit "$@" }
+
+  # works with BSD and GNU gmktemp
+  T_TEMPDIR="$(mktemp -d -t t_antidote.XXXXXXXX)"
+  T_TEMPDIR=${T_TEMPDIR:A}
+
+  # put zdotdir in position
+  cp -rf $testdir/zdotdir $T_TEMPDIR
+  typeset -g OLD_ZDOTDIR=$ZDOTDIR
+  export ZDOTDIR=$T_TEMPDIR/zdotdir
+
+  # save in-place antidote zstyles and remove everything for current session
+  zstyle -L ':antidote:*' >$ZDOTDIR/.zstyles
+  source <(zstyle -L ':antidote:*' | awk '{print "zstyle -d",$2}')
+
+  # setup antidote
+  zstyle ':antidote:tests' set-warn-options 'on'
+  zstyle ':antidote:tests' cloning 'off'
+
+  # load antidote
+  ANTIDOTE_HOME=$ZDOTDIR/antidote_home
+  source antidote.zsh
+}
+t_setup "$@"

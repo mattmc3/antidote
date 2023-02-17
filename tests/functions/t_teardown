@@ -1,0 +1,25 @@
+#!/bin/zsh
+
+function t_teardown {
+  emulate -L zsh
+  setopt local_options
+
+  # remove tests styles
+  zstyle -d ':antidote:tests'
+
+  # reset current session
+  [[ -f $ZDOTDIR/.zstyles ]] && source $ZDOTDIR/.zstyles
+  ZDOTDIR=$OLD_ZDOTDIR
+
+  # unfunction antidote
+  for fn in ${(k)functions}; do
+    if [[ $fn == *antidote* ]]; then
+      unfunction $fn
+    fi
+  done
+  (( $+functions[git] )) && unfunction git
+
+  # remove tempdir
+  [[ -d "$T_TEMPDIR" ]] && rm -rf -- "$T_TEMPDIR"
+}
+t_teardown "$@"
