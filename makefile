@@ -16,7 +16,7 @@ help:
 ##? build       run build tasks like generating man pages
 build:
 	./tools/buildman
-	./tools/runtests
+	./tools/run-clitests
 	./tools/bumpver revision
 
 ##? buildman    rebuild man pages

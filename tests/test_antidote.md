@@ -70,7 +70,7 @@ No arg exit status is 2:
 
 ```zsh
 % antidote --version
-antidote version 1.7.5
+antidote version 1.7.6
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?
