@@ -23,6 +23,7 @@ handling a single bundle, and 'antidote bundle' handling them in bulk.
 
 ```zsh
 % antidote bundle <$ZDOTDIR/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh
+% cat $ZDOTDIR/.zsh_plugins.zsh | subvar ANTIDOTE_HOME  #=> --file testdata/.zsh_plugins.zsh
 %
 ```
 
