@@ -121,6 +121,7 @@ antidote: command not found 'foo'
 1
 1
 1
+1
 0
 %
 ```
