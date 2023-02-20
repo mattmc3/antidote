@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote list [-h|-\-help] [-s|-\-short] [-d|-\-dirs]
+| antidote list [-h|-\-help] [-s|-\-short] [-d|-\-dirs] [-u|-\-url]
 
 # DESCRIPTION
 
@@ -26,3 +26,6 @@ header: Antidote Manual
 
 -d, \--dirs
 :   Show only bundle directories.
+
+-u, \--url
+:   Show plugin URLs.

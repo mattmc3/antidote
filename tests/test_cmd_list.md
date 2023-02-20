@@ -37,6 +37,20 @@ $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defe
 %
 ```
 
+### URLs
+
+`antidote list --url`
+
+```zsh
+% antidote list --url
+git@github.com:baz/qux
+https://github.com/bar/baz
+https://github.com/foo/bar
+https://github.com/ohmy/ohmy
+https://github.com/romkatv/zsh-defer
+%
+```
+
 ### Full
 
 `antidote list`

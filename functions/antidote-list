@@ -2,15 +2,16 @@
 
 ### List cloned bundles.
 #
-# usage: antidote list [-h|--help]
+# usage: antidote list [-h|--help] [-s|--short] [-d|--dirs] [-u|--url]
 #
 function antidote-list {
   emulate -L zsh; setopt $_adote_funcopts
 
-  local o_help o_short o_dirs
+  local o_help o_short o_url o_dirs
   zparseopts $_adote_zparopt_flags -- \
     h=o_help  -help=h  \
     s=o_short -short=s \
+    u=o_url   -url=u   \
     d=o_dirs  -dirs=d  ||
     return 1
 
@@ -32,6 +33,8 @@ function antidote-list {
     local url=$(git -C "${bundledir:A}" config remote.origin.url)
     if (( $#o_dirs )); then
       output+=(${bundledir:A})
+    elif (( $#o_url )); then
+      output+=($url)
     elif (( $#o_short )); then
       url=${url%.git}
       url=${url#https://github.com/}
@@ -40,6 +43,6 @@ function antidote-list {
       output+=("$(printf '%-64s %s\n' $url ${bundledir:A})")
     fi
   done
-  printf '%s\n' "${(o)output[@]}"
+  (( $#output )) && printf '%s\n' ${(o)output}
 }
 antidote-list "$@"
