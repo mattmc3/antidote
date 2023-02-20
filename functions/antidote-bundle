@@ -5,103 +5,84 @@
 # usage: antidote bundle [-h|--help] <bundle>...
 #
 
-#region private funcs
-
-### Filter bundle list to just git repos
-function __antidote_get_bundle_repos {
-  emulate -L zsh; setopt $_adote_funcopts
-
-  local -a awk_script=(
-    # initialize branch variable
-    '{b=""; u=""}'
-    # skip blank or commented lines
-    '/^ *(#.+)?$/{next}'
-    # prefix user/repo form with full URL
-    '$1~/^[^\/]+\/[^\/]+$/{u="https://github.com/" $1}'
-    # take full URL lines
-    '$1~/^(https?:|(ssh|git)@)/{u=$1}'
-    # find branch annotation if it exists
-    'match($0, /branch:[^\t ]+/) { b="--branch " substr($0, RSTART+7, RLENGTH-7) }'
-    # print result
-    'u!=""{print u, b}'
-  )
-  printf '%s\n' $@ | awk "$awk_script" | sort | uniq
+### Filter all but the first defer block.
+function __antidote_filter_defers {
+  awk '
+    # filter all but the first time we source zsh-defer (a 4 line if statement)
+    BEGIN   { skip=0; found=0 }
+    skip>0  { skip-- }
+    /^if.+functions\[zsh\-defer\]/ { if(!found) found=1; else skip=4 }
+    skip==0 { print }
+  ' "$@"
 }
 
-### Clone all missing bundles in background
-function __antidote_clone_all_missing {
-  emulate -L zsh; setopt $_adote_funcopts
+### Generate background clone commands
+function __antidote_bulk_clone {
+  # get a list of clonable repos from a bundle file
+  awk '
+    # initialize vars
+    { bundle=""; opts="--kind clone" }
 
-  local -a clone_repos parts gitopts cloning
-  local repo_line plugin giturl bundledir
-  clone_repos=("${(@f)$(__antidote_get_bundle_repos $@)}")
-  for repo_line in $clone_repos; do
-    parts=(${=repo_line})
-    giturl=$parts[1]
-    bundledir=$(__antidote_bundle_dir $giturl)
-    (( $#parts > 1 )) && gitopts=($parts[2,-1]) || gitopts=()
+    # skip blank or commented lines
+    /^ *(#.+)?$/ { next }
 
-    if [[ ! -e $bundledir ]] && ! (($cloning[(Ie)$bundledir])); then
-      cloning+=($bundledir)
-      echo >&2 "# antidote cloning $giturl..."
-      git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $gitopts $giturl $bundledir &
-    fi
-  done
-  wait
+    # clone zsh-defer
+    /kind:defer/ { print "antidote-script --kind clone romkatv/zsh-defer &" }
+
+    # handle user/repo and URL forms
+    $1~/^[^\/]+\/[^\/]+$/      { bundle=$1 }
+    $1~/^(https?:|(ssh|git)@)/ { bundle=$1 }
+
+    # find branch annotation if it exists
+    match($0, /branch:[^\t ]+/) { opts=opts " --branch " substr($0, RSTART+7, RLENGTH-7) }
+
+    # print result
+    bundle!=""{ print "antidote-script", opts, bundle, "&" }
+
+    END { print "wait" }
+
+  ' "$@" | sort | uniq
 }
 
 ### Parse antidote's bundle DSL.
-function __antidote_parsebundles {
-  emulate -L zsh; setopt $_adote_funcopts
+function __antidote_parse_bundles {
+  awk '
+    BEGIN { RS="[\r\n]" }
 
-  # handle bundles as newline delimited arg strings,
-  # or as <redirected or piped| input
-  local data bundles=()
-  if [[ $# -gt 0 ]]; then
-    bundles=("${(s.\n.)${@}}")
-  elif [[ ! -t 0 ]]; then
-    while IFS= read -r data || [[ -n "$data" ]]; do
-      bundles+=($data)
-    done
-  fi
-  (( $#bundles )) || return 1
+    # skip comments and empty lines
+    /^ *$/ || /^ *#/ {next}
 
-  # antidote-script also clones, but let's do it all at once and in parallel!
-  __antidote_clone_all_missing $bundles
+    # strip trailing comments
+    { sub(/[ \t]#.*$/,"",$0) }
 
-  local bundlestr bundle bundledir
-  local -a annotations parts
-  for bundlestr in $bundles; do
-    # normalize whitespace and remove comments
-    bundlestr=${bundlestr//[[:space:]]/ }
-    bundlestr=${bundlestr%%\#*}
-
-    # split on spaces into parts array and skip empty lines
-    parts=( ${(@s: :)bundlestr} )
-    (( $#parts )) || continue
-
-    # the first element is the bundle name, and the remainder are a:b annotations
-    # split annotations into key/value pairs
-    bundle=( name $parts[1] )
-    annotations=( ${parts[@]:1} )
-    if (( $#annotations )); then
-      parts=( ${(@s/:/)annotations} )
-      [[ $(( $#parts % 2 )) -eq 0 ]] || {
-        echo >&2 "antidote: bad annotation '$annotations'." && return 1
+    # handle extension functionality (eg :use ohmyzsh)
+    $1~/^:/ {
+      sub(/^:/,"",$1)
+      printf "antidote-script-" $1
+      for (i=2; i<=NF; i++) {
+        printf " %s",$i
       }
-      bundle+=( $parts )
-    fi
+      printf "\n"
+      next
+    }
 
-    # output the parsed associative array
-    local sep=$'\t'
-    echo ${(pj.$sep.)bundle}
-  done
+    # move flags to front and call antidote-script
+    {
+      sub(/ #.*$/,"",$0)
+      printf "antidote-script"
+      for (i=2; i<=NF; i++) {
+        sub(/^/,"--",$i)
+        sub(/:/," ",$i)
+        printf " %s",$i
+      }
+      printf " %s\n",$1
+    }
+  ' "$@"
 }
 
-#endregion
-
-### Downloads a bundle and prints its Zsh source line
+### Clone bundle(s) and generate the static load script.
 function antidote-bundle {
+  # Download a bundle and prints its Zsh source line.
   emulate -L zsh; setopt $_adote_funcopts
 
   local o_help
@@ -112,45 +93,23 @@ function antidote-bundle {
     return
   fi
 
-  # parse the DSL for bundles
-  local bundles=$(__antidote_parsebundles $@)
-  bundles=("${(@f)${bundles}}")
+  # handle bundles as newline delimited arg strings,
+  # or as <redirected or piped| input
+  local -a bundles=()
+  if (( $# > 0 )); then
+    bundles=("${(s.\n.)${@}}")
+  elif [[ ! -t 0 ]]; then
+    local data
+    while IFS= read -r data || [[ -n "$data" ]]; do
+      bundles+=($data)
+    done
+  fi
   (( $#bundles )) || return 1
 
-  # loop through the bundles to generate the zsh load script
-  local bundlestr opt val sep
-  sep=$'\t'
-  local -a script=() args=()
-  for bundlestr in $bundles; do
-    # bundlestr sets an associative array, like so:
-    # typeset -A bundle=( [name]=foo/bar [kind]=fpath )
-    typeset -A bundle=( ${(ps.$sep.)bundlestr} )
+  # antidote-script also clones, but this way we can do it all at once in parallel!
+  source <(printf '%s\n' $bundles | __antidote_bulk_clone)
 
-    # nothing to do for clone-only bundles
-    [[ $bundle[kind] != clone ]] || continue
-
-    bundle[kind]=${bundle[kind]:-zsh}
-    args=()
-    for opt val in "${(@kv)bundle}"; do
-      if [[ -z "$val" ]] || [[ "$opt" == name ]]; then
-        continue
-      fi
-      args+=(--${opt} "$val")
-    done
-    script+="$(antidote-script $args $bundle[name])"
-    [[ $? -eq 0 ]] || return 1
-  done
-
-  # special handling for deferred bundles
-  # filter all but the first if/source block for loading zsh-defer for perf reasons
-  local -a awk_keep_first_defer=(
-    'BEGIN{skip=0;found=0}'
-    'skip>0{skip--}'
-    '/^if.+functions\[zsh\-defer\]/{ if(!found)found=1; else skip=4 }'
-    'skip==0{print}'
-  )
-
-  # print bundle load script
-  printf "%s\n" "${script[@]}" | awk "$awk_keep_first_defer"
+  # generate bundle script
+  source <(printf '%s\n' $bundles | __antidote_parse_bundles) | __antidote_filter_defers
 }
-antidote-bundle "$@"
+antidote-bundle $@
