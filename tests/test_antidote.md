@@ -1,5 +1,13 @@
 # antidote core tests
 
+fails gracefully when someone tries bash
+
+```zsh
+% bash -c "source $PWD/antidote.zsh"
+antidote: Expecting zsh. Found 'bash'.
+%
+```
+
 ## Setup
 
 ```zsh
@@ -70,7 +78,7 @@ No arg exit status is 2:
 
 ```zsh
 % antidote --version
-antidote version 1.7.6
+antidote version 1.8.0
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?
@@ -100,7 +108,7 @@ antidote: command not found 'foo'
 ## All commands
 
 ```zsh
-% cmds=( bundle help home init install list load path purge update script null )
+% cmds=( bundle help home init install list load path purge update script main null )
 % for cmd in $cmds; echo $+functions[antidote-$cmd]
 1
 1
@@ -113,39 +121,8 @@ antidote: command not found 'foo'
 1
 1
 1
-0
-%
-```
-
-## Lazy config
-
-Tests for lazy-loading antidote.
-
-- Fix [#54](https://github.com/mattmc3/antidote/issues/54)
-
-```zsh
-% # Unload antidote
-% echo $+functions[antidote-main]
 1
-% t_teardown
-% echo $+functions[antidote-main]
 0
-% # Now, lazy load it and make sure it works
-% autoload -Uz $PWD/antidote
-% antidote -v &>/dev/null; echo $?
-0
-% # Now, tear down again
-% echo $+functions[antidote-main]
-1
-% t_teardown
-% echo $+functions[antidote-main]
-0
-% # Now, lazy load from the functions dir
-% autoload -Uz $PWD/functions/antidote
-% antidote -v &>/dev/null; echo $?
-0
-% echo $+functions[antidote-main]
-1
 %
 ```
 

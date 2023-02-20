@@ -1,4 +1,4 @@
-# antidote core tests
+# antidote helper tests
 
 ## Setup
 
@@ -7,9 +7,7 @@
 %
 ```
 
-## Helper functions
-
-### Bundle type
+## Bundle type
 
 ```zsh
 % __antidote_bundle_type $PWD/antidote.zsh
@@ -51,7 +49,7 @@ word
 %
 ```
 
-### Bundle name
+## Bundle name
 
 ```zsh
 % __antidote_bundle_name $HOME/.zsh/custom/lib/lib1.zsh
@@ -91,26 +89,26 @@ foo bar baz
 %
 ```
 
-### Bundle dir
+## Bundle dir
 
 ```zsh
 % # short repo
-% __antidote_bundledir foo/bar | subenv ANTIDOTE_HOME
+% __antidote_bundle_dir foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 % # repo url
-% __antidote_bundledir https://github.com/foo/bar | subenv ANTIDOTE_HOME
+% __antidote_bundle_dir https://github.com/foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 % # repo url.git
-% __antidote_bundledir https://github.com/foo/bar.git | subenv ANTIDOTE_HOME
+% __antidote_bundle_dir https://github.com/foo/bar.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 % # repo ssh
-% __antidote_bundledir git@github.com:foo/bar.git | subenv ANTIDOTE_HOME
+% __antidote_bundle_dir git@github.com:foo/bar.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/git-AT-github.com-COLON-foo-SLASH-bar
 % # local dir
-% __antidote_bundledir ~/foo/bar | subenv HOME
+% __antidote_bundle_dir ~/foo/bar | subenv HOME
 $HOME/foo/bar
 % # another local dir
-% __antidote_bundledir $ZDOTDIR/bar/baz | subenv ZDOTDIR
+% __antidote_bundle_dir $ZDOTDIR/bar/baz | subenv ZDOTDIR
 $ZDOTDIR/bar/baz
 %
 ```
@@ -120,29 +118,14 @@ Use friendly names
 ```zsh
 % # short repo - friendly name
 % zstyle ':antidote:bundle' use-friendly-names on
-% __antidote_bundledir foo/bar | subenv ANTIDOTE_HOME
+% __antidote_bundle_dir foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/foo/bar
 % # repo url - friendly name
-% __antidote_bundledir https://github.com/bar/baz | subenv ANTIDOTE_HOME
+% __antidote_bundle_dir https://github.com/bar/baz | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/bar/baz
 % # ssh repo - friendly name
-% __antidote_bundledir git@github.com:baz/qux.git | subenv ANTIDOTE_HOME
+% __antidote_bundle_dir git@github.com:baz/qux.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/baz/qux
-%
-```
-
-### Collect
-
-```zsh
-% printf '%s\n' x y z | __antidote_collect --foo --bar a b c
---foo
---bar
-a
-b
-c
-x
-y
-z
 %
 ```
 

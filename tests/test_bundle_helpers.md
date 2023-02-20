@@ -3,44 +3,45 @@
 ## Setup
 
 ```zsh
-% AWKDIR=$PWD/functions/scripts
 % TESTDATA=$PWD/tests/testdata
 % source ./tests/_setup.zsh
+% antidote-bundle -h &>/dev/null
 %
 ```
 
-## Awk parsers
-
-### Get bundle repos
+## Awk filter repos
 
 The repo parser pulls a list of all git URLs in a bundle file so that we can clone missing ones in parallel.
 
 ```zsh
-% awk -f $AWKDIR/get-bundle-repos.awk $TESTDATA/.zsh_plugins_repos.txt | sort | uniq
-git@github.com:user/repo
-http://github.com/user/repo.git
-https://github.com/bar/baz
-https://github.com/baz/qux
-https://github.com/foobar/foobar --branch baz
-https://github.com/qux/baz
-https://github.com/romkatv/zsh-defer
-https://github.com/user/repo
+% __antidote_bulk_clone $TESTDATA/.zsh_plugins_repos.txt
+antidote-script --kind clone --branch baz foobar/foobar &
+antidote-script --kind clone bar/baz &
+antidote-script --kind clone git@github.com:user/repo &
+antidote-script --kind clone http://github.com/user/repo.git &
+antidote-script --kind clone https://github.com/baz/qux &
+antidote-script --kind clone https://github.com/qux/baz &
+antidote-script --kind clone https://github.com/user/repo &
+antidote-script --kind clone romkatv/zsh-defer &
+antidote-script --kind clone user/repo &
+wait
 %
 ```
 
 Test empty
 
 ```zsh
-% awk -f $AWKDIR/get-bundle-repos.awk $TESTDATA/.zsh_plugins_empty.txt
+% __antidote_bulk_clone $TESTDATA/.zsh_plugins_empty.txt
+wait
 %
 ```
 
-### Filter dupe defers
+## Awk Filter defers
 
 Test that only the first defer block is kept...
 
 ```zsh
-% awk -f $AWKDIR/filter-extra-defers.awk $PWD/tests/testdata/.zsh_plugins_multi_defer.zsh | subenv ANTIDOTE_HOME
+% __antidote_filter_defers $PWD/tests/testdata/.zsh_plugins_multi_defer.zsh | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search/zsh-history-substring-search.plugin.zsh
 if ! (( $+functions[zsh-defer] )); then
@@ -71,7 +72,55 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z/z.
 Test that with no defers, nothing is altered...
 
 ```zsh
-% awk -f $AWKDIR/filter-extra-defers.awk $PWD/tests/testdata/.zsh_plugins_no_defer.zsh  #=> --file testdata/.zsh_plugins_no_defer.zsh
+% __antidote_filter_defers $PWD/tests/testdata/.zsh_plugins_no_defer.zsh  #=> --file testdata/.zsh_plugins_no_defer.zsh
+%
+```
+
+## Awk Bundle parser
+
+Parse a simple repo:
+
+```zsh
+% echo foo/bar | __antidote_parse_bundles
+antidote-script foo/bar
+%
+```
+
+```zsh
+% echo 'https://github.com/foo/bar path:lib branch:dev' | __antidote_parse_bundles
+antidote-script --path lib --branch dev https://github.com/foo/bar
+% echo 'git@github.com:foo/bar.git kind:clone branch:main' | __antidote_parse_bundles
+antidote-script --kind clone --branch main git@github.com:foo/bar.git
+% echo 'foo/bar kind:fpath abc:xyz' | __antidote_parse_bundles
+antidote-script --kind fpath --abc xyz foo/bar
+% echo 'foo/bar path:plugins/myplugin kind:path  # trailing comment' | __antidote_parse_bundles
+antidote-script --path plugins/myplugin --kind path foo/bar
+%
+```
+
+Handle funky whitespace
+
+```zsh
+% cr=$'\r'; lf=$'\n'; tab=$'\t'
+% echo "foo/bar${tab}kind:path${cr}${lf}" | __antidote_parse_bundles
+antidote-script --kind path foo/bar
+%
+```
+
+The bundle parser is an awk script that turns the bundle DSL into antidote-script statements.
+
+```zsh
+% __antidote_parse_bundles $ZDOTDIR/.zsh_plugins.txt
+antidote-script foo/bar
+antidote-script git@github.com:baz/qux.git
+antidote-script --kind clone romkatv/zsh-defer
+antidote-script --kind zsh foo/bar
+antidote-script --kind fpath foo/bar
+antidote-script --kind path foo/bar
+antidote-script --path lib ohmy/ohmy
+antidote-script --path plugins/extract ohmy/ohmy
+antidote-script --path plugins/magic-enter --kind defer ohmy/ohmy
+antidote-script --path custom/themes/pretty.zsh-theme ohmy/ohmy
 %
 ```
 

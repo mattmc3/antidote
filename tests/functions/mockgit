@@ -31,13 +31,13 @@ function mockgit {
   elif [[ "$1" = "clone" ]]; then
     local giturl="$2"
     local bundledir="$3"
-    local src="$FAKEZDOTDIR/antidote_home/${bundledir:t}"
+    local src="$ANTIDOTE_HOME/${bundledir:t}"
     if [[ -d $src ]]; then
       cp -r $src ${bundledir:h}
     elif ! (( $#o_quiet )); then
-      echo "FAKEGIT: Cloning into '${url:t}'..."
-      echo "FAKEGIT: Repository not found."
-      echo "FAKEGIT: repository '$url' not found"
+      echo "MOCKGIT: Cloning into '${url:t}'..."
+      echo "MOCKGIT: Repository not found."
+      echo "MOCKGIT: repository '$url' not found"
     fi
   elif [[ "$@" = "config remote.origin.url" ]]; then
     # un-sanitize dir into URL
@@ -48,7 +48,7 @@ function mockgit {
     url=${url:gs/-SLASH-/\/}
     echo "$url"
   elif [[ "$@" = "pull" ]]; then
-    (( $#o_quiet )) || echo "FAKEGIT: Already up to date."
+    (( $#o_quiet )) || echo "MOCKGIT: Already up to date."
   elif [[ "$@" = "rev-parse HEAD" ]]; then
     #echo "a123456"
     echo ""

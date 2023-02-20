@@ -64,7 +64,7 @@ Load rupa/z
 % zstyle ':antidote:bundle' use-friendly-names on
 % echo "rupa/z" > $ZDOTDIR/.zsh_plugins.txt
 % antidote load 2>&1
-# antidote cloning https://github.com/rupa/z...
+# antidote cloning rupa/z...
 % echo $+aliases[z]
 1
 % wc -l <$ZDOTDIR/.zsh_plugins.zsh | sed 's/ //g'
@@ -104,7 +104,7 @@ source $ANTIDOTE_HOME/rupa/z/z.sh
 
 ```zsh
 % antidote load 2>&1
-# antidote cloning https://github.com/zsh-users/zsh-completions...
+# antidote cloning zsh-users/zsh-completions...
 % cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/rupa/z )
 source $ANTIDOTE_HOME/rupa/z/z.sh

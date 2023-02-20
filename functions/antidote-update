@@ -46,10 +46,17 @@ function antidote-update {
     if [[ -d "${0:A:h:h}/.git" ]]; then
       git -C "${0:A:h:h}" pull --quiet --ff --rebase --autostash
       echo "Antidote self-update complete.\n"
-      source "${0:A:h:h}"/antidote.zsh
+
+      # setup antidote again
+      (( $+functions[__antidote_setup] )) && unfunction __antidote_setup
+      autoload -Uz ${0:A:h}/__antidote_setup
+      __antidote_setup
+
+      # show antidote version
       antidote -v
     else
-      echo "Self updating is disabled in this build"
+      echo "Self updating is disabled in this build."
+      echo "Use your OS package manager to update antidote itself."
     fi
   fi
 }

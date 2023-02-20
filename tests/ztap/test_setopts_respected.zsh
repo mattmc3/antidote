@@ -112,7 +112,7 @@ t_setup_ztap
 
   local actual exitcode
   actual=($(setopt | wc -l))
-  @test "few enabled options ($actual)" $actual -lt 10
+  @test "few enabled options (<10)" $actual -lt 10
 
   antidote load 2>&1; exitcode=$?
   actual=($(setopt | wc -l))

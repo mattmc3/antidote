@@ -35,7 +35,7 @@ function antidote-install {
       bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
   fi
 
-  local bundledir=$(__antidote_bundledir $bundle)
+  local bundledir=$(__antidote_bundle_dir $bundle)
   if [[ -d "$bundledir" ]]; then
     echo >&2 "antidote: error: $bundle already installed: $bundledir"
     return 1
