@@ -37,24 +37,19 @@ function antidote-purge {
       echo
     }
     [[ ${REPLY:u} == "Y" ]] || return 1
-    # remove antidote home and bundle file
-    command rm -rf "$antidote_home"
+    # remove antidote home and static cache file
+    command rm -rf -- "$antidote_home"
 
-    if [[ -e "$bundlefile" ]]; then
+    if [[ -e "${bundlefile:r}.zsh" ]]; then
       zstyle -s ':antidote:purge:all' answer 'REPLY' || {
-        read -q "REPLY?You are about to clear the contents of '${bundlefile:t}'"$'\n'"Are you sure [Y/n]? "
+        read -q "REPLY?You are about to remove '${bundlefile:t:r}.zsh'"$'\n'"Are you sure [Y/n]? "
         echo
       }
       if [[ ${REPLY:u} == "Y" ]]; then
         local dtstmp=$(date -u '+%Y%m%d_%H%M%S')
-        mv -f "$bundlefile" "${bundlefile:r}.${dtstmp}.bak"
-        echo "'$bundlefile' backed up to '${bundlefile:t:r}.${dtstmp}.bak'"
-        echo "# TODO: Add antidote bundles to this file..." >| "$bundlefile"
-      else
-        touch "$bundlefile"
+        mv -f "${bundlefile:r}.zsh" "${bundlefile:r}.${dtstmp}.bak"
+        echo "'"${bundlefile:r}.zsh"' backed up to '${bundlefile:t:r}.${dtstmp}.bak'"
       fi
-    else
-      echo "# TODO: Add antidote bundles to this file..." >| "$bundlefile"
     fi
     echo "Antidote purge complete. Be sure to start a new Zsh session."
 

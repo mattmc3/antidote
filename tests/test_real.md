@@ -17,30 +17,59 @@
 Clone and generate bundle script
 
 ```zsh
-$ antidote bundle <$TESTDATA/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
-$ cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME  #=> --file testdata/real/.zsh_plugins.zsh
-$
+% antidote bundle <$TESTDATA/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
+% cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME  #=> --file testdata/real/.zsh_plugins.zsh
+%
 ```
 
 Check to see that everything cloned
 
 ```zsh
-$ antidote list | subenv ANTIDOTE_HOME  #=> --file testdata/real/repo-list.txt
-$
+% antidote list | subenv ANTIDOTE_HOME  #=> --file testdata/real/repo-list.txt
+%
 ```
 
 Check to see that branch:br annotations properly changed the cloned branch
 
 ```zsh
-$ branched_plugin="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-antidote"
-$ git -C $branched_plugin branch --show-current 2>/dev/null
+% branched_plugin="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-antidote"
+% git -C $branched_plugin branch --show-current 2>/dev/null
 pz
-$
+%
+```
+
+Test that `antidote purge --all` aborts when told "no".
+
+```zsh
+% function test_exists { [[ -e "$1" ]] }
+% zstyle ':antidote:purge:all' answer 'n'
+% antidote purge --all                        #=> --exit 1
+% antidote list | subenv ANTIDOTE_HOME        #=> --file testdata/real/repo-list.txt
+% antidote list | wc -l | awk '{print $1}'
+15
+% test_exists $ZDOTDIR/.zsh_plugins.zsh(.N)   #=> --exit 0
+% test_exists $ZDOTDIR/.zsh_plugins*.bak(.N)  #=> --exit 1
+%
+```
+
+Test that `antidote purge --all` does the work when told "yes".
+
+```zsh
+% function test_exists { [[ -e "$1" ]] }
+% zstyle ':antidote:purge:all' answer 'y'
+% antidote purge --all | tail -n 1           #=> --exit 0
+Antidote purge complete. Be sure to start a new Zsh session.
+% antidote list | wc -l | awk '{print $1}'
+0
+% test_exists $ZDOTDIR/.zsh_plugins.zsh(.N)   #=> --exit 1
+% test_exists $ZDOTDIR/.zsh_plugins*.bak(.N)  #=> --exit 0
+%
 ```
 
 ### Teardown
 
 ```zsh
+% zstyle -d ':antidote:purge:all' answer
 % t_teardown
 %
 ```
