@@ -127,7 +127,11 @@ function antidote-script {
     script+="$source_cmd $bundle_path"
   else
     local initfile initfiles
-    initfiles=("${(@f)$(__antidote_initfiles $bundle_path)}")
+    initfiles=(${(@f)$(__antidote_initfiles $bundle_path)})
+    # if no init file was found, assume the default
+    if [[ $#initfiles -eq 0 ]]; then
+      initfiles=($bundle_path/${bundle_path:t}.plugin.zsh)
+    fi
     script+="fpath+=( $bundle_path )"
     for initfile in $initfiles; do
       script+="$source_cmd $initfile"

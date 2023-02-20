@@ -1,3 +1,9 @@
+fpath+=( $HOME/foo/bar )
+source $HOME/foo/bar/bar.plugin.zsh
+fpath+=( $ZDOTDIR/foo/bar )
+source $ZDOTDIR/foo/bar/bar.plugin.zsh
+fpath+=( $ZDOTDIR/foo/bar/baz )
+source $ZDOTDIR/foo/bar/baz/baz.plugin.zsh
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
 fpath+=( $ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux )
