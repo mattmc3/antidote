@@ -38,7 +38,7 @@ function __antidote_clone_all_missing {
   for repo_line in $clone_repos; do
     parts=(${=repo_line})
     giturl=$parts[1]
-    bundledir=$(__antidote_bundledir $giturl)
+    bundledir=$(__antidote_bundle_dir $giturl)
     (( $#parts > 1 )) && gitopts=($parts[2,-1]) || gitopts=()
 
     if [[ ! -e $bundledir ]] && ! (($cloning[(Ie)$bundledir])); then

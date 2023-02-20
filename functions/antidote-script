@@ -75,7 +75,7 @@ function antidote-script {
 
   # set the path to the bundle (repo or local)
   local bundle_path
-  [[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(__antidote_bundledir $bundle)
+  [[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(__antidote_bundle_dir $bundle)
 
   # handle cloning repo bundles
   local bundle_type="$(__antidote_bundle_type $bundle)"
