@@ -11,8 +11,6 @@
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 #
 
-#region private funcs
-
 ### Get the path to a plugin's init file.
 function __antidote_initfiles {
   emulate -L zsh; setopt $_adote_funcopts
@@ -29,8 +27,7 @@ function __antidote_initfiles {
   (( $#initfiles )) || return 1
 }
 
-#endregion
-
+### Generate the Zsh script to load a plugin.
 function antidote-script {
   emulate -L zsh; setopt $_adote_funcopts
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
@@ -83,6 +80,7 @@ function antidote-script {
     local giturl=$(__antidote_tourl $bundle)
     echo >&2 "# antidote cloning $bundle_name..."
     git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path
+    [[ $? -eq 0 ]] || return 1
   fi
 
   # if we only needed to clone the bundle, we're done
