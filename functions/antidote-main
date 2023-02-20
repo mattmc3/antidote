@@ -1,5 +1,14 @@
 #!/bin/zsh
 
+### Get the antidote version.
+function __antidote_version {
+  emulate -L zsh; setopt $_adote_funcopts
+  local ver='1.7.6'
+  local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
+  [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
+  echo "antidote version $ver"
+}
+
 ### The main controller for antidote.
 # The reason we use `antidote-main` instead putting all of this in `antidote`
 # is that this allows the `antidote` function to be overridden via `antidote init`.
@@ -8,12 +17,6 @@
 function antidote-main {
   0=${(%):-%x}
 
-  # initialize
-  if [[ "$1" == setup ]]; then
-    __antidote_setup
-    return
-  fi
-
   local o_help o_version
   zparseopts ${_adote_zparopt_flags} -- \
     h=o_help    -help=h    \
@@ -21,10 +24,7 @@ function antidote-main {
     return 1
 
   if (( ${#o_version} )); then
-    local ver='1.7.6'
-    local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
-    [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
-    echo "antidote version $ver"
+    __antidote_version
 
   elif (( ${#o_help} )); then
     antidote-help "$@"
