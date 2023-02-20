@@ -1,0 +1,137 @@
+#!/bin/zsh
+
+### Determine bundle type: empty,file,dir,sshurl,url,unk,relpath,path,repo,word.
+function __antidote_bundle_type {
+  emulate -L zsh; setopt $_adote_funcopts
+  local result
+  if [[ -e "$1" ]]; then
+    [[ -f $1 ]] && result=file || result=dir
+  elif [[ -z "${1// }" ]]; then
+    result=empty
+  else
+    case "$1" in
+      (/|~|'$')*)  result=path     ;;
+      *://*)       result=url      ;;
+      *@*:*/*)     result=sshurl   ;;
+      *(:|@)*)     result=unk      ;;
+      */*/*)       result=relpath  ;;
+      */)          result=relpath  ;;
+      */*)         result=repo     ;;
+      *)           result=word     ;;
+    esac
+  fi
+  typeset -g REPLY=$result
+  echo $result
+}
+
+### Get the short name of the bundle.
+function __antidote_bundle_name {
+  emulate -L zsh; setopt $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+  local bundle=$1
+  local bundle_type="$(__antidote_bundle_type $bundle)"
+  if [[ "$bundle_type" == (url|sshurl) ]] ; then
+    bundle=${bundle%.git}
+    bundle=${bundle:gs/\:/\/}
+    local parts=(${(ps./.)bundle})
+    echo ${parts[-2]}/${parts[-1]}
+  else
+    echo $bundle | sed -e "s|^\~/|$HOME/|" -e "s|^$HOME|\$HOME|"
+  fi
+}
+
+### Get the name of the bundle dir.
+function __antidote_bundle_dir {
+  # If the bundle is a repo/URL, then by default we use the legacy antibody format:
+  # `$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions`
+  # With `zstyle ':antidote:bundle' use-friendly-names on`, we can simplify to
+  # `$ANTIDOTE_HOME/zsh-users/zsh-autosuggestions`
+  # If the bundle is a file, use its parent directory.
+  # Otherwise, just assume the bundle is a directory.
+  emulate -L zsh; setopt $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+
+  local bundle="$1"
+  local bundle_type="$(__antidote_bundle_type $bundle)"
+
+  # handle repo bundle paths
+  if [[ "$bundle_type" == (repo|url|sshurl) ]] && [[ ! -e "$bundle_path" ]]; then
+    if zstyle -t ':antidote:bundle' use-friendly-names; then
+      # user/repo format
+      # ex: $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
+      bundle=${bundle%.git}
+      bundle=${bundle:gs/\:/\/}
+      local parts=( ${(ps./.)bundle} )
+      if [[ $#parts -gt 1 ]]; then
+        echo $(antidote-home)/${parts[-2]}/${parts[-1]}
+      else
+        echo $(antidote-home)/$bundle
+      fi
+    else
+      # sanitize URL for safe use as a dir name
+      # ex: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
+      local url=$(__antidote_tourl $bundle)
+      url=${url%.git}
+      url=${url:gs/\@/-AT-}
+      url=${url:gs/\:/-COLON-}
+      url=${url:gs/\//-SLASH-}
+      echo $(antidote-home)/$url
+    fi
+  elif [[ -f "$bundle" ]]; then
+    echo ${bundle:A:h}
+  else
+    echo ${bundle}
+  fi
+}
+
+### Get the url from a repo bundle.
+function __antidote_tourl {
+  emulate -L zsh; setopt $_adote_funcopts
+
+  local bundle=$1
+  local url=$bundle
+  if [[ $bundle != *://* && $bundle != git@*:*/* ]]; then
+    url=https://github.com/$bundle
+  fi
+  echo $url
+}
+
+### Setup antidote.
+function __antidote_setup {
+  # zsh prereq
+  autoload -Uz is-at-least
+  if ! is-at-least 5.4.2; then
+    echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >5.4.2."
+    return 1
+  fi
+
+  0=${(%):-%x}
+  fpath=( "${0:A:h}" $fpath )
+  local fn
+  for fn in ${0:A:h}/*; do
+    (( $+functions[${fn:t}] )) && unfunction ${fn:t}
+    # only autoload extensionless files
+    [[ -z "${fn:e}" ]] && autoload -Uz "${fn}"
+  done
+
+  # man pages
+  if [[ "$MANPATH" != *"${0:A:h:h}/man"* ]]; then
+    export MANPATH="${0:A:h:h}/man:$MANPATH"
+  fi
+
+  if is-at-least 5.8; then
+    # the -F option was added in 5.8
+    typeset -gHa _adote_zparopt_flags=( -D -M -F )
+  else
+    typeset -gHa _adote_zparopt_flags=( -D -M )
+  fi
+
+  typeset -gHa _adote_funcopts=( extended_glob no_monitor pipefail )
+  if zstyle -t ':antidote:tests' set-warn-options; then
+    typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
+  fi
+
+  # completions
+  compctl -K _antidote antidote
+}
+__antidote_setup "$@"

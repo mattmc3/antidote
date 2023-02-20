@@ -93,7 +93,8 @@ function __antidote_parsebundles {
     fi
 
     # output the parsed associative array
-    __antidote_join $'\t' $bundle
+    local sep=$'\t'
+    echo ${(pj.$sep.)bundle}
   done
 }
 
@@ -117,12 +118,13 @@ function antidote-bundle {
   (( $#bundles )) || return 1
 
   # loop through the bundles to generate the zsh load script
-  local bundlestr opt val
+  local bundlestr opt val sep
+  sep=$'\t'
   local -a script=() args=()
   for bundlestr in $bundles; do
     # bundlestr sets an associative array, like so:
     # typeset -A bundle=( [name]=foo/bar [kind]=fpath )
-    typeset -A bundle=( $(__antidote_split $'\t' $bundlestr) )
+    typeset -A bundle=( ${(ps.$sep.)bundlestr} )
 
     # nothing to do for clone-only bundles
     [[ $bundle[kind] != clone ]] || continue

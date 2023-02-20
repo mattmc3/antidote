@@ -131,20 +131,6 @@ $ANTIDOTE_HOME/baz/qux
 %
 ```
 
-### Collect
-
-```zsh
-% printf '%s\n' x y z | __antidote_collect --foo --bar a b c
---foo
---bar
-a
-b
-c
-x
-y
-z
-%
-```
 
 ### To URL
 
