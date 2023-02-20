@@ -6,7 +6,9 @@
 #        antidote help [<command>]
 #
 
+### Print usage.
 function __antidote_usage {
+  emulate -L zsh; setopt $_adote_funcopts
   cat<<EOS
 antidote - the cure to slow zsh plugin management
 
@@ -30,6 +32,7 @@ commands:
 EOS
 }
 
+### Show antidote documentation.
 function antidote-help {
   emulate -L zsh; setopt $_adote_funcopts
 
