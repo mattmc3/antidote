@@ -39,6 +39,16 @@ Test \|piping, \<redirection, and --args
 %
 ```
 
+## Fails
+
+```zsh
+% echo "foo/bar\nbar/baz kind:whoops" | antidote bundle 2>&1 | subenv ANTIDOTE_HOME
+antidote: error: unexpected kind value: 'whoops'
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+%
+```
+
 ## Teardown
 
 ```zsh
