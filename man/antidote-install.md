@@ -11,6 +11,7 @@ header: Antidote Manual
 # SYNOPSIS
 
 | antidote install [-h|-\-help] [-k|-\-kind \<kind\>] [-p|-\-path \<path\>]
+|                  [-a|-\-autoload \<path\>] [-c|-\-conditional \<func\>]
 |                  [-b|-\-branch \<branch\>] \<bundle\> [\<bundlefile\>]
 
 # DESCRIPTION
@@ -23,13 +24,19 @@ header: Antidote Manual
 :   Show the help documentation.
 
 -k, \--kind <kind>
-:   The kind of bundle. Valid values: fpath, path, clone, defer, zsh.
+:   The kind of bundle. Valid values: autoload, fpath, path, clone, defer, zsh.
 
 -p, \--path <path>
 :   A relative subpath within the bundle where the plugin is located.
 
 -b, \--branch <path>
 :   The git branch to use.
+
+-a, \--autoload <path>
+:   A relative subpath within the bundle where autoload function files are located.
+
+-c, \--conditional <path>
+:   A conditional function used to check whether to load the bundle.
 
 \<bundle\>
 :   Bundle to be installed.
