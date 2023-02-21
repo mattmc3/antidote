@@ -54,7 +54,7 @@ function antidote-script {
   [[ $o_cond[-1] =~ $re ]] && o_cond[-1]=$match
   [[ $o_branch[-1] =~ $re ]] && o_branch[-1]=$match
 
-  local supported_kind_vals=(zsh path fpath defer clone autoload)
+  local supported_kind_vals=(autoload clone defer fpath path zsh)
   if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
     echo >&2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
   fi
