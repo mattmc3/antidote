@@ -1,7 +1,11 @@
 #!/bin/zsh
 function subenv {
-  local sedexp="s|${(P)1}|\$$1|g"
-  shift
-  sed "$sedexp" "$@"
+  if (( $# == 0 )); then
+    subenv ANTIDOTE_HOME | subenv ZDOTDIR | subenv HOME
+  else
+    local sedexp="s|${(P)1}|\$$1|g"
+    shift
+    sed "$sedexp" "$@"
+  fi
 }
 subenv "$@"

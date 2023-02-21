@@ -1,10 +1,10 @@
 #!/bin/zsh
 
 ### Clone a new bundle and add it to your plugins file.
-#
+
 # usage: antidote install [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
-#                         [-b|--branch <branch>] <bundle> [<bundlefile>]
-#
+#                         [-c|--conditional <func>] [-b|--branch <branch>]
+#                         [-a|--autoload <path>] <bundle> [<bundlefile>]
 function antidote-install {
   emulate -L zsh; setopt $_adote_funcopts
 

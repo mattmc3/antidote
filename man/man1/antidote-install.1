@@ -25,6 +25,11 @@ antidote install [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
 .PD 0
 .P
 .PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [-a|--autoload <path>]
+[-c|--conditional <func>]
+.PD 0
+.P
+.PD
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [-b|--branch <branch>] <bundle>
 [<bundlefile>]
 .SH DESCRIPTION
@@ -38,13 +43,20 @@ Show the help documentation.
 .TP
 -k, --kind 
 The kind of bundle.
-Valid values: fpath, path, clone, defer, zsh.
+Valid values: autoload, fpath, path, clone, defer, zsh.
 .TP
 -p, --path 
 A relative subpath within the bundle where the plugin is located.
 .TP
 -b, --branch 
 The git branch to use.
+.TP
+-a, --autoload 
+A relative subpath within the bundle where autoload function files are
+located.
+.TP
+-c, --conditional 
+A conditional function used to check whether to load the bundle.
 .TP
 <bundle>
 Bundle to be installed.
