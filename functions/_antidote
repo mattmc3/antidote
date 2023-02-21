@@ -1,5 +1,107 @@
-#!/bin/zsh
-function _antidote {
-  IFS=' ' read -A reply <<< "help bundle update home purge list load path init install"
+#compdef antidote
+
+_antidote() {
+  typeset -A opt_args
+  local context state line
+  local curcontext="$curcontext"
+  local ret=1
+
+  _arguments -C \
+    '(- *)'{-v,--version}'[Show version]' \
+    '(- *)'{-h,--help}'[Show usage information]' \
+    '1: :_antidote_subcommands' \
+    '*:: :->subcmds' && return 0
+
+  case "$state" in
+    (subcmds)
+      case $words[1] in
+        (bundle)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            && ret=0
+          ;;
+        (help)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            && ret=0
+          ;;
+        (home)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            && ret=0
+          ;;
+        (init)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            && ret=0
+          ;;
+        (install)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            '(-k --kind)'{-k,--kind}'[The kind of bundle. Values: fpath, path, clone, defer, zsh]' \
+            '(-p --path)'{-p,--path}'[A relative subpath within the bundle where the plugin is located]' \
+            '(-b --branch)'{-b,--branch}'[The git branch to use]' \
+            && ret=0
+          ;;
+        (list)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            '(-s --short)'{-s,--short}'[Show shortened repos where possible]' \
+            '(-d --dirs)'{-d,--dirs}'[Show only bundle directories]' \
+            '(-u --url)'{-u,--url}'[Show bundle URLs]' \
+            && ret=0
+          ;;
+        (load)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            && ret=0
+          ;;
+        (path)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            && ret=0
+          ;;
+        (purge)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            '(-a --all)'{-a,--all}'[Purge all cloned bundles]' \
+            && ret=0
+          ;;
+        (update)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            '(-s --selp)'{-s,--self}'[Update antidote]' \
+            '(-b --bundles)'{-b,--bundles}'[Update bundles]' \
+            && ret=0
+          ;;
+        (*)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            '*: :_files' \
+            && ret=0
+          ;;
+      esac
+      ;;
+  esac
+
+  return ret
+}
+
+(( $+functions[_antidote_subcommands] )) ||
+_antidote_subcommands() {
+  local usage=$(
+    antidote --help |
+    awk '
+      BEGIN{OFS=":"; p=0}
+      /^commands:$/ {p=1; next}
+      !p{next}
+      { for(i=3; i<=NF; i++) { $2=$2" "$i } }
+      { print $1,$2 }
+    '
+  )
+  local -a subcommands=("${(@f)usage}")
+  _describe -t subcommands 'subcommand' subcommands "$@"
 }
 _antidote "$@"
+
+# vim: ft=zsh sw=2 ts=2 et

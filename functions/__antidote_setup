@@ -130,8 +130,5 @@ function __antidote_setup {
   if zstyle -t ':antidote:tests' set-warn-options; then
     typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
   fi
-
-  # completions
-  compctl -K _antidote antidote
 }
 __antidote_setup "$@"
