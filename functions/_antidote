@@ -1,18 +1,33 @@
 #compdef antidote
 
-_antidote_installed_bundles() {
+function _antidote_subcommands {
+  local usage=$(
+    antidote --help |
+    awk '
+      BEGIN{OFS=":"; p=0}
+      /^commands:$/ {p=1; next}
+      !p{next}
+      { for(i=3; i<=NF; i++) { $2=$2" "$i } }
+      { print $1,$2 }
+    '
+  )
+  local -a subcommands=("${(@f)usage}")
+  _describe -t subcommands 'subcommand' subcommands "$@"
+}
+
+function _antidote_installed_bundles {
   local -a bundles=("${(@f)$(antidote list -s)}")
   _describe 'installed bundles' bundles
 }
 
-_antidote_bundle_kinds() {
+function _antidote_bundle_kinds {
   local -a kinds=(
     'autoload' 'clone' 'defer' 'fpath' 'path' 'zsh'
   )
   _describe 'bundle kinds' kinds
 }
 
-_antidote() {
+function _antidote {
   typeset -A opt_args
   local context state line
   local curcontext="$curcontext"
@@ -100,22 +115,6 @@ _antidote() {
   esac
 
   return ret
-}
-
-(( $+functions[_antidote_subcommands] )) ||
-_antidote_subcommands() {
-  local usage=$(
-    antidote --help |
-    awk '
-      BEGIN{OFS=":"; p=0}
-      /^commands:$/ {p=1; next}
-      !p{next}
-      { for(i=3; i<=NF; i++) { $2=$2" "$i } }
-      { print $1,$2 }
-    '
-  )
-  local -a subcommands=("${(@f)usage}")
-  _describe -t subcommands 'subcommand' subcommands "$@"
 }
 _antidote "$@"
 
