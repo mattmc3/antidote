@@ -28,4 +28,4 @@ header: Antidote Manual
 :   Show only bundle directories.
 
 -u, \--url
-:   Show plugin URLs.
+:   Show bundle URLs.
