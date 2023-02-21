@@ -1,5 +1,17 @@
 #compdef antidote
 
+_antidote_installed_bundles() {
+  local -a bundles=("${(@f)$(antidote list -s)}")
+  _describe 'installed bundles' bundles
+}
+
+_antidote_bundle_kinds() {
+  local -a kinds=(
+    'autoload' 'clone' 'defer' 'fpath' 'path' 'zsh'
+  )
+  _describe 'bundle kinds' kinds
+}
+
 _antidote() {
   typeset -A opt_args
   local context state line
@@ -35,11 +47,13 @@ _antidote() {
             '(- *)'{-h,--help}'[Show usage information]' \
             && ret=0
           ;;
-        (install)
+        (install|script)
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
-            '(-k --kind)'{-k,--kind}'[The kind of bundle. Values: fpath, path, clone, defer, zsh]' \
+            '(-k --kind)'{-k,--kind}'[The kind of bundle]:kinds:_antidote_bundle_kinds' \
             '(-p --path)'{-p,--path}'[A relative subpath within the bundle where the plugin is located]' \
+            '(-a --autoload)'{-a,--autoload}'[A relative subpath within the bundle where autoload function files are located]' \
+            '(-c --conditional)'{-c,--conditional}'[A conditional function used to check whether to load the bundle]' \
             '(-b --branch)'{-b,--branch}'[The git branch to use]' \
             && ret=0
           ;;
@@ -65,6 +79,7 @@ _antidote() {
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
             '(-a --all)'{-a,--all}'[Purge all cloned bundles]' \
+            "*::antidote bundles:_antidote_installed_bundles" \
             && ret=0
           ;;
         (update)
