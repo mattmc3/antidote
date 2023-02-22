@@ -4,28 +4,34 @@ function t_setup {
   local prjdir="${0:A:h:h:h}"
   local testdir="${0:A:h:h}"
 
+  # save fpath
+  typeset -g T_PREV_FPATH=( $fpath )
+
+  # save zstyles, and clear them all for the test session
+  typeset -ga T_PREV_ZSTYLES=( ${(@f)"$(zstyle -L ':antidote:*')"} )
+  source <(zstyle -L ':antidote:*' | awk '{print "zstyle -d",$2}')
+
+  # setup test functions
+  fpath+=( $testdir/functions )
+  autoload -Uz $fpath[-1]/*(N.:t)
+
   # mock git
   function git { mockgit "$@" }
 
   # works with BSD and GNU gmktemp
-  T_TEMPDIR="$(mktemp -d -t t_antidote.XXXXXXXX)"
-  T_TEMPDIR=${T_TEMPDIR:A}
+  T_TEMPDIR=${$(mktemp -d -t t_antidote.XXXXXXXX):A}
 
   # put zdotdir in position
   cp -rf $testdir/zdotdir $T_TEMPDIR
   typeset -g OLD_ZDOTDIR=$ZDOTDIR
   export ZDOTDIR=$T_TEMPDIR/zdotdir
 
-  # save in-place antidote zstyles and remove everything for current session
-  zstyle -L ':antidote:*' >$ZDOTDIR/.zstyles
-  source <(zstyle -L ':antidote:*' | awk '{print "zstyle -d",$2}')
-
   # setup antidote
   zstyle ':antidote:tests' set-warn-options 'on'
   zstyle ':antidote:tests' cloning 'off'
 
   # load antidote
-  ANTIDOTE_HOME=$ZDOTDIR/antidote_home
-  source antidote.zsh
+  typeset -g ANTIDOTE_HOME=$ZDOTDIR/antidote_home
+  source $prjdir/antidote.zsh
 }
 t_setup "$@"

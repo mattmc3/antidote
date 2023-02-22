@@ -1,4 +1,4 @@
 # autoload test functions
-fpath+=( $PWD/tests/functions )
-autoload -Uz $fpath[-1]/*(N.:t)
+0=${(%):-%N}
+autoload -U ${0:A:h}/functions/t_setup
 t_setup
