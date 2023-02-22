@@ -156,6 +156,8 @@ if ! (( $+functions[zsh-defer] )); then
 fi
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz )
 zsh-defer -a source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz/baz.plugin.zsh
+% # cleanup
+% t_reset
 %
 ```
 
@@ -220,7 +222,6 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ### pre/post functions
 
 ```zsh
-% run_before() { echo "before" }; run_after() { echo "after" }
 % # pre
 % antidote-script --pre run_before foo/bar | subenv ANTIDOTE_HOME
 run_before
@@ -234,6 +235,20 @@ run_after
 %
 ```
 
+If a plugin is deferred, so is its post event
+```zsh
+% antidote-script --pre pre-event --post post-event --kind defer foo/bar | subenv ANTIDOTE_HOME
+pre-event
+if ! (( $+functions[zsh-defer] )); then
+  fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
+  source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh
+fi
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
+zsh-defer source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+zsh-defer post-event
+%
+```
+
 ## Private functions
 
 ### __antidote_initfiles
@@ -241,6 +256,8 @@ run_after
 setup
 
 ```zsh
+% # load __antidote_initfiles from private funcs in antidote-script
+% antidote-script -h &>/dev/null
 % PLUGINDIR=$T_TEMPDIR/initfiles/myplugin
 % mkdir -p $PLUGINDIR
 % touch $PLUGINDIR/myplugin.plugin.zsh

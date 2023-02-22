@@ -150,7 +150,13 @@ function antidote-script {
   fi
 
   # add post-load function
-  (( $#o_post )) && script+=("$o_post[-1]")
+  if (( $#o_post )); then
+    if [[ "$o_kind[-1]" == "defer" ]]; then
+      script+=("zsh-defer $o_post[-1]")
+    else
+      script+=("$o_post[-1]")
+    fi
+  fi
 
   # mark bundle as loaded
   # script+="zstyle ':antidote:plugin:${bundle_name}' loaded yes"
