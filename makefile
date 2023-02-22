@@ -6,7 +6,7 @@
 ##? Commands:
 
 .DEFAULT_GOAL := help
-all : build buildman test bump-maj bump-min bump-rev help
+all : build buildman test unittest bump-maj bump-min bump-rev help
 .PHONY : all
 
 ##? help        display this makefile's help information
@@ -26,6 +26,10 @@ buildman:
 ##? test        run tests
 test:
 	./tools/run-clitests
+
+##? unittest    run only unittests
+unittest:
+	./tools/run-clitests --unit
 
 ##? bump-maj    bump the major version (X.0.0)
 bump-maj:
