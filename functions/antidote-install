@@ -10,12 +10,12 @@ function antidote-install {
   emulate -L zsh; setopt $_adote_funcopts
 
   local -A flag_to_annotation=(
-    [-a]=autoload
-    [-b]=branch
-    [-c]=conditional
-    [-h]=help
-    [-k]=kind
-    [-p]=path
+    '-a' autoload
+    '-b' branch
+    '-c' conditional
+    '-h' help
+    '-k' kind
+    '-p' path
   )
   local -a annotations=()
   local arg
