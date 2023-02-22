@@ -217,6 +217,23 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 %
 ```
 
+### pre/post functions
+
+```zsh
+% run_before() { echo "before" }; run_after() { echo "after" }
+% # pre
+% antidote-script --pre run_before foo/bar | subenv ANTIDOTE_HOME
+run_before
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+% # post
+% antidote-script --post run_after foo/bar | subenv ANTIDOTE_HOME
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+run_after
+%
+```
+
 ## Private functions
 
 ### __antidote_initfiles

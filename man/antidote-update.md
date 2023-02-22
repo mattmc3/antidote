@@ -10,7 +10,7 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote update [-h|-\-help] [-s|-\-self] [-b|-\-bundles]
+| antidote update [-h|\--help] [-s|\--self] [-b|\--bundles]
 
 # DESCRIPTION
 

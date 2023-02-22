@@ -4,6 +4,7 @@
 #
 # usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
 #                        [-c|--conditional <func>] [-b|--branch <branch>]
+#                        [--pre <func>] [--post <func>]
 #                        [-a|--autoload <path>] <bundle>
 # <kind>   : zsh,path,fpath,defer,clone,autoload
 # <path>   : Relative path from the bundle root
@@ -33,14 +34,16 @@ function antidote-script {
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   local REPLY=
 
-  local o_help o_kind o_path o_branch o_cond o_autoload
+  local o_help o_kind o_path o_branch o_cond o_autoload o_pre o_post
   zparseopts $_adote_zparopt_flags -- \
-    h=o_help       -help=h       \
-    a:=o_autoload  -autoload:=a  \
-    b:=o_branch    -branch:=b    \
-    k:=o_kind      -kind:=k      \
-    p:=o_path      -path:=p      \
-    c:=o_cond      -conditional:=c  ||
+    h=o_help       -help=h            \
+    a:=o_autoload  -autoload:=a       \
+    b:=o_branch    -branch:=b         \
+    k:=o_kind      -kind:=k           \
+    p:=o_path      -path:=p           \
+                   -pre:=o_pre        \
+                   -post:=o_post      \
+    c:=o_cond      -conditional:=c    ||
     return 1
 
   # set defaults
@@ -53,6 +56,8 @@ function antidote-script {
   [[ $o_path[-1] =~ $re ]] && o_path[-1]=$match
   [[ $o_cond[-1] =~ $re ]] && o_cond[-1]=$match
   [[ $o_branch[-1] =~ $re ]] && o_branch[-1]=$match
+  [[ $o_pre[-1] =~ $re ]] && o_pre[-1]=$match
+  [[ $o_post[-1] =~ $re ]] && o_post[-1]=$match
 
   local supported_kind_vals=(autoload clone defer fpath path zsh)
   if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
@@ -94,7 +99,13 @@ function antidote-script {
   zstyle -s ":antidote:plugin:${bundle}" defer-options 'dopts'
   [[ -n "$dopts" ]] && dopts=" $dopts"
 
+  # generate the script
   local -a script=()
+
+  # add pre-load function
+  (( $#o_pre )) && script+=("$o_pre[-1]")
+
+  # handle defers
   local source_cmd="source"
   if [[ "$o_kind[-1]" == "defer" ]]; then
     source_cmd="zsh-defer${dopts} source"
@@ -137,6 +148,9 @@ function antidote-script {
       script+="$source_cmd $initfile"
     done
   fi
+
+  # add post-load function
+  (( $#o_post )) && script+=("$o_post[-1]")
 
   # mark bundle as loaded
   # script+="zstyle ':antidote:plugin:${bundle_name}' loaded yes"

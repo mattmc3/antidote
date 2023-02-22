@@ -70,6 +70,8 @@ function _antidote {
             '(-a --autoload)'{-a,--autoload}'[A relative subpath within the bundle where autoload function files are located]' \
             '(-c --conditional)'{-c,--conditional}'[A conditional function used to check whether to load the bundle]' \
             '(-b --branch)'{-b,--branch}'[The git branch to use]' \
+            '(--pre)--pre[A function to be called prior to loading the bundle]' \
+            '(--post)--post[A function to be called after loading the bundle]' \
             && ret=0
           ;;
         (list)
