@@ -95,9 +95,9 @@ function antidote-script {
   [[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
 
   # handle defer pre-reqs first
-  local dopts
+  local dopts zsh_defer='zsh-defer'
   zstyle -s ":antidote:plugin:${bundle}" defer-options 'dopts'
-  [[ -n "$dopts" ]] && dopts=" $dopts"
+  [[ -n "$dopts" ]] && zsh_defer="zsh-defer $dopts"
 
   # generate the script
   local -a script=()
@@ -108,7 +108,7 @@ function antidote-script {
   # handle defers
   local source_cmd="source"
   if [[ "$o_kind[-1]" == "defer" ]]; then
-    source_cmd="zsh-defer${dopts} source"
+    source_cmd="${zsh_defer} source"
     script+=(
       'if ! (( $+functions[zsh-defer] )); then'
       "$(antidote-script 'romkatv/zsh-defer' | pr -to 2)"
@@ -152,7 +152,7 @@ function antidote-script {
   # add post-load function
   if (( $#o_post )); then
     if [[ "$o_kind[-1]" == "defer" ]]; then
-      script+=("zsh-defer $o_post[-1]")
+      script+=("${zsh_defer} $o_post[-1]")
     else
       script+=("$o_post[-1]")
     fi
