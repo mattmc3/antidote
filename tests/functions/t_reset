@@ -1,0 +1,6 @@
+#!/bin/zsh
+function t_reset {
+  t_teardown
+  t_setup
+}
+t_reset "$@"

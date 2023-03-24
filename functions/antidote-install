@@ -4,24 +4,35 @@
 
 # usage: antidote install [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
 #                         [-c|--conditional <func>] [-b|--branch <branch>]
+#                         [--pre <func>] [--post <func>]
 #                         [-a|--autoload <path>] <bundle> [<bundlefile>]
 function antidote-install {
   emulate -L zsh; setopt $_adote_funcopts
 
-  local o_help o_kind o_path o_branch o_cond o_autoload
-  zparseopts $_adote_zparopt_flags -- \
-    h=o_help       -help=h       \
-    a:=o_autoload  -autoload:=a  \
-    b:=o_branch    -branch:=b    \
-    k:=o_kind      -kind:=k      \
-    p:=o_path      -path:=p      \
-    c:=o_cond      -conditional:=c  ||
-    return 1
-
-  if (( $#o_help )); then
-    antidote-help install
-    return
-  fi
+  local -A flag_to_annotation=(
+    '-a' autoload
+    '-b' branch
+    '-c' conditional
+    '-h' help
+    '-k' kind
+    '-p' path
+  )
+  local -a annotations=()
+  local arg
+  while (( $# )); do
+    arg="$1"
+    case "$arg" in
+      -h|--help)
+        antidote-help install
+        return
+      ;;
+      --)   shift; break  ;;
+      --*)  annotations+=( "${arg#*--}:$2" ); shift  ;;
+      -*)   annotations+=( $flag_to_annotation[$arg]:$2 ); shift  ;;
+      *)    break  ;;
+    esac
+    shift
+  done
 
   if [[ $# -eq 0 ]]; then
     echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
@@ -41,19 +52,15 @@ function antidote-install {
     return 1
   fi
 
-  # use antidote-script to clone our bundle
-  antidote-script $o_kind $o_branch $o_path $bundle >/dev/null
+  # use antidote bundle to clone our bundle
+  local bundlestr=$bundle
+  (( $#annotations )) && bundlestr+=" $annotations"
+  antidote-bundle "$bundlestr" >/dev/null
   if [[ $? -ne 0 ]]; then
     echo >&2 "antidote: unable to install bundle '$bundle'."
   else
-    local annotations=()
-    (( $#o_branch ))   && annotations+=( "branch:$o_branch[-1]" )
-    (( $#o_kind ))     && annotations+=( "kind:$o_kind[-1]" )
-    (( $#o_path ))     && annotations+=( "path:$o_path[-1]" )
-    (( $#o_autoload )) && annotations+=( "autoload:$o_autoload[-1]" )
-    (( $#o_cond ))     && annotations+=( "conditional:$o_cond[-1]" )
     echo "Adding bundle to '$bundlefile':"
-    echo $bundle $annotations | tee -a $bundlefile
+    echo $bundlestr | tee -a $bundlefile
   fi
 }
 antidote-install "$@"

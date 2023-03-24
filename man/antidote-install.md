@@ -10,9 +10,10 @@ header: Antidote Manual
 
 # SYNOPSIS
 
-| antidote install [-h|-\-help] [-k|-\-kind \<kind\>] [-p|-\-path \<path\>]
-|                  [-a|-\-autoload \<path\>] [-c|-\-conditional \<func\>]
-|                  [-b|-\-branch \<branch\>] \<bundle\> [\<bundlefile\>]
+| antidote install [-h|\--help] [-k|\--kind \<kind\>] [-p|\--path \<path\>]
+|                  [-a|\--autoload \<path\>] [-c|\--conditional \<func\>]
+|                  [\--pre \<func\>] [\--post \<func\>]
+|                  [-b|\--branch \<branch\>] \<bundle\> [\<bundlefile\>]
 
 # DESCRIPTION
 
@@ -35,8 +36,14 @@ header: Antidote Manual
 -a, \--autoload <path>
 :   A relative subpath within the bundle where autoload function files are located.
 
--c, \--conditional <path>
+-c, \--conditional <func>
 :   A conditional function used to check whether to load the bundle.
+
+\--pre <func>
+:   A function to be called prior to loading the bundle.
+
+\--post <func>
+:   A function to be called after loading the bundle.
 
 \<bundle\>
 :   Bundle to be installed.

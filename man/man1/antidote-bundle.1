@@ -76,6 +76,13 @@ around a plugin\[cq]s load script.
 Supply the name of a zero argument zsh function to conditional to
 perform the test (eg: \[aq]conditional:is-macos\[aq]).
 .TP
+\f[V]pre\f[R] / \f[V]post\f[R]
+The pre and post annotations allow you to call a function befor or after
+a plugin\[cq]s load script.
+This is helpful when configuring plugins, since the configuration
+functions will only run for active plugins.
+Supply the name of a zero argument zsh function to pre or post.
+.TP
 \f[V]autoload\f[R]
 The autoload annotation allows you to autoload a zsh functions directory
 in addition to however the plugin was loaded as specified by
