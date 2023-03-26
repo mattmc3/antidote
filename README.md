@@ -35,9 +35,9 @@ You can install the latest release of antidote by cloning it with `git`:
 git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
 ```
 
-### Install with a plugin manager
+### Install with a package manager
 
-antidote may also be available in your system's plugin manager:
+antidote may also be available in your system's package manager:
 
 - [macOS homebrew](https://formulae.brew.sh/formula/antidote): `brew install antidote`
 - [Arch AUR](https://aur.archlinux.org/packages/zsh-antidote): `yay -S zsh-antidote`
