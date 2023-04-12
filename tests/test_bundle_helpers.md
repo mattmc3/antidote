@@ -112,8 +112,8 @@ The bundle parser is an awk script that turns the bundle DSL into antidote-scrip
 ```zsh
 % __antidote_parse_bundles $ZDOTDIR/.zsh_plugins.txt
 antidote-script ~/foo/bar
-antidote-script $ZDOTDIR/foo/bar
-antidote-script --path baz $ZDOTDIR/foo/bar
+antidote-script \$ZDOTDIR/foo/bar
+antidote-script --path baz \$ZDOTDIR/foo/bar
 antidote-script foo/bar
 antidote-script git@github.com:baz/qux.git
 antidote-script --kind clone romkatv/zsh-defer

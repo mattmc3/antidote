@@ -1,3 +1,7 @@
+# paths
+#$ZDOTDIR/aliases.zsh
+$ZSH_CUSTOM/plugins/myplugin
+
 # plugins
 zsh-users/zsh-history-substring-search
 https://github.com/zsh-users/zsh-autosuggestions

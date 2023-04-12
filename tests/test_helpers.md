@@ -14,12 +14,16 @@
 file
 % __antidote_bundle_type $PWD/functions
 dir
+% __antidote_bundle_type '$PWD/antidote.zsh'
+file
+% __antidote_bundle_type \$PWD/functions
+dir
 % __antidote_bundle_type 'git@github.com:foo/bar.git'
 sshurl
 % __antidote_bundle_type 'https://github.com/foo/bar'
 url
 % __antidote_bundle_type 'https:/bad.com/foo/bar.git'
-unk
+?
 % __antidote_bundle_type ''
 empty
 % __antidote_bundle_type '    '
@@ -33,6 +37,14 @@ relpath
 % __antidote_bundle_type '~/foo/bar'
 path
 % __antidote_bundle_type '$foo/bar'
+path
+% __antidote_bundle_type \$ZDOTDIR/foo
+path
+% __antidote_bundle_type \$ZDOTDIR/.zsh_plugins.txt
+file
+% __antidote_bundle_type '~/.zshenv'
+file
+% __antidote_bundle_type '~/null'
 path
 % __antidote_bundle_type foo/bar
 repo
