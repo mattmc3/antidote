@@ -55,6 +55,9 @@ function __antidote_parse_bundles {
     # strip trailing comments
     { sub(/[ \t]#.*$/,"",$0) }
 
+    # escape leading $ variables
+    { sub(/^\$/,"\\$",$0) }
+
     # handle extension functionality (eg :use ohmyzsh)
     $1~/^:/ {
       sub(/^:/,"",$1)

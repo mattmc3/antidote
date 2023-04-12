@@ -1,25 +1,47 @@
 #!/bin/zsh
 
-### Determine bundle type: empty,file,dir,sshurl,url,unk,relpath,path,repo,word.
+### Determine bundle type:
+### - ?       - unknown
+### - empty   - empty string
+### - file    - an existing file
+### - dir     - an existing directory
+### - path    - an non-existant path
+### - relpath - a relative path
+### - repo    - a git repo (user/repo format)
+### - sshurl  - a git repo (SSH format)
+### - url     - a git repo (URL format)
+### - word    - a word
 function __antidote_bundle_type {
   emulate -L zsh; setopt $_adote_funcopts
+  local bundle=$1
+
+  # Try to expand path bundles with '$' and '~' prefixes so that we get a more
+  # granular result than 'path'.
+  if [[ $bundle == '~/'* ]]; then
+    bundle="${HOME}/${bundle#\~/*}"
+  elif [[ $bundle == '$'* ]] && [[ $bundle != *'('* ]] && [[ $bundle != *';'* ]]; then
+    bundle=$(eval echo $bundle)
+  fi
+
+  # Determine the bundle type.
   local result
-  if [[ -e "$1" ]]; then
-    [[ -f $1 ]] && result=file || result=dir
-  elif [[ -z "${1// }" ]]; then
+  if [[ -e "$bundle" ]]; then
+    [[ -f $bundle ]] && result=file || result=dir
+  elif [[ -z "${bundle// }" ]]; then
     result=empty
   else
-    case "$1" in
+    case "$bundle" in
       (/|~|'$')*)  result=path     ;;
       *://*)       result=url      ;;
       *@*:*/*)     result=sshurl   ;;
-      *(:|@)*)     result=unk      ;;
+      *(:|@)*)     result='?'      ;;
       */*/*)       result=relpath  ;;
       */)          result=relpath  ;;
       */*)         result=repo     ;;
       *)           result=word     ;;
     esac
   fi
+
   typeset -g REPLY=$result
   echo $result
 }
