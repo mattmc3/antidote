@@ -5,4 +5,9 @@ cd $BASEDIR
 echo "loc:"
 wc -l antidote.zsh ./functions/*(.)
 echo "sloc:"
+for file in antidote.zsh ./functions/*(.); do
+  lines=$(awk '/^ *[^#]+$/{print}' $file | wc -l)
+  echo $lines $file
+done
+echo "sloc total:"
 awk '/^ *[^#]+$/{print}' antidote.zsh ./functions/*(.) | wc -l
