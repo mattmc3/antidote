@@ -3,7 +3,7 @@
 ### Get the antidote version.
 function __antidote_version {
   emulate -L zsh; setopt $_adote_funcopts
-  local ver='1.8.3'
+  local ver='1.8.4'
   local gitsha=$(git -C "${0:h}" rev-parse --short HEAD 2>/dev/null)
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   echo "antidote version $ver"
