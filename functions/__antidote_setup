@@ -14,12 +14,16 @@
 function __antidote_bundle_type {
   emulate -L zsh; setopt $_adote_funcopts
   local bundle=$1
+
+  # Try to expand path bundles with '$' and '~' prefixes so that we get a more
+  # granular result than 'path'.
   if [[ $bundle == '~/'* ]]; then
     bundle="${HOME}/${bundle#\~/*}"
   elif [[ $bundle == '$'* ]] && [[ $bundle != *'('* ]] && [[ $bundle != *';'* ]]; then
     bundle=$(eval echo $bundle)
   fi
 
+  # Determine the bundle type.
   local result
   if [[ -e "$bundle" ]]; then
     [[ -f $bundle ]] && result=file || result=dir

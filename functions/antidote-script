@@ -80,7 +80,8 @@ function antidote-script {
   [[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(__antidote_bundle_dir $bundle)
 
   # handle cloning repo bundles
-  local bundle_type="$(__antidote_bundle_type $bundle)"
+  local bundle_type
+  bundle_type="$(__antidote_bundle_type $bundle)"
   if [[ "$bundle_type" == (repo|url|sshurl) ]] && [[ ! -e "$bundle_path" ]]; then
     local giturl=$(__antidote_tourl $bundle)
     echo >&2 "# antidote cloning $bundle_name..."
@@ -125,18 +126,24 @@ function antidote-script {
   fi
 
   # generate load script
+  bundle_type="$(__antidote_bundle_type $bundle_path)"
   if [[ "$o_kind[-1]" == fpath ]]; then
+    # fpath
     script+="fpath+=( $bundle_path )"
   elif [[ "$o_kind[-1]" == path ]]; then
+    # path
     script+="export PATH=\"$bundle_path:\$PATH\""
   elif [[ "$o_kind[-1]" == autoload ]]; then
+    # autoload
     script+=(
       "fpath+=( $bundle_path )"
       "autoload -Uz \$fpath[-1]/*(N.:t)"
     )
-  elif [[ -f "$bundle_path" ]]; then
+  elif [[ $bundle_type == file ]]; then
+    # file
     script+="$source_cmd $bundle_path"
   else
+    # directory/default
     local initfile initfiles
     initfiles=(${(@f)$(__antidote_initfiles $bundle_path)})
     # if no init file was found, assume the default
