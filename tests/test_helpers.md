@@ -42,6 +42,7 @@ path
 path
 % __antidote_bundle_type \$ZDOTDIR/.zsh_plugins.txt
 file
+% touch ~/.zshenv
 % __antidote_bundle_type '~/.zshenv'
 file
 % __antidote_bundle_type '~/null'
