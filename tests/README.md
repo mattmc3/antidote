@@ -1,12 +1,6 @@
 # antidote tests
 
-Tests are run using two different test runners:
-- [clitest](https://github.com/aureliojargas/clitest)
-- [ztap](https://github.com/mattmc3/ztap)
-
-`clitest` is used for the more straightforward testing, where the tests are in simple command/response format. The bulk of antidote's tests are now written in `clitest`, and utilize markdown files in this folder to house the tests in a literate format.
-
-`ztap` is used for more in-depth testing where more sophisticated tests are needed. Examples are testing things that require larger code blocks, tests the deep inner workings of antidote, true integration tests, environmental testing (like `local_options` use and `setopt` side effects from plugins), or really anything else which benefits from proper throwaway Zsh sessions.
+Tests are using [clitest](https://github.com/aureliojargas/clitest). `clitest` utilizes markdown files in this folder to house the tests in a literate format.
 
 ## Setup
 

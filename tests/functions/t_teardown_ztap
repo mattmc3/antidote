@@ -1,9 +1,0 @@
-#!/bin/zsh
-
-function t_teardown_ztap {
-  emulate -L zsh
-  setopt local_options
-
-  # ???
-}
-t_teardown_ztap "$@"
