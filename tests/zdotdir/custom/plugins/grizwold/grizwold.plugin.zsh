@@ -29,7 +29,6 @@
     bsdecho
     nocaseglob
     nocasematch
-    casepaths
     cbases
     cdablevars
     cdsilent
@@ -38,7 +37,6 @@
     nocheckjobs
     nocheckrunningjobs
     # noclobber
-    clobberempty
     combiningchars
     completealiases
     completeinword
@@ -169,7 +167,6 @@
     shnullcmd
     shoptionletters
     noshortloops
-    shortrepeat
     shwordsplit
     # singlecommand
     singlelinezle
@@ -178,7 +175,6 @@
     transientrprompt
     trapsasync
     typesetsilent
-    typesettounset
     nounset
     # verbose
     # vi
