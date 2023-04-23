@@ -23,6 +23,10 @@ function t_setup {
 
   # put zdotdir in position
   cp -rf $testdir/zdotdir $T_TEMPDIR
+  local mockdir
+  for mockdir in $T_TEMPDIR/**/.mock*; do
+    mv $mockdir ${mockdir:s/.mock/.}
+  done
   typeset -g OLD_ZDOTDIR=$ZDOTDIR
   export ZDOTDIR=$T_TEMPDIR/zdotdir
 

@@ -27,7 +27,7 @@ function antidote-list {
 
   local bundledir
   local output=()
-  local bundles=($(antidote-home)/**/.{mock,}git/..(/N))
+  local bundles=($(antidote-home)/**/.git/..(/N))
 
   for bundledir in $bundles; do
     local url=$(git -C "${bundledir:A}" config remote.origin.url)
