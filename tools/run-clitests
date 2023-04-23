@@ -11,7 +11,7 @@ testfiles=()
 if (( $# > 0 )); then
   testfiles=($@)
 elif (( $#o_unit )); then
-  testfiles=($PWD/tests/*.md~test_real*.md)
+  testfiles=($PWD/tests/*.md~*test_real*~*foo*)
 else
   testfiles=($PWD/tests/*.md)
 fi

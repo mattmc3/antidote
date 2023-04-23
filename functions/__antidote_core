@@ -119,7 +119,7 @@ function __antidote_tourl {
 }
 
 ### Setup antidote.
-function __antidote_setup {
+function __antidote_core {
   # zsh prereq
   autoload -Uz is-at-least
   if ! is-at-least 5.4.2; then
@@ -153,4 +153,4 @@ function __antidote_setup {
     typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
   fi
 }
-__antidote_setup "$@"
+__antidote_core "$@"

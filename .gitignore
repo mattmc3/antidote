@@ -1,7 +1,6 @@
 ~*
 *.zwc
 *.zwc.old
-.ztap/
 .cache/
 .tmp/
 .plugins/
