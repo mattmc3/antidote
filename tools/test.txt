@@ -1,0 +1,8 @@
+ipip	- Plugin for IPIP.
+iterm-tab-color	- Adds function to set the tab color in iTerm2 and can automatically change color based on cwd or command being executed.
+iterm-tab-colors	- Automatically changes iTerm 2 tab color based on the current working directory.
+iterm-touchbar	 - Display iTerm2 feedback in the MacbookPro TouchBar (Current directory, git branch & status).
+iterm2-colors	- Manage your iTerm 2's color scheme from the command line.
+iterm2-tabs	 - Set colors and titles of iTerm 2 tabs.
+iterm2-utilities	 - Helps download various iTerm2 utilities and lets you omit cloning of the whole iterm2-website repository or relying on other repos which may be out of sync.
+iterm2	- Packs iTerm 2's ZSH integration scripts into a ZSH plugin to avoid polluting your $HOME directory, with a negligible time increase of only 2ms.

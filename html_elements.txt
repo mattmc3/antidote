@@ -1,0 +1,6 @@
+a	anchor tag for hyper links
+b	bold text style
+em	emphasis text style (typically italic)
+i	italic text style
+strong	strong text style (typically bold)
+ul	underline style
