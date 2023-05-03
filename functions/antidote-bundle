@@ -19,7 +19,7 @@ function __antidote_filter_defers {
 ### Generate background clone commands
 function __antidote_bulk_clone {
   # get a list of clonable repos from a bundle file
-  awk '
+  awk -v RS='\r\n' '
     # initialize vars
     { bundle=""; opts="--kind clone" }
 
