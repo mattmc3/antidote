@@ -19,9 +19,10 @@ function __antidote_filter_defers {
 ### Generate background clone commands
 function __antidote_bulk_clone {
   # get a list of clonable repos from a bundle file
-  awk -v RS='\r\n' '
+  awk '
     # initialize vars
     { bundle=""; opts="--kind clone" }
+    BEGIN { RS="[\r\n]" }
 
     # skip blank or commented lines
     /^ *(#.+)?$/ { next }
