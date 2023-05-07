@@ -16,9 +16,34 @@
 
 [Antidote][getantidote] is a feature-complete Zsh implementation of the legacy [Antibody][antibody] plugin manager, which in turn was derived from [Antigen][antigen]. Antidote not only aims to provide continuity for those legacy plugin managers, but also to delight new users with high-performance, easy-to-use Zsh plugin management.
 
-## Documentation
+## Usage
 
-The full documentation can be found at [https://getantidote.github.io][getantidote]
+Basic usage should look really familiar to you if you have used Antibody or Antigen. Bundles (aka: Zsh plugins) are stored in a file typically called `.zsh_plugins.txt`.
+
+```zsh
+# .zsh_plugins.txt
+rupa/z              # some bash plugins work too
+sindresorhus/pure   # enhance your prompt
+
+# you can even use Oh My Zsh plugins
+ohmyzsh/ohmyzsh path:lib
+ohmyzsh/ohmyzsh path:plugins/extract
+
+# add fish-like features
+zsh-users/zsh-syntax-highlighting
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-history-substring-search
+```
+
+A typical `.zshrc` might then look like:
+
+```zsh
+# .zshrc
+source /path-to-antidote/antidote.zsh
+antidote load ${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+```
+
+The full documentation can be found at [https://getantidote.github.io][getantidote].
 
 ## Help getting started
 
