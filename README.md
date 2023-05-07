@@ -67,21 +67,31 @@ antidote may also be available in your system's package manager:
 - [macOS homebrew](https://formulae.brew.sh/formula/antidote): `brew install antidote`
 - [Arch AUR](https://aur.archlinux.org/packages/zsh-antidote): `yay -S zsh-antidote`
 
-### .zshrc
+## Performance
 
-After installation, the simplest way to use antidote is to call the `antidote load` command from your `.zshrc`:
+antidote supports ultra-high performance plugin loads using a static plugin file.
+It also allows deferred loading for [plugins that support it](https://github.com/romkatv/zsh-defer#caveats).
 
 ```zsh
-# now, simply add these two lines in your ~/.zshrc
-
-# source antidote
-source ${ZDOTDIR:-~}/.antidote/antidote.zsh
-
-# initialize plugins statically with ${ZDOTDIR:-~}/.zsh_plugins.txt
-antidote load
+# .zsh_plugins.txt
+# some plugins support deferred loading
+zdharma-continuum/fast-syntax-highlighting kind:defer
+zsh-users/zsh-autosuggestions kind:defer
+zsh-users/zsh-history-substring-search kind:defer
 ```
 
-More details available can be found at [https://getantidote.github.io][getantidote].
+```zsh
+# .zshrc
+# Lazy-load antidote and generate the static load file only when needed
+zsh_plugins=${ZDOTDIR:-$HOME}/.zsh_plugins
+if [[ ! ${zsh_plugins}.zsh -nt ${zsh_plugins}.txt ]]; then
+  (
+    source /path-to-antidote/antidote.zsh
+    antidote bundle ${zsh_plugins}.txt > ${zsh_plugins}.zsh
+  )
+fi
+source ${zsh_plugins}.zsh
+```
 
 ## Benchmarks
 
