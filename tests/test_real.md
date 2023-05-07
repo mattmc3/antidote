@@ -74,6 +74,54 @@ Antidote purge complete. Be sure to start a new Zsh session.
 %
 ```
 
+## CRLF testing
+
+### Redo setup
+
+```zsh
+% TESTDATA=$PWD/tests/testdata/real
+% source ./tests/_setup.zsh
+% t_setup_real
+%
+```
+
+Clone and generate bundle script
+
+```zsh
+% antidote bundle <$TESTDATA/.zsh_plugins.crlf.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
+% cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z/z.sh
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-syntax-highlighting )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-completions )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-completions/zsh-completions.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search/zsh-history-substring-search.plugin.zsh
+%
+```
+
+Check to see that everything cloned
+
+```zsh
+% antidote list | subenv ANTIDOTE_HOME
+https://github.com/rupa/z                                        $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z
+https://github.com/zsh-users/zsh-autosuggestions                 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
+https://github.com/zsh-users/zsh-completions                     $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-completions
+https://github.com/zsh-users/zsh-history-substring-search        $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search
+https://github.com/zsh-users/zsh-syntax-highlighting             $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-syntax-highlighting
+%
+```
+
+### Teardown
+
+```zsh
+% t_teardown
+%
+```
+
 ## antidote load
 
 ### Redo setup
