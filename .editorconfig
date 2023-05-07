@@ -8,6 +8,9 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 2
 
+[*.crlf.*]
+end_of_line = crlf
+
 [*.md]
 trim_trailing_whitespace = false
 
