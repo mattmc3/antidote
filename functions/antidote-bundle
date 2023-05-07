@@ -22,6 +22,7 @@ function __antidote_bulk_clone {
   awk '
     # initialize vars
     { bundle=""; opts="--kind clone" }
+    BEGIN { RS="[\r\n]" }
 
     # skip blank or commented lines
     /^ *(#.+)?$/ { next }
