@@ -1,5 +1,16 @@
 #!/bin/zsh
 
+# Translate Windows raw paths to more "POSIX" like Paths
+function __fix_windows_path {
+  local path=$1
+  path=${path//\\//}
+  path="/${(L)path}"
+  path=${path//:/}
+  path=${path// /%20}
+  path=${path//\%/%%}
+  echo $path
+}
+
 ### Print where antidote is cloning bundles.
 #
 # usage: antidote home [-h|--help]
@@ -24,7 +35,8 @@ function antidote-home {
   elif [[ "${OSTYPE}" == darwin* ]]; then
     result="$HOME/Library/Caches/antidote"
   elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
-    result="$LOCALAPPDATA/antidote"
+    posix_string=$(__fix_windows_path $LOCALAPPDATA)
+    result="$posix_string/antidote"
   elif [[ -n "$XDG_CACHE_HOME" ]]; then
     result="$XDG_CACHE_HOME/antidote"
   else
