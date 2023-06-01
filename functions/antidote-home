@@ -24,7 +24,12 @@ function antidote-home {
   elif [[ "${OSTYPE}" == darwin* ]]; then
     result="$HOME/Library/Caches/antidote"
   elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
-    result="$LOCALAPPDATA/antidote"
+    result=${LOCALAPPDATA:-$LocalAppData}
+    if [[ $result == *\\* ]]; then
+      result+='\\antidote'
+    else
+      result+="/antidote"
+    fi
   elif [[ -n "$XDG_CACHE_HOME" ]]; then
     result="$XDG_CACHE_HOME/antidote"
   else
