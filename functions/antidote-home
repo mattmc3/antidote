@@ -35,7 +35,7 @@ function antidote-home {
   else
     result="$HOME/.cache/antidote"
   fi
-  echo $result
+  print $result
   typeset -g REPLY=$result
 }
 antidote-home "$@"

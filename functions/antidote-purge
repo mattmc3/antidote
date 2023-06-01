@@ -20,7 +20,7 @@ function antidote-purge {
   fi
 
   if [[ $# -eq 0 ]] && ! (( $#o_all )); then
-    echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
+    print >&2 "antidote: error: required argument 'bundle' not provided, try --help"
     return 1
   fi
 
@@ -34,7 +34,7 @@ function antidote-purge {
     local REPLY
     zstyle -s ':antidote:purge:all' answer 'REPLY' || {
       read -q "REPLY?You are about to permanently remove '$antidote_home' and all its contents!"$'\n'"Are you sure [Y/n]? "
-      echo
+      print
     }
     [[ ${REPLY:u} == "Y" ]] || return 1
     # remove antidote home and static cache file
@@ -43,40 +43,40 @@ function antidote-purge {
     if [[ -e "${bundlefile:r}.zsh" ]]; then
       zstyle -s ':antidote:purge:all' answer 'REPLY' || {
         read -q "REPLY?You are about to remove '${bundlefile:t:r}.zsh'"$'\n'"Are you sure [Y/n]? "
-        echo
+        print
       }
       if [[ ${REPLY:u} == "Y" ]]; then
         local dtstmp=$(date -u '+%Y%m%d_%H%M%S')
         mv -f "${bundlefile:r}.zsh" "${bundlefile:r}.${dtstmp}.bak"
-        echo "'"${bundlefile:r}.zsh"' backed up to '${bundlefile:t:r}.${dtstmp}.bak'"
+        print "'"${bundlefile:r}.zsh"' backed up to '${bundlefile:t:r}.${dtstmp}.bak'"
       fi
     fi
-    echo "Antidote purge complete. Be sure to start a new Zsh session."
+    print "Antidote purge complete. Be sure to start a new Zsh session."
 
   else
     local bundle=$1
     # make sure the user isn't trying to do something out-of-bounds
     if [[ -e "$bundle" ]]; then
-      echo >&2 "antidote: error: '$bundle' is not a repo and cannot be removed by antidote."
+      print >&2 "antidote: error: '$bundle' is not a repo and cannot be removed by antidote."
       return 2
     fi
 
     local bundledir=$(__antidote_bundle_dir $bundle)
     if [[ ! -d "$bundledir" ]]; then
-      echo >&2 "antidote: error: $bundle does not exist at the expected location: $bundledir"
+      print >&2 "antidote: error: $bundle does not exist at the expected location: $bundledir"
       return 1
     fi
 
     # remove
     command rm -rf "$bundledir"
-    echo "Removed '$bundle'."
+    print "Removed '$bundle'."
 
     # attempt to comment out the bundle from .zsh_plugins.txt
     if [[ -e "$bundlefile" ]]; then
       local tmpfile="${bundlefile}.antidote.tmp"
       awk -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}1' <$bundlefile >|$tmpfile
       mv -f "$tmpfile" "$bundlefile" || rm -f "$tmpfile"
-      echo "Bundle '$bundle' was commented out in '$bundlefile'."
+      print "Bundle '$bundle' was commented out in '$bundlefile'."
     fi
   fi
 }

@@ -32,8 +32,12 @@ function antidote-load {
   [[ -n "$staticfile" ]] || staticfile=${bundlefile:r}.zsh
   [[ "$staticfile" != "$bundlefile" ]] || staticfile="${bundlefile:r}.static.zsh"
 
-  # regenerate the static file based on whether the bundle file is newer
-  [[ $staticfile -nt $bundlefile ]] || antidote bundle <"$bundlefile" >|"$staticfile"
+  # regenerate the static file based on whether the bundle file is newer and whether
+  # antidote home exists
+  local antidote_home="$(antidote-home)"
+  if [[ ! $staticfile -nt $bundlefile ]]; then
+    antidote bundle <"$bundlefile" >|"$staticfile"
+  fi
   source "$staticfile"
 }
 antidote-load "$@"

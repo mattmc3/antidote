@@ -21,7 +21,7 @@ function antidote-list {
   fi
 
   if [[ $# -ne 0 ]]; then
-    echo >&2 "antidote: error: unexpected $1, try --help"
+    print >&2 "antidote: error: unexpected $1, try --help"
     return 1
   fi
 

@@ -2,12 +2,12 @@
 0=${(%):-%x}
 BASEDIR=${0:h:h}
 cd $BASEDIR
-echo "loc:"
+print "loc:"
 wc -l antidote.zsh ./functions/*(.)
-echo "sloc:"
+print "sloc:"
 for file in antidote.zsh ./functions/*(.); do
   lines=$(awk '/^ *[^#]+$/{print}' $file | wc -l)
-  echo $lines $file
+  print $lines $file
 done
-echo "sloc total:"
+print "sloc total:"
 awk '/^ *[^#]+$/{print}' antidote.zsh ./functions/*(.) | wc -l

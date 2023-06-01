@@ -35,7 +35,7 @@ function antidote-install {
   done
 
   if [[ $# -eq 0 ]]; then
-    echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
+    print >&2 "antidote: error: required argument 'bundle' not provided, try --help"
     return 1
   fi
 
@@ -48,7 +48,7 @@ function antidote-install {
 
   local bundledir=$(__antidote_bundle_dir $bundle)
   if [[ -d "$bundledir" ]]; then
-    echo >&2 "antidote: error: $bundle already installed: $bundledir"
+    print >&2 "antidote: error: $bundle already installed: $bundledir"
     return 1
   fi
 
@@ -57,10 +57,10 @@ function antidote-install {
   (( $#annotations )) && bundlestr+=" $annotations"
   antidote-bundle "$bundlestr" >/dev/null
   if [[ $? -ne 0 ]]; then
-    echo >&2 "antidote: unable to install bundle '$bundle'."
+    print >&2 "antidote: unable to install bundle '$bundle'."
   else
-    echo "Adding bundle to '$bundlefile':"
-    echo $bundlestr | tee -a $bundlefile
+    print "Adding bundle to '$bundlefile':"
+    print $bundlestr | tee -a $bundlefile
   fi
 }
 antidote-install "$@"

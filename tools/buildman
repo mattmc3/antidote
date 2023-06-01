@@ -14,12 +14,12 @@ for manpage in $BASEDIR/man/*.md; do
   case ${manpage:t:r} in
     footer|example) continue ;;
   esac
-  echo "Building ${manpage:t:r} manpage..."
+  print "Building ${manpage:t:r} manpage..."
   [[ -d $BASEDIR/man/man1 ]] || mkdir -p $BASEDIR/man/man1
 
   mdfile=$TMPDIR/${manpage:t}.md
   cat ${manpage} > $mdfile
-  echo "" >> $mdfile
+  print "" >> $mdfile
   cat $BASEDIR/man/footer.md >> $mdfile
 
   pandoc --standalone --to man ${mdfile} -o $BASEDIR/man/man1/${manpage:t:r}.1
