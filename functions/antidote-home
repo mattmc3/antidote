@@ -18,22 +18,11 @@ function antidote-home {
     return
   fi
 
-  local rootdir result
+  local result
   if [[ -n "$ANTIDOTE_HOME" ]]; then
     result=$ANTIDOTE_HOME
-  elif [[ "${OSTYPE}" == darwin* ]]; then
-    result="$HOME/Library/Caches/antidote"
-  elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
-    result=${LOCALAPPDATA:-$LocalAppData}
-    if [[ $result == *\\* ]]; then
-      result+='\\antidote'
-    else
-      result+="/antidote"
-    fi
-  elif [[ -n "$XDG_CACHE_HOME" ]]; then
-    result="$XDG_CACHE_HOME/antidote"
   else
-    result="$HOME/.cache/antidote"
+    result=$(__antidote_get_cachedir "antidote")
   fi
   print $result
   typeset -g REPLY=$result
