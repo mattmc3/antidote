@@ -30,7 +30,6 @@ function antidote-home {
   else
     result="$HOME/.cache/antidote"
   fi
-  [[ -d $result ]] || mkdir -p $result
   echo $result
   typeset -g REPLY=$result
 }
