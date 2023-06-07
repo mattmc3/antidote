@@ -20,7 +20,7 @@ function __antidote_bundle_type {
   if [[ $bundle == '~/'* ]]; then
     bundle="${HOME}/${bundle#\~/*}"
   elif [[ $bundle == '$'* ]] && [[ $bundle != *'('* ]] && [[ $bundle != *';'* ]]; then
-    bundle=$(eval echo $bundle)
+    bundle=$(eval print $bundle)
   fi
 
   # Determine the bundle type.
@@ -43,7 +43,7 @@ function __antidote_bundle_type {
   fi
 
   typeset -g REPLY=$result
-  echo $result
+  print $result
 }
 
 ### Get the short name of the bundle.
@@ -56,9 +56,9 @@ function __antidote_bundle_name {
     bundle=${bundle%.git}
     bundle=${bundle:gs/\:/\/}
     local parts=(${(ps./.)bundle})
-    echo ${parts[-2]}/${parts[-1]}
+    print ${parts[-2]}/${parts[-1]}
   else
-    echo $bundle | sed -e "s|^\~/|$HOME/|" -e "s|^$HOME|\$HOME|"
+    print $bundle | sed -e "s|^\~/|$HOME/|" -e "s|^$HOME|\$HOME|"
   fi
 }
 
@@ -85,9 +85,9 @@ function __antidote_bundle_dir {
       bundle=${bundle:gs/\:/\/}
       local parts=( ${(ps./.)bundle} )
       if [[ $#parts -gt 1 ]]; then
-        echo $(antidote-home)/${parts[-2]}/${parts[-1]}
+        print $(antidote-home)/${parts[-2]}/${parts[-1]}
       else
-        echo $(antidote-home)/$bundle
+        print $(antidote-home)/$bundle
       fi
     else
       # sanitize URL for safe use as a dir name
@@ -97,12 +97,12 @@ function __antidote_bundle_dir {
       url=${url:gs/\@/-AT-}
       url=${url:gs/\:/-COLON-}
       url=${url:gs/\//-SLASH-}
-      echo $(antidote-home)/$url
+      print $(antidote-home)/$url
     fi
   elif [[ -f "$bundle" ]]; then
-    echo ${bundle:A:h}
+    print ${bundle:A:h}
   else
-    echo ${bundle}
+    print ${bundle}
   fi
 }
 
@@ -115,7 +115,32 @@ function __antidote_tourl {
   if [[ $bundle != *://* && $bundle != git@*:*/* ]]; then
     url=https://github.com/$bundle
   fi
-  echo $url
+  print $url
+}
+
+### Get the default cache directory per OS
+function __antidote_get_cachedir {
+  emulate -L zsh; setopt $_adote_funcopts
+
+  local result
+  if [[ "${OSTYPE}" == darwin* ]]; then
+    result=$HOME/Library/Caches
+  elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
+    result=${LOCALAPPDATA:-$LocalAppData}
+  elif [[ -n "$XDG_CACHE_HOME" ]]; then
+    result=$XDG_CACHE_HOME
+  else
+    result=$HOME/.cache
+  fi
+
+  if [[ -n "$1" ]]; then
+    if [[ $result == *\\* ]]; then
+      result+="\\$1"
+    else
+      result+="/$1"
+    fi
+  fi
+  print $result
 }
 
 ### Setup antidote.
@@ -123,7 +148,7 @@ function __antidote_core {
   # zsh prereq
   autoload -Uz is-at-least
   if ! is-at-least 5.4.2; then
-    echo >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >5.4.2."
+    print >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >5.4.2."
     return 1
   fi
 

@@ -21,31 +21,31 @@ function antidote-update {
   fi
 
   if (( $#o_bundles )) || ! (( $#o_self )); then
-    echo "Updating bundles..."
+    print "Updating bundles..."
     local bundledir url
     for bundledir in $(antidote-list --dirs); do
       url=$(git -C "$bundledir" config remote.origin.url)
-      echo "antidote: checking for updates: $url"
+      print "antidote: checking for updates: $url"
       () {
         local oldsha=$(git -C "$1" rev-parse --short HEAD)
         git -C "$1" pull --quiet --ff --rebase --autostash
         local newsha=$(git -C "$1" rev-parse --short HEAD)
         if [[ $oldsha != $newsha ]]; then
-          echo "antidote: updated: $2 $oldsha -> $newsha"
+          print "antidote: updated: $2 $oldsha -> $newsha"
         fi
       } "$bundledir" "$url" &
     done
-    echo "Waiting for bundle updates to complete..."
+    print "Waiting for bundle updates to complete..."
     wait
-    echo "Bundle updates complete."
+    print "Bundle updates complete."
   fi
 
   # update antidote
   if (( $#o_self )) || ! (( $#o_bundles )); then
-    echo "Updating antidote..."
+    print "Updating antidote..."
     if [[ -d "${0:A:h:h}/.git" ]]; then
       git -C "${0:A:h:h}" pull --quiet --ff --rebase --autostash
-      echo "Antidote self-update complete.\n"
+      print "Antidote self-update complete.\n"
 
       # setup antidote again
       (( $+functions[__antidote_core] )) && unfunction __antidote_core
@@ -55,8 +55,8 @@ function antidote-update {
       # show antidote version
       antidote -v
     else
-      echo "Self updating is disabled in this build."
-      echo "Use your OS package manager to update antidote itself."
+      print "Self updating is disabled in this build."
+      print "Use your OS package manager to update antidote itself."
     fi
   fi
 }

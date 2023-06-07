@@ -16,17 +16,17 @@ function antidote-path {
   fi
 
   if [[ $# -eq 0 ]]; then
-    echo >&2 "antidote: error: required argument 'bundle' not provided, try --help"
+    print >&2 "antidote: error: required argument 'bundle' not provided, try --help"
     return 1
   fi
 
   local bundle="$1"
   local bundledir=$(__antidote_bundle_dir $bundle)
   if [[ ! -d $bundledir ]]; then
-    echo >&2 "antidote: error: $bundle does not exist in cloned paths"
+    print >&2 "antidote: error: $bundle does not exist in cloned paths"
     return 1
   else
-    echo "$bundledir"
+    print "$bundledir"
   fi
 }
 antidote-path "$@"

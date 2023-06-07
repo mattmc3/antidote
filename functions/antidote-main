@@ -4,10 +4,10 @@
 function __antidote_version {
   emulate -L zsh; setopt $_adote_funcopts
   0=${(%):-%x}
-  local ver='1.8.6'
+  local ver='1.8.7'
   local gitsha=$(git -C "${0:A:h:h}" rev-parse --short HEAD 2>/dev/null)
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
-  echo "antidote version $ver"
+  print "antidote version $ver"
 }
 
 ### The main controller for antidote.
@@ -44,7 +44,7 @@ function antidote-main {
     return $?
 
   else
-    echo >&2 "antidote: command not found '${1}'" && return 1
+    print >&2 "antidote: command not found '${1}'" && return 1
   fi
 }
 antidote-main "$@"

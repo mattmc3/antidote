@@ -21,7 +21,7 @@ function antidote-list {
   fi
 
   if [[ $# -ne 0 ]]; then
-    echo >&2 "antidote: error: unexpected $1, try --help"
+    print >&2 "antidote: error: unexpected $1, try --help"
     return 1
   fi
 
@@ -29,10 +29,10 @@ function antidote-list {
   local output=()
   local bundles=($(antidote-home)/**/.git/..(/N))
 
-  for bundledir in $bundles; do
-    local url=$(git -C "${bundledir:A}" config remote.origin.url)
+  for bundledir in ${bundles:A}; do
+    local url=$(git -C "$bundledir" config remote.origin.url)
     if (( $#o_dirs )); then
-      output+=(${bundledir:A})
+      output+=($bundledir)
     elif (( $#o_url )); then
       output+=($url)
     elif (( $#o_short )); then
@@ -40,7 +40,7 @@ function antidote-list {
       url=${url#https://github.com/}
       output+=($url)
     else
-      output+=("$(printf '%-64s %s\n' $url ${bundledir:A})")
+      output+=("$(printf '%-64s %s\n' $url $bundledir)")
     fi
   done
   (( $#output )) && printf '%s\n' ${(o)output}
