@@ -33,9 +33,17 @@ function antidote-load {
   [[ "$staticfile" != "$bundlefile" ]] || staticfile="${bundlefile:r}.static.zsh"
 
   # regenerate the static file based on whether the bundle file is newer and whether
-  # antidote home exists
-  local antidote_home="$(antidote-home)"
-  if [[ ! $staticfile -nt $bundlefile ]]; then
+  # antidote home exists and is ready to be loaded
+  local force_bundle=0
+  if ! zstyle -t ':antidote:load:checkfile' disabled; then
+    local loadable_check_path="$(antidote-home)/.antidote.load"
+    if [[ ! -e $loadable_check_path ]]; then
+      force_bundle=1
+      touch $loadable_check_path
+    fi
+  fi
+
+  if [[ ! $staticfile -nt $bundlefile ]] || [[ $force_bundle -eq 1 ]]; then
     antidote bundle <"$bundlefile" >|"$staticfile"
   fi
   source "$staticfile"
