@@ -78,7 +78,7 @@ No arg exit status is 2:
 
 ```zsh
 % antidote --version
-antidote version 1.8.7
+antidote version 1.8.8
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?

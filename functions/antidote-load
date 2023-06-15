@@ -39,6 +39,7 @@ function antidote-load {
     local loadable_check_path="$(antidote-home)/.antidote.load"
     if [[ ! -e $loadable_check_path ]]; then
       force_bundle=1
+      [[ -d $loadable_check_path:h ]] || mkdir -p $loadable_check_path:h
       touch $loadable_check_path
     fi
   fi
