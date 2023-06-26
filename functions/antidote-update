@@ -48,9 +48,9 @@
       print "Antidote self-update complete.\n"
 
       # setup antidote again
-      (( $+functions[__antidote_core] )) && unfunction __antidote_core
-      autoload -Uz ${0:A:h}/__antidote_core
-      __antidote_core
+      (( $+functions[__antidote_setup] )) && unfunction __antidote_setup
+      autoload -Uz ${0:A:h}/__antidote_setup
+      __antidote_setup
 
       # show antidote version
       antidote -v

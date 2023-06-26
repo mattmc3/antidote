@@ -1,0 +1,37 @@
+#!/bin/zsh
+
+### Setup antidote.
+#function __antidote_core {
+  # zsh prereq
+  autoload -Uz is-at-least
+  if ! is-at-least 5.4.2; then
+    print >&2 "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >5.4.2."
+    return 1
+  fi
+
+  0=${(%):-%x}
+  fpath=( "${0:A:h}" $fpath )
+  local fn
+  for fn in ${0:A:h}/*; do
+    (( $+functions[${fn:t}] )) && unfunction ${fn:t}
+    # only autoload extensionless files
+    [[ -z "${fn:e}" ]] && autoload -Uz "${fn}"
+  done
+
+  # man pages
+  if [[ "$MANPATH" != *"${0:A:h:h}/man"* ]]; then
+    export MANPATH="${0:A:h:h}/man:$MANPATH"
+  fi
+
+  if is-at-least 5.8; then
+    # the -F option was added in 5.8
+    typeset -gHa _adote_zparopt_flags=( -D -M -F )
+  else
+    typeset -gHa _adote_zparopt_flags=( -D -M )
+  fi
+
+  typeset -gHa _adote_funcopts=( extended_glob no_monitor pipefail )
+  if zstyle -t ':antidote:tests' set-warn-options; then
+    typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
+  fi
+#}
