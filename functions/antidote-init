@@ -7,7 +7,7 @@
 #
 # This function changes how the `antidote` command works by sourcing the results of
 # `antidote bundle` instead of just generating the Zsh script.
-function antidote-init {
+#function antidote-init {
   local o_help
   zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
 
@@ -30,5 +30,4 @@ function antidote-init {
     '}'
   )
   printf "%s\n" "${script[@]}"
-}
-antidote-init "$@"
+#}

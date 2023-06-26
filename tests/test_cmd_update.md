@@ -22,7 +22,7 @@ Bundle updates complete.
 Updating antidote...
 Antidote self-update complete.
 
-antidote version 1.8.8
+antidote version 1.8.9
 %
 ```
 

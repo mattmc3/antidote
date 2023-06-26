@@ -6,7 +6,7 @@
 #                         [-c|--conditional <func>] [-b|--branch <branch>]
 #                         [--pre <func>] [--post <func>]
 #                         [-a|--autoload <path>] <bundle> [<bundlefile>]
-function antidote-install {
+#function antidote-install {
   emulate -L zsh; setopt $_adote_funcopts
 
   local -A flag_to_annotation=(
@@ -62,5 +62,4 @@ function antidote-install {
     print "Adding bundle to '$bundlefile':"
     print $bundlestr | tee -a $bundlefile
   fi
-}
-antidote-install "$@"
+#}

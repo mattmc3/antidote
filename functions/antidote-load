@@ -4,7 +4,7 @@
 #
 # usage: antidote load [-h|--help] [<bundlefile> [<staticfile>]]
 #
-function antidote-load {
+#function antidote-load {
   setopt extended_glob
 
   local o_help
@@ -48,5 +48,4 @@ function antidote-load {
     antidote bundle <"$bundlefile" >|"$staticfile"
   fi
   source "$staticfile"
-}
-antidote-load "$@"
+#}
