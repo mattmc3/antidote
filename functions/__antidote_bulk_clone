@@ -2,6 +2,8 @@
 
 ### Generate background clone commands
 #function __antidote_bulk_clone {
+  emulate -L zsh; setopt $_adote_funcopts
+
   # get a list of clonable repos from a bundle file
   awk '
     BEGIN { RS="[\r\n]" }

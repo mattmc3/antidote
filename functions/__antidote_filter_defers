@@ -2,6 +2,7 @@
 
 ### Filter all but the first defer block.
 #function __antidote_filter_defers {
+  emulate -L zsh; setopt $_adote_funcopts
   awk '
     # filter all but the first time we source zsh-defer (a 4 line if statement)
     BEGIN   { skip=0; found=0 }
