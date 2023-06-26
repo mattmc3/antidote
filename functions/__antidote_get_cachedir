@@ -22,5 +22,5 @@
       result+="/$1"
     fi
   fi
-  print $result
+  print -r -- $result
 #}
