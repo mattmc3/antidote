@@ -5,7 +5,7 @@
 # usage: antidote purge [-h|--help] <bundle>
 #        antidote purge [-a|--all]
 #
-function antidote-purge {
+#function antidote-purge {
   emulate -L zsh; setopt $_adote_funcopts
 
   local o_help o_all
@@ -79,5 +79,4 @@ function antidote-purge {
       print "Bundle '$bundle' was commented out in '$bundlefile'."
     fi
   fi
-}
-antidote-purge "$@"
+#}

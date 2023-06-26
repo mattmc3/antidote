@@ -6,7 +6,7 @@
 #
 # Can be overridden by setting `$ANTIDOTE_HOME`.
 #
-function antidote-home {
+#function antidote-home {
   emulate -L zsh; setopt $_adote_funcopts
 
   typeset -g REPLY=
@@ -26,5 +26,4 @@ function antidote-home {
   fi
   print $result
   typeset -g REPLY=$result
-}
-antidote-home "$@"
+#}

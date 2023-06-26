@@ -12,24 +12,8 @@
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 #
 
-### Get the path to a plugin's init file.
-function __antidote_initfiles {
-  emulate -L zsh; setopt $_adote_funcopts
-  typeset -ga reply=()
-  local dir=${1:A}
-  local initfiles=($dir/${dir:A:t}.plugin.zsh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.plugin.zsh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.sh(N))
-  [[ $#initfiles -gt 0 ]] || initfiles=($dir/*.zsh-theme(N))
-
-  typeset -ga reply=($initfiles)
-  printf "%s\n" ${(u)initfiles[@]}
-  (( $#initfiles )) || return 1
-}
-
 ### Generate the Zsh script to load a plugin.
-function antidote-script {
+#function antidote-script {
   emulate -L zsh; setopt $_adote_funcopts
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   local REPLY=
@@ -176,5 +160,4 @@ function antidote-script {
   else
     printf "%s\n" $script
   fi
-}
-antidote-script "$@"
+#}
