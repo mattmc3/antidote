@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ### Setup antidote.
-#function __antidote_core {
+#function __antidote_setup {
   # zsh prereq
   autoload -Uz is-at-least
   if ! is-at-least 5.4.2; then
@@ -13,8 +13,9 @@
   fpath=( "${0:A:h}" $fpath )
   local fn
   for fn in ${0:A:h}/*; do
+    [[ $fn:t != '__antidote_setup' ]] || continue
     (( $+functions[${fn:t}] )) && unfunction ${fn:t}
-    # only autoload extensionless files
+    # autoload extensionless function files
     [[ -z "${fn:e}" ]] && autoload -Uz "${fn}"
   done
 

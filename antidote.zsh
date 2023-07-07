@@ -5,7 +5,7 @@ if test -z "$ZSH_VERSION"; then
   return 1
 fi
 
-if ! typeset -f __antidote_setup &>/dev/null; then
-  autoload -Uz ${0:A:h}/functions/__antidote_setup
-fi
+typeset -f __antidote_setup &>/dev/null && unfunction __antidote_setup
+0=${(%):-%N}
+autoload -Uz ${0:A:h}/functions/__antidote_setup
 __antidote_setup
