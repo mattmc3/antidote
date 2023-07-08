@@ -66,6 +66,7 @@ antidote may also be available in your system's package manager:
 
 - [macOS homebrew](https://formulae.brew.sh/formula/antidote): `brew install antidote`
 - [Arch AUR](https://aur.archlinux.org/packages/zsh-antidote): `yay -S zsh-antidote`
+- [Nix Home-Manager](https://mipmip.github.io/home-manager-option-search/?query=antidote) : `programs.antidote = { enable = true; };`
 
 ## Performance
 
