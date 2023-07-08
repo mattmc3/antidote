@@ -5,88 +5,8 @@
 # usage: antidote bundle [-h|--help] <bundle>...
 #
 
-### Filter all but the first defer block.
-function __antidote_filter_defers {
-  awk '
-    # filter all but the first time we source zsh-defer (a 4 line if statement)
-    BEGIN   { skip=0; found=0 }
-    skip>0  { skip-- }
-    /^if.+functions\[zsh\-defer\]/ { if(!found) found=1; else skip=4 }
-    skip==0 { print }
-  ' "$@"
-}
-
-### Generate background clone commands
-function __antidote_bulk_clone {
-  # get a list of clonable repos from a bundle file
-  awk '
-    BEGIN { RS="[\r\n]" }
-
-    # initialize vars
-    { bundle=""; opts="--kind clone" }
-
-    # skip blank or commented lines
-    /^ *(#.+)?$/ { next }
-
-    # clone zsh-defer
-    /kind:defer/ { print "antidote-script --kind clone romkatv/zsh-defer &" }
-
-    # handle user/repo and URL forms
-    $1~/^[^\/]+\/[^\/]+$/      { bundle=$1 }
-    $1~/^(https?:|(ssh|git)@)/ { bundle=$1 }
-
-    # find branch annotation if it exists
-    match($0, /branch:[^\t ]+/) { opts=opts " --branch " substr($0, RSTART+7, RLENGTH-7) }
-
-    # print result
-    bundle!=""{ print "antidote-script", opts, bundle, "&" }
-
-    END { print "wait" }
-
-  ' "$@" | sort | uniq
-}
-
-### Parse antidote's bundle DSL.
-function __antidote_parse_bundles {
-  awk '
-    BEGIN { RS="[\r\n]" }
-
-    # skip comments and empty lines
-    /^ *$/ || /^ *#/ {next}
-
-    # strip trailing comments
-    { sub(/[ \t]#.*$/,"",$0) }
-
-    # escape leading $ variables
-    { sub(/^\$/,"\\$",$0) }
-
-    # handle extension functionality (eg :use ohmyzsh)
-    $1~/^:/ {
-      sub(/^:/,"",$1)
-      printf "antidote-script-" $1
-      for (i=2; i<=NF; i++) {
-        printf " %s",$i
-      }
-      printf "\n"
-      next
-    }
-
-    # move flags to front and call antidote-script
-    {
-      sub(/ #.*$/,"",$0)
-      printf "antidote-script"
-      for (i=2; i<=NF; i++) {
-        sub(/^/,"--",$i)
-        sub(/:/," ",$i)
-        printf " %s",$i
-      }
-      printf " %s\n",$1
-    }
-  ' "$@"
-}
-
 ### Clone bundle(s) and generate the static load script.
-function antidote-bundle {
+#function antidote-bundle {
   # Download a bundle and prints its Zsh source line.
   emulate -L zsh; setopt $_adote_funcopts
 
@@ -118,5 +38,4 @@ function antidote-bundle {
 
   # generate bundle script
   source <(printf '%s\n' $bundles | __antidote_parse_bundles) | __antidote_filter_defers
-}
-antidote-bundle $@
+#}

@@ -4,7 +4,7 @@
 #
 # usage: antidote list [-h|--help] [-s|--short] [-d|--dirs] [-u|--url]
 #
-function antidote-list {
+#function antidote-list {
   emulate -L zsh; setopt $_adote_funcopts
 
   local o_help o_short o_url o_dirs
@@ -44,5 +44,4 @@ function antidote-list {
     fi
   done
   (( $#output )) && printf '%s\n' ${(o)output}
-}
-antidote-list "$@"
+#}

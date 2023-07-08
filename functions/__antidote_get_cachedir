@@ -1,0 +1,26 @@
+#!/bin/zsh
+
+### Get the default cache directory per OS
+#function __antidote_get_cachedir {
+  emulate -L zsh; setopt $_adote_funcopts
+
+  local result
+  if [[ "${OSTYPE}" == darwin* ]]; then
+    result=$HOME/Library/Caches
+  elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
+    result=${LOCALAPPDATA:-$LocalAppData}
+  elif [[ -n "$XDG_CACHE_HOME" ]]; then
+    result=$XDG_CACHE_HOME
+  else
+    result=$HOME/.cache
+  fi
+
+  if [[ -n "$1" ]]; then
+    if [[ $result == *\\* ]]; then
+      result+="\\$1"
+    else
+      result+="/$1"
+    fi
+  fi
+  print -r -- $result
+#}

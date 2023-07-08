@@ -1,0 +1,33 @@
+#!/bin/zsh
+
+### Generate background clone commands
+#function __antidote_bulk_clone {
+  emulate -L zsh; setopt $_adote_funcopts
+
+  # get a list of clonable repos from a bundle file
+  awk '
+    BEGIN { RS="[\r\n]" }
+
+    # initialize vars
+    { bundle=""; opts="--kind clone" }
+
+    # skip blank or commented lines
+    /^ *(#.+)?$/ { next }
+
+    # clone zsh-defer
+    /kind:defer/ { print "antidote-script --kind clone romkatv/zsh-defer &" }
+
+    # handle user/repo and URL forms
+    $1~/^[^\/]+\/[^\/]+$/      { bundle=$1 }
+    $1~/^(https?:|(ssh|git)@)/ { bundle=$1 }
+
+    # find branch annotation if it exists
+    match($0, /branch:[^\t ]+/) { opts=opts " --branch " substr($0, RSTART+7, RLENGTH-7) }
+
+    # print result
+    bundle!=""{ print "antidote-script", opts, bundle, "&" }
+
+    END { print "wait" }
+
+  ' "$@" | sort | uniq
+#}
