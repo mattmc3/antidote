@@ -13,7 +13,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/checkout@v3
         with:
           repository: "aureliojargas/clitest"
           path: bin/clitest
@@ -29,6 +28,11 @@ jobs:
       - if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          curl https://mirror.msys2.org/msys/x86_64/zsh-5.9-2-x86_64.pkg.tar.zst -o zsh.tar.zst
+          curl -LO https://mirror.msys2.org/msys/x86_64/zsh-5.9-2-x86_64.pkg.tar.zst
           mkdir -p zsh
-          tar -I zstd -xvf zsh.tar.zst -C zsh
+          tar -I zstd -xvf zsh-5.9-2-x86_64.pkg.tar.zst
+          cd zsh
+          cp -a etc/zsh/. /etc
+          cp -a usr/. /usr
+          zsh
+          PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
