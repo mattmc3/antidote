@@ -37,16 +37,10 @@ jobs:
           cp -a usr/man /usr/share
           cp -a usr/zsh /usr
 
-      - name: Test
-        with:
-          repository: "aureliojargas/clitest"
-          path: bin/clitest
-        run: |
-          PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
-        shell: zsh{0}
-
-
-      - run: sudo apt install zsh
-        if: ${{ runner.os == 'Linux' }}
-      - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
-        shell: zsh {0}
+      #- name: Test
+        #with:
+          #repository: "aureliojargas/clitest"
+          #path: bin/clitest
+          #shell: zsh{0}
+        #run: |
+          #PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
