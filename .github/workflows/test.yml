@@ -36,4 +36,7 @@ jobs:
           cp -a etc/zsh/. /etc
           cp -a usr/. /usr
           zsh
-          PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
+          ps -p $$
+          PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH
+          echo $PATH
+          make test
