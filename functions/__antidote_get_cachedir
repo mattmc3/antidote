@@ -8,7 +8,7 @@
   if [[ "${OSTYPE}" == darwin* ]]; then
     result=$HOME/Library/Caches
   elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
-    result=$HOME/Appdata
+    result=$HOME/AppData
   elif [[ -n "$XDG_CACHE_HOME" ]]; then
     result=$XDG_CACHE_HOME
   else

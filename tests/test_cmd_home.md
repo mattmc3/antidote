@@ -51,9 +51,9 @@ $HOME/Library/Caches/antidote
 
 ```zsh
 % OLD_OSTYPE=$OSTYPE; OSTYPE=msys
-% LOCALAPPDATA=$HOME/appdata
+% LOCALAPPDATA=$HOME/AppData
 % antidote home | subenv HOME
-$HOME/appdata/antidote
+$HOME/AppData/antidote
 % OSTYPE=$OLD_OSTYPE
 %
 ```
