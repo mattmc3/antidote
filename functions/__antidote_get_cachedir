@@ -4,21 +4,11 @@
 #function __antidote_get_cachedir {
   emulate -L zsh; setopt $_adote_funcopts
 
-  function __fix_windows_path {
-    local path=$1
-    path=${path//\\//}
-    path="/${(L)path}"
-    path=${path//:/}
-    path=${path// /%20}
-    path=${path//\%/%%}
-    echo $path
-  }
-
   local result
   if [[ "${OSTYPE}" == darwin* ]]; then
     result=$HOME/Library/Caches
   elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
-    result=$(__fix_windows_path ${LOCALAPPDATA:-$LocalAppData})
+    result=$HOME/Appdata
   elif [[ -n "$XDG_CACHE_HOME" ]]; then
     result=$XDG_CACHE_HOME
   else
