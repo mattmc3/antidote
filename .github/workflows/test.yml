@@ -17,7 +17,12 @@ jobs:
         with:
           repository: "aureliojargas/clitest"
           path: bin/clitest
-      - run: sudo apt install zsh
-        if: ${{ runner.os == 'Linux' }}
-      - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
+      - if: matrix.os == 'macos-latest'
         shell: zsh {0}
+        run: |
+          PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
+      - if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt install zsh
+          zsh
+          PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
