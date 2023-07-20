@@ -47,17 +47,6 @@ $HOME/Library/Caches/antidote
 %
 ```
 
-`antidote home` is `$LOCALAPPDATA/antidote` on msys
-
-```zsh
-% if [ "$OSTYPE" = "msys" ]; then
-%   LOCALAPPDATA=$HOME/AppData/Local
-%   antidote home | subenv HOME
-# $HOME/AppData/Local/antidote
-% fi
-%
-```
-
 `antidote home` uses `$XDG_CACHE_HOME` on an OS that defines it.
 
 ```zsh
