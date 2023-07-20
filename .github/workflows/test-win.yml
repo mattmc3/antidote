@@ -1,0 +1,42 @@
+name: test-win
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+        with:
+          repository: "aureliojargas/clitest"
+          path: bin/clitest
+
+      - name: Cache zsh
+        uses: actions/cache@v3
+        env:
+          cache-name: zsh_dep
+        with:
+          path: C:/zsh
+          key: ${{ env.cache-name }}-win
+
+      - name: Install zsh
+        shell: bash
+        run: |
+          curl -LO https://mirror.msys2.org/msys/x86_64/zsh-5.9-2-x86_64.pkg.tar.zst
+          mkdir -p /c/zsh
+          tar -I zstd -xf zsh-5.9-2-x86_64.pkg.tar.zst -C zsh
+          cd zsh
+          cp -a etc/zsh/. /etc
+          cp -a usr/. /usr
+
+      - name: Run tests
+        shell: zsh
+        run: |
+          PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
