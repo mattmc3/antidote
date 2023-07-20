@@ -31,8 +31,8 @@ jobs:
         run: |
           curl -LO https://mirror.msys2.org/msys/x86_64/zsh-5.9-2-x86_64.pkg.tar.zst
           mkdir -p /c/zsh
-          tar -I zstd -xf zsh-5.9-2-x86_64.pkg.tar.zst -C zsh
-          cd zsh
+          tar -I zstd -xf zsh-5.9-2-x86_64.pkg.tar.zst -C /c/zsh
+          cd /c/zsh
           cp -a etc/zsh/. /etc
           cp -a usr/. /usr
 
