@@ -40,7 +40,6 @@ $HOME/.cache/antidote
 `antidote home` is `~/Library/Caches/antidote` on macOS
 
 ```zsh
-% echo $OSTYPE
 % OLD_OSTYPE=$OSTYPE; OSTYPE=darwin21.3.0
 % antidote home | subenv HOME
 $HOME/Library/Caches/antidote
@@ -51,11 +50,11 @@ $HOME/Library/Caches/antidote
 `antidote home` is `$LOCALAPPDATA/antidote` on msys
 
 ```zsh
-% # OLD_OSTYPE=$OSTYPE; OSTYPE=msys
-% # LOCALAPPDATA=$HOME/AppData/Local
-% # antidote home | subenv HOME
+% if [ "$OSTYPE" = "msys" ]; then
+%   LOCALAPPDATA=$HOME/AppData/Local
+%   antidote home | subenv HOME
 # $HOME/AppData/Local/antidote
-% # OSTYPE=$OLD_OSTYPE
+% fi
 %
 ```
 
