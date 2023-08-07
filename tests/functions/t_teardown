@@ -13,6 +13,9 @@ function t_teardown {
   done
   (( $+functions[git] )) && unfunction git
 
+  # unfunction zsh-defer
+  (( $+functions[zsh-defer] )) && unfunction zsh-defer
+
   # restore original fpath
   fpath=( $T_PREV_FPATH )
 
