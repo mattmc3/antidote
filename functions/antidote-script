@@ -14,7 +14,7 @@
 
 ### Generate the Zsh script to load a plugin.
 #function antidote-script {
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   local REPLY=
 

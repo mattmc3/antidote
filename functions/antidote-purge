@@ -6,7 +6,7 @@
 #        antidote purge [-a|--all]
 #
 #function antidote-purge {
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
 
   local o_help o_all
   zparseopts $_adote_zparopt_flags -- \

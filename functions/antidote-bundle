@@ -8,7 +8,7 @@
 ### Clone bundle(s) and generate the static load script.
 #function antidote-bundle {
   # Download a bundle and prints its Zsh source line.
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
 
   local o_help
   zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1

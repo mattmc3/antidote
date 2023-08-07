@@ -2,7 +2,7 @@
 
 ### Get the url from a repo bundle.
 #function __antidote_tourl {
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
 
   local bundle=$1
   local url=$bundle

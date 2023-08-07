@@ -2,7 +2,7 @@
 
 ### Print usage.
 #function __antidote_usage {
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
   cat<<EOS
 antidote - the cure to slow zsh plugin management
 
