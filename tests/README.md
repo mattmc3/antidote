@@ -58,7 +58,7 @@ The `-v/--version` flag displays the current version:
 
 ```zsh
 % antidote --version
-antidote version 1.9.0
+antidote version 1.9.1
 %
 ```
 
