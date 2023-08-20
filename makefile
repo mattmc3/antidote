@@ -35,7 +35,7 @@ unittest:
 bump-maj:
 	./tools/bumpver major
 
-##? bump-man    bump the minor version (0.X.0)
+##? bump-min    bump the minor version (0.X.0)
 bump-min:
 	./tools/bumpver minor
 
