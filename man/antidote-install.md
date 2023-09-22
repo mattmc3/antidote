@@ -49,7 +49,7 @@ header: Antidote Manual
 :   Bundle to be installed.
 
 [\<bundlefile\>]
-:   Bundle file to write to if not using the default. Defaults to **${ZDOTDIR:-~}/.zsh_plugins.txt** or zstyle setting.
+:   Bundle file to write to if not using the default. Defaults to **${ZDOTDIR:-\$HOME}/.zsh_plugins.txt** or zstyle setting.
 
 # EXAMPLES
 

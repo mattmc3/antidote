@@ -66,14 +66,14 @@ It is written natively in Zsh, is well tested, and picks up where Antigen and An
 
 Create a _.zsh_plugins.txt_ file with a list of the plugins you want:
 
-|    # ${ZDOTDIR:-~}/.zsh_plugins.txt
+|    # ${ZDOTDIR:-\$HOME}/.zsh_plugins.txt
 |    zsh-users/zsh-syntax-highlighting
 |    zsh-users/zsh-history-substring-search
 |    zsh-users/zsh-autosuggestions
 
 Now, simply load your newly created static plugins file in your _.zshrc_.
 
-|    # ${ZDOTDIR:-~}/.zshrc
+|    # ${ZDOTDIR:-\$HOME}/.zshrc
 |    source /path/to/antidote/antidote.zsh
 |    antidote load
 
@@ -81,7 +81,7 @@ Now, simply load your newly created static plugins file in your _.zshrc_.
 
 Your _.zsh_plugins.txt_ file supports annotations. Annotations tell antidote how to do things like load plugins from alternate paths. This lets you use plugins from popular frameworks like Oh-My-Zsh:
 
-|    # ${ZDOTDIR:-~}/.zsh_plugins.txt
+|    # ${ZDOTDIR:-\$HOME}/.zsh_plugins.txt
 |    ohmyzsh/ohmyzsh path:lib
 |    ohmyzsh/ohmyzsh path:plugins/git
 |    ohmyzsh/ohmyzsh path:plugins/magic-enter
@@ -114,11 +114,11 @@ Instead of calling **antidote bundle** over and over, you might prefer to load b
 
 To install antidote you can clone it with git:
 
-|   git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+|   git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-\$HOME}/.antidote
 
 Then, simply add the following snippet to your .zshrc:
 
-|   source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+|   source ${ZDOTDIR:-\$HOME}/.antidote/antidote.zsh
 |   antidote load
 
 # SEE ALSO
