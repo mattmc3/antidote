@@ -19,7 +19,7 @@
   fi
 
   if [[ -n "$1" ]]; then
-    if [[ $result == *\\* ]]; then
+    if [[ $result == *\\* ]] && [[ $result != */* ]]; then
       result+="\\$1"
     else
       result+="/$1"
