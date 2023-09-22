@@ -57,7 +57,7 @@ You can install the latest release of antidote by cloning it with `git`:
 
 ```zsh
 # first, run this from an interactive zsh terminal session:
-git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-$HOME}/.antidote
 ```
 
 ### Install with a package manager
