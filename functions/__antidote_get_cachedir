@@ -9,6 +9,9 @@
     result=$HOME/Library/Caches
   elif [[ "${OSTYPE}" == (cygwin|msys)* ]]; then
     result=${LOCALAPPDATA:-$LocalAppData}
+    if type cygpath > /dev/null; then
+      result=$(cygpath "$result")
+    fi
   elif [[ -n "$XDG_CACHE_HOME" ]]; then
     result=$XDG_CACHE_HOME
   else
