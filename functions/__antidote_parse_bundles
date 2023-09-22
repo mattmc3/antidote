@@ -2,7 +2,7 @@
 
 ### Parse antidote's bundle DSL.
 #function __antidote_parse_bundles {
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
   awk '
     BEGIN { RS="[\r\n]" }
 

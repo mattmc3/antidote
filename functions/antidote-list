@@ -5,7 +5,7 @@
 # usage: antidote list [-h|--help] [-s|--short] [-d|--dirs] [-u|--url]
 #
 #function antidote-list {
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
 
   local o_help o_short o_url o_dirs
   zparseopts $_adote_zparopt_flags -- \
@@ -27,9 +27,10 @@
 
   local bundledir
   local output=()
-  local bundles=($(antidote-home)/**/.git/..(/N))
+  local bundles=($(antidote-home)/**/.git(/N))
 
-  for bundledir in ${bundles:A}; do
+  for bundledir in $bundles; do
+    bundledir=${bundledir:h}
     local url=$(git -C "$bundledir" config remote.origin.url)
     if (( $#o_dirs )); then
       output+=($bundledir)

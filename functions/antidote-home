@@ -7,7 +7,7 @@
 # Can be overridden by setting `$ANTIDOTE_HOME`.
 #
 #function antidote-home {
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
 
   typeset -g REPLY=
   local o_help

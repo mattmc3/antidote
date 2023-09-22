@@ -12,7 +12,7 @@
 ### - url     - a git repo (URL format)
 ### - word    - a word
 #function __antidote_bundle_type {
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
   local bundle=$1
 
   # Try to expand path bundles with '$' and '~' prefixes so that we get a more

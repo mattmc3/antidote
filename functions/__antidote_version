@@ -2,9 +2,9 @@
 
 ### Get the antidote version.
 #function __antidote_version {
-  emulate -L zsh; setopt $_adote_funcopts
+  emulate -L zsh; setopt local_options $_adote_funcopts
   0=${(%):-%x}
-  local ver='1.9.1'
+  local ver='1.9.2'
   local gitsha=$(git -C "${0:A:h:h}" rev-parse --short HEAD 2>/dev/null)
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   print "antidote version $ver"
