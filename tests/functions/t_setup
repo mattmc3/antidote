@@ -36,6 +36,5 @@ function t_setup {
 
   # load antidote
   typeset -g ANTIDOTE_HOME=$ZDOTDIR/antidote_home
-  source $prjdir/antidote.zsh
 }
 t_setup "$@"

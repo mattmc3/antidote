@@ -21,6 +21,7 @@ But you probably just want to source setup...
 
 ```zsh
 % source ./tests/_setup.zsh
+% source ./antidote.zsh
 %
 ```
 

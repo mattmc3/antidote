@@ -14,6 +14,7 @@ antidote: Expecting zsh. Found 'bash'.
 % echo $+functions[antidote]
 0
 % source ./tests/_setup.zsh
+% source ./antidote.zsh
 % echo $+functions[antidote]
 1
 % git --version
