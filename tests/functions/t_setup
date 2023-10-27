@@ -32,6 +32,7 @@ function t_setup {
 
   # our mock plugins use this
   typeset -ga plugins=()
+  typeset -ga libs=()
 
   # setup antidote
   zstyle ':antidote:tests' set-warn-options 'on'

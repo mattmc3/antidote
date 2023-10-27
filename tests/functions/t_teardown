@@ -25,6 +25,7 @@ function t_teardown {
 
   # remove vars
   [[ -v plugins ]] && unset plugins
+  [[ -v libs ]]    && unset libs
 
   # remove tempdir
   [[ -d "$T_TEMPDIR" ]] && rm -rf -- "$T_TEMPDIR"
