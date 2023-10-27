@@ -20,7 +20,7 @@
   fi
 
   if [[ $# -eq 0 ]] && ! (( $#o_all )); then
-    print >&2 "antidote: error: required argument 'bundle' not provided, try --help"
+    print -ru2 "antidote: error: required argument 'bundle' not provided, try --help"
     return 1
   fi
 
@@ -57,13 +57,13 @@
     local bundle=$1
     # make sure the user isn't trying to do something out-of-bounds
     if [[ -e "$bundle" ]]; then
-      print >&2 "antidote: error: '$bundle' is not a repo and cannot be removed by antidote."
+      print -ru2 "antidote: error: '$bundle' is not a repo and cannot be removed by antidote."
       return 2
     fi
 
     local bundledir=$(__antidote_bundle_dir $bundle)
     if [[ ! -d "$bundledir" ]]; then
-      print >&2 "antidote: error: $bundle does not exist at the expected location: $bundledir"
+      print -ru2 "antidote: error: $bundle does not exist at the expected location: $bundledir"
       return 1
     fi
 

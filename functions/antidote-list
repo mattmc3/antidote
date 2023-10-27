@@ -21,7 +21,7 @@
   fi
 
   if [[ $# -ne 0 ]]; then
-    print >&2 "antidote: error: unexpected $1, try --help"
+    print -ru2 "antidote: error: unexpected $1, try --help"
     return 1
   fi
 

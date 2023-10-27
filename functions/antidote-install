@@ -35,7 +35,7 @@
   done
 
   if [[ $# -eq 0 ]]; then
-    print >&2 "antidote: error: required argument 'bundle' not provided, try --help"
+    print -ru2 "antidote: error: required argument 'bundle' not provided, try --help"
     return 1
   fi
 
@@ -48,7 +48,7 @@
 
   local bundledir=$(__antidote_bundle_dir $bundle)
   if [[ -d "$bundledir" ]]; then
-    print >&2 "antidote: error: $bundle already installed: $bundledir"
+    print -ru2 "antidote: error: $bundle already installed: $bundledir"
     return 1
   fi
 
@@ -57,7 +57,7 @@
   (( $#annotations )) && bundlestr+=" $annotations"
   antidote-bundle "$bundlestr" >/dev/null
   if [[ $? -ne 0 ]]; then
-    print >&2 "antidote: unable to install bundle '$bundle'."
+    print -ru2 "antidote: unable to install bundle '$bundle'."
   else
     print "Adding bundle to '$bundlefile':"
     print $bundlestr | tee -a $bundlefile
