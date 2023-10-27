@@ -17,8 +17,8 @@ header: Antidote Manual
 **antidote-bundle** assembles your Zsh plugins. Bundles can be git repos, or local files or dirctories. If a plugin is a repo, it will be cloned if necessary. The zsh code necessary to load (source) the plugin is then printed.
 
 |   antidote bundle gituser/gitrepo
-|   antidote bundle ${ZDOTDIR:-}/.zplugins/myplugin
-|   antidote bundle ${ZDOTDIR:-~}/.zlibs/myfile.zsh
+|   antidote bundle $ZSH_CUSTOM/plugins/myplugin
+|   antidote bundle ${ZDOTDIR:-\$HOME}/.zlibs/myfile.zsh
 
 Bundles also support annotations. Annotations allow you have finer grained control over your plugins. Annotations are used in the form \'keyword:value\'.
 
@@ -94,7 +94,7 @@ Using the **conditional:** annotation...
 
 |   # define a conditional function prior to loading antidote
 |   function is_macos {
-|     [[ $OSTYPE == darwin* ]] && return 0 || return 1
+|     [[ $OSTYPE == darwin* ]] || return 1
 |   }
 |
 |   # conditionally load a plugin using the function you made

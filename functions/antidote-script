@@ -45,12 +45,12 @@
 
   local supported_kind_vals=(autoload clone defer fpath path zsh)
   if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
-    print >&2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
+    print -ru2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
   fi
 
   local bundle=$1
   if [[ -z "$bundle" ]]; then
-    print >&2 "antidote: error: bundle argument expected" && return 1
+    print -ru2 "antidote: error: bundle argument expected" && return 1
   fi
   local bundle_name=$(__antidote_bundle_name $bundle)
 
@@ -68,7 +68,7 @@
   bundle_type="$(__antidote_bundle_type $bundle)"
   if [[ "$bundle_type" == (repo|url|sshurl) ]] && [[ ! -e "$bundle_path" ]]; then
     local giturl=$(__antidote_tourl $bundle)
-    print >&2 "# antidote cloning $bundle_name..."
+    print -ru2 "# antidote cloning $bundle_name..."
     git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path
     [[ $? -eq 0 ]] || return 1
   fi

@@ -1,7 +1,7 @@
 # antidote
 
 [![MIT License](https://img.shields.io/badge/license-MIT-007EC7.svg)](/LICENSE)
-![version](https://img.shields.io/badge/version-v1.9.2-df5e88)
+![version](https://img.shields.io/badge/version-v1.9.3-df5e88)
 
 <a title="GetAntidote"
    href="https://getantidote.github.io"
@@ -57,7 +57,7 @@ You can install the latest release of antidote by cloning it with `git`:
 
 ```zsh
 # first, run this from an interactive zsh terminal session:
-git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-$HOME}/.antidote
 ```
 
 ### Install with a package manager

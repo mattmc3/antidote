@@ -4,6 +4,7 @@
 
 ```zsh
 % source ./tests/_setup.zsh
+% source ./antidote.zsh
 %
 ```
 
@@ -71,13 +72,13 @@ less than 10 enabled zsh opts
 % optcnt=$(setopt | wc -l | tr -d ' ')
 % test $optcnt -gt 150 && echo "zillions of enabled zsh options (>150)"
 zillions of enabled zsh options (>150)
-% setopt localoptions
 %
 ```
 
 ## Teardown
 
 ```zsh
+% unsetopt $grizwold_zopts
 % t_teardown
 %
 ```

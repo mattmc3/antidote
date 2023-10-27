@@ -9,6 +9,8 @@
 #
 #function antidote {
   0=${(%):-%x}
-  (( $+functions[antidote-main] )) || source ${0:A:h:h}/antidote.zsh
+  if ! typeset -f antidote-main > /dev/null; then
+    source ${0:A:h:h}/antidote.zsh
+  fi
   antidote-main "$@"
 #}

@@ -4,6 +4,7 @@
 
 ```zsh
 % source ./tests/_setup.zsh
+% source ./antidote.zsh
 %
 ```
 
@@ -22,7 +23,7 @@ Bundle updates complete.
 Updating antidote...
 Antidote self-update complete.
 
-antidote version 1.9.2
+antidote version 1.9.3
 %
 ```
 

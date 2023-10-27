@@ -14,6 +14,7 @@ antidote: Expecting zsh. Found 'bash'.
 % echo $+functions[antidote]
 0
 % source ./tests/_setup.zsh
+% source ./antidote.zsh
 % echo $+functions[antidote]
 1
 % git --version
@@ -78,7 +79,7 @@ No arg exit status is 2:
 
 ```zsh
 % antidote --version
-antidote version 1.9.2
+antidote version 1.9.3
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?

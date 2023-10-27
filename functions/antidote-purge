@@ -20,13 +20,13 @@
   fi
 
   if [[ $# -eq 0 ]] && ! (( $#o_all )); then
-    print >&2 "antidote: error: required argument 'bundle' not provided, try --help"
+    print -ru2 "antidote: error: required argument 'bundle' not provided, try --help"
     return 1
   fi
 
   local bundlefile
   zstyle -s ':antidote:bundle' file 'bundlefile' ||
-    bundlefile=${ZDOTDIR:-~}/.zsh_plugins.txt
+    bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
 
   if (( $#o_all )); then
     # last chance to save the user from themselves
@@ -57,13 +57,13 @@
     local bundle=$1
     # make sure the user isn't trying to do something out-of-bounds
     if [[ -e "$bundle" ]]; then
-      print >&2 "antidote: error: '$bundle' is not a repo and cannot be removed by antidote."
+      print -ru2 "antidote: error: '$bundle' is not a repo and cannot be removed by antidote."
       return 2
     fi
 
     local bundledir=$(__antidote_bundle_dir $bundle)
     if [[ ! -d "$bundledir" ]]; then
-      print >&2 "antidote: error: $bundle does not exist at the expected location: $bundledir"
+      print -ru2 "antidote: error: $bundle does not exist at the expected location: $bundledir"
       return 1
     fi
 
@@ -74,7 +74,7 @@
     # attempt to comment out the bundle from .zsh_plugins.txt
     if [[ -e "$bundlefile" ]]; then
       local tmpfile="${bundlefile}.antidote.tmp"
-      awk -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}1' <$bundlefile >|$tmpfile
+      $__adote_awkcmd -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}1' <$bundlefile >|$tmpfile
       mv -f "$tmpfile" "$bundlefile" || rm -f "$tmpfile"
       print "Bundle '$bundle' was commented out in '$bundlefile'."
     fi

@@ -2,6 +2,7 @@
 function t_setup_real {
   0=${(%):-%x}
   local testdir="${0:A:h:h}"
+  local prjdir="${0:A:h:h:h}"
 
   # undo setup so we clone for real
   zstyle ':antidote:tests' cloning 'on'
@@ -20,5 +21,8 @@ function t_setup_real {
   # clean out antidote home
   [[ -d $ANTIDOTE_HOME ]] && rm -rf -- "$ANTIDOTE_HOME"
   mkdir -p "$ANTIDOTE_HOME"
+
+  # source antidote
+  source $prjdir/antidote.zsh
 }
 t_setup_real "$@"

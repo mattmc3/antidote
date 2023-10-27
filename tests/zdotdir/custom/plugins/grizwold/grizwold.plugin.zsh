@@ -1,6 +1,6 @@
 () {
   setopt interactivecomments
-  local zopts=(
+  typeset -ga grizwold_zopts=(
     noaliases
     aliasfuncdef
     allexport
@@ -98,7 +98,7 @@
     incappendhistorytime
     # interactive
     interactivecomments
-    ksharrays
+    # ksharrays
     kshautoload
     kshglob
     # kshoptionprint
@@ -183,6 +183,5 @@
     # xtrace
     # zle
   )
-
-  setopt $zopts
+  setopt $grizwold_zopts
 }

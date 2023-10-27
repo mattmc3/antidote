@@ -3,7 +3,7 @@
 function _antidote_subcommands {
   local usage=$(
     antidote --help |
-    awk '
+    $__adote_awkcmd '
       BEGIN{OFS=":"; p=0}
       /^commands:$/ {p=1; next}
       !p{next}

@@ -4,8 +4,8 @@ setopt extended_glob
 
 cd ${0:A:h:h}
 
-local o_unit
-zparseopts -D -M -- -unit=o_unit || return 1
+local o_unit o_rev
+zparseopts -D -M -- -unit=o_unit -rev=o_rev || return 1
 
 testfiles=()
 if (( $# > 0 )); then
@@ -14,6 +14,11 @@ elif (( $#o_unit )); then
   testfiles=($PWD/tests/*.md~*test_real*~*foo*)
 else
   testfiles=($PWD/tests/*.md)
+fi
+
+# if tests are run in reverse order, I can catch places where I didn't teardown properly
+if (( $#o_rev )); then
+  testfiles=(${(O)testfiles})
 fi
 
 # foo example test command

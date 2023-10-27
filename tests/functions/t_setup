@@ -13,7 +13,7 @@ function t_setup {
 
   # setup test functions
   fpath+=( $testdir/functions )
-  autoload -Uz $fpath[-1]/*(N.:t)
+  autoload -Uz $testdir/functions/*
 
   # mock git
   function git { mockgit "$@" }
@@ -30,12 +30,15 @@ function t_setup {
   typeset -g OLD_ZDOTDIR=$ZDOTDIR
   export ZDOTDIR=$T_TEMPDIR/zdotdir
 
+  # our mock plugins use this
+  typeset -ga plugins=()
+  typeset -ga libs=()
+
   # setup antidote
   zstyle ':antidote:tests' set-warn-options 'on'
   zstyle ':antidote:tests' cloning 'off'
 
   # load antidote
   typeset -g ANTIDOTE_HOME=$ZDOTDIR/antidote_home
-  source $prjdir/antidote.zsh
 }
 t_setup "$@"

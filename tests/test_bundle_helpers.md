@@ -5,6 +5,7 @@
 ```zsh
 % TESTDATA=$PWD/tests/testdata
 % source ./tests/_setup.zsh
+% source ./antidote.zsh
 % antidote-bundle -h &>/dev/null
 %
 ```

@@ -21,6 +21,7 @@ But you probably just want to source setup...
 
 ```zsh
 % source ./tests/_setup.zsh
+% source ./antidote.zsh
 %
 ```
 
@@ -58,7 +59,7 @@ The `-v/--version` flag displays the current version:
 
 ```zsh
 % antidote --version
-antidote version 1.9.2
+antidote version 1.9.3
 %
 ```
 

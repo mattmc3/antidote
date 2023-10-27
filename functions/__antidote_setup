@@ -6,8 +6,11 @@
   fpath=( "${0:A:h}" $fpath )
   local fn
   for fn in ${0:A:h}/*; do
-    [[ $fn:t != '__antidote_setup' ]] || continue
-    (( $+functions[${fn:t}] )) && unfunction ${fn:t}
+    [[ ${fn:t} != '__antidote_setup' ]] || continue
+    if typeset -f ${fn:t} > /dev/null; then
+      unfunction ${fn:t}
+    fi
+
     # autoload extensionless function files
     [[ -z "${fn:e}" ]] && autoload -Uz "${fn}"
   done
@@ -29,4 +32,8 @@
   if zstyle -t ':antidote:tests' set-warn-options; then
     typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
   fi
+
+  gawk --version &>/dev/null && typeset -gH __adote_awkcmd=gawk || typeset -gH __adote_awkcmd=awk
+  typeset -gHi __adote_ksh_arrays
+  typeset -gHi __adote_sh_glob
 #}
