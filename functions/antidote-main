@@ -8,11 +8,16 @@
 #function antidote-main {
   0=${(%):-%x}
 
+  [[ -o KSH_ARRAYS ]] && __adote_ksh_arrays=1 && unsetopt KSH_ARRAYS
+  [[ -o SH_GLOB    ]] && __adote_sh_glob=1    && unsetopt SH_GLOB
+
   local o_help o_version
   zparseopts ${_adote_zparopt_flags} -- \
     h=o_help    -help=h    \
     v=o_version -version=v ||
     return 1
+
+  local ret=0
 
   if (( ${#o_version} )); then
     __antidote_version
@@ -22,7 +27,7 @@
 
   elif [[ ${#} -eq 0 ]]; then
     antidote-help
-    return 2
+    ret=2
 
   elif [[ "${1}" = help ]]; then
     local manpage=${2:-antidote}
@@ -31,9 +36,14 @@
   elif (( $+functions[antidote-${1}] )); then
     local cmd=${1}; shift
     antidote-${cmd} "$@"
-    return $?
+    ret=$?
 
   else
-    print >&2 "antidote: command not found '${1}'" && return 1
+    print -ru2 "antidote: command not found '${1}'"
+    ret=1
   fi
+
+  (( __adote_ksh_arrays )) && __adote_ksh_arrays=0 && setopt KSH_ARRAYS
+  (( __adote_sh_glob ))    && __adote_sh_glob=0    && setopt SH_GLOB
+  return $ret
 #}

@@ -32,4 +32,7 @@
   if zstyle -t ':antidote:tests' set-warn-options; then
     typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
   fi
+
+  typeset -gHi __adote_ksh_arrays
+  typeset -gHi __adote_sh_glob
 #}
