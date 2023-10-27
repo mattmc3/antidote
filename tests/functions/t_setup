@@ -30,6 +30,9 @@ function t_setup {
   typeset -g OLD_ZDOTDIR=$ZDOTDIR
   export ZDOTDIR=$T_TEMPDIR/zdotdir
 
+  # our mock plugins use this
+  typeset -ga plugins=()
+
   # setup antidote
   zstyle ':antidote:tests' set-warn-options 'on'
   zstyle ':antidote:tests' cloning 'off'

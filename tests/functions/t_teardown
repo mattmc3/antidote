@@ -23,6 +23,9 @@ function t_teardown {
   source <(zstyle -L ':antidote:*' | awk '{print "zstyle -d",$2}')
   source <(printf '%s\n' $T_PREV_ZSTYLES)
 
+  # remove vars
+  [[ -v plugins ]] && unset plugins
+
   # remove tempdir
   [[ -d "$T_TEMPDIR" ]] && rm -rf -- "$T_TEMPDIR"
 }
