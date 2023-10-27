@@ -6,8 +6,11 @@
   fpath=( "${0:A:h}" $fpath )
   local fn
   for fn in ${0:A:h}/*; do
-    [[ $fn:t != '__antidote_setup' ]] || continue
-    (( $+functions[${fn:t}] )) && unfunction ${fn:t}
+    [[ ${fn:t} != '__antidote_setup' ]] || continue
+    if typeset -f ${fn:t} > /dev/null; then
+      unfunction ${fn:t}
+    fi
+
     # autoload extensionless function files
     [[ -z "${fn:e}" ]] && autoload -Uz "${fn}"
   done
