@@ -5,7 +5,7 @@
   emulate -L zsh; setopt local_options $_adote_funcopts
 
   # get a list of clonable repos from a bundle file
-  awk '
+  $__adote_awkcmd '
     BEGIN { RS="[\r\n]" }
 
     # initialize vars

@@ -74,7 +74,7 @@
     # attempt to comment out the bundle from .zsh_plugins.txt
     if [[ -e "$bundlefile" ]]; then
       local tmpfile="${bundlefile}.antidote.tmp"
-      awk -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}1' <$bundlefile >|$tmpfile
+      $__adote_awkcmd -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}1' <$bundlefile >|$tmpfile
       mv -f "$tmpfile" "$bundlefile" || rm -f "$tmpfile"
       print "Bundle '$bundle' was commented out in '$bundlefile'."
     fi

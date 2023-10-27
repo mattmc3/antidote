@@ -3,7 +3,7 @@
 ### Parse antidote's bundle DSL.
 #function __antidote_parse_bundles {
   emulate -L zsh; setopt local_options $_adote_funcopts
-  awk '
+  $__adote_awkcmd '
     BEGIN { RS="[\r\n]" }
 
     # skip comments and empty lines
