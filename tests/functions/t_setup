@@ -13,7 +13,7 @@ function t_setup {
 
   # setup test functions
   fpath+=( $testdir/functions )
-  autoload -Uz $fpath[-1]/*(N.:t)
+  autoload -Uz $testdir/functions/*
 
   # mock git
   function git { mockgit "$@" }
