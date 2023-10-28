@@ -23,6 +23,11 @@ antidote install [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
 .SH DESCRIPTION
 \f[B]antidote-install\f[R] clones a new bundle and adds it to your
 plugins file.
+.PP
+The default bundle file is \f[B]${ZDOTDIR:-$HOME}/.zsh_plugins.txt\f[R].
+This can be overridden with the following \f[B]zstyle\f[R]:
+.PP
+\ \ zstyle \[aq]:antidote:bundle\[aq] file /path/to/my/bundle_file.txt
 .SH OPTIONS
 .TP
 -h, --help
@@ -67,7 +72,7 @@ See GitHub Issues: <https://github.com/mattmc3/antidote/issues>
 .IP \[bu] 2
 Copyright (c) 2021-2023 Matt McElheny
 .IP \[bu] 2
-antidote contributers:
+antidote contributors:
 <https://github.com/mattmc3/antidote/graphs/contributors>
 .SH LICENSE
 MIT

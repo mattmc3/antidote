@@ -13,20 +13,12 @@ file and then source it.
 The default bundle file is \f[B]${ZDOTDIR:-$HOME}/.zsh_plugins.txt\f[R].
 This can be overridden with the following \f[B]zstyle\f[R]:
 .PP
-\ \ bundlefile=\[ti]/.zplugins
-.PD 0
-.P
-.PD
-\ \ zstyle \[aq]:antidote:bundle\[aq] file $bundlefile
+\ \ zstyle \[aq]:antidote:bundle\[aq] file /path/to/my/bundle_file.txt
 .PP
 The default static file is \f[B]${ZDOTDIR:-$HOME}/.zsh_plugins.zsh\f[R].
 This can be overridden with the following \f[B]zstyle\f[R]:
 .PP
-\ \ staticfile=\[ti]/.zplugins.zsh
-.PD 0
-.P
-.PD
-\ \ zstyle \[aq]:antidote:static\[aq] file $staticfile
+\ \ zstyle \[aq]:antidote:static\[aq] file /path/to/my/static_file.zsh
 .SH OPTIONS
 .TP
 -h, --help
@@ -47,7 +39,7 @@ See GitHub Issues: <https://github.com/mattmc3/antidote/issues>
 .IP \[bu] 2
 Copyright (c) 2021-2023 Matt McElheny
 .IP \[bu] 2
-antidote contributers:
+antidote contributors:
 <https://github.com/mattmc3/antidote/graphs/contributors>
 .SH LICENSE
 MIT

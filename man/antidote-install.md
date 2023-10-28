@@ -19,6 +19,10 @@ header: Antidote Manual
 
 **antidote-install** clones a new bundle and adds it to your plugins file.
 
+The default bundle file is **${ZDOTDIR:-\$HOME}/.zsh_plugins.txt**. This can be overridden with the following **zstyle**:
+
+|   zstyle \':antidote:bundle\' file /path/to/my/bundle_file.txt
+
 # OPTIONS
 
 -h, \--help

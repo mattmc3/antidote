@@ -18,13 +18,11 @@ header: Antidote Manual
 
 The default bundle file is **${ZDOTDIR:-\$HOME}/.zsh_plugins.txt**. This can be overridden with the following **zstyle**:
 
-|   bundlefile=~/.zplugins
-|   zstyle \':antidote:bundle\' file $bundlefile
+|   zstyle \':antidote:bundle\' file /path/to/my/bundle_file.txt
 
 The default static file is **${ZDOTDIR:-\$HOME}/.zsh_plugins.zsh**. This can be overridden with the following **zstyle**:
 
-|   staticfile=~/.zplugins.zsh
-|   zstyle \':antidote:static\' file $staticfile
+|   zstyle \':antidote:static\' file /path/to/my/static_file.zsh
 
 # OPTIONS
 

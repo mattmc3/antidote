@@ -121,6 +121,29 @@ Then, simply add the following snippet to your .zshrc:
 |   source ${ZDOTDIR:-\$HOME}/.antidote/antidote.zsh
 |   antidote load
 
+# CUSTOMIZATION
+
+The location where antidote clones repositories can bu customized by setting **$ANTIDOTE_HOME**:
+
+|   ANTIDOTE_HOME=/path/to/my/repos
+
+The bundle directory in ANTIDOTE_HOME can be changed to use friendly names with the following zstyle:
+
+|   zstyle \':antidote:bundle\' use-friendly-names on
+
+The default bundle file is **${ZDOTDIR:-\$HOME}/.zsh_plugins.txt**. This can be overridden with the following **zstyle**:
+
+|   zstyle \':antidote:bundle\' file /path/to/my/bundle_file.txt
+
+The default static file is **${ZDOTDIR:-\$HOME}/.zsh_plugins.zsh**. This can be overridden with the following **zstyle**:
+
+|   zstyle \':antidote:static\' file /path/to/my/static_file.zsh
+
+The default options used by romkatv/zsh-defer can be changed with the following **zstyle**:
+
+|   zstyle ':antidote:bundle:*' defer-options '-a'
+|   zstyle ':antidote:bundle:foo/bar' defer-options '-p'
+
 # SEE ALSO
 
 For more information, visit https://getantidote.github.io/
