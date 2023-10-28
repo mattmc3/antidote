@@ -16,7 +16,7 @@ header: Antidote Manual
 
 **antidote-init** changes how the **antidote** command works by causing **antidote bundle** to automatically source its own output instead of just generating the Zsh script for a static file.
 
-This behavior exists mainly to support legacy antigen/antibody usage. Static bundling is highly recommended for the best performance. However, dynamic bundling may be preferrable for some scenarios, so you can rely on this functionality remaining a key feature in **antidote** to support users preferring dynamic bundles.
+This behavior exists mainly to support legacy antigen/antibody usage. Static bundling is highly recommended for the best performance. However, dynamic bundling may be preferable for some scenarios, so you can rely on this functionality remaining a key feature in **antidote** to support users preferring dynamic bundles.
 
 Typical usage involves adding this snippet to your **.zshrc** before using **antidote bundle** commands:
 
