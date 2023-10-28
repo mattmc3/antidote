@@ -81,7 +81,7 @@
 
   # handle defer pre-reqs first
   local dopts zsh_defer='zsh-defer'
-  zstyle -s ":antidote:plugin:${bundle}" defer-options 'dopts'
+  zstyle -s ":antidote:bundle:${bundle}" defer-options 'dopts'
   [[ -n "$dopts" ]] && zsh_defer="zsh-defer $dopts"
 
   # generate the script
@@ -150,7 +150,7 @@
   fi
 
   # mark bundle as loaded
-  # script+="zstyle ':antidote:plugin:${bundle_name}' loaded yes"
+  # script+="zstyle ':antidote:bundle:${bundle_name}' loaded yes"
 
   # wrap conditional
   if [[ -n "$o_cond[-1]" ]]; then

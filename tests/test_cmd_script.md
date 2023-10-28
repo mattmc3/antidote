@@ -139,8 +139,8 @@ zsh-defer source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-S
 Test defer zstyle settings
 
 ```zsh
-% zstyle ':antidote:plugin:*' defer-options '-a'
-% zstyle ':antidote:plugin:foo/bar' defer-options '-p'
+% zstyle ':antidote:bundle:*' defer-options '-a'
+% zstyle ':antidote:bundle:foo/bar' defer-options '-p'
 % antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
