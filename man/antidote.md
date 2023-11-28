@@ -127,7 +127,7 @@ The location where antidote clones repositories can bu customized by setting **$
 
 |   ANTIDOTE_HOME=/path/to/my/repos
 
-The bundle directory in ANTIDOTE_HOME can be changed to use friendly names with the following zstyle:
+The bundle directory in ANTIDOTE_HOME can be changed to use friendly names with the following **zstyle**:
 
 |   zstyle \':antidote:bundle\' use-friendly-names on
 
@@ -143,6 +143,15 @@ The default options used by romkatv/zsh-defer can be changed with the following 
 
 |   zstyle ':antidote:bundle:*' defer-options '-a'
 |   zstyle ':antidote:bundle:foo/bar' defer-options '-p'
+
+Zsh files will be compiled with the following **zstyle**:
+
+|   zstyle ':antidote:*' zcompile 'yes'
+
+Or, if you only want to only zcompile bundles or just the static file, you can set those individually:
+
+|   zstyle ':antidote:bundle' zcompile 'yes'
+|   zstyle ':antidote:static' zcompile 'no'
 
 # SEE ALSO
 
