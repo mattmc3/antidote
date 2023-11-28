@@ -105,7 +105,7 @@
   if (( $#o_autoload )); then
     script+=(
       "fpath+=( ${bundle_path}/${o_autoload[-1]} )"
-      "autoload -Uz \$fpath[-1]/*(N.:t)"
+      "builtin autoload -Uz \$fpath[-1]/*(N.:t)"
     )
   fi
 
@@ -121,7 +121,7 @@
     # autoload
     script+=(
       "fpath+=( $bundle_path )"
-      "autoload -Uz \$fpath[-1]/*(N.:t)"
+      "builtin autoload -Uz \$fpath[-1]/*(N.:t)"
     )
   elif [[ $bundle_type == file ]]; then
     # file

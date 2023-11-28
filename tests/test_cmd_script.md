@@ -119,7 +119,7 @@ fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 ```zsh
 % antidote-script --kind autoload $ZDOTDIR/functions | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/functions )
-autoload -Uz $fpath[-1]/*(N.:t)
+builtin autoload -Uz $fpath[-1]/*(N.:t)
 %
 ```
 
@@ -214,7 +214,7 @@ fi
 ```zsh
 % antidote-script --path plugins/macos --autoload functions ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos/functions )
-autoload -Uz $fpath[-1]/*(N.:t)
+builtin autoload -Uz $fpath[-1]/*(N.:t)
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos/macos.plugin.zsh
 %
