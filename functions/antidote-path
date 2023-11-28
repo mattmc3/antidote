@@ -15,17 +15,31 @@
     return
   fi
 
-  if [[ $# -eq 0 ]]; then
+  local -a bundles=()
+  if (( $# > 0 )); then
+    bundles=("${(s.\n.)${@}}")
+  elif [[ ! -t 0 ]]; then
+    local data
+    while IFS= read -r data || [[ -n "$data" ]]; do
+      bundles+=($data)
+    done
+  fi
+
+  if (( $#bundles == 0 )); then
     print -ru2 "antidote: error: required argument 'bundle' not provided, try --help"
     return 1
   fi
 
-  local bundle="$1"
-  local bundledir=$(__antidote_bundle_dir $bundle)
-  if [[ ! -d $bundledir ]]; then
-    print -ru2 "antidote: error: $bundle does not exist in cloned paths"
-    return 1
-  else
-    print "$bundledir"
-  fi
+  local bundle bundledir
+  local -a results=()
+  for bundle in $bundles; do
+    bundledir=$(__antidote_bundle_dir $bundle)
+    if [[ ! -d $bundledir ]]; then
+      print -ru2 "antidote: error: $bundle does not exist in cloned paths"
+      return 1
+    else
+      results+=("$bundledir")
+    fi
+  done
+  print -l -- $results
 #}

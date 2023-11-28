@@ -30,6 +30,18 @@ antidote: error: bar/foo does not exist in cloned paths
 %
 ```
 
+`antidote-path` accepts piped input
+
+```zsh
+% antidote list -s | antidote path | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
+$ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer
+%
+```
+
 ## Teardown
 
 ```zsh
