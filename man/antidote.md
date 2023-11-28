@@ -144,14 +144,18 @@ The default options used by romkatv/zsh-defer can be changed with the following 
 |   zstyle ':antidote:bundle:*' defer-options '-a'
 |   zstyle ':antidote:bundle:foo/bar' defer-options '-p'
 
-Zsh files will be compiled with the following **zstyle**:
+Bundles can be Zsh compiled with the following **zstyle**:
 
-|   zstyle ':antidote:*' zcompile 'yes'
+|   zstyle ':antidote:bundle:*' zcompile 'yes'
 
-Or, if you only want to only zcompile bundles or just the static file, you can set those individually:
+Or, if you only want to zcompile specific bundles, you can set those individually:
 
-|   zstyle ':antidote:bundle' zcompile 'yes'
-|   zstyle ':antidote:static' zcompile 'no'
+|   zstyle ':antidote:bundle:*' zcompile 'yes'
+|   zstyle ':antidote:bundle:zsh-users/zsh-syntax-highlighting' zcompile 'no'
+
+The static file can be Zsh compiled with the following **zstyle**:
+
+|   zstyle ':antidote:static' zcompile 'yes'
 
 # SEE ALSO
 

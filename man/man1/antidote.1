@@ -213,18 +213,23 @@ following \f[B]zstyle\f[R]:
 .PD
 \ \ zstyle `:antidote:bundle:foo/bar' defer-options `-p'
 .PP
-Zsh files will be compiled with the following \f[B]zstyle\f[R]:
+Bundles can be Zsh compiled with the following \f[B]zstyle\f[R]:
 .PP
-\ \ zstyle \[cq]:antidote:*\[cq] zcompile `yes'
+\ \ zstyle \[cq]:antidote:bundle:*\[cq] zcompile `yes'
 .PP
-Or, if you only want to only zcompile bundles or just the static file,
-you can set those individually:
+Or, if you only want to zcompile specific bundles, you can set those
+individually:
 .PP
-\ \ zstyle `:antidote:bundle' zcompile `yes'
+\ \ zstyle \[cq]:antidote:bundle:*\[cq] zcompile `yes'
 .PD 0
 .P
 .PD
-\ \ zstyle `:antidote:static' zcompile `no'
+\ \ zstyle `:antidote:bundle:zsh-users/zsh-syntax-highlighting' zcompile
+`no'
+.PP
+The static file can be Zsh compiled with the following \f[B]zstyle\f[R]:
+.PP
+\ \ zstyle `:antidote:static' zcompile `yes'
 .SH SEE ALSO
 For more information, visit https://getantidote.github.io/
 .SH BUGS
