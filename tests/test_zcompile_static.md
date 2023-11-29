@@ -14,7 +14,7 @@ Ensure a compiled file exists:
 
 ```zsh
 % ! test -e $ZDOTDIR/.zplugins_fake_load.zsh.zwc  #=> --exit 0
-% zstyle ':antidote:static' compile 'yes'
+% zstyle ':antidote:static' zcompile 'yes'
 % antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
 % cat $ZDOTDIR/.zplugins_fake_load.zsh | subenv  #=> --file testdata/.zplugins_fake_load.zsh
 % test -e $ZDOTDIR/.zplugins_fake_load.zsh.zwc  #=> --exit 0
@@ -26,7 +26,7 @@ Ensure a compiled file does not exist:
 
 ```zsh
 % ! test -e $ZDOTDIR/.zplugins_fake_load.zsh.zwc  #=> --exit 0
-% zstyle ':antidote:static' compile 'no'
+% zstyle ':antidote:static' zcompile 'no'
 % antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
 % cat $ZDOTDIR/.zplugins_fake_load.zsh | subenv  #=> --file testdata/.zplugins_fake_load.zsh
 % ! test -e $ZDOTDIR/.zplugins_fake_load.zsh.zwc  #=> --exit 0

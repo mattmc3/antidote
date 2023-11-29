@@ -71,8 +71,8 @@
     print -ru2 "# antidote cloning $bundle_name..."
     git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path
     [[ $? -eq 0 ]] || return 1
-    if zstyle -t ":antidote:bundle:$bundle" compile; then
-      __antidote_bundle_compile $bundle_path
+    if zstyle -t ":antidote:bundle:$bundle" zcompile; then
+      __antidote_bundle_zcompile $bundle_path
     fi
   fi
 

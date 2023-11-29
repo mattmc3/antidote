@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ### Compile bundles
-#function __antidote_bundle_compile {
+#function __antidote_bundle_zcompile {
   emulate -L zsh; setopt local_options $_adote_funcopts
   builtin autoload -Uz zrecompile
 

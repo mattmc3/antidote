@@ -15,7 +15,7 @@
 ### Config
 
 ```zsh
-% zstyle ':antidote:bundle:*' compile 'yes'
+% zstyle ':antidote:bundle:*' zcompile 'yes'
 %
 ```
 

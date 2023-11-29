@@ -59,7 +59,7 @@
 
   if [[ ! $staticfile -nt $bundlefile ]] || [[ $force_bundle -eq 1 ]]; then
     antidote bundle <"$bundlefile" >|"$staticfile"
-    if zstyle -t ':antidote:static' compile; then
+    if zstyle -t ':antidote:static' zcompile; then
       builtin autoload -Uz zrecompile
       zrecompile -pq "$staticfile"
     elif [[ -r "${staticfile}.zwc" ]]; then

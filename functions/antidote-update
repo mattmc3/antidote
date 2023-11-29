@@ -34,8 +34,8 @@
         if [[ $oldsha != $newsha ]]; then
           print "antidote: updated: $2 $oldsha -> $newsha"
         fi
-        if zstyle -t ":antidote:bundle:$repo" compile; then
-          __antidote_bundle_compile $bundledir
+        if zstyle -t ":antidote:bundle:$repo" zcompile; then
+          __antidote_bundle_zcompile $bundledir
         fi
       } "$bundledir" "$url" &
     done
