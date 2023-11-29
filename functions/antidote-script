@@ -18,7 +18,7 @@
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   local REPLY=
 
-  local o_help o_kind o_path o_branch o_cond o_autoload o_pre o_post
+  local o_help o_kind o_path o_branch o_cond o_autoload o_pre o_post o_fpath_rule
   zparseopts $_adote_zparopt_flags -- \
     h=o_help       -help=h            \
     a:=o_autoload  -autoload:=a       \
@@ -27,11 +27,15 @@
     p:=o_path      -path:=p           \
                    -pre:=o_pre        \
                    -post:=o_post      \
+                   -fpath-rule:=o_fpath_rule \
     c:=o_cond      -conditional:=c    ||
     return 1
 
   # set defaults
   (( $#o_kind )) || o_kind=(--kind zsh)
+  if ! (( $#o_fpath_rule )); then
+    zstyle -a ':antidote:fpath' rule 'o_fpath_rule' || o_fpath_rule=(append)
+  fi
 
   # strip '=' or ':' from beginning of arg values
   local re='^[=:]?(.+)$'
@@ -42,10 +46,16 @@
   [[ $o_branch[-1] =~ $re ]] && o_branch[-1]=$match
   [[ $o_pre[-1] =~ $re ]] && o_pre[-1]=$match
   [[ $o_post[-1] =~ $re ]] && o_post[-1]=$match
+  [[ $o_fpath_rule[-1] =~ $re ]] && o_fpath_rule[-1]=$match
 
   local supported_kind_vals=(autoload clone defer fpath path zsh)
   if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
     print -ru2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
+  fi
+
+  local supported_fpath_rules=(append prepend)
+  if ! (( $supported_fpath_rules[(Ie)$o_fpath_rule[-1]] )); then
+    print -ru2 "antidote: error: unexpected fpath rule: '$o_fpath_rule[-1]'" && return 1
   fi
 
   local bundle=$1
@@ -114,16 +124,23 @@
 
   # generate load script
   bundle_type="$(__antidote_bundle_type $bundle_path)"
+  local fpath_script
+  if [[ "$o_fpath_rule[-1]" == prepend ]]; then
+    fpath_script="fpath=( $bundle_path \$fpath )"
+  else
+    fpath_script="fpath+=( $bundle_path )"
+  fi
+
   if [[ "$o_kind[-1]" == fpath ]]; then
     # fpath
-    script+="fpath+=( $bundle_path )"
+    script+="$fpath_script"
   elif [[ "$o_kind[-1]" == path ]]; then
     # path
     script+="export PATH=\"$bundle_path:\$PATH\""
   elif [[ "$o_kind[-1]" == autoload ]]; then
     # autoload
     script+=(
-      "fpath+=( $bundle_path )"
+      "$fpath_script"
       "builtin autoload -Uz \$fpath[-1]/*(N.:t)"
     )
   elif [[ $bundle_type == file ]]; then
@@ -137,7 +154,7 @@
     if [[ $#initfiles -eq 0 ]]; then
       initfiles=($bundle_path/${bundle_path:t}.plugin.zsh)
     fi
-    script+="fpath+=( $bundle_path )"
+    script+="$fpath_script"
     for initfile in $initfiles; do
       script+="$source_cmd $initfile"
     done
