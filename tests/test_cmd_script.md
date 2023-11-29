@@ -220,6 +220,23 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 %
 ```
 
+### fpath-rule:append/prepend
+
+```zsh
+% # append
+% antidote-script --fpath-rule append --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker/docker.plugin.zsh
+% # prepend
+% antidote-script --fpath-rule prepend --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
+fpath=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker $fpath )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker/docker.plugin.zsh
+% # whoops
+% antidote-script --fpath-rule foobar --path plugins/docker ohmy/ohmy 2>&1
+antidote: error: unexpected fpath rule: 'foobar'
+%
+```
+
 ### pre/post functions
 
 ```zsh
