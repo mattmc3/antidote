@@ -23,6 +23,11 @@
   if (( $#o_bundles )) || ! (( $#o_self )); then
     print "Updating bundles..."
     local bundledir url repo
+
+    # remove zcompiled files
+    rm -rf -- $(antidote-home)/**/*.zwc(N)
+
+    # update all bundles
     for bundledir in $(antidote-list --dirs); do
       url=$(git -C "$bundledir" config remote.origin.url)
       repo="${url:h:t}/${${url:t}%.git}"
@@ -34,6 +39,8 @@
         if [[ $oldsha != $newsha ]]; then
           print "antidote: updated: $2 $oldsha -> $newsha"
         fi
+
+        # recompile bundles
         if zstyle -t ":antidote:bundle:$repo" zcompile; then
           __antidote_bundle_zcompile $bundledir
         fi
