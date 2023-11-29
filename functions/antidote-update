@@ -22,9 +22,10 @@
 
   if (( $#o_bundles )) || ! (( $#o_self )); then
     print "Updating bundles..."
-    local bundledir url
+    local bundledir url repo
     for bundledir in $(antidote-list --dirs); do
       url=$(git -C "$bundledir" config remote.origin.url)
+      repo="${url:h:t}/${${url:t}%.git}"
       print "antidote: checking for updates: $url"
       () {
         local oldsha=$(git -C "$1" rev-parse --short HEAD)
@@ -32,6 +33,9 @@
         local newsha=$(git -C "$1" rev-parse --short HEAD)
         if [[ $oldsha != $newsha ]]; then
           print "antidote: updated: $2 $oldsha -> $newsha"
+        fi
+        if zstyle -t ":antidote:bundle:$repo" compile; then
+          __antidote_bundle_compile $bundledir
         fi
       } "$bundledir" "$url" &
     done

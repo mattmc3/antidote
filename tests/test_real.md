@@ -12,6 +12,13 @@
 %
 ```
 
+### Config
+
+```zsh
+% zstyle ':antidote:bundle:*' compile 'yes'
+%
+```
+
 ### Bundle
 
 Clone and generate bundle script
@@ -26,6 +33,24 @@ Check to see that everything cloned
 
 ```zsh
 % antidote list | subenv ANTIDOTE_HOME  #=> --file testdata/real/repo-list.txt
+%
+```
+
+Test that everything compiled
+
+```zsh
+% zwcfiles=($(ls $(antidote home)/**/*.zwc(N) | wc -l))
+% test $zwcfiles -gt 100 #=> --exit 0
+%
+```
+
+Test that everything updated
+
+```zsh
+% rm -rf -- $(antidote home)/**/*.zwc(N)
+% antidote update >/dev/null
+% zwcfiles=($(ls $(antidote home)/**/*.zwc(N) | wc -l))
+% test $zwcfiles -gt 100 #=> --exit 0
 %
 ```
 
