@@ -8,6 +8,9 @@
   local -a bundles
   if [[ -z "$1" ]]; then
     bundles=($(antidote-list --dirs))
+  elif [[ -f "$1" ]]; then
+    zrecompile -pq "$1"
+    return
   elif [[ -d "$1" ]]; then
     bundles=($1)
   else

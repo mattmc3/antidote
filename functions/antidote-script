@@ -81,13 +81,15 @@
     print -ru2 "# antidote cloning $bundle_name..."
     git clone --quiet --depth 1 --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path
     [[ $? -eq 0 ]] || return 1
+  fi
+
+  # if we only needed to clone the bundle, compile and we're done
+  if [[ "$o_kind[-1]" == "clone" ]]; then
     if zstyle -t ":antidote:bundle:$bundle" zcompile; then
       __antidote_bundle_zcompile $bundle_path
     fi
+    return
   fi
-
-  # if we only needed to clone the bundle, we're done
-  [[ "$o_kind[-1]" != "clone" ]] || return
 
   # add path to bundle
   [[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
@@ -116,10 +118,12 @@
 
   # handle autoloading before sourcing
   if (( $#o_autoload )); then
-    script+=(
-      "fpath+=( ${bundle_path}/${o_autoload[-1]} )"
-      "builtin autoload -Uz \$fpath[-1]/*(N.:t)"
-    )
+    if [[ "$o_fpath_rule[-1]" == prepend ]]; then
+      script+=("fpath=( ${bundle_path}/${o_autoload[-1]} \$fpath )")
+    else
+      script+=("fpath+=( ${bundle_path}/${o_autoload[-1]} )")
+    fi
+    script+=( "builtin autoload -Uz \$fpath[-1]/*(N.:t)" )
   fi
 
   # generate load script
@@ -143,21 +147,25 @@
       "$fpath_script"
       "builtin autoload -Uz \$fpath[-1]/*(N.:t)"
     )
-  elif [[ $bundle_type == file ]]; then
-    # file
-    script+="$source_cmd $bundle_path"
   else
-    # directory/default
-    local initfile initfiles
-    initfiles=(${(@f)$(__antidote_initfiles $bundle_path)})
-    # if no init file was found, assume the default
-    if [[ $#initfiles -eq 0 ]]; then
-      initfiles=($bundle_path/${bundle_path:t}.plugin.zsh)
+    if zstyle -t ":antidote:bundle:$bundle" zcompile; then
+      __antidote_bundle_zcompile $bundle_path
     fi
-    script+="$fpath_script"
-    for initfile in $initfiles; do
-      script+="$source_cmd $initfile"
-    done
+    if [[ $bundle_type == file ]]; then
+      script+="$source_cmd $bundle_path"
+    else
+      # directory/default
+      local initfile initfiles
+      initfiles=(${(@f)$(__antidote_initfiles $bundle_path)})
+      # if no init file was found, assume the default
+      if [[ $#initfiles -eq 0 ]]; then
+        initfiles=($bundle_path/${bundle_path:t}.plugin.zsh)
+      fi
+      script+="$fpath_script"
+      for initfile in $initfiles; do
+        script+="$source_cmd $initfile"
+      done
+    fi
   fi
 
   # add post-load function
