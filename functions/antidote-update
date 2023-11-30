@@ -21,9 +21,18 @@
   fi
 
   # colors
-  local bold=$(tput bold)
-  local green=$(tput setaf 2)
-  local normal=$(tput sgr0)
+  local bold green normal
+  if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
+    if (( $+commands[tput] )); then
+      bold=$(tput bold)
+      green=$(tput setaf 2)Bundle updates complete.
+      normal=$(tput sgr0)
+    else
+      bold=$'\E\[1m'
+      green=$'\E[32m'
+      normal=$'\E[0m'
+    fi
+  fi
 
   if (( $#o_bundles )) || ! (( $#o_self )); then
     print "Updating bundles..."
@@ -56,6 +65,7 @@
     print ""
     wait
     print "${bold}${green}Bundle updates complete.${normal}"
+    print ""
   fi
 
   # update antidote
@@ -63,7 +73,7 @@
     print "Updating antidote..."
     if [[ -d "${0:A:h:h}/.git" ]]; then
       git -C "${0:A:h:h}" pull --quiet --ff --rebase --autostash
-      print "Antidote self-update complete.\n"
+      print "antidote self-update complete.\n"
 
       # setup antidote again
       (( $+functions[__antidote_setup] )) && unfunction __antidote_setup
