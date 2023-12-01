@@ -15,16 +15,7 @@
     return
   fi
 
-  local -a bundles=()
-  if (( $# > 0 )); then
-    bundles=("${(s.\n.)${@}}")
-  elif [[ ! -t 0 ]]; then
-    local data
-    while IFS= read -r data || [[ -n "$data" ]]; do
-      bundles+=($data)
-    done
-  fi
-
+  local -a bundles=("${(@f)$(__antidote_collect_input "$@")}")
   if (( $#bundles == 0 )); then
     print -ru2 "antidote: error: required argument 'bundle' not provided, try --help"
     return 1

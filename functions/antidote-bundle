@@ -20,15 +20,7 @@
 
   # handle bundles as newline delimited arg strings,
   # or as <redirected or piped| input
-  local -a bundles=()
-  if (( $# > 0 )); then
-    bundles=("${(s.\n.)${@}}")
-  elif [[ ! -t 0 ]]; then
-    local data
-    while IFS= read -r data || [[ -n "$data" ]]; do
-      bundles+=($data)
-    done
-  fi
+  local -a bundles=("${(@f)$(__antidote_collect_input "$@")}")
   (( $#bundles )) || return 1
 
   # antidote-script also clones, but this way we can do it all at once in parallel!
