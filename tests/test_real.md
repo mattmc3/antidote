@@ -48,7 +48,7 @@ Test that everything updated
 
 ```zsh
 % rm -rf -- $(antidote home)/**/*.zwc(N)
-% antidote update >/dev/null
+% antidote update &>/dev/null
 % zwcfiles=($(ls $(antidote home)/**/*.zwc(N) | wc -l))
 % test $zwcfiles -gt 100 #=> --exit 0
 %
