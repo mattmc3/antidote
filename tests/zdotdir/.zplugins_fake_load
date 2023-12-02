@@ -18,6 +18,10 @@ foo/bar kind:path
 ohmy/ohmy path:lib
 ohmy/ohmy path:plugins/extract
 
+# fpath-rule
+ohmy/ohmy path:plugins/docker fpath-rule:prepend
+ohmy/ohmy path:plugins/docker fpath-rule:append
+
 # deferred
 ohmy/ohmy path:plugins/magic-enter kind:defer
 
