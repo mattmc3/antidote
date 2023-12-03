@@ -1,5 +1,2 @@
 #!/bin/zsh
-function is-macos {
-  [[ "$OSTYPE" == darwin* ]] || return 1
-}
-is-macos "$@"
+[[ "$OSTYPE" == darwin* ]]

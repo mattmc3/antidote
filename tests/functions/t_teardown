@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-function t_teardown {
+#function t_teardown {
   emulate -L zsh
   setopt local_options
 
@@ -29,5 +29,4 @@ function t_teardown {
 
   # remove tempdir
   [[ -d "$T_TEMPDIR" ]] && rm -rf -- "$T_TEMPDIR"
-}
-t_teardown "$@"
+#}

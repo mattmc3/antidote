@@ -1,5 +1,5 @@
 #!/bin/zsh
-function t_setup {
+#function t_setup {
   0=${(%):-%x}
   local prjdir="${0:A:h:h:h}"
   local testdir="${0:A:h:h}"
@@ -40,5 +40,4 @@ function t_setup {
 
   # load antidote
   typeset -g ANTIDOTE_HOME=$ZDOTDIR/antidote_home
-}
-t_setup "$@"
+#}
