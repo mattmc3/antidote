@@ -42,6 +42,15 @@ $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defe
 %
 ```
 
+`antidote-path` expands vars
+
+```zsh
+% ZSH_CUSTOM=$ZDOTDIR/custom
+% antidote path '$ZSH_CUSTOM/plugins/myplugin' | subenv
+$ZDOTDIR/custom/plugins/myplugin
+%
+```
+
 ## Teardown
 
 ```zsh

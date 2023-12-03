@@ -24,6 +24,9 @@
   local bundle bundledir
   local -a results=()
   for bundle in $bundles; do
+    if [[ $bundle == '$'* ]] && [[ $bundle != *'('* ]] && [[ $bundle != *';'* ]]; then
+      bundle=$(eval print $bundle)
+    fi
     bundledir=$(__antidote_bundle_dir $bundle)
     if [[ ! -d $bundledir ]]; then
       print -ru2 "antidote: error: $bundle does not exist in cloned paths"
