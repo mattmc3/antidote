@@ -9,7 +9,7 @@ function t_teardown {
 
   # unfunction all antidote
   for fn in ${(k)functions}; do
-    [[ $fn == *antidote* ]] && unfunction $fn
+    [[ $fn == *antidote* ]] && unfunction -- $fn
   done
   (( $+functions[git] )) && unfunction git
 
