@@ -1,3 +1,12 @@
+function {
+  0=${(%):-%x}
+  local staticfile=${0:A}
+  [[ -e ${staticfile} ]] || return 1
+  if [[ ! -s ${staticfile}.zwc || ${staticfile} -nt ${staticfile}.zwc ]]; then
+    builtin autoload -Uz zrecompile
+    zrecompile -pq ${staticfile}
+  fi
+}
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
 fpath+=( $ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux )

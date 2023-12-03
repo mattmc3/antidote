@@ -20,16 +20,24 @@
 
   # handle bundles as newline delimited arg strings,
   # or as <redirected or piped| input
-  local -a bundles=()
-  if (( $# > 0 )); then
-    bundles=("${(s.\n.)${@}}")
-  elif [[ ! -t 0 ]]; then
-    local data
-    while IFS= read -r data || [[ -n "$data" ]]; do
-      bundles+=($data)
-    done
-  fi
+  local -a bundles=("${(@f)$(__antidote_collect_input "$@")}")
   (( $#bundles )) || return 1
+
+  # output static file compilation
+  local -a zcompile_script=(
+    "function {"
+    '  0=${(%):-%x}'
+    '  local staticfile=${0:A}'
+    '  [[ -e ${staticfile} ]] || return 1'
+    '  if [[ ! -s ${staticfile}.zwc || ${staticfile} -nt ${staticfile}.zwc ]]; then'
+    '    builtin autoload -Uz zrecompile'
+    '    zrecompile -pq ${staticfile}'
+    '  fi'
+    '}'
+  )
+  if zstyle -t ':antidote:static' zcompile; then
+    printf '%s\n' $zcompile_script
+  fi
 
   # antidote-script also clones, but this way we can do it all at once in parallel!
   if (( $#bundles > 1 )); then

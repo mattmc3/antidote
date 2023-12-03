@@ -119,7 +119,7 @@ fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 ```zsh
 % antidote-script --kind autoload $ZDOTDIR/functions | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/functions )
-autoload -Uz $fpath[-1]/*(N.:t)
+builtin autoload -Uz $fpath[-1]/*(N.:t)
 %
 ```
 
@@ -139,8 +139,8 @@ zsh-defer source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-S
 Test defer zstyle settings
 
 ```zsh
-% zstyle ':antidote:plugin:*' defer-options '-a'
-% zstyle ':antidote:plugin:foo/bar' defer-options '-p'
+% zstyle ':antidote:bundle:*' defer-options '-a'
+% zstyle ':antidote:bundle:foo/bar' defer-options '-p'
 % antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
@@ -214,9 +214,26 @@ fi
 ```zsh
 % antidote-script --path plugins/macos --autoload functions ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos/functions )
-autoload -Uz $fpath[-1]/*(N.:t)
+builtin autoload -Uz $fpath[-1]/*(N.:t)
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos/macos.plugin.zsh
+%
+```
+
+### fpath-rule:append/prepend
+
+```zsh
+% # append
+% antidote-script --fpath-rule append --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
+fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker/docker.plugin.zsh
+% # prepend
+% antidote-script --fpath-rule prepend --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
+fpath=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker $fpath )
+source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker/docker.plugin.zsh
+% # whoops
+% antidote-script --fpath-rule foobar --path plugins/docker ohmy/ohmy 2>&1
+antidote: error: unexpected fpath rule: 'foobar'
 %
 ```
 

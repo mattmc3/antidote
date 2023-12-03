@@ -1,5 +1,5 @@
 #!/bin/zsh
-function mockgit {
+#function mockgit {
   # handle these commands:
   # - `git -C "$dir" config remote.origin.url`
   # - `git -C "$dir" pull --quiet --ff --rebase --autostash`
@@ -56,5 +56,4 @@ function mockgit {
     echo >&2 "mocking not implemented for git command: git $@"
     return 1
   fi
-}
-mockgit "$@"
+#}

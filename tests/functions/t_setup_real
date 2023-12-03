@@ -1,5 +1,5 @@
 #!/bin/zsh
-function t_setup_real {
+#function t_setup_real {
   0=${(%):-%x}
   local testdir="${0:A:h:h}"
   local prjdir="${0:A:h:h:h}"
@@ -24,5 +24,4 @@ function t_setup_real {
 
   # source antidote
   source $prjdir/antidote.zsh
-}
-t_setup_real "$@"
+#}

@@ -1,5 +1,5 @@
 #!/bin/zsh
-function subenv {
+#function subenv {
   if (( $# == 0 )); then
     subenv ANTIDOTE_HOME | subenv ZDOTDIR | subenv HOME
   else
@@ -7,5 +7,4 @@ function subenv {
     shift
     sed "$sedexp" "$@"
   fi
-}
-subenv "$@"
+#}

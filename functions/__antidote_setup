@@ -8,7 +8,7 @@
   for fn in ${0:A:h}/*; do
     [[ ${fn:t} != '__antidote_setup' ]] || continue
     if typeset -f ${fn:t} > /dev/null; then
-      unfunction ${fn:t}
+      unfunction -- ${fn:t}
     fi
 
     # autoload extensionless function files
@@ -20,7 +20,7 @@
     export MANPATH="${0:A:h:h}/man:$MANPATH"
   fi
 
-  autoload -Uz is-at-least
+  builtin autoload -Uz is-at-least
   if is-at-least 5.8; then
     # the -F option was added in 5.8
     typeset -gHa _adote_zparopt_flags=( -D -M -F )
