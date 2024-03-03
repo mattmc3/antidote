@@ -1,0 +1,8 @@
+#!/bin/zsh
+
+### Indent strings
+#function __antidote_indent {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+  local -a lines=("${(@f)$(__antidote_collect_input "$@")}")
+  printf '  %s\n' $lines
+#}

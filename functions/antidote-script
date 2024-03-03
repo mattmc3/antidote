@@ -111,7 +111,7 @@
     source_cmd="${zsh_defer} source"
     script+=(
       'if ! (( $+functions[zsh-defer] )); then'
-      "$(antidote-script 'romkatv/zsh-defer' | pr -to 2)"
+      "$(antidote-script 'romkatv/zsh-defer' | __antidote_indent)"
       'fi'
     )
   fi
