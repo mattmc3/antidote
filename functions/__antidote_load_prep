@@ -1,0 +1,59 @@
+#!/bin/zsh
+
+### Prep to load
+#function __antidote_load_prep {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+
+  # pass in bundle file, read from zstyle, or use default .zsh_plugins.txt
+  local bundlefile="$1"
+  if [[ -z "$bundlefile" ]]; then
+    zstyle -s ':antidote:bundle' file 'bundlefile' ||
+      bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+  fi
+
+  # pass in static file, read from zstyle, change extension, or use default .zsh_plugins.zsh
+  local staticfile="$2"
+  if [[ -z "$staticfile" ]]; then
+    zstyle -s ':antidote:static' file 'staticfile'
+    if [[ -z "$staticfile" ]]; then
+      if [[ -z "$bundlefile:t:r" ]]; then
+        staticfile=${bundlefile}.zsh
+      else
+        staticfile=${bundlefile:r}.zsh
+      fi
+    fi
+  fi
+
+  if [[ ! -e "$bundlefile" ]]; then
+    # the files can't have the same name
+    print -ru2 -- "antidote: bundle file not found '$bundlefile'."
+    return 1
+  elif [[ "$bundlefile" == "$staticfile" ]]; then
+    # the files can't have the same name
+    print -ru2 -- "antidote: bundle file and static file are the same '$bundlefile'."
+    return 1
+  fi
+
+  # regenerate the static file based on whether the bundle file is newer and whether
+  # antidote home exists and is ready to be loaded
+  local force_bundle=0
+  if ! zstyle -t ':antidote:load:checkfile' disabled; then
+    local loadable_check_path="$(antidote-home)/.antidote.load"
+    if [[ ! -e $loadable_check_path ]]; then
+      force_bundle=1
+      [[ -d $loadable_check_path:h ]] || mkdir -p $loadable_check_path:h
+      touch $loadable_check_path
+    fi
+  fi
+
+  if [[ ! $staticfile -nt $bundlefile ]] || [[ $force_bundle -eq 1 ]]; then
+    antidote bundle <"$bundlefile" >|"$staticfile"
+    if [[ -r "${staticfile}.zwc" ]] && ! zstyle -t ':antidote:static' zcompile; then
+      command rm -f -- "${staticfile}.zwc"
+    fi
+  fi
+
+  # tell antidote-load what to source
+  typeset -g REPLY=$staticfile
+  #print $REPLY
+#}
