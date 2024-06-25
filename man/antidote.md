@@ -157,6 +157,10 @@ The static file can be Zsh compiled with the following **zstyle**:
 
 |   zstyle ':antidote:static' zcompile 'yes'
 
+Or, to Zsh compile everything, static file and all bundles:
+
+|   zstyle ':antidote:*' zcompile 'yes'
+
 # SEE ALSO
 
 For more information, visit https://getantidote.github.io/
