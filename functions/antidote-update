@@ -21,14 +21,12 @@
   fi
 
   # colors
-  local bold green normal
+  local green normal
   if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
     if (( $+commands[tput] )); then
-      bold=$(tput bold)
       green=$(tput setaf 2)
       normal=$(tput sgr0)
     else
-      bold=$'\E\[1m'
       green=$'\E[32m'
       normal=$'\E[0m'
     fi
@@ -51,7 +49,7 @@
         git -C "$1" pull --quiet --ff --rebase --autostash
         local newsha=$(git -C "$1" rev-parse --short HEAD)
         if [[ $oldsha != $newsha ]]; then
-          print "${bold}${green}antidote: updated: $2 ${oldsha} -> ${newsha}${normal}"
+          print "${green}antidote: updated: $2 ${oldsha} -> ${newsha}${normal}"
           git -C "$1" --no-pager log --oneline --ancestry-path ${oldsha}..${newsha} 2>/dev/null
         fi
 
@@ -64,7 +62,7 @@
     print "Waiting for bundle updates to complete..."
     print ""
     wait
-    print "${bold}${green}Bundle updates complete.${normal}"
+    print "${green}Bundle updates complete.${normal}"
     print ""
   fi
 
