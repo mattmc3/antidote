@@ -43,6 +43,6 @@ bump-min:
 bump-rev:
 	./tools/bumpver revision
 
-##? bumpber     bump the revision version (0.0.X)
+##? bumpver     bump the revision version (0.0.X)
 bumpver:
 	./tools/bumpver revision
