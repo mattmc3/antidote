@@ -107,11 +107,14 @@
 
   # handle defers
   local source_cmd="source"
+  local zsh_defer_bundle
+  zstyle -s ':antidote:defer' bundle 'zsh_defer_bundle' \
+    || zsh_defer_bundle='romkatv/zsh-defer'
   if [[ "$o_kind[-1]" == "defer" ]]; then
     source_cmd="${zsh_defer} source"
     script+=(
       'if ! (( $+functions[zsh-defer] )); then'
-      "$(antidote-script 'romkatv/zsh-defer' | __antidote_indent)"
+      "$(antidote-script $zsh_defer_bundle | __antidote_indent)"
       'fi'
     )
   fi
@@ -123,7 +126,7 @@
     else
       script+=("fpath+=( ${bundle_path}/${o_autoload[-1]} )")
     fi
-    script+=( "builtin autoload -Uz \$fpath[-1]/*(N.:t)" )
+    script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
   fi
 
   # generate load script
