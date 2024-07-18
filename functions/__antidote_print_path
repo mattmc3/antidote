@@ -1,0 +1,3 @@
+#!/bin/zsh
+### Pretty print a path
+echo "$1" | sed -e "s|^$HOME/|\$HOME/|"

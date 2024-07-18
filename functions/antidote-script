@@ -119,6 +119,9 @@
     )
   fi
 
+  # Let's make the path a little nicer to deal with
+  local print_bundle_path="$(__antidote_print_path "$bundle_path")"
+
   # handle autoloading before sourcing
   if (( $#o_autoload )); then
     if [[ "$o_fpath_rule[-1]" == prepend ]]; then
@@ -133,9 +136,9 @@
   bundle_type="$(__antidote_bundle_type $bundle_path)"
   local fpath_script
   if [[ "$o_fpath_rule[-1]" == prepend ]]; then
-    fpath_script="fpath=( $bundle_path \$fpath )"
+    fpath_script="fpath=( $print_bundle_path \$fpath )"
   else
-    fpath_script="fpath+=( $bundle_path )"
+    fpath_script="fpath+=( $print_bundle_path )"
   fi
 
   if [[ "$o_kind[-1]" == fpath ]]; then
@@ -143,7 +146,7 @@
     script+="$fpath_script"
   elif [[ "$o_kind[-1]" == path ]]; then
     # path
-    script+="export PATH=\"$bundle_path:\$PATH\""
+    script+="export PATH=\"$print_bundle_path:\$PATH\""
   elif [[ "$o_kind[-1]" == autoload ]]; then
     # autoload
     script+=(
@@ -155,18 +158,24 @@
       __antidote_bundle_zcompile $bundle_path
     fi
     if [[ $bundle_type == file ]]; then
-      script+="$source_cmd $bundle_path"
+      script+="$source_cmd $print_bundle_path"
     else
       # directory/default
       local initfile initfiles
       initfiles=(${(@f)$(__antidote_initfiles $bundle_path)})
       # if no init file was found, assume the default
       if [[ $#initfiles -eq 0 ]]; then
-        initfiles=($bundle_path/${bundle_path:t}.plugin.zsh)
+        if (( $#o_path )); then
+          initfiles=($bundle_path/${bundle_path:t}.plugin.zsh)
+        else
+          initfiles=($bundle_path/${bundle_name:t}.plugin.zsh)
+        fi
       fi
       script+="$fpath_script"
+      local print_initfile
       for initfile in $initfiles; do
-        script+="$source_cmd $initfile"
+        print_initfile="$(__antidote_print_path "$initfile")"
+        script+="$source_cmd $print_initfile"
       done
     fi
   fi
