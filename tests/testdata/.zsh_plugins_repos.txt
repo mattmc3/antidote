@@ -17,8 +17,8 @@ bar/baz path:themes/qux.zsh-theme
 foobar/foobar branch:baz
 
 # defer
-https://github.com/baz/qux kind:defer
-https://github.com/qux/baz kind:defer
+https://github.com/foo/qux kind:defer
+https://github.com/foo/baz kind:defer
 
 # non repos
 foo
