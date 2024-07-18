@@ -8,6 +8,9 @@
   zstyle ':antidote:tests' cloning 'on'
   (( $+functions[git] )) && unfunction git
 
+  # unset other testing zstyles
+  zstyle -d ':antidote:defer' bundle
+
   # unset rupa/z
   (( $+aliases[z] )) && unalias z
 
