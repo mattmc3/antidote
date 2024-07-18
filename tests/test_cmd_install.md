@@ -23,7 +23,7 @@ Trying to install an existing bundle fails.
 ```zsh
 % antidote install foo/bar &>/dev/null  #=> --exit 1
 % antidote install foo/bar 2>&1 | subenv ANTIDOTE_HOME >&2
-antidote: error: foo/bar already installed: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
+antidote: error: foo/bar already installed: $ANTIDOTE_HOME/foo/bar
 %
 ```
 

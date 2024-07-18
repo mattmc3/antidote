@@ -10,11 +10,11 @@
 
 Set up a plugin that changes Zsh options
 ```zsh
-% plugin_file=$ZDOTDIR/antidote_home/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+% plugin_file=$ANTIDOTE_HOME/lampoon/xmas/xmas.plugin.zsh
 % mkdir -p $plugin_file:h && touch $plugin_file
 % echo "unsetopt noaliases" >>$plugin_file
 % echo "setopt autocd" >>$plugin_file
-% echo "foo/bar" >$ZDOTDIR/.zsh_plugins.txt
+% echo "lampoon/xmas" >$ZDOTDIR/.zsh_plugins.txt
 %
 ```
 

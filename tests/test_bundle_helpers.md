@@ -18,12 +18,12 @@ The repo parser pulls a list of all git URLs in a bundle file so that we can clo
 % __antidote_bulk_clone $TESTDATA/.zsh_plugins_repos.txt
 antidote-script --kind clone --branch baz foobar/foobar &
 antidote-script --kind clone bar/baz &
+antidote-script --kind clone getantidote/zsh-defer &
 antidote-script --kind clone git@github.com:user/repo &
 antidote-script --kind clone http://github.com/user/repo.git &
-antidote-script --kind clone https://github.com/baz/qux &
-antidote-script --kind clone https://github.com/qux/baz &
+antidote-script --kind clone https://github.com/foo/baz &
+antidote-script --kind clone https://github.com/foo/qux &
 antidote-script --kind clone https://github.com/user/repo &
-antidote-script --kind clone romkatv/zsh-defer &
 antidote-script --kind clone user/repo &
 wait
 %
@@ -46,8 +46,8 @@ Test that only the first defer block is kept...
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search/zsh-history-substring-search.plugin.zsh
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
-  source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-getantidote-SLASH-zsh-defer )
+  source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-getantidote-SLASH-zsh-defer/zsh-defer.plugin.zsh
 fi
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-syntax-highlighting )
 zsh-defer source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
@@ -113,11 +113,10 @@ The bundle parser is an awk script that turns the bundle DSL into antidote-scrip
 ```zsh
 % __antidote_parse_bundles $ZDOTDIR/.zsh_plugins.txt
 antidote-script ~/foo/bar
-antidote-script \$ZDOTDIR/foo/bar
-antidote-script --path baz \$ZDOTDIR/foo/bar
+antidote-script --path plugins/myplugin \$ZSH_CUSTOM
 antidote-script foo/bar
-antidote-script git@github.com:baz/qux.git
-antidote-script --kind clone romkatv/zsh-defer
+antidote-script git@github.com:foo/qux.git
+antidote-script --kind clone getantidote/zsh-defer
 antidote-script --kind zsh foo/bar
 antidote-script --kind fpath foo/bar
 antidote-script --kind path foo/bar

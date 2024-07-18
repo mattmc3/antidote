@@ -57,7 +57,7 @@ Test that everything updated
 Check to see that branch:br annotations properly changed the cloned branch
 
 ```zsh
-% branched_plugin="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-antidote"
+% branched_plugin="$ANTIDOTE_HOME/mattmc3/antidote"
 % git -C $branched_plugin branch --show-current 2>/dev/null
 pz
 %
@@ -115,16 +115,16 @@ Clone and generate bundle script
 ```zsh
 % antidote bundle <$TESTDATA/.zsh_plugins.crlf.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
 % cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z/z.sh
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-syntax-highlighting )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-completions )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-completions/zsh-completions.plugin.zsh
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search/zsh-history-substring-search.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/rupa/z )
+source $ANTIDOTE_HOME/rupa/z/z.sh
+fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting )
+source $ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-completions )
+source $ANTIDOTE_HOME/zsh-users/zsh-completions/zsh-completions.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions )
+source $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search )
+source $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search/zsh-history-substring-search.plugin.zsh
 %
 ```
 
@@ -132,11 +132,11 @@ Check to see that everything cloned
 
 ```zsh
 % antidote list | subenv ANTIDOTE_HOME
-https://github.com/rupa/z                                        $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-rupa-SLASH-z
-https://github.com/zsh-users/zsh-autosuggestions                 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
-https://github.com/zsh-users/zsh-completions                     $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-completions
-https://github.com/zsh-users/zsh-history-substring-search        $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-history-substring-search
-https://github.com/zsh-users/zsh-syntax-highlighting             $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-syntax-highlighting
+https://github.com/rupa/z                                        $ANTIDOTE_HOME/rupa/z
+https://github.com/zsh-users/zsh-autosuggestions                 $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
+https://github.com/zsh-users/zsh-completions                     $ANTIDOTE_HOME/zsh-users/zsh-completions
+https://github.com/zsh-users/zsh-history-substring-search        $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search
+https://github.com/zsh-users/zsh-syntax-highlighting             $ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting
 %
 ```
 

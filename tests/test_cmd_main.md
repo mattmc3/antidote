@@ -27,7 +27,7 @@ Tests for lazy-loading antidote.
 % # Unload antidote
 % echo $+functions[antidote-main]
 1
-% t_teardown
+% t_unload_antidote
 % echo $+functions[antidote-main]
 0
 % # Now, lazy load it and make sure it works
@@ -37,7 +37,7 @@ Tests for lazy-loading antidote.
 % # Now, tear down again
 % echo $+functions[antidote-main]
 1
-% t_teardown
+% t_unload_antidote
 % echo $+functions[antidote-main]
 0
 % # Now, lazy load from the functions dir

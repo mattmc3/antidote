@@ -106,6 +106,7 @@ foo bar baz
 ## Bundle dir
 
 ```zsh
+% zstyle ':antidote:bundle' use-friendly-names off
 % # short repo
 % __antidote_bundle_dir foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
@@ -138,8 +139,8 @@ $ANTIDOTE_HOME/foo/bar
 % __antidote_bundle_dir https://github.com/bar/baz | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/bar/baz
 % # ssh repo - friendly name
-% __antidote_bundle_dir git@github.com:baz/qux.git | subenv ANTIDOTE_HOME
-$ANTIDOTE_HOME/baz/qux
+% __antidote_bundle_dir git@github.com:foo/qux.git | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/foo/qux
 %
 ```
 
@@ -180,14 +181,14 @@ git@github.com:sindresorhus/pure.git
 If we \<redirect input it should output that.
 
 ```zsh
-% __antidote_collect_input <$ZDOTDIR/.zsh_plugins.txt #=> --file zdotdir/.zsh_plugins.txt
+% __antidote_collect_input <$ZDOTDIR/.zsh_plugins.txt #=> --file tmp_home/.zsh/.zsh_plugins.txt
 %
 ```
 
 If we \|pipe input it should output that.
 
 ```zsh
-% cat $ZDOTDIR/.zsh_plugins.txt | __antidote_collect_input #=> --file zdotdir/.zsh_plugins.txt
+% cat $ZDOTDIR/.zsh_plugins.txt | __antidote_collect_input #=> --file tmp_home/.zsh/.zsh_plugins.txt
 %
 ```
 
