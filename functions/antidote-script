@@ -53,6 +53,13 @@
     print -ru2 "antidote: error: unexpected kind value: '$o_kind[-1]'" && return 1
   fi
 
+  # If no fpath_rule is set, use the zstyle
+  if ! (( $#o_fpath_rule )); then
+    local zstyle_fpath_rule
+    zstyle -s ':antidote:fpath' rule 'zstyle_fpath_rule'
+    [[ -z "$zstyle_fpath_rule" ]] || o_fpath_rule=($zstyle_fpath_rule)
+  fi
+
   local supported_fpath_rules=(append prepend)
   if ! (( $supported_fpath_rules[(Ie)$o_fpath_rule[-1]] )); then
     print -ru2 "antidote: error: unexpected fpath rule: '$o_fpath_rule[-1]'" && return 1
@@ -125,11 +132,12 @@
   # handle autoloading before sourcing
   if (( $#o_autoload )); then
     if [[ "$o_fpath_rule[-1]" == prepend ]]; then
-      script+=("fpath=( ${bundle_path}/${o_autoload[-1]} \$fpath )")
+      script+=("fpath=( ${print_bundle_path}/${o_autoload[-1]} \$fpath )")
+      script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
     else
-      script+=("fpath+=( ${bundle_path}/${o_autoload[-1]} )")
+      script+=("fpath+=( ${print_bundle_path}/${o_autoload[-1]} )")
+      script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
     fi
-    script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
   fi
 
   # generate load script
@@ -149,10 +157,12 @@
     script+="export PATH=\"$print_bundle_path:\$PATH\""
   elif [[ "$o_kind[-1]" == autoload ]]; then
     # autoload
-    script+=(
-      "$fpath_script"
-      "builtin autoload -Uz \$fpath[-1]/*(N.:t)"
-    )
+    script+=("$fpath_script")
+    if [[ "$o_fpath_rule[-1]" == prepend ]]; then
+      script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
+    else
+      script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
+    fi
   else
     if zstyle -t ":antidote:bundle:$bundle" zcompile; then
       __antidote_bundle_zcompile $bundle_path
