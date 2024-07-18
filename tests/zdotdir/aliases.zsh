@@ -1,1 +1,0 @@
-echo "sourcing aliases.zsh..."
