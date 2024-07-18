@@ -8,6 +8,16 @@
 %
 ```
 
+## Safe removal
+
+Appease my paranoia and ensure that you can't remove a path you shouldn't be able to:
+
+```zsh
+% __antidote_del -rf -- /foo/bar
+antidote: Blocked attempt to rm path: '/foo/bar'.
+%
+```
+
 ## Bundle type
 
 ```zsh

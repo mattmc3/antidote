@@ -1,0 +1,32 @@
+#!/bin/zsh
+# Call me paranoid, but I want to be really certain antidote will never rm something it
+# shouldn't. This function wraps rm to double check that any paths being removed are
+# valid. If it's not in your $HOME or $TMPDIR, we need to block it.
+
+#function __antidote_del {
+  emulate -L zsh; setopt local_options
+
+  local -a rmflags rmpaths
+  local p
+
+  while (( $# )); do
+    case "$1" in
+      --)  shift; break   ;;
+      -*)  rmflags+=($1)  ;;
+      *)   break          ;;
+    esac
+    shift
+  done
+
+  (( $# > 0 )) || return 1
+
+  for p in $@; do
+    p="${p:a}"
+    if [[ "$p" != $HOME/* ]] && [[ "$p" != ${TMPDIR:-/tmp}/* ]]; then
+      print -ru2 -- "antidote: Blocked attempt to rm path: '$p'."
+      return 1
+    fi
+  done
+
+  command rm ${rmflags[@]} -- "$@"
+#}
