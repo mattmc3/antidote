@@ -37,7 +37,11 @@
     local bundledir url repo
 
     # remove zcompiled files
-    rm -rf -- $(antidote-home)/**/*.zwc(N)
+    command rm -rf -- $(antidote-home)/**/*.zwc(N)
+
+    # remove check file
+    local loadable_check_path="$(antidote-home)/.antidote.load"
+    [[ -r "$loadable_check_path" ]] && command rm -- "$loadable_check_path"
 
     # update all bundles
     for bundledir in $(antidote-list --dirs); do

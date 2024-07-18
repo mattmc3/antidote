@@ -17,12 +17,12 @@
   # replace .zsh_plugins.txt with real versions
   local file
   for file in .zsh_plugins.txt .zsh_plugins.zsh; do
-    [[ -f $ZDOTDIR/$file ]] && rm -f -- "$ZDOTDIR/$file"
-    [[ -f $testdir/real/$file ]] && rm -f -- "$testdir/real/$file"
+    [[ -f $ZDOTDIR/$file ]] && command rm -f -- "$ZDOTDIR/$file"
+    [[ -f $testdir/real/$file ]] && command rm -f -- "$testdir/real/$file"
   done
 
   # clean out antidote home
-  [[ -d $ANTIDOTE_HOME ]] && rm -rf -- "$ANTIDOTE_HOME"
+  [[ -d $ANTIDOTE_HOME ]] && command rm -rf -- "$ANTIDOTE_HOME"
   mkdir -p "$ANTIDOTE_HOME"
 
   # source antidote

@@ -7,7 +7,7 @@
 0=${(%):-%x}
 BASEDIR=${0:a:h:h}
 TMPDIR=$BASEDIR/.tmp/buildman
-[[ -d $TMPDIR ]] && rm -rf $TMPDIR
+[[ -d $TMPDIR ]] && command rm -rf $TMPDIR
 mkdir -p $TMPDIR
 
 sedi() {
