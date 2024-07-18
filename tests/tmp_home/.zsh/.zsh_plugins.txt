@@ -4,7 +4,7 @@ $ZSH_CUSTOM path:plugins/myplugin
 
 # repo plugins
 foo/bar
-git@github.com:foo/baz.git  # trailing comments
+git@github.com:foo/quz.git  # trailing comments
 
 # kind:clone
 getantidote/zsh-defer kind:clone		# more trailing comments
