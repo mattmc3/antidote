@@ -5,7 +5,8 @@
   setopt local_options
 
   # reset current session
-  ZDOTDIR=$OLD_ZDOTDIR
+  HOME=$T_PREV_HOME
+  ZDOTDIR=$T_PREV_ZDOTDIR
 
   # unfunction all antidote
   for fn in ${(k)functions}; do
@@ -16,17 +17,28 @@
   # unfunction zsh-defer
   (( $+functions[zsh-defer] )) && unfunction zsh-defer
 
-  # restore original fpath
+  # restore original path/fpath
+  path=( $T_PREV_PATH )
   fpath=( $T_PREV_FPATH )
 
   # restore original zstyles
   source <(zstyle -L ':antidote:*' | awk '{print "zstyle -d",$2}')
   source <(printf '%s\n' $T_PREV_ZSTYLES)
 
-  # remove vars
-  [[ -v plugins ]] && unset plugins
-  [[ -v libs ]]    && unset libs
-
   # remove tempdir
-  [[ -d "$T_TEMPDIR" ]] && rm -rf -- "$T_TEMPDIR"
+  [[ -d "$T_TEMPDIR" ]] && command rm -rf -- "$T_TEMPDIR"
+
+  # remove vars
+  for var in \
+    ANTIDOTE_HOME \
+    T_TEMPDIR \
+    T_PREV_HOME \
+    T_PREV_ZDOTDIR \
+    T_PREV_PATH \
+    T_PREV_FPATH \
+    plugins \
+    libs
+  do
+    [[ -v $var ]] && unset $var
+  done
 #}

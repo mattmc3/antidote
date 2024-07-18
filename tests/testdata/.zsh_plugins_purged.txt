@@ -1,14 +1,13 @@
 # local plugins
 ~/foo/bar
-$ZDOTDIR/foo/bar
-$ZDOTDIR/foo/bar path:baz
+$ZSH_CUSTOM path:plugins/myplugin
 
 # repo plugins
 # foo/bar
-git@github.com:baz/qux.git  # trailing comments
+git@github.com:foo/qux.git  # trailing comments
 
 # kind:clone
-romkatv/zsh-defer kind:clone		# more trailing comments
+getantidote/zsh-defer kind:clone		# more trailing comments
 
 # kind:zsh
 # foo/bar kind:zsh

@@ -161,6 +161,14 @@ Or, to Zsh compile everything, static file and all bundles:
 
 |   zstyle ':antidote:*' zcompile 'yes'
 
+By default, antidote appends to the end of your $fpath. This is highly recommended, however if you really want to change that behavior, there's a zstyle for that:
+
+|   zstyle ':antidote:fpath' rule 'prepend'
+
+By default, antidote uses romkatv/zsh-defer for deferred plugins. If there's a fork you'd prefer to use, you can specify that with this zstyle:
+
+|   zstyle ':antidote:defer' bundle 'getantidote/zsh-defer'
+
 # SEE ALSO
 
 For more information, visit https://getantidote.github.io/

@@ -7,8 +7,12 @@
 0=${(%):-%x}
 BASEDIR=${0:a:h:h}
 TMPDIR=$BASEDIR/.tmp/buildman
-[[ -d $TMPDIR ]] && rm -rf $TMPDIR
+[[ -d $TMPDIR ]] && command rm -rf $TMPDIR
 mkdir -p $TMPDIR
+
+sedi() {
+  sed --version &> /dev/null && sed -i -- "$@" || sed -i "" "$@"
+}
 
 for manpage in $BASEDIR/man/*.md; do
   case ${manpage:t:r} in
@@ -22,5 +26,11 @@ for manpage in $BASEDIR/man/*.md; do
   print "" >> $mdfile
   cat $BASEDIR/man/footer.md >> $mdfile
 
-  pandoc --standalone --to man ${mdfile} -o $BASEDIR/man/man1/${manpage:t:r}.1
+  manfile=$BASEDIR/man/man1/${manpage:t:r}.1
+  pandoc --standalone --to man ${mdfile} -o $manfile
+
+  # strip pandoc version so that every manpage build doesn't need to
+  # result in a new commit just b/c pandoc has a minor point release.
+  pandoc_ver=$(pandoc -v | awk 'NR==1{print $2}')
+  sedi "s/Pandoc $pandoc_ver/Pandoc/g" $manfile
 done

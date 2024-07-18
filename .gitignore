@@ -2,6 +2,7 @@
 *.zwc
 *.zwc.old
 .cache/
+!/tests/**/.cache/
 .tmp/
 .plugins/
 .todo/

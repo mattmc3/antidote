@@ -1,0 +1,2 @@
+#!/bin/zsh
+echo _baz completion

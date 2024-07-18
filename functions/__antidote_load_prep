@@ -49,7 +49,7 @@
   if [[ ! $staticfile -nt $bundlefile ]] || [[ $force_bundle -eq 1 ]]; then
     antidote bundle <"$bundlefile" >|"$staticfile"
     if [[ -r "${staticfile}.zwc" ]] && ! zstyle -t ':antidote:static' zcompile; then
-      command rm -f -- "${staticfile}.zwc"
+      __antidote_del -f -- "${staticfile}.zwc"
     fi
   fi
 

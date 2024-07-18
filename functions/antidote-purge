@@ -38,7 +38,7 @@
     }
     [[ ${REPLY:u} == "Y" ]] || return 1
     # remove antidote home and static cache file
-    command rm -rf -- "$antidote_home"
+    __antidote_del -rf -- "$antidote_home"
 
     if [[ -e "${bundlefile:r}.zsh" ]]; then
       zstyle -s ':antidote:purge:all' answer 'REPLY' || {
@@ -47,7 +47,7 @@
       }
       if [[ ${REPLY:u} == "Y" ]]; then
         local dtstmp=$(date -u '+%Y%m%d_%H%M%S')
-        mv -f "${bundlefile:r}.zsh" "${bundlefile:r}.${dtstmp}.bak"
+        command mv -f "${bundlefile:r}.zsh" "${bundlefile:r}.${dtstmp}.bak"
         print "'"${bundlefile:r}.zsh"' backed up to '${bundlefile:t:r}.${dtstmp}.bak'"
       fi
     fi
@@ -68,14 +68,14 @@
     fi
 
     # remove
-    command rm -rf "$bundledir"
+    __antidote_del -rf "$bundledir"
     print "Removed '$bundle'."
 
     # attempt to comment out the bundle from .zsh_plugins.txt
     if [[ -e "$bundlefile" ]]; then
       local tmpfile="${bundlefile}.antidote.tmp"
       $__adote_awkcmd -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}1' <$bundlefile >|$tmpfile
-      mv -f "$tmpfile" "$bundlefile" || rm -f "$tmpfile"
+      command mv -f "$tmpfile" "$bundlefile" || __antidote_del -f "$tmpfile"
       print "Bundle '$bundle' was commented out in '$bundlefile'."
     fi
   fi

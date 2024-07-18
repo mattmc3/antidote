@@ -24,7 +24,7 @@ Trying to purge a missing bundle fails.
 ```zsh
 % antidote purge bar/foo &>/dev/null  #=> --exit 1
 % antidote purge bar/foo 2>&1 | subenv ANTIDOTE_HOME >&2
-antidote: error: bar/foo does not exist at the expected location: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-foo
+antidote: error: bar/foo does not exist at the expected location: $ANTIDOTE_HOME/bar/foo
 %
 ```
 
@@ -32,7 +32,7 @@ Purging a bundle deletes the directory and comments out instances of the bundle 
 
 ```zsh
 % # bundle dir exists
-% bundledir=$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
+% bundledir=$ANTIDOTE_HOME/foo/bar
 % test -d $bundledir  #=> --exit 0
 % # purge works
 % antidote purge foo/bar | subenv ZDOTDIR
@@ -51,10 +51,10 @@ Test that `antidote purge --all` aborts when told "no".
 % zstyle ':antidote:purge:all' answer 'n'
 % antidote purge --all  #=> --exit 1
 % antidote list | subenv ANTIDOTE_HOME
-git@github.com:baz/qux                                           $ANTIDOTE_HOME/git-AT-github.com-COLON-baz-SLASH-qux
-https://github.com/bar/baz                                       $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz
-https://github.com/ohmy/ohmy                                     $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
-https://github.com/romkatv/zsh-defer                             $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer
+git@github.com:foo/qux                                           $ANTIDOTE_HOME/foo/qux
+https://github.com/foo/baz                                       $ANTIDOTE_HOME/foo/baz
+https://github.com/getantidote/zsh-defer                         $ANTIDOTE_HOME/getantidote/zsh-defer
+https://github.com/ohmy/ohmy                                     $ANTIDOTE_HOME/ohmy/ohmy
 %
 ```
 

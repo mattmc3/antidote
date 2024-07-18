@@ -8,6 +8,30 @@
 %
 ```
 
+## Safe removal
+
+Appease my paranoia and ensure that you can't remove a path you shouldn't be able to:
+
+```zsh
+% __antidote_del -rf -- /foo/bar
+antidote: Blocked attempt to rm path: '/foo/bar'.
+%
+```
+
+## Pretty print path
+
+```zsh
+% __antidote_print_path /foo/bar
+/foo/bar
+% __antidote_print_path $HOME/foo/bar
+$HOME/foo/bar
+% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
+% __antidote_print_path $HOME/foo/bar | subenv T_TEMPDIR
+$T_TEMPDIR/foo/bar
+% zstyle -d ':antidote:compatibility-mode' 'antibody'
+%
+```
+
 ## Bundle type
 
 ```zsh
@@ -106,6 +130,7 @@ foo bar baz
 ## Bundle dir
 
 ```zsh
+% zstyle ':antidote:bundle' use-friendly-names off
 % # short repo
 % __antidote_bundle_dir foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
@@ -138,8 +163,8 @@ $ANTIDOTE_HOME/foo/bar
 % __antidote_bundle_dir https://github.com/bar/baz | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/bar/baz
 % # ssh repo - friendly name
-% __antidote_bundle_dir git@github.com:baz/qux.git | subenv ANTIDOTE_HOME
-$ANTIDOTE_HOME/baz/qux
+% __antidote_bundle_dir git@github.com:foo/qux.git | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/foo/qux
 %
 ```
 
@@ -180,14 +205,14 @@ git@github.com:sindresorhus/pure.git
 If we \<redirect input it should output that.
 
 ```zsh
-% __antidote_collect_input <$ZDOTDIR/.zsh_plugins.txt #=> --file zdotdir/.zsh_plugins.txt
+% __antidote_collect_input <$ZDOTDIR/.zsh_plugins.txt #=> --file tmp_home/.zsh/.zsh_plugins.txt
 %
 ```
 
 If we \|pipe input it should output that.
 
 ```zsh
-% cat $ZDOTDIR/.zsh_plugins.txt | __antidote_collect_input #=> --file zdotdir/.zsh_plugins.txt
+% cat $ZDOTDIR/.zsh_plugins.txt | __antidote_collect_input #=> --file tmp_home/.zsh/.zsh_plugins.txt
 %
 ```
 

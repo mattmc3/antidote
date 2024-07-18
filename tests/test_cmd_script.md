@@ -61,13 +61,18 @@ source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 %
 ```
 
-Script repos:
+Script repos in antibody style:
 
 ```zsh
+% zstyle ':antidote:bundle' use-friendly-names off
+% ANTIDOTE_HOME=$HOME/.cache/antibody
 % antidote-script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
 % antidote-script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
 % antidote-script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script git@github.com:baz/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-bazqux.zsh
+% antidote-script git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-fooqux.zsh
+% zstyle ':antidote:bundle' use-friendly-names on
+% ANTIDOTE_HOME=$HOME/.cache/antidote
+%
 ```
 
 ## Annotations
@@ -93,8 +98,8 @@ Clone a missing plugin.
 
 ```zsh
 % antidote-script --kind zsh foo/bar | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 ```
 
@@ -102,7 +107,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/b
 
 ```zsh
 % antidote-script --kind path foo/bar | subenv ANTIDOTE_HOME
-export PATH="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar:$PATH"
+export PATH="$ANTIDOTE_HOME/foo/bar:$PATH"
 %
 ```
 
@@ -110,7 +115,7 @@ export PATH="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH
 
 ```zsh
 % antidote-script --kind fpath foo/bar | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
+fpath+=( $ANTIDOTE_HOME/foo/bar )
 %
 ```
 
@@ -128,11 +133,11 @@ builtin autoload -Uz $fpath[-1]/*(N.:t)
 ```zsh
 % antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
-  source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
+  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
 fi
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-zsh-defer source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 ```
 
@@ -143,20 +148,20 @@ Test defer zstyle settings
 % zstyle ':antidote:bundle:foo/bar' defer-options '-p'
 % antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
-  source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
+  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
 fi
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-zsh-defer -p source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+zsh-defer -p source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 % # Uses different defer options due to zstyle matching
 % antidote-script --kind defer bar/baz | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
-  source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
+  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
 fi
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz )
-zsh-defer -a source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-bar-SLASH-baz/baz.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/bar/baz )
+zsh-defer -a source $ANTIDOTE_HOME/bar/baz/baz.plugin.zsh
 % # cleanup
 % t_reset
 %
@@ -166,8 +171,8 @@ zsh-defer -a source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ba
 
 ```zsh
 % antidote-script --path plugins/extract ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/extract )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/extract/extract.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/extract )
+source $ANTIDOTE_HOME/ohmy/ohmy/plugins/extract/extract.plugin.zsh
 %
 ```
 
@@ -175,7 +180,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 
 ```zsh
 % antidote-script --path lib/lib1.zsh ohmy/ohmy | subenv ANTIDOTE_HOME
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib1.zsh
+source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh
 %
 ```
 
@@ -183,10 +188,10 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 
 ```zsh
 % antidote-script --path lib ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib1.zsh
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib2.zsh
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib3.zsh
+fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/lib )
+source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh
+source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib2.zsh
+source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib3.zsh
 %
 ```
 
@@ -194,7 +199,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 
 ```zsh
 % antidote-script --path themes/pretty.zsh-theme ohmy/ohmy | subenv ANTIDOTE_HOME
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/themes/pretty.zsh-theme
+source $ANTIDOTE_HOME/ohmy/ohmy/themes/pretty.zsh-theme
 %
 ```
 
@@ -203,8 +208,8 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ```zsh
 % antidote-script --conditional is-macos --path plugins/macos ohmy/ohmy | subenv ANTIDOTE_HOME
 if is-macos; then
-  fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos )
-  source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos/macos.plugin.zsh
+  fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos )
+  source $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh
 fi
 %
 ```
@@ -213,10 +218,10 @@ fi
 
 ```zsh
 % antidote-script --path plugins/macos --autoload functions ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos/functions )
+fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/functions )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/macos/macos.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos )
+source $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh
 %
 ```
 
@@ -225,12 +230,12 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ```zsh
 % # append
 % antidote-script --fpath-rule append --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker/docker.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker )
+source $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh
 % # prepend
 % antidote-script --fpath-rule prepend --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker $fpath )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/docker/docker.plugin.zsh
+fpath=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker $fpath )
+source $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh
 % # whoops
 % antidote-script --fpath-rule foobar --path plugins/docker ohmy/ohmy 2>&1
 antidote: error: unexpected fpath rule: 'foobar'
@@ -243,12 +248,12 @@ antidote: error: unexpected fpath rule: 'foobar'
 % # pre
 % antidote-script --pre run_before foo/bar | subenv ANTIDOTE_HOME
 run_before
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 % # post
 % antidote-script --post run_after foo/bar | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 run_after
 %
 ```
@@ -258,11 +263,11 @@ If a plugin is deferred, so is its post event
 % antidote-script --pre pre-event --post post-event --kind defer foo/bar | subenv ANTIDOTE_HOME
 pre-event
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer )
-  source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
+  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
 fi
-fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-zsh-defer source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 zsh-defer post-event
 %
 ```

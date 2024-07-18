@@ -40,13 +40,17 @@
       echo "MOCKGIT: repository '$url' not found"
     fi
   elif [[ "$@" = "config remote.origin.url" ]]; then
-    # un-sanitize dir into URL
-    local url=$o_path[-1]
-    url=${url:t}
-    url=${url:gs/-AT-/\@}
-    url=${url:gs/-COLON-/\:}
-    url=${url:gs/-SLASH-/\/}
-    echo "$url"
+    if [[ -e $bundledir/.git/config/remote.origin.url ]]; then
+      cat $bundledir/.git/config/remote.origin.url
+    else
+      # un-sanitize dir into URL
+      local url=$o_path[-1]
+      url=${url:t}
+      url=${url:gs/-AT-/\@}
+      url=${url:gs/-COLON-/\:}
+      url=${url:gs/-SLASH-/\/}
+      echo "$url"
+    fi
   elif [[ "$@" = "pull" ]]; then
     (( $#o_quiet )) || echo "MOCKGIT: Already up to date."
   elif [[ "$@" = "rev-parse HEAD" ]]; then

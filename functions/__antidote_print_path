@@ -1,0 +1,8 @@
+#!/bin/zsh
+### Pretty print a path
+
+if zstyle -t ':antidote:compatibility-mode' 'antibody'; then
+  echo "$1"
+else
+  echo "$1" | sed -e "s|^$HOME/|\$HOME/|"
+fi

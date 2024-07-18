@@ -1,33 +1,29 @@
-# antidote core tests
-
-fails gracefully when someone tries bash
-
-```zsh
-% bash -c "source $PWD/antidote.zsh"
-antidote: Expecting zsh. Found 'bash'.
-%
-```
+# antidote bundle tests
 
 ## Setup
 
 ```zsh
-% echo $+functions[antidote]
-0
 % source ./tests/_setup.zsh
 % source ./antidote.zsh
-% echo $+functions[antidote]
-1
-% git --version
-0.0.0
 %
 ```
 
-## General
+## Version
 
-No args displays help:
+Show antidote's version:
 
 ```zsh
-% antidote
+% antidote --version
+antidote version 1.9.7
+%
+```
+
+## Help
+
+Show antidote's functionality:
+
+```zsh
+% antidote --help
 antidote - the cure to slow zsh plugin management
 
 usage: antidote [<flags>] <command> [<args> ...]
@@ -50,80 +46,251 @@ commands:
 %
 ```
 
-No arg exit status is 2:
+## Bundling
+
+Bundle the foo/bar repo using old antibody style directories:
 
 ```zsh
-% antidote >/dev/null; err=$?
-% echo $err
-2
+% zstyle ':antidote:bundle' use-friendly-names off
+% antidote bundle foo/bar
+# antidote cloning foo/bar...
+fpath+=( $HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
+source $HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
 %
 ```
 
-## Help
-
-`-h` and `--help` work:
+Use new-style directory naming:
 
 ```zsh
-% antidote -h >/dev/null; err=$?
-% echo $err
-0
-% antidote --help >/dev/null; err=$?
-% echo $err
-0
+% zstyle ':antidote:bundle' use-friendly-names on
 %
 ```
 
-## Version
-
-`-v` and `--version` work:
+Bundle a repo at https://github.com/foo/bar
 
 ```zsh
-% antidote --version
-antidote version 1.9.6
-% antidote -v >/dev/null; echo $?
-0
-% antidote --version >/dev/null; echo $?
-0
+% antidote bundle foo/bar
+fpath+=( $HOME/.cache/antidote/foo/bar )
+source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
 %
 ```
 
-## Unrecognized options
+Bundle a repo at git@bitbucket.org:foo/bar
 
 ```zsh
-% antidote --foo >/dev/null; err=$?   #=> --regex (bad option|command not found)
-% echo $err
-1
+% antidote bundle git@bitbucket.org:foo/bar
+fpath+=( $HOME/.cache/antidote/foo/bar )
+source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
 %
 ```
 
-## Unrecognized commands
+Bundle a specific branch of a repo with `branch:<branch>`.
 
 ```zsh
-% antidote foo; err=$?
-antidote: command not found 'foo'
-% echo $err
-1
+% antidote bundle foo/bar branch:dev
+fpath+=( $HOME/.cache/antidote/foo/bar )
+source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
 %
 ```
 
-## All commands
+### Annotations: kind
+
+Bundles support a `kind:` annotation. The default is `kind:zsh`.
 
 ```zsh
-% cmds=( bundle help home init install list load path purge update script main null )
-% for cmd in $cmds; echo $+functions[antidote-$cmd]
-1
-1
-1
-1
-1
-1
-1
-1
-1
-1
-1
-1
-0
+% antidote bundle foo/bar kind:zsh
+fpath+=( $HOME/.cache/antidote/foo/bar )
+source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+%
+```
+
+Bundle foo/bar with `kind:path` to add it to your `$PATH`.
+
+```zsh
+% antidote bundle foo/bar kind:path
+export PATH="$HOME/.cache/antidote/foo/bar:$PATH"
+%
+```
+
+Bundle foo/bar with `kind:fpath` to add it to your `$fpath`.
+
+```zsh
+% antidote bundle foo/bar kind:fpath
+fpath+=( $HOME/.cache/antidote/foo/bar )
+%
+```
+
+Bundle foo/bar with `kind:clone` to just clone the repo, but do nothing to load it.
+
+```zsh
+% antidote bundle foo/bar kind:clone
+%
+```
+
+Autoload a path within foo/bar with the `kind:autoload` annotation.
+
+```zsh
+% antidote bundle foo/baz kind:autoload path:functions
+fpath+=( $HOME/.cache/antidote/foo/baz/functions )
+builtin autoload -Uz $fpath[-1]/*(N.:t)
+%
+```
+
+Defer loading the foo/bar bundle with the `kind:defer` annotation.
+
+```zsh
+% antidote bundle foo/baz kind:defer
+if ! (( $+functions[zsh-defer] )); then
+  fpath+=( $HOME/.cache/antidote/getantidote/zsh-defer )
+  source $HOME/.cache/antidote/getantidote/zsh-defer/zsh-defer.plugin.zsh
+fi
+fpath+=( $HOME/.cache/antidote/foo/baz )
+zsh-defer source $HOME/.cache/antidote/foo/baz/baz.plugin.zsh
+%
+```
+
+### Annotations: path
+
+Use the `path:<path>` annotation to load subplugins.
+
+```zsh
+% antidote bundle ohmy/ohmy path:plugins/docker
+fpath+=( $HOME/.cache/antidote/ohmy/ohmy/plugins/docker )
+source $HOME/.cache/antidote/ohmy/ohmy/plugins/docker/docker.plugin.zsh
+%
+```
+
+Use `path:<lib>` to load a whole directory full of files.
+
+```zsh
+% antidote bundle ohmy/ohmy path:lib
+fpath+=( $HOME/.cache/antidote/ohmy/ohmy/lib )
+source $HOME/.cache/antidote/ohmy/ohmy/lib/lib1.zsh
+source $HOME/.cache/antidote/ohmy/ohmy/lib/lib2.zsh
+source $HOME/.cache/antidote/ohmy/ohmy/lib/lib3.zsh
+%
+```
+
+Use `path:<file>` to load a specific file.
+
+```zsh
+% antidote bundle ohmy/ohmy path:custom/themes/pretty.zsh-theme
+source $HOME/.cache/antidote/ohmy/ohmy/custom/themes/pretty.zsh-theme
+%
+```
+
+### Annotations: conditional
+
+Use a existing boolean function to wrap a bundle in `if` logic:
+
+```zsh
+% is-macos() { [[ "$OSTYPE" == "darwin"* ]]; }
+% antidote bundle foo/bar conditional:is-macos
+if is-macos; then
+  fpath+=( $HOME/.cache/antidote/foo/bar )
+  source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+fi
+%
+```
+
+## Dynamic bundling
+
+If you run `source <(antidote init)`, antidote will emit a wrapper so that you can
+dynamically bundle.
+
+```zsh
+% antidote init
+#!/usr/bin/env zsh
+function antidote {
+  case "$1" in
+    bundle)
+      source <( antidote-main $@ ) || antidote-main $@
+      ;;
+    *)
+      antidote-main $@
+      ;;
+  esac
+}
+%
+```
+
+## Home
+
+Show where antidote stores its bundles:
+
+```zsh
+% antidote home | subenv HOME
+$HOME/.cache/antidote
+%
+```
+
+## List bundles
+
+List directories:
+
+```zsh
+% antidote list --dirs | subenv HOME
+$HOME/.cache/antidote/foo/bar
+$HOME/.cache/antidote/foo/baz
+$HOME/.cache/antidote/foo/qux
+$HOME/.cache/antidote/getantidote/zsh-defer
+$HOME/.cache/antidote/ohmy/ohmy
+%
+```
+
+List repo URLs:
+
+```zsh
+% antidote list --url
+git@github.com:foo/qux
+https://github.com/foo/bar
+https://github.com/foo/baz
+https://github.com/getantidote/zsh-defer
+https://github.com/ohmy/ohmy
+%
+```
+
+List short repos:
+
+```zsh
+% antidote list --short
+foo/bar
+foo/baz
+getantidote/zsh-defer
+git@github.com:foo/qux
+ohmy/ohmy
+%
+```
+
+## Bundle paths
+
+Show the path to a bundle:
+
+```zsh
+% ZSH=$(antidote path ohmy/ohmy)
+% echo $ZSH | subenv HOME
+$HOME/.cache/antidote/ohmy/ohmy
+%
+```
+
+## Update bundles
+
+```zsh
+% antidote update
+Updating bundles...
+antidote: checking for updates: https://github.com/foo/bar
+antidote: checking for updates: https://github.com/foo/baz
+antidote: checking for updates: git@github.com:foo/qux
+antidote: checking for updates: https://github.com/getantidote/zsh-defer
+antidote: checking for updates: https://github.com/ohmy/ohmy
+Waiting for bundle updates to complete...
+
+Bundle updates complete.
+
+Updating antidote...
+antidote self-update complete.
+
+antidote version 1.9.7
 %
 ```
 

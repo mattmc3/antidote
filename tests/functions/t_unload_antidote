@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+emulate -L zsh
+setopt local_options
+
+# unfunction all antidote
+for fn in ${(k)functions}; do
+  [[ $fn == *antidote* ]] && [[ $fn != t_* ]] && unfunction -- $fn
+done
+(( $+functions[git] )) && unfunction git
+
+# unfunction zsh-defer
+(( $+functions[zsh-defer] )) && unfunction zsh-defer
