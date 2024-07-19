@@ -210,8 +210,8 @@ TODO:
 Some misc testing
 
 ```sh
-% antibody foo  #=> --exit 1
-antibody: error: expected command but got "foo", try --help
+% antibody foobar  #=> --exit 1
+antibody: error: expected command but got "foobar", try --help
 %
 ```
 
