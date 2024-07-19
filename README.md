@@ -59,6 +59,7 @@ rupa/z              # some bash plugins work too
 sindresorhus/pure   # enhance your prompt
 
 # you can even use Oh My Zsh plugins
+getantidote/use-omz
 ohmyzsh/ohmyzsh path:lib
 ohmyzsh/ohmyzsh path:plugins/extract
 
