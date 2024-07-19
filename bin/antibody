@@ -1,0 +1,261 @@
+#!/usr/bin/env zsh
+
+ANTIBODY_VERSION="1.9.7"
+
+setopt extended_glob no_monitor pipefail
+
+echos() {
+	print -r -- "$@"
+}
+
+echoln() {
+	printf '%s\n' "${@[@]}"
+}
+
+echof() {
+	local fmt=$1; shift
+	printf $fmt "${@[@]}"
+}
+
+echoerr() {
+	print -ru2 -- "$@"
+}
+
+-antibody-version() {
+	echos "antibody version $ANTIBODY_VERSION"
+}
+
+-antibody-cmd-help() {
+	local usage=$(cat <<-EOS
+		usage: antibody [<flags>] <command> [<args> ...]
+
+		A pure Zsh implementation of the legacy antibody plugin manager
+		Packaged with the antidote plugin manager
+
+		Flags:
+		  -h, --help           Show context-sensitive help.
+		  -v, --version        Show application version.
+
+		Commands:
+		  help [<command>...]
+		    Show help.
+
+		  bundle [<bundles>...]
+		    downloads a bundle and prints its source line
+
+		  update
+		    updates all previously bundled bundles
+
+		  home
+		    prints where antibody is cloning the bundles
+
+		  purge <bundle>
+		    purges a bundle from your computer
+
+		  list
+		    lists all currently installed bundles
+
+		  path <bundle>
+		    prints the path of a currently cloned bundle
+
+		  init
+		    initializes the shell so Antibody can work as expected
+
+		EOS
+	)
+	echoln "${usage[@]}" ''
+}
+
+-antibody-cmd-init() {
+	local antibody_path=${${(%):-%x}:a}
+	local script=$(cat <<-EOS
+		#!/usr/bin/env zsh
+		antibody() {
+		  case "\$1" in
+		  bundle)
+		    source <( ${antibody_path} \$@ ) || ${antibody_path} \$@
+		    ;;
+		  *)
+		    ${antibody_path} \$@
+		    ;;
+		  esac
+		}
+
+		_antibody() {
+		  IFS=' ' read -A reply <<< "help bundle update home purge list path init"
+		}
+		compctl -K _antibody antibody
+	EOS
+	)
+	echoln "$script[@]" ''
+}
+
+-antibody-cmd-home() {
+	if [[ -n "$ANTIBODY_HOME" ]]; then
+		echos $ANTIBODY_HOME
+		return
+	fi
+
+	local cachedir ostype=${T_ANTIBODY_OSTYPE:-$OSTYPE}
+	if [[ "$ostype" == darwin* ]]; then
+		cachedir=$HOME/Library/Caches
+	elif [[ "$ostype" == (cygwin|msys)* ]]; then
+		cachedir=${LOCALAPPDATA:-$LocalAppData}
+		if type cygpath > /dev/null; then
+			cachedir=$(cygpath "$result")
+		fi
+	else
+		cachedir=${XDG_CACHE_HOME:-$HOME/.cache}
+	fi
+	if [[ $cachedir != /* ]] && [[ $cachedir == *\\* ]]; then
+		echos $cachedir\\antibody
+	else
+		echos $cachedir/antibody
+	fi
+}
+
+-antibody-cmd-update() {
+	local antibody_home=$(-antibody-cmd-home)
+	echos "Updating all bundles in $antibody_home..."
+
+	if [[ ! -d $antibody_home ]]; then
+		echoerr "antibody: error: failed to update: open ${antibody_home}: no such file or directory"
+		return 1
+	fi
+
+	local bundle_path url
+	for bundle_path in $antibody_home/*(/N); do
+		url=$(git -C "$bundle_path" config remote.origin.url)
+		echos "antibody: updating: $url"
+		() {
+			local oldsha=$(git -C "$1" rev-parse --short HEAD)
+			git -C "$1" pull --quiet --ff --rebase --autostash
+			local newsha=$(git -C "$1" rev-parse --short HEAD)
+			if [[ $oldsha != $newsha ]]; then
+				echos "antibody: updated: $2 $oldsha -> $newsha"
+			fi
+		} "$bundle_path" "$url" &
+	done
+	wait
+}
+
+-antibody-cmd-purge() {
+	if (( $# == 0 )); then
+		echoerr "antibody: error: required argument 'bundle' not provided, try --help"
+		return 1
+	fi
+
+	echos "Removing $1..."
+	local bundle_path=$(-antibody-cmd-path $1)
+	if [[ $bundle_path != "$HOME"/* ]]; then
+		echoerr "antibody: error: bundle path failed sanity check: $bundle_path"
+		return 2
+	elif [[ -d "$bundle_path" ]]; then
+		command rm -rf -- $bundle_path
+		echos "removed!"
+	else
+		echoerr "antibody: error: $1 does not exist on expected location: $bundle_path"
+		return 1
+	fi
+}
+
+-antibody-cmd-list() {
+	local antibody_home=$(-antibody-cmd-home)
+	if [[ ! -d $antibody_home ]]; then
+		echoerr "antibody: error: failed to list bundles: open ${antibody_home}: no such file or directory"
+		return 1
+	fi
+
+	local bundle_path url
+	for bundle_path in $antibody_home/*(/N); do
+		url=$(git -C "$bundle_path" config remote.origin.url)
+		echof '%s\t%s\n' $url $bundle_path
+	done
+}
+
+-antibody-cmd-path() {
+	if (( $# == 0 )); then
+		echoerr "antibody: error: required argument 'bundle' not provided, try --help"
+		return 1
+	fi
+
+	local bundle=$1
+	local bundle_path=$(-antibody-bundle-path $bundle)
+
+	if [[ ! -d $bundle_path ]]; then
+		echoerr "antibody: error: ${bundle} does not exist in cloned paths"
+		return 1
+	fi
+
+	echos $bundle_path
+}
+
+-antibody-bundle-path() {
+	local bundle=$1
+	local url=$(-antibody-to-url $bundle)
+	url=${url%.git}
+	url=${url:gs/\@/-AT-}
+	url=${url:gs/\:/-COLON-}
+	url=${url:gs/\//-SLASH-}
+	echos $(-antibody-cmd-home)/$url
+}
+
+-antibody-to-url() {
+	local url=$1
+	if [[ $url != *://* && $url != git@*:*/* ]]; then
+		url=https://github.com/$1
+	fi
+	echos $url
+}
+
+-antibody-cmd-bundle() {
+	# TODO!
+	echof '%s\n' \
+	  'source $HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/oh-my-zsh.sh' \
+    'fpath+=( $HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh )'
+}
+
+-antibody() {
+	local -a o_help o_version
+	local badopt
+	while (( $# )); do
+		case $1 in
+			-h|--help)    o_help+=($1)    ;;
+			-v|--version) o_version+=($1) ;;
+			--)           shift           ; break ;;
+			-*)           badopt=$1       ; break ;;
+			*)                              break ;;
+		esac
+		shift
+	done
+
+	if [[ -n $badopt ]]; then
+		echoerr "antibody: error: unknown flag '$badopt', try --help"
+		return 1
+	fi
+
+	if (( $#o_help )); then
+		-antibody-cmd-help && return
+	elif (( $#o_version )); then
+		-antibody-version && return
+	fi
+
+	local cmd=${1:-help}; shift
+	if [[ $cmd != (help|bundle|update|home|purge|list|path|init) ]]; then
+		echoerr "antibody: error: expected command but got \"$cmd\", try --help"
+		return 1
+	fi
+
+	if (( $# )) && [[ $cmd != (help|bundle|update|home|list|path|init) ]]; then
+		echoerr "antibody: error: unexpected argument '$1', try --help"
+		return 1
+	fi
+
+	# treat piped input like args
+	if [[ ! -t 0 ]] && [[ -p /dev/stdin ]] && (( $# == 0 )); then
+		set -- "${(@f)$(cat)}"
+	fi
+
+	-antibody-cmd-${cmd} "$@"
+}
+-antibody "$@"
