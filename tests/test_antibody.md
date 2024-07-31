@@ -13,11 +13,11 @@ clitest --list-run --prompt '%' --progress dot --color always \
   ./tests/test_antibody.md
 ```
 
-We need a convenience function, `subenv`, so that test output doesn't have to have named
+We need a convenience function, `scrub`, so that test output doesn't have to have named
 directories embedded and we can instead use variables like `$PWD` and `$HOME`.
 
 ```sh
-% subenv() { sed -e "s|$PWD|\$PWD|g" -e "s|$HOME|\$HOME|g"; }
+% scrub() { sed -e "s|$PWD|\$PWD|g" -e "s|$HOME|\$HOME|g"; }
 %
 ```
 
@@ -107,7 +107,7 @@ script that wraps antibody for dynamic plugin loading.
 See what the output produces:
 
 ```sh
-% antibody init | subenv
+% antibody init | scrub
 #!/usr/bin/env zsh
 antibody() {
   case "$1" in
@@ -133,11 +133,11 @@ You can also see where antibody is keeping the plugins with the home command. Th
 is different per system.
 
 ```sh
-% T_ANTIBODY_OSTYPE=linux antibody home | subenv
+% T_ANTIBODY_OSTYPE=linux antibody home | scrub
 $HOME/.cache/antibody
-% T_ANTIBODY_OSTYPE=darwin antibody home | subenv
+% T_ANTIBODY_OSTYPE=darwin antibody home | scrub
 $HOME/Library/Caches/antibody
-% T_ANTIBODY_OSTYPE=msys LOCALAPPDATA=C:\\Users\\testuser\\AppData\\Local antibody home | subenv
+% T_ANTIBODY_OSTYPE=msys LOCALAPPDATA=C:\\Users\\testuser\\AppData\\Local antibody home | scrub
 C:\Users\testuser\AppData\Local\antibody
 %
 ```
@@ -147,7 +147,7 @@ of your choosing:
 
 ```sh
 % export ANTIBODY_HOME=$HOME/path/to/antibody/home
-% antibody home | subenv
+% antibody home | scrub
 $HOME/path/to/antibody/home
 %
 ```
@@ -175,7 +175,7 @@ fpath+=( $HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzs
 You can see the path being used for a cloned bundle.
 
 ```sh
-% antibody path ohmyzsh/ohmyzsh | subenv
+% antibody path ohmyzsh/ohmyzsh | scrub
 $HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh
 %
 ```
@@ -193,7 +193,7 @@ the $ZSH environment variable:
 You can list bundles with `antibody list`:
 
 ```sh
-% antibody list | subenv
+% antibody list | scrub
 https://github.com/ohmyzsh/ohmyzsh                               $HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh
 %
 ```
@@ -203,7 +203,7 @@ https://github.com/ohmyzsh/ohmyzsh                               $HOME/.cache/an
 You can update bundles with `antibody update`:
 
 ```sh
-% antibody update | subenv
+% antibody update | scrub
 Updating all bundles in $HOME/.cache/antibody...
 antibody: updating: https://github.com/ohmyzsh/ohmyzsh
 %
@@ -215,7 +215,7 @@ Remove bundles with `antibody purge <bundle>`:
 
 ```sh
 % export T_ANTIBODY_PURGE=0
-% antibody purge ohmyzsh/ohmyzsh | subenv
+% antibody purge ohmyzsh/ohmyzsh | scrub
 Removing ohmyzsh/ohmyzsh...
 rm -rf -- $HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh
 removed!
