@@ -1,5 +1,5 @@
-#!/usr/bin/env dash
-# or, we could use Dash explicitly: !/usr/bin/env dash
+#!/bin/sh
+# or, we could use Dash explicitly: #!/usr/bin/env dash
 
 # If /bin/sh is Zsh (which it never is), be sure to set proper POSIX compat.
 if [ -n "$ZSH_VERSION" ]; then
@@ -8,8 +8,8 @@ fi
 
 ANTIBODY_VERSION="1.9.7"
 THIS_SCRIPT="$(realpath "$0")"
-AWK=awk
-gawk --version >/dev/null 2>/dev/null && AWK=gawk
+AWK="awk"
+gawk --version >/dev/null 2>/dev/null && AWK="gawk"
 
 #region Helpers
 # POSIX test for function existance.
@@ -18,22 +18,11 @@ is_function() {
   type "$1" 2>/dev/null | sed "s/$1//" | grep -qwi function
 }
 
-echos() {
+print() {
   printf '%s\n' "$@"
 }
 
-echoln() {
-  printf '%s\n' "$@"
-}
-
-echof() {
-  local fmt
-  fmt="$1"; shift
-  # shellcheck disable=SC2059
-  printf "$fmt" "$@"
-}
-
-echoerr() {
+printerr() {
   printf >&2 '%s\n' "$@"
 }
 
@@ -48,14 +37,14 @@ to_url() {
     (git@*:*/*) url="$1" ;;
     (*)         url="https://github.com/$1" ;;
   esac
-  echos "$url"
+  print "$url"
 }
 
 to_bundle_path() {
   local result
   case "$1" in
     (/*)
-      echos "$1"
+      print "$1"
       ;;
     (*)
       result="$(
@@ -65,7 +54,7 @@ to_bundle_path() {
             -e "s/\\//-SLASH-/g" \
             -e "s/.git$//"
       )"
-      echos "$(antibody_cmd_home)/$result"
+      print "$(antibody_cmd_home)/$result"
       ;;
   esac
 }
@@ -84,7 +73,7 @@ get_bundle_type() {
   fi
 
   if [ -n "$result" ]; then
-    echos "$result"
+    print "$result"
     return 0
   fi
 
@@ -97,7 +86,7 @@ get_bundle_type() {
     (*/*)   result=repo   ;;
     (*)     result="?"    ;;
   esac
-  echos "$result"
+  print "$result"
 }
 
 sanity_check_path() {
@@ -112,14 +101,14 @@ update_repo() {
   git -C "$1" pull --quiet --ff --rebase --autostash
   newsha="$(git -C "$1" rev-parse --short HEAD)"
   if [ "$oldsha" != "$newsha" ]; then
-    echos "antibody: updated: $2 $oldsha -> $newsha"
+    print "antibody: updated: $2 $oldsha -> $newsha"
   fi
 }
 #endregion
 
 #region Subcommands
 antibody_opt_version() {
-  echos "antibody version $ANTIBODY_VERSION"
+  print "antibody version $ANTIBODY_VERSION"
 }
 
 antibody_cmd_help() {
@@ -127,9 +116,7 @@ antibody_cmd_help() {
 }
 
 antibody_cmd_init() {
-  local init_script
-  init_script="$(
-  cat <<'EOS'
+  cat << 'HEREDOC' | sed -e "s|\$THIS_SCRIPT|$THIS_SCRIPT|g"
 #!/usr/bin/env zsh
 antibody() {
   case "$1" in
@@ -146,10 +133,7 @@ _antibody() {
   IFS=' ' read -A reply <<< "help bundle update home purge list path init"
 }
 compctl -K _antibody antibody
-
-EOS
-  )"
-  echo "$init_script" | sed -e "s|\$THIS_SCRIPT|$THIS_SCRIPT|g"
+HEREDOC
 }
 
 antibody_cmd_bundle() {
@@ -160,7 +144,7 @@ antibody_cmd_bundle() {
   if [ ! -d "$bundle_path" ]; then
     git clone --quiet --depth 1 --recurse-submodules --shallow-submodules "https://github.com/ohmyzsh/ohmyzsh" "$bundle_path"
   fi
-  echoln \
+  print \
     "source \$HOME/.cache/antibody/$omzdir/oh-my-zsh.sh" \
     "fpath+=( \$HOME/.cache/antibody/$omzdir )"
 }
@@ -168,16 +152,16 @@ antibody_cmd_bundle() {
 antibody_cmd_update() {
   local antibody_home bundle_path url
   antibody_home="$(antibody_cmd_home)"
-  echos "Updating all bundles in $antibody_home..."
+  print "Updating all bundles in $antibody_home..."
 
   if [ ! -d "$antibody_home" ]; then
-    echoerr "antibody: error: failed to update: open ${antibody_home}: no such file or directory"
+    printerr "antibody: error: failed to update: open ${antibody_home}: no such file or directory"
     return 1
   fi
 
   for bundle_path in "$antibody_home"/*; do
     url="$(git -C "$bundle_path" config remote.origin.url)"
-    echos "antibody: updating: $url"
+    print "antibody: updating: $url"
     update_repo "$bundle_path" "$url" &
   done
   wait
@@ -185,7 +169,7 @@ antibody_cmd_update() {
 
 antibody_cmd_home() {
   if [ -n "$ANTIBODY_HOME" ]; then
-    echos "$ANTIBODY_HOME"
+    print "$ANTIBODY_HOME"
     return
   fi
 
@@ -203,33 +187,33 @@ antibody_cmd_home() {
   esac
 
   case "$cachedir" in
-    (*/*)  echos "$cachedir/antibody" ;;
-    (*\\*) echos "$cachedir\\antibody" ;;
-    (*)    echos "$(realpath "$cachedir")/antibody" ;;
+    (*/*)  print "$cachedir/antibody" ;;
+    (*\\*) print "$cachedir\\antibody" ;;
+    (*)    print "$(realpath "$cachedir")/antibody" ;;
   esac
 }
 
 antibody_cmd_purge() {
   if [ "$#" -eq 0 ]; then
-    echoerr "antibody: error: required argument 'bundle' not provided, try --help"
+    printerr "antibody: error: required argument 'bundle' not provided, try --help"
     return 1
   fi
 
   local bundle_path
   bundle_path="$(to_bundle_path "$1")"
   if ! sanity_check_path "$bundle_path"; then
-    echoerr "antibody: error: bundle path failed sanity check: $bundle_path"
+    printerr "antibody: error: bundle path failed sanity check: $bundle_path"
     return 1
   elif [ -r "$bundle_path" ]; then
-    echos "Removing $1..."
+    print "Removing $1..."
     if [ "${T_ANTIBODY_PURGE:-1}" -ne 0 ]; then
       command rm -rf -- "$bundle_path"
     else
       echo rm -rf -- "$bundle_path"
     fi
-    echos "removed!"
+    print "removed!"
   else
-    echoerr "antibody: error: $1 does not exist in expected location: $bundle_path"
+    printerr "antibody: error: $1 does not exist in expected location: $bundle_path"
     return 1
   fi
 }
@@ -238,20 +222,20 @@ antibody_cmd_list() {
   local antibody_home
   antibody_home=$(antibody_cmd_home)
   if [ ! -d "$antibody_home" ]; then
-    echoerr "antibody: error: failed to list bundles: open ${antibody_home}: no such file or directory"
+    printerr "antibody: error: failed to list bundles: open ${antibody_home}: no such file or directory"
     return 1
   fi
 
   local bundle_path url
   for bundle_path in "$antibody_home"/*; do
     url="$(git -C "$bundle_path" config remote.origin.url)"
-    echof '%-64s %s\n' "$url" "$bundle_path"
+    printf '%-64s %s\n' "$url" "$bundle_path"
   done
 }
 
 antibody_cmd_path() {
   if [ "$#" -eq 0 ]; then
-    echoerr "antibody: error: required argument 'bundle' not provided, try --help"
+    printerr "antibody: error: required argument 'bundle' not provided, try --help"
     return 1
   fi
 
@@ -260,11 +244,11 @@ antibody_cmd_path() {
   bundle_path="$(to_bundle_path "$bundle")"
 
   if [ ! -d "$bundle_path" ]; then
-    echoerr "antibody: error: ${bundle} does not exist in cloned paths"
+    printerr "antibody: error: ${bundle} does not exist in cloned paths"
     return 1
   fi
 
-  echos "$bundle_path"
+  print "$bundle_path"
 }
 #endregion
 
@@ -321,7 +305,7 @@ antibody() {
   done
 
   if [ -n "$o_bad" ]; then
-     echoerr "antibody: Unknown flag '$o_bad'. Usage 'antibody -h'."
+     printerr "antibody: Unknown flag '$o_bad'. Usage 'antibody -h'."
      return 1
   elif [ -n "$o_help" ]; then
     antibody_cmd_help
@@ -338,7 +322,7 @@ antibody() {
     "antibody_cmd_${subcmd}" "$@"
     return
   else
-    echoerr "antibody: error: expected command but got \"$1\", try --help"
+    printerr "antibody: error: expected command but got \"$1\", try --help"
     return 1
   fi
 }
