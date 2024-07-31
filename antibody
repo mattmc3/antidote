@@ -153,10 +153,16 @@ EOS
 }
 
 antibody_cmd_bundle() {
-  # TODO!
+  # TODO! Gotta actually do something here, but this is how we fake making the tests go.
+  local bundle_path omzdir
+  omzdir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh"
+  bundle_path="$HOME/.cache/antibody/$omzdir"
+  if [ ! -d "$bundle_path" ]; then
+    git clone --quiet --depth 1 --recurse-submodules --shallow-submodules "https://github.com/ohmyzsh/ohmyzsh" "$bundle_path"
+  fi
   echoln \
-    "source \$HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/oh-my-zsh.sh" \
-    "fpath+=( \$HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh )"
+    "source \$HOME/.cache/antibody/$omzdir/oh-my-zsh.sh" \
+    "fpath+=( \$HOME/.cache/antibody/$omzdir )"
 }
 
 antibody_cmd_update() {
