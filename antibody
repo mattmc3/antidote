@@ -1,0 +1,341 @@
+#!/usr/bin/env dash
+# or, we could use Dash explicitly: !/usr/bin/env dash
+
+# If /bin/sh is Zsh (which it never is), be sure to set proper POSIX compat.
+if [ -n "$ZSH_VERSION" ]; then
+  setopt POSIX_ARGZERO
+fi
+
+ANTIBODY_VERSION="1.9.7"
+THIS_SCRIPT="$(realpath "$0")"
+AWK=awk
+gawk --version >/dev/null 2>/dev/null && AWK=gawk
+
+#region Helpers
+# POSIX test for function existance.
+is_function() {
+  [ "$#" -eq 1 ] || return 1
+  type "$1" 2>/dev/null | sed "s/$1//" | grep -qwi function
+}
+
+echos() {
+  printf '%s\n' "$@"
+}
+
+echoln() {
+  printf '%s\n' "$@"
+}
+
+echof() {
+  local fmt
+  fmt="$1"; shift
+  # shellcheck disable=SC2059
+  printf "$fmt" "$@"
+}
+
+echoerr() {
+  printf >&2 '%s\n' "$@"
+}
+
+usage() {
+  grep "^##?" "$THIS_SCRIPT" | cut -c 5-
+}
+
+to_url() {
+  local url
+  case "$1" in
+    (*://*)     url="$1" ;;
+    (git@*:*/*) url="$1" ;;
+    (*)         url="https://github.com/$1" ;;
+  esac
+  echos "$url"
+}
+
+to_bundle_path() {
+  local result
+  case "$1" in
+    (/*)
+      echos "$1"
+      ;;
+    (*)
+      result="$(
+        to_url "$1" |
+        sed -e "s/\@/-AT-/g" \
+            -e "s/\:/-COLON-/g" \
+            -e "s/\\//-SLASH-/g" \
+            -e "s/.git$//"
+      )"
+      echos "$(antibody_cmd_home)/$result"
+      ;;
+  esac
+}
+
+get_bundle_type() {
+  local bundle result
+  bundle="$1"
+  if [ -z "$bundle" ]; then
+    result="empty"
+  elif [ -f "$bundle" ]; then
+    result="file"
+  elif [ -d "$bundle" ]; then
+    result="dir"
+  elif [ -e "$bundle" ]; then
+    result="path"
+  fi
+
+  if [ -n "$result" ]; then
+    echos "$result"
+    return 0
+  fi
+
+  # Determine the bundle type.
+  case "$bundle" in
+    (*://*) result=url    ;;
+    (*@*:*) result=sshurl ;;
+    (*/*/*) result="?"    ;;
+    (*/)    result="?"    ;;
+    (*/*)   result=repo   ;;
+    (*)     result="?"    ;;
+  esac
+  echos "$result"
+}
+
+sanity_check_path() {
+  # Do a simple sanity check to make sure we're in the user's $HOME.
+  case "$1" in ("$HOME"/*) return 0;; esac
+  return 1
+}
+
+update_repo() {
+  local oldsha newsha
+  oldsha="$(git -C "$1" rev-parse --short HEAD)"
+  git -C "$1" pull --quiet --ff --rebase --autostash
+  newsha="$(git -C "$1" rev-parse --short HEAD)"
+  if [ "$oldsha" != "$newsha" ]; then
+    echos "antibody: updated: $2 $oldsha -> $newsha"
+  fi
+}
+#endregion
+
+#region Subcommands
+antibody_opt_version() {
+  echos "antibody version $ANTIBODY_VERSION"
+}
+
+antibody_cmd_help() {
+  usage
+}
+
+antibody_cmd_init() {
+  local init_script
+  init_script="$(
+  cat <<'EOS'
+#!/usr/bin/env zsh
+antibody() {
+  case "$1" in
+  bundle)
+    source <( $THIS_SCRIPT $@ ) || $THIS_SCRIPT $@
+    ;;
+  *)
+    $THIS_SCRIPT $@
+    ;;
+  esac
+}
+
+_antibody() {
+  IFS=' ' read -A reply <<< "help bundle update home purge list path init"
+}
+compctl -K _antibody antibody
+
+EOS
+  )"
+  echo "$init_script" | sed -e "s|\$THIS_SCRIPT|$THIS_SCRIPT|g"
+}
+
+antibody_cmd_bundle() {
+  # TODO!
+  echoln \
+    "source \$HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh/oh-my-zsh.sh" \
+    "fpath+=( \$HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh )"
+}
+
+antibody_cmd_update() {
+  local antibody_home bundle_path url
+  antibody_home="$(antibody_cmd_home)"
+  echos "Updating all bundles in $antibody_home..."
+
+  if [ ! -d "$antibody_home" ]; then
+    echoerr "antibody: error: failed to update: open ${antibody_home}: no such file or directory"
+    return 1
+  fi
+
+  for bundle_path in "$antibody_home"/*; do
+    url="$(git -C "$bundle_path" config remote.origin.url)"
+    echos "antibody: updating: $url"
+    update_repo "$bundle_path" "$url" &
+  done
+  wait
+}
+
+antibody_cmd_home() {
+  if [ -n "$ANTIBODY_HOME" ]; then
+    echos "$ANTIBODY_HOME"
+    return
+  fi
+
+  local cachedir ostype
+  ostype="$(uname -s | tr '[:upper:]' '[:lower:]')"
+  if test -n "$T_ANTIBODY_OSTYPE"; then
+    ostype="$T_ANTIBODY_OSTYPE"
+  fi
+
+  case "$ostype" in
+    (darwin*) cachedir="$HOME/Library/Caches" ;;
+    (cygwin*) cachedir=$(cygpath "${LOCALAPPDATA:-$LocalAppData}") ;;
+    (msys*)   cachedir="${LOCALAPPDATA:-$LocalAppData}" ;;
+    (*)       cachedir="${XDG_CACHE_HOME:-$HOME/.cache}" ;;
+  esac
+
+  case "$cachedir" in
+    (*/*)  echos "$cachedir/antibody" ;;
+    (*\\*) echos "$cachedir\\antibody" ;;
+    (*)    echos "$(realpath "$cachedir")/antibody" ;;
+  esac
+}
+
+antibody_cmd_purge() {
+  if [ "$#" -eq 0 ]; then
+    echoerr "antibody: error: required argument 'bundle' not provided, try --help"
+    return 1
+  fi
+
+  local bundle_path
+  bundle_path="$(to_bundle_path "$1")"
+  if ! sanity_check_path "$bundle_path"; then
+    echoerr "antibody: error: bundle path failed sanity check: $bundle_path"
+    return 1
+  elif [ -r "$bundle_path" ]; then
+    echos "Removing $1..."
+    if [ "${T_ANTIBODY_PURGE:-1}" -ne 0 ]; then
+      command rm -rf -- "$bundle_path"
+    else
+      echo rm -rf -- "$bundle_path"
+    fi
+    echos "removed!"
+  else
+    echoerr "antibody: error: $1 does not exist in expected location: $bundle_path"
+    return 1
+  fi
+}
+
+antibody_cmd_list() {
+  local antibody_home
+  antibody_home=$(antibody_cmd_home)
+  if [ ! -d "$antibody_home" ]; then
+    echoerr "antibody: error: failed to list bundles: open ${antibody_home}: no such file or directory"
+    return 1
+  fi
+
+  local bundle_path url
+  for bundle_path in "$antibody_home"/*; do
+    url="$(git -C "$bundle_path" config remote.origin.url)"
+    echof '%-64s %s\n' "$url" "$bundle_path"
+  done
+}
+
+antibody_cmd_path() {
+  if [ "$#" -eq 0 ]; then
+    echoerr "antibody: error: required argument 'bundle' not provided, try --help"
+    return 1
+  fi
+
+  local bundle bundle_path
+  bundle="$1"
+  bundle_path="$(to_bundle_path "$bundle")"
+
+  if [ ! -d "$bundle_path" ]; then
+    echoerr "antibody: error: ${bundle} does not exist in cloned paths"
+    return 1
+  fi
+
+  echos "$bundle_path"
+}
+#endregion
+
+##? usage: antibody [<flags>] <command> [<args> ...]
+##?
+##? A pure Zsh implementation of the legacy antibody plugin manager
+##? Packaged with the antidote plugin manager
+##?
+##? Flags:
+##?   -h, --help           Show context-sensitive help.
+##?   -v, --version        Show application version.
+##?
+##? Commands:
+##?   help [<command>...]
+##?     Show help.
+##?
+##?   bundle [<bundles>...]
+##?     downloads a bundle and prints its source line
+##?
+##?   update
+##?     updates all previously bundled bundles
+##?
+##?   home
+##?     prints where antibody is cloning the bundles
+##?
+##?   purge <bundle>
+##?     purges a bundle from your computer
+##?
+##?   list
+##?     lists all currently installed bundles
+##?
+##?   path <bundle>
+##?     prints the path of a currently cloned bundle
+##?
+##?   init
+##?     initializes the shell so Antibody can work as expected
+##?
+antibody() {
+  if [ "$#" -eq 0 ]; then
+    antibody_cmd_help
+    return 0
+  fi
+
+  local o_bad o_help o_ver subcmd
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --)           shift;      break ;;
+      -h|--help)    o_help="$1"       ;;
+      -v|--version) o_ver="$1"        ;;
+      -*)           o_bad="$1"        ;;
+      *)                        break ;;
+    esac
+    shift
+  done
+
+  if [ -n "$o_bad" ]; then
+     echoerr "antibody: Unknown flag '$o_bad'. Usage 'antibody -h'."
+     return 1
+  elif [ -n "$o_help" ]; then
+    antibody_cmd_help
+    return 0
+  elif [ -n "$o_ver" ]; then
+    antibody_opt_version
+    return 0
+  fi
+
+  # Call the subcommand if it exists.
+  if is_function "antibody_cmd_${1}"; then
+    subcmd="$1"
+    shift
+    "antibody_cmd_${subcmd}" "$@"
+    return
+  else
+    echoerr "antibody: error: expected command but got \"$1\", try --help"
+    return 1
+  fi
+}
+antibody "$@"
+
+# vim: set sw=2 sts=2 ts=8 et:

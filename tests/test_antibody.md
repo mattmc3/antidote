@@ -6,7 +6,12 @@ with a full Zsh implementation of antibody as a standalone script as of version 
 ## clitest
 
 This README serves as testable documentation using [clitest][clitest]. It can be tested
-with `clitest --list-run --prompt '%' --progress dot --color always ./bin/antibody.md`.
+with:
+
+```
+clitest --list-run --prompt '%' --progress dot --color always \
+  ./tests/test_antibody.md
+```
 
 We need a convenience function, `subenv`, so that test output doesn't have to have named
 directories embedded and we can instead use variables like `$PWD` and `$HOME`.
@@ -20,7 +25,7 @@ Also, adding the current directory to path allows us to avoid having to do `./an
 every time we call it, and can simply call `antibody` without the leading `./`.
 
 ```sh
-% PATH=$PWD/bin:$PATH
+% PATH=$PWD:$PATH
 %
 ```
 
@@ -107,10 +112,10 @@ See what the output produces:
 antibody() {
   case "$1" in
   bundle)
-    source <( $PWD/bin/antibody $@ ) || $PWD/bin/antibody $@
+    source <( $PWD/antibody $@ ) || $PWD/antibody $@
     ;;
   *)
-    $PWD/bin/antibody $@
+    $PWD/antibody $@
     ;;
   esac
 }
@@ -119,7 +124,6 @@ _antibody() {
   IFS=' ' read -A reply <<< "help bundle update home purge list path init"
 }
 compctl -K _antibody antibody
-
 %
 ```
 
@@ -148,23 +152,14 @@ $HOME/path/to/antibody/home
 %
 ```
 
-Clean up for more tests.
+Set ANTIBODY_HOME for remaining tests.
 
 ```sh
-% unset ANTIBODY_HOME
+% export ANTIBODY_HOME="$HOME/.cache/antibody"
 %
 ```
 
 ### Bundle
-
-Let's use a different `ANTIBODY_HOME` to demostrate bundling.
-
-```sh
-% export ANTIBODY_HOME=$HOME/.cache/antibody
-% antibody home | subenv
-$HOME/.cache/antibody
-%
-```
 
 Bundling outputs the Zsh code necessary to load a Zsh plugin.
 
@@ -193,27 +188,59 @@ the $ZSH environment variable:
 %
 ```
 
-### update
+### List
 
-TODO:
-
-### list
-
-TODO:
-
-### purge
-
-TODO:
-
-### Misc
-
-Some misc testing
+You can list bundles with `antibody list`:
 
 ```sh
-% antibody foobar  #=> --exit 1
-antibody: error: expected command but got "foobar", try --help
+% antibody list | subenv
+https://github.com/ohmyzsh/ohmyzsh                               $HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh
 %
 ```
+
+### Update
+
+You can update bundles with `antibody update`:
+
+```sh
+% antibody update | subenv
+Updating all bundles in $HOME/.cache/antibody...
+antibody: updating: https://github.com/ohmyzsh/ohmyzsh
+%
+```
+
+### Purge
+
+Remove bundles with `antibody purge <bundle>`:
+
+```sh
+% export T_ANTIBODY_PURGE=0
+% antibody purge ohmyzsh/ohmyzsh | subenv
+Removing ohmyzsh/ohmyzsh...
+rm -rf -- $HOME/.cache/antibody/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh
+removed!
+%
+```
+
+## Misuse
+
+Test bad subcommand:
+
+```sh
+% antibody foo  #=> --exit 1
+% antibody foo 2>&1
+antibody: error: expected command but got "foo", try --help
+%
+```
+
+## Shellcheck
+
+Here's how we know things were written well:
+
+sh
+$ shellcheck -e SC3043 $PWD/antibody
+$
+
 
 [antibody]: https://github.com/getantibody/antibody
 [clitest]: https://github.com/aureliojargas/clitest
