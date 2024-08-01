@@ -12,5 +12,8 @@ caarlos0/zsh-open-github-pr    # end of line comment
 # annotations are also allowed:
 ohmyzsh/ohmyzsh path:plugins/aws
 
+# specifying git branches is also permitted
+caarlos0/jvm kind:path branch:gh-pages
+
 zsh-users/zsh-syntax-highlighting
 zsh-users/zsh-history-substring-search
