@@ -1,11 +1,13 @@
 caarlos0/jvm
 djui/alias-tips
 # comments are supported like this
-caarlos0/zsh-mkc
-zsh-users/zsh-completions kind:fpath path:src
-caarlos0/zsh-open-github-pr
+caarlos0/zsh-mkc	# tab trailing
+				zsh-users/zsh-completions kind:fpath path:src
+caarlos0/zsh-open-github-pr    # end of line comment
 
 # empty lines are skipped
+
+	# trailing comments are a thing too
 
 # annotations are also allowed:
 ohmyzsh/ohmyzsh path:plugins/aws
