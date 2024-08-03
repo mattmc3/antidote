@@ -8,14 +8,34 @@ fi
 
 ANTIBODY_VERSION="1.9.7"
 THIS_SCRIPT="$(realpath "$0")"
+NL='
+'  # $'\n' didn't work in dash, so use a hard newline
 AWK="awk"
-gawk --version >/dev/null 2>/dev/null && AWK="gawk"
+if gawk --version >/dev/null 2>/dev/null; then
+  AWK="gawk"
+elif mawk --version >/dev/null 2>/dev/null; then
+  AWK="mawk"
+fi
 
 #region Helpers
 # POSIX test for function existance.
 is_function() {
   [ "$#" -eq 1 ] || return 1
   type "$1" 2>/dev/null | sed "s/$1//" | grep -qwi function
+}
+
+contains() {
+  local key item
+  if [ "$#" -eq 0 ]; then
+    printerr "contains: Key not specified"
+    return 1
+  fi
+  key="$1"
+  shift
+  for item in "$@"; do
+    [ "$key" = "$item" ] && return 0
+  done
+  return 1
 }
 
 print() {
@@ -27,7 +47,24 @@ printerr() {
 }
 
 usage() {
-  grep "^##?" "$THIS_SCRIPT" | cut -c 5-
+  local awk_gethelp
+  # shellcheck disable=SC2016
+  awk_gethelp='
+    BEGIN { len=0 }
+    /^##\?/ {
+      sub(/^##\? ?/, "", $0)
+      arr[len++] = $0
+      next
+    }
+    $0~"^"fn"\\(" {
+      for (i=0; i<len; i++) {
+        print arr[i]
+      }
+      {exit}
+    }
+    { split("", arr); len=0 }
+  '
+  $AWK -v "fn=${1:-antibody_main}" "$awk_gethelp" "$THIS_SCRIPT"
 }
 
 to_url() {
@@ -104,39 +141,8 @@ update_repo() {
     print "antibody: updated: $2 $oldsha -> $newsha"
   fi
 }
-#endregion
 
-#region Subcommands
-antibody_opt_version() {
-  print "antibody version $ANTIBODY_VERSION"
-}
-
-antibody_cmd_help() {
-  usage
-}
-
-antibody_cmd_init() {
-  cat << 'HEREDOC' | sed -e "s|\$THIS_SCRIPT|$THIS_SCRIPT|g"
-#!/usr/bin/env zsh
-antibody() {
-  case "$1" in
-  bundle)
-    source <( $THIS_SCRIPT $@ ) || $THIS_SCRIPT $@
-    ;;
-  *)
-    $THIS_SCRIPT $@
-    ;;
-  esac
-}
-
-_antibody() {
-  IFS=' ' read -A reply <<< "help bundle update home purge list path init"
-}
-compctl -K _antibody antibody
-HEREDOC
-}
-
-antibody_cmd_bundle() {
+fake_clone_repos() {
   # TODO! Gotta actually do something here, but this is how we fake making the tests go.
   local bundle_path omzdir
   omzdir="https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh"
@@ -149,6 +155,96 @@ antibody_cmd_bundle() {
     "fpath+=( \$HOME/.cache/antibody/$omzdir )"
 }
 
+clone_repos() {
+  # local awk_clone
+  # # shellcheck disable=SC2016
+  # awk_clone='
+  #    BEGIN { RS="[\r\n]" }
+  #     /\t/ { gsub(/\t/, " ", $0) }
+  #          { gsub(/ +#.*$/, "", $0) }
+  #          { gsub(/^ +| +$/, "", $0) }
+  #     /^#/ { next }
+  #     /^$/ { next }
+  #          { print }'
+
+  printf 'cloning: %s\n' "$@"
+}
+#endregion
+
+#region Subcommands
+antibody_opt_version() {
+  print "antibody version $ANTIBODY_VERSION"
+}
+
+##? usage: antibody help [<command>...]
+##?
+##? Show help.
+##?
+##? Args:
+##?  [<command>]  Show help on command.
+##?
+antibody_cmd_help() {
+  local funcname
+  if [ -z "$1" ]; then
+    usage
+  elif contains "$1" help bundle update home purge list path init; then
+    usage "antibody_cmd_$1"
+  else
+    printerr "antibody: error: expected command but got '$1'."
+    return 1
+  fi
+}
+
+##? usage: antibody bundle [<bundles>...]
+##?
+##? downloads a bundle and prints its source line
+##?
+##? Args:
+##?  [<bundles>]  bundle list
+##?
+antibody_cmd_bundle() {
+  local awk_scrub args
+
+  # Save args as a string before setting IFS because we're gonna
+  # need to reparse it with only newline word splitting.
+  args="$*"
+
+  # handle whatever line ending
+  # replace tabs with a space
+  # strip trailing comments
+  # trim whitespace from both sides
+  # skip commented lines and print the rest
+  # shellcheck disable=SC2016
+  awk_scrub='
+     BEGIN { RS="[\r\n]" }
+      /\t/ { gsub(/\t/, " ", $0) }
+           { gsub(/ +#.*$/, "", $0) }
+           { gsub(/^ +| +$/, "", $0) }
+      /^#/ { next }
+      /^$/ { next }
+           { print }'
+
+  # scrub bundles and re-split on newlines
+  set -f   # disable globbing of when splitting bundles
+  IFS=$NL  # configure the split newline delimeters
+  if [ ! -t 0 ]; then
+    # shellcheck disable=SC2046
+    set -- $($AWK "$awk_scrub" -)
+  elif [ "$#" -ne 0 ]; then
+    # shellcheck disable=SC2046
+    set -- $(echo "$args" | $AWK "$awk_scrub")
+  fi
+  set +f
+  unset IFS
+
+  # Clone anything that's missing
+  fake_clone_repos "$@"
+}
+
+##? usage: antibody update
+##?
+##? updates all previously bundled bundles
+##?
 antibody_cmd_update() {
   local antibody_home bundle_path url
   antibody_home="$(antibody_cmd_home)"
@@ -167,6 +263,10 @@ antibody_cmd_update() {
   wait
 }
 
+##? usage: antibody home
+##?
+##? prints where antibody is cloning the bundles
+##?
 antibody_cmd_home() {
   if [ -n "$ANTIBODY_HOME" ]; then
     print "$ANTIBODY_HOME"
@@ -193,6 +293,13 @@ antibody_cmd_home() {
   esac
 }
 
+##? usage: antibody purge <bundle>
+##?
+##? purges a bundle from your computer
+##?
+##? Args:
+##?   <bundle>  bundle to be purged
+##?
 antibody_cmd_purge() {
   if [ "$#" -eq 0 ]; then
     printerr "antibody: error: required argument 'bundle' not provided, try --help"
@@ -218,6 +325,10 @@ antibody_cmd_purge() {
   fi
 }
 
+##? usage: antibody list
+##?
+##? lists all currently installed bundles
+##?
 antibody_cmd_list() {
   local antibody_home
   antibody_home=$(antibody_cmd_home)
@@ -233,6 +344,13 @@ antibody_cmd_list() {
   done
 }
 
+##? usage: antibody path <bundle>
+##?
+##? prints the path of a currently cloned bundle
+##?
+##? Args:
+##?   <bundle>  bundle in which to find and print cloned path
+##?
 antibody_cmd_path() {
   if [ "$#" -eq 0 ]; then
     printerr "antibody: error: required argument 'bundle' not provided, try --help"
@@ -249,6 +367,31 @@ antibody_cmd_path() {
   fi
 
   print "$bundle_path"
+}
+
+##? usage: antibody init
+##?
+##? initializes the shell so Antibody can work as expected
+##?
+antibody_cmd_init() {
+  cat << 'HEREDOC' | sed -e "s|\$THIS_SCRIPT|$THIS_SCRIPT|g"
+#!/usr/bin/env zsh
+antibody() {
+  case "$1" in
+  bundle)
+    source <( $THIS_SCRIPT $@ ) || $THIS_SCRIPT $@
+    ;;
+  *)
+    $THIS_SCRIPT $@
+    ;;
+  esac
+}
+
+_antibody() {
+  IFS=' ' read -A reply <<< "help bundle update home purge list path init"
+}
+compctl -K _antibody antibody
+HEREDOC
 }
 #endregion
 
