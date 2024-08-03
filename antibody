@@ -286,7 +286,7 @@ antibody_cmd_path() {
 ##?   init
 ##?     initializes the shell so Antibody can work as expected
 ##?
-antibody() {
+antibody_main() {
   if [ "$#" -eq 0 ]; then
     antibody_cmd_help
     return 0
@@ -326,6 +326,6 @@ antibody() {
     return 1
   fi
 }
-antibody "$@"
+antibody_main "$@"
 
 # vim: set sw=2 sts=2 ts=8 et:
