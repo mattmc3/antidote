@@ -51,7 +51,7 @@
       () {
         local oldsha=$(git -C "$1" rev-parse --short HEAD)
         git -C "$1" pull --quiet --ff --rebase --autostash
-        git -C "$1" submodule update --init --recursive --depth 1
+        git -C "$1" submodule --quiet update --init --recursive --depth 1
         local newsha=$(git -C "$1" rev-parse --short HEAD)
         if [[ $oldsha != $newsha ]]; then
           print "${green}antidote: updated: $2 ${oldsha} -> ${newsha}${normal}"
