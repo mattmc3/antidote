@@ -13,6 +13,7 @@
   local args=("$@[@]")
   local o_path o_quiet o_ff o_rebase o_autostash o_short
   local o_depth o_recurse_submodules o_shallow_submodules o_branch
+  local o_init o_recursive
   zparseopts -D -E --      \
     C:=o_path              \
     -short=o_short         \
@@ -23,7 +24,9 @@
     -recurse-submodules=o_recurse_submodules \
     -shallow-submodules=o_shallow_submodules \
     -depth:=o_depth                          \
-    -branch:=o_branch                        ||
+    -branch:=o_branch                        \
+    -init:=o_init                            \
+    -recursive:=o_recursive                  ||
     return 1
 
   if [[ "$@" = "--version" ]]; then
@@ -56,6 +59,8 @@
   elif [[ "$@" = "rev-parse HEAD" ]]; then
     #echo "a123456"
     echo ""
+  elif [[ "$@" = "submodule update" ]]; then
+    # nothing to do
   else
     echo >&2 "mocking not implemented for git command: git $@"
     return 1
