@@ -26,7 +26,7 @@
     -depth:=o_depth                          \
     -branch:=o_branch                        \
     -init:=o_init                            \
-    -recursive:=o_recursive                  ||
+    -recursive=o_recursive                  ||
     return 1
 
   if [[ "$@" = "--version" ]]; then
@@ -59,6 +59,8 @@
   elif [[ "$@" = "rev-parse HEAD" ]]; then
     #echo "a123456"
     echo ""
+  elif [[ "$@" = "submodule sync" ]]; then
+    # nothing to do
   elif [[ "$@" = "submodule update" ]]; then
     # nothing to do
   else
