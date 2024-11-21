@@ -51,6 +51,7 @@
       () {
         local oldsha=$(git -C "$1" rev-parse --short HEAD)
         git -C "$1" pull --quiet --ff --rebase --autostash
+        git -C "$1" submodule --quiet sync --recursive
         git -C "$1" submodule --quiet update --init --recursive --depth 1
         local newsha=$(git -C "$1" rev-parse --short HEAD)
         if [[ $oldsha != $newsha ]]; then
