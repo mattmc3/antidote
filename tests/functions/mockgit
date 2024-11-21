@@ -25,7 +25,7 @@
     -shallow-submodules=o_shallow_submodules \
     -depth:=o_depth                          \
     -branch:=o_branch                        \
-    -init:=o_init                            \
+    -init=o_init                            \
     -recursive=o_recursive                  ||
     return 1
 
