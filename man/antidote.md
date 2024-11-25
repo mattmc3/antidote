@@ -171,4 +171,4 @@ By default, antidote uses romkatv/zsh-defer for deferred plugins. If there's a f
 
 # SEE ALSO
 
-For more information, visit https://getantidote.github.io/
+For more information, visit https://antidote.sh

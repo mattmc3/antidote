@@ -2,7 +2,7 @@
 
 ### antidote - the cure to slow zsh plugin management
 #
-# https://getantidote.github.io
+# https://antidote.sh
 # run `antidote -h` for usage
 #
 # Note: this gets overridden if using `antidote init`.
