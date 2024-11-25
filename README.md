@@ -4,7 +4,7 @@
 ![version](https://img.shields.io/badge/version-v1.9.7-df5e88)
 
 <a title="GetAntidote"
-   href="https://getantidote.github.io"
+   href="https://antidote.sh"
    align="right">
 <img align="right"
      height="80"
@@ -12,9 +12,9 @@
      src="https://avatars.githubusercontent.com/u/101279220?s=80&v=4">
 </a>
 
-> [Get the cure][getantidote]</blockquote>
+> [Get the cure][antidote]</blockquote>
 
-[Antidote][getantidote] is a feature-complete Zsh implementation of the legacy
+[Antidote][antidote] is a feature-complete Zsh implementation of the legacy
 [Antibody][antibody] plugin manager, which in turn was derived from [Antigen][antigen].
 Antidote not only aims to provide continuity for those legacy plugin managers, but also
 to delight new users with high-performance, easy-to-use Zsh plugin management.
@@ -77,7 +77,7 @@ source /path-to-antidote/antidote.zsh
 antidote load ${ZDOTDIR:-$HOME}/.zsh_plugins.txt
 ```
 
-The full documentation can be found at [https://getantidote.github.io][getantidote].
+The full documentation can be found at [https://antidote.sh][antidote].
 
 ## Help getting started
 
@@ -156,7 +156,6 @@ A big thank you to [Carlos](https://github.com/caarlos0) for all his work on
 
 [antigen]:        https://github.com/zsh-users/antigen
 [antibody]:       https://github.com/getantibody/antibody
-[getantidote]:    https://getantidote.github.io
-[getantibody]:    https://github.com/getantibody/antibody
+[antidote]:       https://antidote.sh
 [benchmarks]:     https://github.com/romkatv/zsh-bench/blob/master/doc/linux-desktop.md
 [zsh]:            https://www.zsh.org
