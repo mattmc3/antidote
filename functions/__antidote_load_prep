@@ -47,6 +47,7 @@
   fi
 
   if [[ ! $staticfile -nt $bundlefile ]] || [[ $force_bundle -eq 1 ]]; then
+    mkdir -p "${staticfile:A:h}"
     antidote bundle <"$bundlefile" >|"$staticfile"
     if [[ -r "${staticfile}.zwc" ]] && ! zstyle -t ':antidote:static' zcompile; then
       __antidote_del -f -- "${staticfile}.zwc"
