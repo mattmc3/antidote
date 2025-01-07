@@ -75,7 +75,8 @@
     if [[ -e "$bundlefile" ]]; then
       local tmpfile="${bundlefile}.antidote.tmp"
       $__adote_awkcmd -v pat="$bundle" '$0~"^[[:blank:]]*"pat{print "# " $0;next}1' <$bundlefile >|$tmpfile
-      command mv -f "$tmpfile" "$bundlefile" || __antidote_del -f "$tmpfile"
+      command cat "$tmpfile" > "$bundlefile"
+      __antidote_del -f "$tmpfile"
       print "Bundle '$bundle' was commented out in '$bundlefile'."
     fi
   fi
