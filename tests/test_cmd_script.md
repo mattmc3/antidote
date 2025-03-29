@@ -64,13 +64,13 @@ source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 Script repos in antibody style:
 
 ```zsh
-% zstyle ':antidote:bundle' use-friendly-names off
+% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
 % ANTIDOTE_HOME=$HOME/.cache/antibody
 % antidote-script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
 % antidote-script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
 % antidote-script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
 % antidote-script git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-fooqux.zsh
-% zstyle ':antidote:bundle' use-friendly-names on
+% zstyle ':antidote:compatibility-mode' 'antibody' 'off'
 % ANTIDOTE_HOME=$HOME/.cache/antidote
 %
 ```

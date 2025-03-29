@@ -163,7 +163,6 @@ https://github.com/zsh-users/zsh-syntax-highlighting             $ANTIDOTE_HOME/
 Load rupa/z
 
 ```zsh
-% zstyle ':antidote:bundle' use-friendly-names on
 % echo "rupa/z" > $ZDOTDIR/.zsh_plugins.txt
 % antidote load 2>&1
 # antidote cloning rupa/z...

@@ -127,10 +127,6 @@ The location where antidote clones repositories can bu customized by setting **$
 
 |   ANTIDOTE_HOME=/path/to/my/repos
 
-The bundle directory in ANTIDOTE_HOME can be changed to use friendly names with the following **zstyle**:
-
-|   zstyle \':antidote:bundle\' use-friendly-names on
-
 The default bundle file is **${ZDOTDIR:-\$HOME}/.zsh_plugins.txt**. This can be overridden with the following **zstyle**:
 
 |   zstyle \':antidote:bundle\' file /path/to/my/bundle_file.txt

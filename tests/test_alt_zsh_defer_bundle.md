@@ -15,7 +15,6 @@ If the user forks zsh-defer, support setting a zstyle for an alternative repo lo
 ### General
 
 ```zsh
-% zstyle ':antidote:bundle' use-friendly-names on
 % zstyle ':antidote:defer' bundle 'custom/zsh-defer'
 % antidote bundle 'zsh-users/zsh-autosuggestions kind:defer' 2>/dev/null
 if ! (( $+functions[zsh-defer] )); then

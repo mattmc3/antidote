@@ -33,13 +33,13 @@ handling a single bundle, and 'antidote bundle' handling them in bulk.
 Test \|piping, \<redirection, and --args
 
 ```zsh
-% zstyle ':antidote:bundle' use-friendly-names off
+% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
 % ANTIDOTE_HOME=$HOME/.cache/antibody
 % antidote bundle foo/bar | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
 % echo 'foo/bar' | antidote bundle | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
 % echo 'foo/bar' >$ZDOTDIR/.zsh_plugins_simple.txt
 % antidote bundle <$ZDOTDIR/.zsh_plugins_simple.txt | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
-% zstyle ':antidote:bundle' use-friendly-names on
+% zstyle ':antidote:compatibility-mode' 'antibody' 'off'
 % ANTIDOTE_HOME=$HOME/.cache/antidote
 %
 ```

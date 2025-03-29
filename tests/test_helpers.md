@@ -130,7 +130,7 @@ foo bar baz
 ## Bundle dir
 
 ```zsh
-% zstyle ':antidote:bundle' use-friendly-names off
+% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
 % # short repo
 % __antidote_bundle_dir foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
@@ -149,6 +149,7 @@ $HOME/foo/bar
 % # another local dir
 % __antidote_bundle_dir $ZDOTDIR/bar/baz | subenv ZDOTDIR
 $ZDOTDIR/bar/baz
+% zstyle ':antidote:compatibility-mode' 'antibody' 'off'
 %
 ```
 
@@ -156,7 +157,6 @@ Use friendly names
 
 ```zsh
 % # short repo - friendly name
-% zstyle ':antidote:bundle' use-friendly-names on
 % __antidote_bundle_dir foo/bar | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/foo/bar
 % # repo url - friendly name

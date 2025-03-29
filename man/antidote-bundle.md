@@ -45,10 +45,6 @@ Bundles also support annotations. Annotations allow you have finer grained contr
 `autoload`
 :   The autoload annotation allows you to autoload a zsh functions directory in addition to however the plugin was loaded as specified by \'kind\'. Supply a relative path to autoload (eg: \'autoload:functions\').
 
-Cloned repo directory names can be overridden with the following **zstyle**:
-
-|   zstyle \':antidote:bundle\' use-friendly-names \'yes\'
-
 # OPTIONS
 
 -h, \--help

@@ -1,6 +1,7 @@
 #!/bin/zsh
 ### Pretty print a path
 
+local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 if zstyle -t ':antidote:compatibility-mode' 'antibody'; then
   echo "$1"
 else

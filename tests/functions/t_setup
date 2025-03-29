@@ -49,6 +49,5 @@
   # setup antidote
   zstyle ':antidote:tests' set-warn-options 'on'
   zstyle ':antidote:tests' cloning 'off'
-  zstyle ':antidote:bundle' use-friendly-names on
   zstyle ':antidote:defer' bundle 'getantidote/zsh-defer'
 #}

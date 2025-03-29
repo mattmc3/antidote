@@ -51,18 +51,12 @@ commands:
 Bundle the foo/bar repo using old antibody style directories:
 
 ```zsh
-% zstyle ':antidote:bundle' use-friendly-names off
-% antidote bundle foo/bar
+% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
+% antidote bundle foo/bar | subenv HOME
 # antidote cloning foo/bar...
 fpath+=( $HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 source $HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
-%
-```
-
-Use new-style directory naming:
-
-```zsh
-% zstyle ':antidote:bundle' use-friendly-names on
+% zstyle ':antidote:compatibility-mode' 'antibody' 'off'
 %
 ```
 
