@@ -66,10 +66,10 @@ Script repos in antibody style:
 ```zsh
 % zstyle ':antidote:compatibility-mode' 'antibody' 'on'
 % ANTIDOTE_HOME=$HOME/.cache/antibody
-% antidote-script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-fooqux.zsh
+% antidote-script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% antidote-script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% antidote-script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% antidote-script git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-fooqux.zsh
 % zstyle ':antidote:compatibility-mode' 'antibody' 'off'
 % ANTIDOTE_HOME=$HOME/.cache/antidote
 %

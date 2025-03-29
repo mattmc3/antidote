@@ -33,12 +33,25 @@ handling a single bundle, and 'antidote bundle' handling them in bulk.
 Test \|piping, \<redirection, and --args
 
 ```zsh
-% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
-% ANTIDOTE_HOME=$HOME/.cache/antibody
+% ANTIDOTE_HOME=$HOME/.cache/antidote
 % antidote bundle foo/bar | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
 % echo 'foo/bar' | antidote bundle | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
-% echo 'foo/bar' >$ZDOTDIR/.zsh_plugins_simple.txt
-% antidote bundle <$ZDOTDIR/.zsh_plugins_simple.txt | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
+% echo 'git@github.com:foo/qux' >$ZDOTDIR/.zsh_plugins_simple.txt
+% antidote bundle <$ZDOTDIR/.zsh_plugins_simple.txt | subenv ANTIDOTE_HOME  #=> --file testdata/script-fooqux.zsh
+%
+```
+
+### Do the same thing, but with antibody mode this time
+
+Test \|piping, \<redirection, and --args
+
+```zsh
+% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
+% ANTIDOTE_HOME=$HOME/.cache/antibody
+% antidote bundle foo/bar | subenv ANTIDOTE_HOME  #=> --file testdata/antibody/script-foobar.zsh
+% echo 'foo/bar' | antidote bundle | subenv ANTIDOTE_HOME  #=> --file testdata/antibody/script-foobar.zsh
+% echo 'git@github.com:foo/qux' >$ZDOTDIR/.zsh_plugins_simple.txt
+% antidote bundle <$ZDOTDIR/.zsh_plugins_simple.txt | subenv ANTIDOTE_HOME  #=> --file testdata/antibody/script-fooqux.zsh
 % zstyle ':antidote:compatibility-mode' 'antibody' 'off'
 % ANTIDOTE_HOME=$HOME/.cache/antidote
 %
