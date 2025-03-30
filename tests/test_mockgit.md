@@ -24,21 +24,46 @@ abcd123
 %
 ```
 
-Mock: clone
-
-```zsh
-% T_TEMPDIR=${$(mktemp -d -t t_antidote.XXXXXXXX):A}
-% # echo $T_TEMPDIR
-% rm -rf -- $T_TEMPDIR
-%
-```
-
 Mock: pull
 
 ```zsh
 % git pull --quiet
 % git pull
 MOCKGIT: Already up to date.
+%
+```
+
+Mock: clone
+
+Setup...
+
+```zsh
+% T_TEMPDIR=${$(mktemp -d -t t_antidote.XXXXXXXX):A}
+%
+```
+
+```zsh
+% % test -d $T_TEMPDIR/fakeuser #=> --exit 1
+% git clone --quiet --depth 1 --recurse-submodules --shallow-submodules https://gitsite.com/fakeuser/fakerepo $T_TEMPDIR/fakeuser
+% test -d $T_TEMPDIR/fakeuser #=> --exit 0
+% test -e $T_TEMPDIR/fakeuser/fakerepo/fakerepo.plugin.zsh #=> --exit 0
+%
+```
+
+Clean up
+
+```zsh
+% rm -rf -- $T_TEMPDIR
+%
+```
+
+Mock: clone missing
+
+```zsh
+% git clone --depth 1 --recurse-submodules --shallow-submodules https://gitsite.com/testy/mctestface
+MOCKGIT: Cloning into 'mctestface'...
+MOCKGIT: Repository not found.
+MOCKGIT: repository 'https://gitsite.com/testy/mctestface' not found
 %
 ```
 

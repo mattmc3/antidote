@@ -35,14 +35,16 @@
     echo "mockgit version 0.0.0"
   elif [[ "$1" = "clone" ]]; then
     local giturl="$2"
+    local repo="${giturl:h:t}/${${giturl:t}%.git}"
     local bundledir="${3:-.}"
-    local src="$ANTIDOTE_HOME/${bundledir:t}"
-    if [[ -d $src ]]; then
-      # echo cp -r $src ${bundledir:A}
+    local gitsite_repodir="$prjdir/tests/gitsite.com/${repo}"
+    if [[ -d "$gitsite_repodir" ]]; then
+      [[ -d "${bundledir:A}" ]] || mkdir -p "${bundledir:A}"
+      cp -r -- "$gitsite_repodir" "${bundledir:A}"
     elif ! (( $#o_quiet )); then
-      echo "MOCKGIT: Cloning into '${url:t}'..."
+      echo "MOCKGIT: Cloning into '${repo:t}'..."
       echo "MOCKGIT: Repository not found."
-      echo "MOCKGIT: repository '$url' not found"
+      echo "MOCKGIT: repository '$giturl' not found"
     fi
   elif [[ "$@" = "config remote.origin.url" ]]; then
     if [[ -e $bundledir/.git/config/remote.origin.url ]]; then
