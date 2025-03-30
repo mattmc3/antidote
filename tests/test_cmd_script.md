@@ -61,20 +61,6 @@ source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 %
 ```
 
-Script repos in antibody style:
-
-```zsh
-% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
-% ANTIDOTE_HOME=$HOME/.cache/antibody
-% antidote-script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
-% antidote-script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
-% antidote-script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
-% antidote-script git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-fooqux.zsh
-% zstyle ':antidote:compatibility-mode' 'antibody' 'off'
-% ANTIDOTE_HOME=$HOME/.cache/antidote
-%
-```
-
 ## Annotations
 
 ### kind:clone
@@ -155,13 +141,13 @@ fpath+=( $ANTIDOTE_HOME/foo/bar )
 zsh-defer -p source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 % # Uses different defer options due to zstyle matching
-% antidote-script --kind defer bar/baz | subenv ANTIDOTE_HOME
+% antidote-script --kind defer foo/baz | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
   source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
 fi
-fpath+=( $ANTIDOTE_HOME/bar/baz )
-zsh-defer -a source $ANTIDOTE_HOME/bar/baz/baz.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/foo/baz )
+zsh-defer -a source $ANTIDOTE_HOME/foo/baz/baz.plugin.zsh
 % # cleanup
 % t_reset
 %
