@@ -14,7 +14,7 @@ Show antidote's version:
 
 ```zsh
 % antidote --version
-antidote version 1.9.7
+antidote version 1.9.7 (abcd123)
 %
 ```
 
@@ -48,42 +48,50 @@ commands:
 
 ## Bundling
 
-Bundle the foo/bar repo using old antibody style directories:
+Bundle a repo at https://github.com/foobar/foo
 
 ```zsh
-% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
-% antidote bundle foo/bar | subenv HOME
-# antidote cloning foo/bar...
-fpath+=( $HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-source $HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
-% zstyle ':antidote:compatibility-mode' 'antibody' 'off'
+% antidote bundle foobar/foo
+# antidote cloning foobar/foo...
+fpath+=( $HOME/.cache/antidote/foobar/foo )
+source $HOME/.cache/antidote/foobar/foo/foo.plugin.zsh
 %
 ```
 
-Bundle a repo at https://github.com/foo/bar
+Bundle a repo at https://gitlab.com/foobar/bar
 
 ```zsh
-% antidote bundle foo/bar
-fpath+=( $HOME/.cache/antidote/foo/bar )
-source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+% antidote bundle https://gitlab.com/foobar/bar
+# antidote cloning foobar/bar...
+fpath+=( $HOME/.cache/antidote/foobar/bar )
+source $HOME/.cache/antidote/foobar/bar/bar.plugin.zsh
 %
 ```
 
-Bundle a repo at git@bitbucket.org:foo/bar
+Bundle a repo at git@bitbucket.org:foobar/baz
 
 ```zsh
-% antidote bundle git@bitbucket.org:foo/bar
-fpath+=( $HOME/.cache/antidote/foo/bar )
-source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+% antidote bundle git@bitbucket.org:foobar/baz
+# antidote cloning foobar/baz...
+fpath+=( $HOME/.cache/antidote/foobar/baz )
+source $HOME/.cache/antidote/foobar/baz/baz.plugin.zsh
 %
 ```
 
 Bundle a specific branch of a repo with `branch:<branch>`.
 
 ```zsh
-% antidote bundle foo/bar branch:dev
-fpath+=( $HOME/.cache/antidote/foo/bar )
-source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+% antidote bundle foobar/foo branch:dev
+# antidote cloning foobar/foo...
+fpath+=( $HOME/.cache/antidote/foobar/foo )
+source $HOME/.cache/antidote/foobar/foo/foo.plugin.zsh
+%
+```
+
+Clean up
+
+```zsh
+% t_reset
 %
 ```
 
@@ -284,7 +292,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 1.9.7
+antidote version 1.9.7 (abcd123)
 %
 ```
 

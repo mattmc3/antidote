@@ -9,6 +9,8 @@
   emulate -L zsh; setopt local_options extended_glob
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   0=${(%):-%x}
+  local prjdir="${0:A:h:h:h}"
+  local gitsite="${prjdir}/tests/gitsite"
 
   local args=("$@[@]")
   local o_path o_quiet o_ff o_rebase o_autostash o_short
@@ -25,18 +27,18 @@
     -shallow-submodules=o_shallow_submodules \
     -depth:=o_depth                          \
     -branch:=o_branch                        \
-    -init=o_init                            \
+    -init=o_init                             \
     -recursive=o_recursive                  ||
     return 1
 
   if [[ "$@" = "--version" ]]; then
-    echo "0.0.0"
+    echo "mockgit version 0.0.0"
   elif [[ "$1" = "clone" ]]; then
     local giturl="$2"
-    local bundledir="$3"
+    local bundledir="${3:-.}"
     local src="$ANTIDOTE_HOME/${bundledir:t}"
     if [[ -d $src ]]; then
-      cp -r $src ${bundledir:h}
+      # echo cp -r $src ${bundledir:A}
     elif ! (( $#o_quiet )); then
       echo "MOCKGIT: Cloning into '${url:t}'..."
       echo "MOCKGIT: Repository not found."
@@ -57,8 +59,11 @@
   elif [[ "$@" = "pull" ]]; then
     (( $#o_quiet )) || echo "MOCKGIT: Already up to date."
   elif [[ "$@" = "rev-parse HEAD" ]]; then
-    #echo "a123456"
-    echo ""
+    if (( $#o_short )); then
+      echo "abcd123"
+    else
+      echo "abcd1230abcd1230abcd1230abcd1230abcd1230"
+    fi
   elif [[ "$@" = "submodule sync" ]]; then
     # nothing to do
   elif [[ "$@" = "submodule update" ]]; then

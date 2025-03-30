@@ -18,7 +18,7 @@ antidote: Expecting zsh. Found 'bash'.
 % echo $+functions[antidote]
 1
 % git --version
-0.0.0
+mockgit version 0.0.0
 %
 ```
 
@@ -79,7 +79,7 @@ No arg exit status is 2:
 
 ```zsh
 % antidote --version
-antidote version 1.9.7
+antidote version 1.9.7 (abcd123)
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?
