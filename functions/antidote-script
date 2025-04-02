@@ -107,10 +107,10 @@
   [[ -n "$dopts" ]] && zsh_defer="zsh-defer $dopts"
 
   # generate the script
-  local -a script=()
+  local -a zsh_script=()
 
   # add pre-load function
-  (( $#o_pre )) && script+=("$o_pre[-1]")
+  (( $#o_pre )) && zsh_script+=("$o_pre[-1]")
 
   # handle defers
   local source_cmd="source"
@@ -119,7 +119,7 @@
     || zsh_defer_bundle='romkatv/zsh-defer'
   if [[ "$o_kind[-1]" == "defer" ]]; then
     source_cmd="${zsh_defer} source"
-    script+=(
+    zsh_script+=(
       'if ! (( $+functions[zsh-defer] )); then'
       "$(antidote-script $zsh_defer_bundle | __antidote_indent)"
       'fi'
@@ -132,11 +132,11 @@
   # handle autoloading before sourcing
   if (( $#o_autoload )); then
     if [[ "$o_fpath_rule[-1]" == prepend ]]; then
-      script+=("fpath=( ${print_bundle_path}/${o_autoload[-1]} \$fpath )")
-      script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
+      zsh_script+=("fpath=( ${print_bundle_path}/${o_autoload[-1]} \$fpath )")
+      zsh_script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
     else
-      script+=("fpath+=( ${print_bundle_path}/${o_autoload[-1]} )")
-      script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
+      zsh_script+=("fpath+=( ${print_bundle_path}/${o_autoload[-1]} )")
+      zsh_script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
     fi
   fi
 
@@ -151,24 +151,24 @@
 
   if [[ "$o_kind[-1]" == fpath ]]; then
     # fpath
-    script+="$fpath_script"
+    zsh_script+="$fpath_script"
   elif [[ "$o_kind[-1]" == path ]]; then
     # path
-    script+="export PATH=\"$print_bundle_path:\$PATH\""
+    zsh_script+="export PATH=\"$print_bundle_path:\$PATH\""
   elif [[ "$o_kind[-1]" == autoload ]]; then
     # autoload
-    script+=("$fpath_script")
+    zsh_script+=("$fpath_script")
     if [[ "$o_fpath_rule[-1]" == prepend ]]; then
-      script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
+      zsh_script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
     else
-      script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
+      zsh_script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
     fi
   else
     if zstyle -t ":antidote:bundle:$bundle" zcompile; then
       __antidote_bundle_zcompile $bundle_path
     fi
     if [[ $bundle_type == file ]]; then
-      script+="$source_cmd $print_bundle_path"
+      zsh_script+="$source_cmd $print_bundle_path"
     else
       # directory/default
       local initfile initfiles
@@ -181,11 +181,11 @@
           initfiles=($bundle_path/${bundle_name:t}.plugin.zsh)
         fi
       fi
-      script+="$fpath_script"
+      zsh_script+="$fpath_script"
       local print_initfile
       for initfile in $initfiles; do
         print_initfile="$(__antidote_print_path "$initfile")"
-        script+="$source_cmd $print_initfile"
+        zsh_script+="$source_cmd $print_initfile"
       done
     fi
   fi
@@ -193,21 +193,21 @@
   # add post-load function
   if (( $#o_post )); then
     if [[ "$o_kind[-1]" == "defer" ]]; then
-      script+=("${zsh_defer} $o_post[-1]")
+      zsh_script+=("${zsh_defer} $o_post[-1]")
     else
-      script+=("$o_post[-1]")
+      zsh_script+=("$o_post[-1]")
     fi
   fi
 
   # mark bundle as loaded
-  # script+="zstyle ':antidote:bundle:${bundle_name}' loaded yes"
+  # zsh_script+="zstyle ':antidote:bundle:${bundle_name}' loaded yes"
 
   # wrap conditional
   if [[ -n "$o_cond[-1]" ]]; then
     print "if $o_cond[-1]; then"
-    printf "  %s\n" $script
+    printf "  %s\n" $zsh_script
     print "fi"
   else
-    printf "%s\n" $script
+    printf "%s\n" $zsh_script
   fi
 #}
