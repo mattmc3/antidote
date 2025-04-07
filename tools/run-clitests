@@ -25,8 +25,11 @@ fi
 # env -i PATH=$PATH FPATH=$FPATH \
 #  zsh -f -- =clitest --list-run --progress dot --prompt '%' --color always $PWD/tests/foo.md
 
+# Use ZSH_BINARY if set, otherwise fallback to default zsh
+ZSH=${ZSH_BINARY:-zsh}
+
 env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
-    zsh -f -- \
+    $ZSH -f -- \
     =clitest \
         --list-run --progress dot --prompt '%' \
         --color always \
