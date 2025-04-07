@@ -20,7 +20,6 @@
 #function __antibody_compat_script {
   emulate -L zsh; setopt local_options $_adote_funcopts
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
-  local REPLY=
 
   local o_kind o_path o_branch
   zparseopts $_adote_zparopt_flags -- \

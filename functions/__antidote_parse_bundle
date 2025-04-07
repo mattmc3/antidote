@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ### Parse antidote's bundle DSL.
-#function __antidote_parse_bundles {
+#function __antidote_parse_bundle {
   emulate -L zsh; setopt local_options $_adote_funcopts
   #local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   local pair key value

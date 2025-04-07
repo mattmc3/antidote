@@ -16,7 +16,6 @@
 #function antidote-script {
   emulate -L zsh; setopt local_options $_adote_funcopts
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
-  local REPLY=
 
   local o_help o_kind o_path o_branch o_cond o_autoload o_pre o_post o_fpath_rule
   zparseopts $_adote_zparopt_flags -- \
