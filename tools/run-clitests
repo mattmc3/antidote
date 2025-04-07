@@ -33,5 +33,5 @@ env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
     =clitest \
         --list-run --progress dot --prompt '%' \
         --color always \
-        --pre-flight 'git --version; print $PWD $VENDOR $OSTYPE =zsh $ZSH_VERSION $ZSH_PATCHLEVEL' \
+        --pre-flight 'git --version; print $PWD $VENDOR $OSTYPE =$ZSH $ZSH_VERSION $ZSH_PATCHLEVEL' \
         -- $testfiles

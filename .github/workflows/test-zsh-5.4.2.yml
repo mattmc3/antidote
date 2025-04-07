@@ -23,7 +23,11 @@ jobs:
           ./configure --with-tcsetpgrp
           make
           sudo make install
-      - run: zsh --version
-        name: Verify Zsh Version
-      - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH ZSH_BINARY=/usr/local/bin/zsh make test
-        shell: zsh
+      - run: |
+          which zsh
+          zsh --version
+        name: Verify Zsh Installation
+      - run: |
+          export PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH
+          export ZSH_BINARY=/usr/local/bin/zsh
+          make test
