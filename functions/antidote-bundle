@@ -25,7 +25,7 @@
 
   # output static file compilation
   local -a zcompile_script=(
-    "function {"
+    'function {'
     '  0=${(%):-%x}'
     '  local staticfile=${0:A}'
     '  [[ -e ${staticfile} ]] || return 1'
