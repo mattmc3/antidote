@@ -1,0 +1,29 @@
+#!/bin/zsh
+
+### Parse antidote's bundle DSL.
+#function __antidote_parse_bundles {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+  #local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+  local pair key value
+  local -A parsed_bundle
+
+  local bundle="$1"
+  bundle=${bundle%%\#*}          # Remove anything after the first '#'
+  bundle=${bundle%%[[:space:]]}  # Trim trailing spaces
+  bundle=${bundle##[[:space:]]}  # Trim leading spaces
+  [[ -z "$bundle" ]] && return   # Skip empty bundle strings
+  bundle="repo:${bundle}"
+
+  local -a args=(${(Q)${(z)bundle}})   # Split line into key-value pairs, handling quotes
+
+  for pair in "${args[@]}"; do
+    key=${pair%%:*}   # Extract key (before first ':')
+    value=${pair#*:}  # Extract value (after first ':')
+
+    parsed_bundle[$key]=$value
+  done
+
+  # Print the resulting parsed bundle associative array
+  typeset -g REPLY="$(declare -p parsed_bundle)"
+  print -r -- "$REPLY"
+#}
