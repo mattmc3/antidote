@@ -20,7 +20,7 @@ jobs:
           wget https://sourceforge.net/projects/zsh/files/zsh/5.4.2/zsh-5.4.2.tar.xz
           tar -xf zsh-5.4.2.tar.xz
           cd zsh-5.4.2
-          ./configure
+          ./configure --with-tcsetpgrp
           make
           sudo make install
       - run: zsh --version
