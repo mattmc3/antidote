@@ -78,12 +78,20 @@ repo
 repo
 % __antidote_bundle_type foo/bar/baz
 relpath
+%
+
+## More Bundle type checks
+
+```zsh
+% pushd > /dev/null
+% cd $HOME  # just in case there are stray foo files
 % __antidote_bundle_type foobar
 word
 % __antidote_bundle_type foo bar baz
 word
 % __antidote_bundle_type 'foo bar baz'
 word
+% popd > /dev/null
 %
 ```
 
