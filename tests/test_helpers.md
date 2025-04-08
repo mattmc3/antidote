@@ -21,14 +21,14 @@ antidote: Blocked attempt to rm path: '/foo/bar'.
 ## Pretty print path
 
 ```zsh
-% __antidote_print_path /foo/bar
+% __antidote_scrub_home /foo/bar
 /foo/bar
-% __antidote_print_path $HOME/foo/bar
+% __antidote_scrub_home $HOME/foo/bar
 $HOME/foo/bar
-% zstyle ':antidote:compatibility-mode' 'antibody' 'on'
-% __antidote_print_path $HOME/foo/bar | subenv T_TEMPDIR
-$T_TEMPDIR/foo/bar
-% zstyle -d ':antidote:compatibility-mode' 'antibody'
+% __antidote_scrub_home '~/foo/bar'
+$HOME/foo/bar
+% __antidote_scrub_home '~foo'
+~foo
 %
 ```
 

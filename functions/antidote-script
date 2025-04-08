@@ -126,7 +126,7 @@
   fi
 
   # Let's make the path a little nicer to deal with
-  local print_bundle_path="$(__antidote_print_path "$bundle_path")"
+  local print_bundle_path="$(__antidote_scrub_home "$bundle_path")"
 
   # handle autoloading before sourcing
   if (( $#o_autoload )); then
@@ -183,7 +183,7 @@
       zsh_script+="$fpath_script"
       local print_initfile
       for initfile in $initfiles; do
-        print_initfile="$(__antidote_print_path "$initfile")"
+        print_initfile="$(__antidote_scrub_home "$initfile")"
         zsh_script+="$source_cmd $print_initfile"
       done
     fi

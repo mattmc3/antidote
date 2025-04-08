@@ -94,10 +94,8 @@
         fi
       fi
       script+="$fpath_script"
-      local print_initfile
       for initfile in $initfiles; do
-        print_initfile="$(__antidote_print_path "$initfile")"
-        script+="source $print_initfile"
+        script+="source $initfile"
       done
     fi
   fi
