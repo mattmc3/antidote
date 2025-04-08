@@ -3,7 +3,6 @@
 ### Get the short name of the bundle.
 #function __antidote_bundle_name {
   emulate -L zsh; setopt local_options $_adote_funcopts
-  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   local bundle=$1
   local bundle_type="$(__antidote_bundle_type $bundle)"
   if [[ "$bundle_type" == (url|sshurl) ]] ; then
