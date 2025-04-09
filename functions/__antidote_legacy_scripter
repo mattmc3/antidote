@@ -100,7 +100,7 @@
   # if we only needed to clone the bundle, compile and we're done
   if [[ "$o_kind[-1]" == "clone" ]]; then
     if zstyle -t ":antidote:bundle:$bundle" zcompile; then
-      __antidote_bundle_zcompile $bundle_path
+      __antidote_zcompile $bundle_path
     fi
     return
   fi
@@ -172,7 +172,7 @@
     fi
   else
     if zstyle -t ":antidote:bundle:$bundle" zcompile; then
-      __antidote_bundle_zcompile $bundle_path
+      __antidote_zcompile $bundle_path
     fi
     if [[ $bundle_type == file ]]; then
       zsh_script+="$source_cmd $print_bundle_path"

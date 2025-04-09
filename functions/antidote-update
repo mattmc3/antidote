@@ -61,7 +61,7 @@
 
         # recompile bundles
         if zstyle -t ":antidote:bundle:$repo" zcompile; then
-          __antidote_bundle_zcompile $bundledir
+          __antidote_zcompile $bundledir
         fi
       } "$bundledir" "$url" &
     done
