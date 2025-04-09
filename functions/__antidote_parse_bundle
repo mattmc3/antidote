@@ -1,6 +1,9 @@
 #!/bin/zsh
 
-### Parse antidote's bundle DSL.
+### Parse antidote's bundle DSL to an associative array.
+# Example:
+#   __antidote_parse_bundle 'foo/bar path:plugins/baz kind:fpath pre:myprecmd  # comment'
+#   typeset -A parsed_bundle=( [kind]=fpath [path]=plugins/baz [pre]=myprecmd [repo]=foo/bar )
 #function __antidote_parse_bundle {
   emulate -L zsh; setopt local_options $_adote_funcopts
   local pair key value
