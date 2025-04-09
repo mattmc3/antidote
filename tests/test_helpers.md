@@ -287,7 +287,7 @@ git clone --quiet --recurse-submodules --shallow-submodules --branch foo bar/baz
 Funky strings get escaped:
 
 ```zsh
-% __antidote_clone_cmd foo/bar "$ANTIDOTE_HOME/foo bar" "baz's:qux" | subenv ANTIDOTE_HOME &
+% __antidote_clone_cmd foo/bar "$ANTIDOTE_HOME/foo bar" "baz's:qux" | subenv ANTIDOTE_HOME
 # antidote cloning foo/bar...
 git clone --quiet --recurse-submodules --shallow-submodules --branch baz\'s:qux foo/bar $ANTIDOTE_HOME/foo\ bar &
 %
