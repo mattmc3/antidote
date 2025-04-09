@@ -13,7 +13,7 @@ A simple setup consists of:
 ```zsh
 source <(zstyle -L ':antidote:*' | awk '{print "zstyle -d",$2}')
 function git { echo "$@" }
-ANTIDOTE_HOME=$PRJDIR/tests/zdotdir/antidote_home
+ANTIDOTE_HOME=$T_PRJDIR/tests/zdotdir/antidote_home
 source ./antidote.zsh
 ```
 
@@ -21,7 +21,7 @@ But you probably just want to source setup...
 
 ```zsh
 % source ./tests/_setup.zsh
-% source $PRJDIR/antidote.zsh
+% source $T_PRJDIR/antidote.zsh
 %
 ```
 

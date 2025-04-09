@@ -4,7 +4,7 @@
 
 ```zsh
 % source ./tests/_setup.zsh
-% source $PRJDIR/antidote.zsh
+% source $T_PRJDIR/antidote.zsh
 % antidote-bundle -h &>/dev/null  # force lazy-loading to not be lazy
 %
 ```
@@ -15,7 +15,7 @@ Parse a bundle file to find a list of all missing repos so that we can clone the
 in parallel.
 
 ```zsh
-% __antidote_bulk_clone < $TESTDATA/.zsh_plugins_repos.txt
+% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_repos.txt
 __antidote_legacy_scripter --kind clone --branch baz foobar/foobar &
 __antidote_legacy_scripter --kind clone bar/baz &
 __antidote_legacy_scripter --kind clone getantidote/zsh-defer &
@@ -32,7 +32,7 @@ wait
 Test empty
 
 ```zsh
-% __antidote_bulk_clone < $TESTDATA/.zsh_plugins_empty.txt
+% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_empty.txt
 %
 ```
 
@@ -63,13 +63,13 @@ $HOME/foo/bar
 ## Bundle type
 
 ```zsh
-% __antidote_bundle_type $PRJDIR/antidote.zsh
+% __antidote_bundle_type $T_PRJDIR/antidote.zsh
 file
-% __antidote_bundle_type $PRJDIR/functions
+% __antidote_bundle_type $T_PRJDIR/functions
 dir
-% __antidote_bundle_type '$PRJDIR/antidote.zsh'
+% __antidote_bundle_type '$T_PRJDIR/antidote.zsh'
 file
-% __antidote_bundle_type \$PRJDIR/functions
+% __antidote_bundle_type \$T_PRJDIR/functions
 dir
 % __antidote_bundle_type 'git@github.com:foo/bar.git'
 sshurl
@@ -111,15 +111,12 @@ relpath
 ## More Bundle type checks
 
 ```zsh
-% pushd > /dev/null
-% cd $HOME  # just in case there are stray foo files
 % __antidote_bundle_type foobar
 word
 % __antidote_bundle_type foo bar baz
 word
 % __antidote_bundle_type 'foo bar baz'
 word
-% popd > /dev/null
 %
 ```
 

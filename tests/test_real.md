@@ -23,7 +23,7 @@
 Clone and generate bundle script
 
 ```zsh
-% antidote bundle <$TESTDATA/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
+% antidote bundle <$T_TESTDATA/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
 % cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME  #=> --file testdata/real/.zsh_plugins.zsh
 %
 ```
@@ -103,7 +103,7 @@ Antidote purge complete. Be sure to start a new Zsh session.
 ### Redo setup
 
 ```zsh
-% TESTDATA=$PRJDIR/tests/testdata/real
+% T_TESTDATA=$T_PRJDIR/tests/testdata/real
 % source ./tests/_setup.zsh
 % t_setup_real
 %
@@ -112,7 +112,7 @@ Antidote purge complete. Be sure to start a new Zsh session.
 Clone and generate bundle script
 
 ```zsh
-% antidote bundle <$TESTDATA/.zsh_plugins.crlf.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
+% antidote bundle <$T_TESTDATA/.zsh_plugins.crlf.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
 % cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/rupa/z )
 source $ANTIDOTE_HOME/rupa/z/z.sh
@@ -151,7 +151,7 @@ https://github.com/zsh-users/zsh-syntax-highlighting             $ANTIDOTE_HOME/
 ### Redo setup
 
 ```zsh
-% TESTDATA=$PRJDIR/tests/testdata/real
+% T_TESTDATA=$T_PRJDIR/tests/testdata/real
 % source ./tests/_setup.zsh
 % t_setup_real
 %

@@ -4,7 +4,7 @@
 
 ```zsh
 % source ./tests/_setup.zsh
-% source $PRJDIR/antidote.zsh
+% source $T_PRJDIR/antidote.zsh
 % zstyle ':antidote:compatibility-mode' 'antibody' 'on'
 % ANTIDOTE_HOME=$HOME/.cache/antibody
 %

@@ -4,7 +4,7 @@
 
 ```zsh
 % source ./tests/_setup.zsh
-% source $PRJDIR/antidote.zsh
+% source $T_PRJDIR/antidote.zsh
 %
 ```
 
@@ -31,7 +31,7 @@ Tests for lazy-loading antidote.
 % echo $+functions[antidote-main]
 0
 % # Now, lazy load it and make sure it works
-% autoload -Uz $PRJDIR/antidote
+% autoload -Uz $T_PRJDIR/antidote
 % antidote -v &>/dev/null; echo $?
 0
 % # Now, tear down again
@@ -41,7 +41,7 @@ Tests for lazy-loading antidote.
 % echo $+functions[antidote-main]
 0
 % # Now, lazy load from the functions dir
-% autoload -Uz $PRJDIR/functions/antidote
+% autoload -Uz $T_PRJDIR/functions/antidote
 % antidote -v &>/dev/null; echo $?
 0
 % echo $+functions[antidote-main]

@@ -4,7 +4,7 @@
 
 ```zsh
 % source ./tests/_setup.zsh
-% source $PRJDIR/antidote.zsh
+% source $T_PRJDIR/antidote.zsh
 %
 ```
 
@@ -360,7 +360,7 @@ FAIL: Empty
 The repo parser pulls a list of all git URLs in a bundle file so that we can clone missing ones in parallel.
 
 ```zsh
-% __antidote_bulk_clone < $TESTDATA/.zsh_plugins_repos.txt
+% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_repos.txt
 __antidote_legacy_scripter --kind clone --branch baz foobar/foobar &
 __antidote_legacy_scripter --kind clone bar/baz &
 __antidote_legacy_scripter --kind clone getantidote/zsh-defer &
@@ -377,7 +377,7 @@ wait
 Test empty
 
 ```zsh
-% __antidote_bulk_clone < $TESTDATA/.zsh_plugins_empty.txt
+% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_empty.txt
 %
 ```
 
@@ -386,7 +386,7 @@ Test empty
 Test that only the first defer block is kept...
 
 ```zsh
-% __antidote_filter_defers $PRJDIR/tests/testdata/.zsh_plugins_multi_defer.zsh | subenv ANTIDOTE_HOME
+% __antidote_filter_defers $T_PRJDIR/tests/testdata/.zsh_plugins_multi_defer.zsh | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search )
 source $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search/zsh-history-substring-search.plugin.zsh
 if ! (( $+functions[zsh-defer] )); then
@@ -417,7 +417,7 @@ source $ANTIDOTE_HOME/rupa/z/z.sh
 Test that with no defers, nothing is altered...
 
 ```zsh
-% __antidote_filter_defers $PRJDIR/tests/testdata/.zsh_plugins_no_defer.zsh  #=> --file testdata/.zsh_plugins_no_defer.zsh
+% __antidote_filter_defers $T_PRJDIR/tests/testdata/.zsh_plugins_no_defer.zsh  #=> --file testdata/.zsh_plugins_no_defer.zsh
 %
 ```
 

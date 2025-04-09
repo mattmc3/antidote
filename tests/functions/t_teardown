@@ -5,7 +5,7 @@
   setopt local_options
 
   # Return to project directory
-  # popd
+  popd
 
   # reset current session
   HOME=$T_PREV_HOME
