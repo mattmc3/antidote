@@ -11,6 +11,6 @@
     local parts=(${(ps./.)bundle})
     print ${parts[-2]}/${parts[-1]}
   else
-    print $bundle | sed -e "s|^\~/|$HOME/|" -e "s|^$HOME|\$HOME|"
+    __antidote_scrub_home "$bundle"
   fi
 #}

@@ -2,5 +2,5 @@
 
 ### Scrub home from path
 #function __antidote_scrub_home {
-echo "$1" | sed -e "s|^$HOME/|\$HOME/|" -e "s|^~/|\$HOME/|"
+print "$1" | sed -e "s|^\~/|\$HOME/|" -e "s|^$HOME/|\$HOME/|"
 #}
