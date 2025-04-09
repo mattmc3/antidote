@@ -109,9 +109,8 @@ antidote: command not found 'foo'
 ## All commands
 
 ```zsh
-% cmds=( bundle help home init install list load path purge update script main null )
+% cmds=( bundle help home init install list load path purge update main null )
 % for cmd in $cmds; echo $+functions[antidote-$cmd]
-1
 1
 1
 1

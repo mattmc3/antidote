@@ -1,11 +1,19 @@
 #!/bin/zsh
 
+# This scripter was used for antidote version 1.x. Version 2.x no longer handles each
+# bundle independently, which means we can do things like:
+#  - Put fpath at the top
+#  - Load zsh-defer once
+#  - Other holistic optimizations
+# It remains here for now in case I need to quickly get back to it, but will go away
+# in the future.
+
 ### Generate the Zsh script to load a plugin.
 #
-# usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
-#                        [-c|--conditional <func>] [-b|--branch <branch>]
-#                        [--pre <func>] [--post <func>]
-#                        [-a|--autoload <path>] <bundle>
+# usage: __antidote_legacy_scripter [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
+#              [-c|--conditional <func>] [-b|--branch <branch>]
+#              [--pre <func>] [--post <func>]
+#              [-a|--autoload <path>] <bundle>
 # <kind>   : zsh,path,fpath,defer,clone,autoload
 # <path>   : Relative path from the bundle root
 # <branch> : The git branch
@@ -13,7 +21,7 @@
 #
 
 ### Generate the Zsh script to load a plugin.
-#function antidote-script {
+#function __antidote_legacy_scripter {
   emulate -L zsh; setopt local_options $_adote_funcopts
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
@@ -120,7 +128,7 @@
     source_cmd="${zsh_defer} source"
     zsh_script+=(
       'if ! (( $+functions[zsh-defer] )); then'
-      "$(antidote-script $zsh_defer_bundle | __antidote_indent)"
+      "$(__antidote_legacy_scripter $zsh_defer_bundle | __antidote_indent)"
       'fi'
     )
   fi

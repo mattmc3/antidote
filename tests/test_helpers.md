@@ -3,8 +3,37 @@
 ## Setup
 
 ```zsh
+% TESTDATA=$PWD/tests/testdata
 % source ./tests/_setup.zsh
 % source ./antidote.zsh
+% antidote-bundle -h &>/dev/null  # force lazy-loading to not be lazy
+%
+```
+
+## Bulk clone missing repos
+
+Parse a bundle file to find a list of all missing repos so that we can clone them
+in parallel.
+
+```zsh
+% __antidote_bulk_clone < $TESTDATA/.zsh_plugins_repos.txt
+__antidote_legacy_scripter --kind clone --branch baz foobar/foobar &
+__antidote_legacy_scripter --kind clone bar/baz &
+__antidote_legacy_scripter --kind clone getantidote/zsh-defer &
+__antidote_legacy_scripter --kind clone git@github.com:user/repo &
+__antidote_legacy_scripter --kind clone http://github.com/user/repo.git &
+__antidote_legacy_scripter --kind clone https://github.com/foo/baz &
+__antidote_legacy_scripter --kind clone https://github.com/foo/qux &
+__antidote_legacy_scripter --kind clone https://github.com/user/repo &
+__antidote_legacy_scripter --kind clone user/repo &
+wait
+%
+```
+
+Test empty
+
+```zsh
+% __antidote_bulk_clone < $TESTDATA/.zsh_plugins_empty.txt
 %
 ```
 

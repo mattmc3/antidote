@@ -26,10 +26,10 @@
       next
     }
 
-    # move flags to front and call antidote-script
+    # move flags to front and call __antidote_legacy_scripter
     {
       sub(/ #.*$/,"",$0)
-      printf "antidote-script"
+      printf "__antidote_legacy_scripter"
       for (i=2; i<=NF; i++) {
         sub(/^/,"--",$i)
         sub(/:/," ",$i)
