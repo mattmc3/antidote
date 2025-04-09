@@ -19,7 +19,7 @@
 
   # We print the "cloning..." message to stderr so that we can redirect stdout to the
   # static file without the noise.
-  print -ru2 -- "# antidote cloning $bundle_name..."
+  print -r -- "print -ru2 -- '# antidote cloning $bundle_name...'"
   print -rn -- "git clone $git_opts ${(q)git_url} ${(q)repo_dest}"
   if [[ "$background" -eq 1 ]]; then
     print -rn -- " &"
