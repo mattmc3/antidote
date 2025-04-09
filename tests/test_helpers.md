@@ -210,11 +210,11 @@ $ANTIDOTE_HOME/foo/qux
 Short repos:
 
 ```zsh
-% __antidote_tourl ohmyzsh/ohmyzsh
+% __antidote_bundle_url ohmyzsh/ohmyzsh
 https://github.com/ohmyzsh/ohmyzsh
-% __antidote_tourl sindresorhus/pure
+% __antidote_bundle_url sindresorhus/pure
 https://github.com/sindresorhus/pure
-% __antidote_tourl foo/bar
+% __antidote_bundle_url foo/bar
 https://github.com/foo/bar
 %
 ```
@@ -222,17 +222,17 @@ https://github.com/foo/bar
 Proper URLs don't change:
 
 ```zsh
-% __antidote_tourl https://github.com/ohmyzsh/ohmyzsh
+% __antidote_bundle_url https://github.com/ohmyzsh/ohmyzsh
 https://github.com/ohmyzsh/ohmyzsh
-% __antidote_tourl http://github.com/ohmyzsh/ohmyzsh
+% __antidote_bundle_url http://github.com/ohmyzsh/ohmyzsh
 http://github.com/ohmyzsh/ohmyzsh
-% __antidote_tourl ssh://github.com/ohmyzsh/ohmyzsh
+% __antidote_bundle_url ssh://github.com/ohmyzsh/ohmyzsh
 ssh://github.com/ohmyzsh/ohmyzsh
-% __antidote_tourl git://github.com/ohmyzsh/ohmyzsh
+% __antidote_bundle_url git://github.com/ohmyzsh/ohmyzsh
 git://github.com/ohmyzsh/ohmyzsh
-% __antidote_tourl ftp://github.com/ohmyzsh/ohmyzsh
+% __antidote_bundle_url ftp://github.com/ohmyzsh/ohmyzsh
 ftp://github.com/ohmyzsh/ohmyzsh
-% __antidote_tourl git@github.com:sindresorhus/pure.git
+% __antidote_bundle_url git@github.com:sindresorhus/pure.git
 git@github.com:sindresorhus/pure.git
 %
 ```

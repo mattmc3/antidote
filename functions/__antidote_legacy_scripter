@@ -91,7 +91,7 @@
   local bundle_type
   bundle_type="$(__antidote_bundle_type $bundle)"
   if [[ "$bundle_type" == (repo|url|sshurl) ]] && [[ ! -e "$bundle_path" ]]; then
-    local giturl=$(__antidote_tourl $bundle)
+    local giturl=$(__antidote_bundle_url $bundle)
     print -ru2 "# antidote cloning $bundle_name..."
     git clone --quiet --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path
     [[ $? -eq 0 ]] || return 1
