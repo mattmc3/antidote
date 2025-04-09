@@ -264,6 +264,62 @@ c
 %
 ```
 
+## Clone command
+
+Basic usage:
+
+```zsh
+% __antidote_clone_cmd foo/bar $ANTIDOTE_HOME/foo/bar | subenv ANTIDOTE_HOME
+# antidote cloning foo/bar...
+git clone --quiet --recurse-submodules --shallow-submodules foo/bar $ANTIDOTE_HOME/foo/bar &
+%
+```
+
+Clone a branch:
+
+```zsh
+% __antidote_clone_cmd bar/baz $ANTIDOTE_HOME/bar/baz foo | subenv ANTIDOTE_HOME
+# antidote cloning bar/baz...
+git clone --quiet --recurse-submodules --shallow-submodules --branch foo bar/baz $ANTIDOTE_HOME/bar/baz &
+%
+```
+
+Funky strings get escaped:
+
+```zsh
+% __antidote_clone_cmd foo/bar "$ANTIDOTE_HOME/foo bar" "baz's:qux" | subenv ANTIDOTE_HOME &
+# antidote cloning foo/bar...
+git clone --quiet --recurse-submodules --shallow-submodules --branch baz\'s:qux foo/bar $ANTIDOTE_HOME/foo\ bar &
+%
+```
+
+Test background flag:
+
+```zsh
+% __antidote_clone_cmd a b c 1
+# antidote cloning a...
+git clone --quiet --recurse-submodules --shallow-submodules --branch c a b &
+% __antidote_clone_cmd a b c 0
+# antidote cloning a...
+git clone --quiet --recurse-submodules --shallow-submodules --branch c a b
+%
+```
+
+Other checks:
+
+```zsh
+% __antidote_clone_cmd a b c
+# antidote cloning a...
+git clone --quiet --recurse-submodules --shallow-submodules --branch c a b &
+% clone_cmd_array=( ${(@f)"$(__antidote_clone_cmd mygiturl mydir mybranch 2>&1)"} )
+% echo ${#clone_cmd_array}
+2
+% print -l -- $clone_cmd_array
+# antidote cloning mygiturl...
+git clone --quiet --recurse-submodules --shallow-submodules --branch mybranch mygiturl mydir &
+%
+```
+
 ## Teardown
 
 ```zsh

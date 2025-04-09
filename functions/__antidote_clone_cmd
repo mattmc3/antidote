@@ -1,0 +1,28 @@
+#!/bin/zsh
+
+### Generate git clone commands for parallel background jobs
+#function __antidote_clone_cmd {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+
+  local git_url repo_dest branch bundle_name background
+  local -a git_opts
+
+  git_url="$1"
+  repo_dest="$2"
+  branch="$3"
+  background="${4:-1}"
+  git_opts=(--quiet --recurse-submodules --shallow-submodules)
+  if [[ -n "$branch" ]]; then
+    git_opts+=(--branch "${(q)branch}")
+  fi
+  bundle_name="$(__antidote_bundle_name "$git_url")"
+
+  # We print the "cloning..." message to stderr so that we can redirect stdout to the
+  # static file without the noise.
+  print -ru2 -- "# antidote cloning $bundle_name..."
+  print -rn -- "git clone $git_opts ${(q)git_url} ${(q)repo_dest}"
+  if [[ "$background" -eq 1 ]]; then
+    print -rn -- " &"
+  fi
+  print
+#}
