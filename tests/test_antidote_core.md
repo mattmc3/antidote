@@ -1,5 +1,7 @@
 # antidote core tests
 
+Tests for antidote's most basic functionality.
+
 fails gracefully when someone tries bash
 
 ```zsh
@@ -110,19 +112,8 @@ antidote: command not found 'foo'
 
 ```zsh
 % cmds=( bundle help home init install list load path purge update main null )
-% for cmd in $cmds; echo $+functions[antidote-$cmd]
-1
-1
-1
-1
-1
-1
-1
-1
-1
-1
-1
-0
+% for cmd in $cmds; printf '%s' $+functions[antidote-$cmd]; echo
+111111111110
 %
 ```
 
