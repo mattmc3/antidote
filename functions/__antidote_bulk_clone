@@ -28,8 +28,8 @@
     # Turn the typeset string into an assocarr
     eval "$parsed_bundle_str"
 
-    [[ -n "$parsed_bundle[repo]" ]] || continue
-    bundle_type="$(__antidote_bundle_type ${parsed_bundle[repo]})"
+    [[ -n "$parsed_bundle[name]" ]] || continue
+    bundle_type="$(__antidote_bundle_type ${parsed_bundle[name]})"
 
     # we only clone repo bundles
     [[ "$bundle_type" == (repo|url|sshurl) ]] || continue
@@ -46,7 +46,7 @@
       script_opts+=(--branch $parsed_bundle[branch])
     fi
     #script+=("$parsed_bundle_str")
-    script+=("__antidote_legacy_scripter $script_opts ${parsed_bundle[repo]} &")
+    script+=("__antidote_legacy_scripter $script_opts ${parsed_bundle[name]} &")
   done
 
   if (( $#script )); then

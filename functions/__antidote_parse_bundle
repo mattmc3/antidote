@@ -3,7 +3,7 @@
 ### Parse antidote's bundle DSL to an associative array.
 # Example:
 #   __antidote_parse_bundle 'foo/bar path:plugins/baz kind:fpath pre:myprecmd  # comment'
-#   typeset -A parsed_bundle=( [kind]=fpath [path]=plugins/baz [pre]=myprecmd [repo]=foo/bar )
+#   typeset -A parsed_bundle=( [kind]=fpath [path]=plugins/baz [pre]=myprecmd [name]=foo/bar )
 #function __antidote_parse_bundle {
   emulate -L zsh; setopt local_options $_adote_funcopts
   local pair key value
@@ -14,7 +14,7 @@
   bundle=${bundle%%[[:space:]]}  # Trim trailing spaces
   bundle=${bundle##[[:space:]]}  # Trim leading spaces
   [[ -z "$bundle" ]] && return   # Skip empty bundle strings
-  bundle="repo:${bundle}"
+  bundle="name:${bundle}"
 
   local -a args=(${(Q)${(z)bundle}})   # Split line into key-value pairs, handling quotes
 
