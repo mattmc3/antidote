@@ -15,7 +15,7 @@
 The repo parser pulls a list of all git URLs in a bundle file so that we can clone missing ones in parallel.
 
 ```zsh
-% __antidote_bulk_clone $TESTDATA/.zsh_plugins_repos.txt
+% __antidote_bulk_clone < $TESTDATA/.zsh_plugins_repos.txt
 antidote-script --kind clone --branch baz foobar/foobar &
 antidote-script --kind clone bar/baz &
 antidote-script --kind clone getantidote/zsh-defer &
@@ -32,8 +32,7 @@ wait
 Test empty
 
 ```zsh
-% __antidote_bulk_clone $TESTDATA/.zsh_plugins_empty.txt
-wait
+% __antidote_bulk_clone < $TESTDATA/.zsh_plugins_empty.txt
 %
 ```
 

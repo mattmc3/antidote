@@ -4,35 +4,53 @@
 #function __antidote_bulk_clone {
   emulate -L zsh; setopt local_options $_adote_funcopts
 
+  local -a bundles=("${(@f)$(__antidote_collect_input "$@")}")
+  (( $#bundles )) || return 1
+
+  local bundle parsed_bundle_str bundle_type
+  local -aU script
+  local -a script_opts
+  local -A parsed_bundle
+
   # Allow the user to define zsh-defer repo in case they want to fork it.
   local zsh_defer_bundle
   zstyle -s ':antidote:defer' bundle 'zsh_defer_bundle' \
     || zsh_defer_bundle='romkatv/zsh-defer'
 
-  # get a list of clonable repos from a bundle file
-  $__adote_awkcmd -v ZSH_DEFER_BUNDLE=$zsh_defer_bundle '
-    BEGIN { RS="[\r\n]" }
+  for bundle in $bundles; do
+    parsed_bundle_str=$(__antidote_parse_bundle "$bundle")
+    [[ -n "$parsed_bundle_str" ]] || continue
+    if [[ ! "$parsed_bundle_str" =~ '^typeset\ -A\ parsed_bundle=' ]]; then
+      print -ru2 -- "antidote: Unable to parse bundle: '$bundle'."
+      return 1
+    fi
 
-    # initialize vars
-    { bundle=""; opts="--kind clone" }
+    # Turn the typeset string into an assocarr
+    eval "$parsed_bundle_str"
 
-    # skip blank or commented lines
-    /^ *(#.+)?$/ { next }
+    [[ -n "$parsed_bundle[repo]" ]] || continue
+    bundle_type="$(__antidote_bundle_type ${parsed_bundle[repo]})"
 
-    # clone zsh-defer
-    /kind:defer/ { print "antidote-script --kind clone " ZSH_DEFER_BUNDLE " &" }
+    # we only clone repo bundles
+    [[ "$bundle_type" == (repo|url|sshurl) ]] || continue
 
-    # handle user/repo and URL forms
-    $1~/^[^\/]+\/[^\/]+$/      { bundle=$1 }
-    $1~/^(https?:|(ssh|git)@)/ { bundle=$1 }
+    script_opts=(--kind clone)
 
-    # find branch annotation if it exists
-    match($0, /branch:[^\t ]+/) { opts=opts " --branch " substr($0, RSTART+7, RLENGTH-7) }
+    # Clone zsh-defer if needed by the bundle
+    if [[ "$parsed_bundle[kind]" == "defer" ]]; then
+      script+=("antidote-script $script_opts $zsh_defer_bundle &")
+    fi
 
-    # print result
-    bundle!=""{ print "antidote-script", opts, bundle, "&" }
+    # Add branch to script options
+    if [[ -v parsed_bundle[branch] ]]; then
+      script_opts+=(--branch $parsed_bundle[branch])
+    fi
+    #script+=("$parsed_bundle_str")
+    script+=("antidote-script $script_opts ${parsed_bundle[repo]} &")
+  done
 
-    END { print "wait" }
-
-  ' "$@" | sort | uniq
+  if (( $#script )); then
+    script+=("wait")
+    printf '%s\n' ${(o)script[@]}
+  fi
 #}
