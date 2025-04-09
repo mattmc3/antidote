@@ -44,7 +44,7 @@ Setup...
 
 ```zsh
 % % test -d $T_TEMPDIR/fakeuser #=> --exit 1
-% git clone --quiet --depth 1 --recurse-submodules --shallow-submodules https://gitsite.com/fakeuser/fakerepo $T_TEMPDIR/fakeuser
+% git clone --quiet --depth 1 --recurse-submodules --shallow-submodules https://fakegitsite.com/fakeuser/fakerepo $T_TEMPDIR/fakeuser
 % test -d $T_TEMPDIR/fakeuser #=> --exit 0
 % test -e $T_TEMPDIR/fakeuser/fakerepo/fakerepo.plugin.zsh #=> --exit 0
 %
@@ -60,10 +60,10 @@ Clean up
 Mock: clone missing
 
 ```zsh
-% git clone --depth 1 --recurse-submodules --shallow-submodules https://gitsite.com/testy/mctestface
+% git clone --depth 1 --recurse-submodules --shallow-submodules https://fakegitsite.com/testy/mctestface
 MOCKGIT: Cloning into 'mctestface'...
 MOCKGIT: Repository not found.
-MOCKGIT: repository 'https://gitsite.com/testy/mctestface' not found
+MOCKGIT: repository 'https://fakegitsite.com/testy/mctestface' not found
 %
 ```
 

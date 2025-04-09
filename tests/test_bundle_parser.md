@@ -20,8 +20,8 @@ from the results of `declare -p parsed_bundle`
 typeset -A parsed_bundle=( [name]=foo/bar )
 % __antidote_parse_bundle 'foo/bar  # trailing comment' | normalize_assoc_arr
 typeset -A parsed_bundle=( [name]=foo/bar )
-% __antidote_parse_bundle 'https://gitsite.com/foo/bar path:plugins/baz kind:fpath pre:"echo hello world"' | normalize_assoc_arr
-typeset -A parsed_bundle=( [kind]=fpath [name]=https://gitsite.com/foo/bar [path]=plugins/baz [pre]='echo hello world' )
+% __antidote_parse_bundle 'https://fakegitsite.com/foo/bar path:plugins/baz kind:fpath pre:"echo hello world"' | normalize_assoc_arr
+typeset -A parsed_bundle=( [kind]=fpath [name]=https://fakegitsite.com/foo/bar [path]=plugins/baz [pre]='echo hello world' )
 %
 ```
 

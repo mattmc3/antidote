@@ -10,8 +10,6 @@
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   0=${(%):-%x}
   local prjdir="${0:A:h:h:h}"
-  local gitsite="${prjdir}/tests/gitsite"
-
   local args=("$@[@]")
   local o_path o_quiet o_ff o_rebase o_autostash o_short
   local o_depth o_recurse_submodules o_shallow_submodules o_branch
@@ -37,7 +35,7 @@
     local giturl="$2"
     local repo="${giturl:h:t}/${${giturl:t}%.git}"
     local bundledir="${3:-.}"
-    local gitsite_repodir="$prjdir/tests/gitsite.com/${repo}"
+    local gitsite_repodir="$prjdir/tests/fakegitsite.com/${repo}"
     if [[ -d "$gitsite_repodir" ]]; then
       [[ -d "${bundledir:A}" ]] || mkdir -p "${bundledir:A}"
       cp -r -- "$gitsite_repodir" "${bundledir:A}"
