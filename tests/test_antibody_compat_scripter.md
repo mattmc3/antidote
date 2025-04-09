@@ -1,4 +1,4 @@
-# __antibody_compat_script tests
+# test antibody compat scripter
 
 ## Setup
 
@@ -15,18 +15,18 @@
 ### Fails
 
 ```zsh
-% __antibody_compat_script  #=> --exit 1
+% __antidote_compat_antibody_scripter  #=> --exit 1
 %
 ```
 
 ### Scripting types
 
-`__antibody_compat_script` works with local files and directories, as well as remote repos.
+`__antidote_compat_antibody_scripter` works with local files and directories, as well as remote repos.
 
 Script a file:
 
 ```zsh
-% __antibody_compat_script $ZDOTDIR/aliases.zsh | subenv ZDOTDIR
+% __antidote_compat_antibody_scripter $ZDOTDIR/aliases.zsh | subenv ZDOTDIR
 source $ZDOTDIR/aliases.zsh
 %
 ```
@@ -34,7 +34,7 @@ source $ZDOTDIR/aliases.zsh
 Script a lib directory:
 
 ```zsh
-% __antibody_compat_script $ZDOTDIR/custom/lib | subenv ZDOTDIR
+% __antidote_compat_antibody_scripter $ZDOTDIR/custom/lib | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/custom/lib )
 source $ZDOTDIR/custom/lib/lib1.zsh
 source $ZDOTDIR/custom/lib/lib2.zsh
@@ -44,7 +44,7 @@ source $ZDOTDIR/custom/lib/lib2.zsh
 Script a plugin directory:
 
 ```zsh
-% __antibody_compat_script $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
+% __antidote_compat_antibody_scripter $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/custom/plugins/myplugin )
 source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 %
@@ -53,10 +53,10 @@ source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 Script repos in antibody style:
 
 ```zsh
-% __antibody_compat_script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
-% __antibody_compat_script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
-% __antibody_compat_script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
-% __antibody_compat_script git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-fooqux.zsh
+% __antidote_compat_antibody_scripter foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% __antidote_compat_antibody_scripter https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% __antidote_compat_antibody_scripter https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% __antidote_compat_antibody_scripter git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-fooqux.zsh
 %
 ```
 
@@ -67,21 +67,21 @@ Script repos in antibody style:
 Nothing happens when the plugin already exists.
 
 ```zsh
-% __antibody_compat_script --kind clone foo/bar
+% __antidote_compat_antibody_scripter --kind clone foo/bar
 %
 ```
 
 Clone a missing plugin.
 
 ```zsh
-% __antibody_compat_script --kind clone bar/foo
+% __antidote_compat_antibody_scripter --kind clone bar/foo
 %
 ```
 
 ### kind:zsh
 
 ```zsh
-% __antibody_compat_script --kind zsh foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_antibody_scripter --kind zsh foo/bar | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
 %
@@ -90,7 +90,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/b
 ### kind:path
 
 ```zsh
-% __antibody_compat_script --kind path foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_antibody_scripter --kind path foo/bar | subenv ANTIDOTE_HOME
 export PATH="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar:$PATH"
 %
 ```
@@ -98,7 +98,7 @@ export PATH="$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH
 ### kind:fpath
 
 ```zsh
-% __antibody_compat_script --kind fpath foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_antibody_scripter --kind fpath foo/bar | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
 %
 ```
@@ -106,7 +106,7 @@ fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar
 ### path:plugin-dir
 
 ```zsh
-% __antibody_compat_script --path plugins/extract ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_antibody_scripter --path plugins/extract ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/extract )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/plugins/extract/extract.plugin.zsh
 %
@@ -115,7 +115,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ### path:file
 
 ```zsh
-% __antibody_compat_script --path lib/lib1.zsh ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_antibody_scripter --path lib/lib1.zsh ohmy/ohmy | subenv ANTIDOTE_HOME
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib1.zsh
 %
 ```
@@ -123,7 +123,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ### path:lib-dir
 
 ```zsh
-% __antibody_compat_script --path lib ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_antibody_scripter --path lib ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib )
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib1.zsh
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/lib/lib2.zsh
@@ -134,7 +134,7 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 ### path:theme
 
 ```zsh
-% __antibody_compat_script --path themes/pretty.zsh-theme ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_antibody_scripter --path themes/pretty.zsh-theme ohmy/ohmy | subenv ANTIDOTE_HOME
 source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy/themes/pretty.zsh-theme
 %
 ```
@@ -146,8 +146,8 @@ source $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-ohmy-SLASH-ohmy
 setup
 
 ```zsh
-% # load __antidote_initfiles from private funcs in __antibody_compat_script
-% __antibody_compat_script -h &>/dev/null
+% # load __antidote_initfiles from private funcs in __antidote_compat_antibody_scripter
+% __antidote_compat_antibody_scripter -h &>/dev/null
 % PLUGINDIR=$T_TEMPDIR/initfiles/myplugin
 % mkdir -p $PLUGINDIR
 % touch $PLUGINDIR/myplugin.plugin.zsh

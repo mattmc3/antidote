@@ -9,7 +9,7 @@
 
 ### Generate the Zsh script to load a plugin the way antibody did.
 #
-# usage: __antibody_compat_script [-k|--kind <kind>] [-p|--path <path>]
+# usage: __antidote_compat_antibody_scripter [-k|--kind <kind>] [-p|--path <path>]
 #                                 [-b|--branch <branch>] <bundle>
 # <kind>   : zsh,path,fpath,clone
 # <path>   : Relative path from the bundle root
@@ -17,7 +17,7 @@
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 
 ### Generate the Zsh script to load a plugin.
-#function __antibody_compat_script {
+#function __antidote_compat_antibody_scripter {
   emulate -L zsh; setopt local_options $_adote_funcopts
 
   local o_kind o_path o_branch
