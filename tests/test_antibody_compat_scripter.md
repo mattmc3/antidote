@@ -73,8 +73,12 @@ Nothing happens when the plugin already exists.
 
 Clone a missing plugin.
 
+Remember: antibody didn't actually print anything when cloning, so we won't see
+"# antidote cloning fakeuser/fakerepo..."
+
 ```zsh
-% __antidote_compat_antibody_scripter --kind clone bar/foo
+% __antidote_compat_antibody_scripter --kind clone https://gitsite.com/fakeuser/fakerepo
+% # antidote cloning fakeuser/fakerepo...
 %
 ```
 
