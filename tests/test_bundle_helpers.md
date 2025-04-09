@@ -81,19 +81,19 @@ Test that with no defers, nothing is altered...
 Parse a simple repo:
 
 ```zsh
-% echo foo/bar | __antidote_parse_bundles
+% echo foo/bar | __antidote_script_bundles
 antidote-script foo/bar
 %
 ```
 
 ```zsh
-% echo 'https://github.com/foo/bar path:lib branch:dev' | __antidote_parse_bundles
+% echo 'https://github.com/foo/bar path:lib branch:dev' | __antidote_script_bundles
 antidote-script --path lib --branch dev https://github.com/foo/bar
-% echo 'git@github.com:foo/bar.git kind:clone branch:main' | __antidote_parse_bundles
+% echo 'git@github.com:foo/bar.git kind:clone branch:main' | __antidote_script_bundles
 antidote-script --kind clone --branch main git@github.com:foo/bar.git
-% echo 'foo/bar kind:fpath abc:xyz' | __antidote_parse_bundles
+% echo 'foo/bar kind:fpath abc:xyz' | __antidote_script_bundles
 antidote-script --kind fpath --abc xyz foo/bar
-% echo 'foo/bar path:plugins/myplugin kind:path  # trailing comment' | __antidote_parse_bundles
+% echo 'foo/bar path:plugins/myplugin kind:path  # trailing comment' | __antidote_script_bundles
 antidote-script --path plugins/myplugin --kind path foo/bar
 %
 ```
@@ -102,7 +102,7 @@ Handle funky whitespace
 
 ```zsh
 % cr=$'\r'; lf=$'\n'; tab=$'\t'
-% echo "foo/bar${tab}kind:path${cr}${lf}" | __antidote_parse_bundles
+% echo "foo/bar${tab}kind:path${cr}${lf}" | __antidote_script_bundles
 antidote-script --kind path foo/bar
 %
 ```
@@ -110,7 +110,7 @@ antidote-script --kind path foo/bar
 The bundle parser is an awk script that turns the bundle DSL into antidote-script statements.
 
 ```zsh
-% __antidote_parse_bundles $ZDOTDIR/.zsh_plugins.txt
+% __antidote_script_bundles $ZDOTDIR/.zsh_plugins.txt
 antidote-script ~/foo/bar
 antidote-script --path plugins/myplugin \$ZSH_CUSTOM
 antidote-script foo/bar

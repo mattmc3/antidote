@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ### Parse antidote's bundle DSL.
-#function __antidote_parse_bundles {
+#function __antidote_script_bundles {
   emulate -L zsh; setopt local_options $_adote_funcopts
   $__adote_awkcmd '
     BEGIN { RS="[\r\n]" }
