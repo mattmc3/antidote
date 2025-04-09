@@ -7,7 +7,7 @@ Tests to handle special Zsh options. [#154](https://github.com/mattmc3/antidote/
 ```zsh
 % source ./tests/_setup.zsh
 % setopt KSH_ARRAYS SH_GLOB
-% source ./antidote.zsh
+% source $PRJDIR/antidote.zsh
 %
 ```
 

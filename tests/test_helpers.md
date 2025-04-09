@@ -3,9 +3,8 @@
 ## Setup
 
 ```zsh
-% TESTDATA=$PWD/tests/testdata
 % source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source $PRJDIR/antidote.zsh
 % antidote-bundle -h &>/dev/null  # force lazy-loading to not be lazy
 %
 ```
@@ -64,13 +63,13 @@ $HOME/foo/bar
 ## Bundle type
 
 ```zsh
-% __antidote_bundle_type $PWD/antidote.zsh
+% __antidote_bundle_type $PRJDIR/antidote.zsh
 file
-% __antidote_bundle_type $PWD/functions
+% __antidote_bundle_type $PRJDIR/functions
 dir
-% __antidote_bundle_type '$PWD/antidote.zsh'
+% __antidote_bundle_type '$PRJDIR/antidote.zsh'
 file
-% __antidote_bundle_type \$PWD/functions
+% __antidote_bundle_type \$PRJDIR/functions
 dir
 % __antidote_bundle_type 'git@github.com:foo/bar.git'
 sshurl

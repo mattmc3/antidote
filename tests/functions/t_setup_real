@@ -1,8 +1,8 @@
 #!/bin/zsh
 #function t_setup_real {
   0=${(%):-%x}
-  local testdir="${0:A:h:h}"
-  local prjdir="${0:A:h:h:h}"
+  typeset -g TESTDATA=$PRJDIR/tests/testdata/real
+  local testdir="$PRJDIR/tests"
 
   # undo setup so we clone for real
   zstyle ':antidote:tests' cloning 'on'
@@ -14,11 +14,9 @@
   # unset rupa/z
   (( $+aliases[z] )) && unalias z
 
-  # replace .zsh_plugins.txt with real versions
-  local file
+  # replace test versions of bundle files with real versions
   for file in .zsh_plugins.txt .zsh_plugins.zsh; do
-    [[ -f $ZDOTDIR/$file ]] && command rm -f -- "$ZDOTDIR/$file"
-    [[ -f $testdir/real/$file ]] && command rm -f -- "$testdir/real/$file"
+    [[ -f $TESTDATA/$file ]] && command cp -f -- "$TESTDATA/$file" "$ZDOTDIR/$file"
   done
 
   # clean out antidote home
@@ -26,5 +24,5 @@
   mkdir -p "$ANTIDOTE_HOME"
 
   # source antidote
-  source $prjdir/antidote.zsh
+  source $PRJDIR/antidote.zsh
 #}

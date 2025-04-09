@@ -2,7 +2,8 @@
 0=${(%):-%x}
 setopt extended_glob
 
-cd ${0:A:h:h}
+local PRJDIR="${0:A:h:h}"
+cd "$PRJDIR"
 
 local o_unit o_rev
 zparseopts -D -M -- -unit=o_unit -rev=o_rev || return 1
@@ -11,9 +12,9 @@ testfiles=()
 if (( $# > 0 )); then
   testfiles=($@)
 elif (( $#o_unit )); then
-  testfiles=($PWD/tests/README.md $PWD/tests/test_*.md~*test_real*~*foo*)
+  testfiles=($PRJDIR/tests/README.md $PRJDIR/tests/test_*.md~*test_real*~*foo*)
 else
-  testfiles=($PWD/tests/README.md $PWD/tests/test_*.md)
+  testfiles=($PRJDIR/tests/README.md $PRJDIR/tests/test_*.md)
 fi
 
 # if tests are run in reverse order, I can catch places where I didn't teardown properly
@@ -23,7 +24,7 @@ fi
 
 # foo example test command
 # env -i PATH=$PATH FPATH=$FPATH \
-#  zsh -f -- =clitest --list-run --progress dot --prompt '%' --color always $PWD/tests/foo.md
+#  zsh -f -- =clitest --list-run --progress dot --prompt '%' --color always $PRJDIR/tests/foo.md
 
 # Use ZSH_BINARY if set, otherwise fallback to default zsh
 ZSH=${ZSH_BINARY:-zsh}
@@ -33,5 +34,5 @@ env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
     =clitest \
         --list-run --progress dot --prompt '%' \
         --color always \
-        --pre-flight 'git --version; print $PWD $VENDOR $OSTYPE =$ZSH $ZSH_VERSION $ZSH_PATCHLEVEL' \
+        --pre-flight 'git --version; print $PRJDIR $VENDOR $OSTYPE =$ZSH $ZSH_VERSION $ZSH_PATCHLEVEL' \
         -- $testfiles

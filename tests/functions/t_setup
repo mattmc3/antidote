@@ -4,8 +4,9 @@
   setopt local_options extended_glob glob_dots
 
   0=${(%):-%x}
-  local prjdir="${0:A:h:h:h}"
-  local testdir="${0:A:h:h}"
+  typeset -g PRJDIR="${0:A:h:h:h}"
+  typeset -g TESTDATA=$PRJDIR/tests/testdata
+  local testdir="$PRJDIR/tests"
 
   # save path/fpath
   typeset -ga T_PREV_PATH=( $path )
@@ -50,4 +51,8 @@
   zstyle ':antidote:tests' set-warn-options 'on'
   zstyle ':antidote:tests' cloning 'off'
   zstyle ':antidote:defer' bundle 'getantidote/zsh-defer'
+
+  # start from tmp home
+  # pushd
+  # cd $HOME
 #}

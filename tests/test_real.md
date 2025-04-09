@@ -5,7 +5,6 @@
 ### Setup
 
 ```zsh
-% TESTDATA=$PWD/tests/testdata/real
 % source ./tests/_setup.zsh
 % # do it for real!
 % t_setup_real
@@ -104,7 +103,7 @@ Antidote purge complete. Be sure to start a new Zsh session.
 ### Redo setup
 
 ```zsh
-% TESTDATA=$PWD/tests/testdata/real
+% TESTDATA=$PRJDIR/tests/testdata/real
 % source ./tests/_setup.zsh
 % t_setup_real
 %
@@ -152,7 +151,7 @@ https://github.com/zsh-users/zsh-syntax-highlighting             $ANTIDOTE_HOME/
 ### Redo setup
 
 ```zsh
-% TESTDATA=$PWD/tests/testdata/real
+% TESTDATA=$PRJDIR/tests/testdata/real
 % source ./tests/_setup.zsh
 % t_setup_real
 %

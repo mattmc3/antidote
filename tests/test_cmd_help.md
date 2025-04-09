@@ -4,7 +4,7 @@
 
 ```zsh
 % source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source $PRJDIR/antidote.zsh
 %
 ```
 
@@ -38,7 +38,7 @@ antidote(1) Antidote Manual antidote(1)
 
 `antidote` man pages are in `$MANPATH`
 ```zsh
-% [[ "$MANPATH" == *"$PWD/man:"* ]] || echo 'MANPATH not set properly'
+% [[ "$MANPATH" == *"$PRJDIR/man:"* ]] || echo "MANPATH not set properly"
 %
 ```
 

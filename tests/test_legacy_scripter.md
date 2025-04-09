@@ -4,7 +4,7 @@
 
 ```zsh
 % source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source $PRJDIR/antidote.zsh
 %
 ```
 
@@ -386,7 +386,7 @@ Test empty
 Test that only the first defer block is kept...
 
 ```zsh
-% __antidote_filter_defers $PWD/tests/testdata/.zsh_plugins_multi_defer.zsh | subenv ANTIDOTE_HOME
+% __antidote_filter_defers $PRJDIR/tests/testdata/.zsh_plugins_multi_defer.zsh | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search )
 source $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search/zsh-history-substring-search.plugin.zsh
 if ! (( $+functions[zsh-defer] )); then
@@ -417,7 +417,7 @@ source $ANTIDOTE_HOME/rupa/z/z.sh
 Test that with no defers, nothing is altered...
 
 ```zsh
-% __antidote_filter_defers $PWD/tests/testdata/.zsh_plugins_no_defer.zsh  #=> --file testdata/.zsh_plugins_no_defer.zsh
+% __antidote_filter_defers $PRJDIR/tests/testdata/.zsh_plugins_no_defer.zsh  #=> --file testdata/.zsh_plugins_no_defer.zsh
 %
 ```
 
