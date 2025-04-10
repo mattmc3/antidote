@@ -1,9 +1,9 @@
 #!/bin/zsh
-#normalize_assoc_array() {
+#function print_aarr() {
   emulate -L zsh; setopt local_options
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
-  local input key value array_name
+  local input key val array_name
   local -A assoc_array
 
   # Read from standard input
@@ -12,18 +12,10 @@
       array_name=${match[1]}
       eval "assoc_array=( ${match[2]} )"
 
-      # Print in the new format
-      echo -n "typeset -A $array_name=("
-      for key in "${(@ok)assoc_array}"; do
-        value=${assoc_array[$key]}
-        quoted_value=${(q)value}  # Apply (q) to check if quoting is needed
-
-        # Use quoted_value only if it differs from value
-        [[ $quoted_value != "$value" ]] && value=${(qq)value}
-
-        echo -n " [$key]=$value"
+      for key in ${(ok)assoc_array}; do
+        val="$( print -r -- ${assoc_array[$key]} | subenv ANTIDOTE_HOME )"
+        printf '%-10s: %s\n' $key $val
       done
-      echo " )"
     else
       echo "Error: Input does not match an associative array declaration" >&2
       return 1

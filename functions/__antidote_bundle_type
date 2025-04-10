@@ -37,6 +37,8 @@
       *(:|@)*)     result='?'      ;;
       */*/*)       result=relpath  ;;
       */)          result=relpath  ;;
+      '.'/*)       result=relpath  ;;
+      '..'/*)      result=relpath  ;;
       */*)         result=repo     ;;
       *)           result=word     ;;
     esac
