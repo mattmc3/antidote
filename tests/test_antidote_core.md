@@ -5,7 +5,7 @@ Tests for antidote's most basic functionality.
 fails gracefully when someone tries bash
 
 ```zsh
-% bash -c "source $T_PRJDIR/antidote.zsh"
+% bash -c "source ./antidote.zsh"
 antidote: Expecting zsh. Found 'bash'.
 %
 ```
