@@ -1,15 +1,13 @@
 #!/bin/zsh
 
-### Get the short name of the bundle.
+### Get the name of the bundle.
 #function __antidote_bundle_name {
   emulate -L zsh; setopt local_options $_adote_funcopts
-  local bundle=$1
-  local bundle_type="$(__antidote_bundle_type $bundle)"
-  if [[ "$bundle_type" == (url|sshurl) ]] ; then
-    bundle=${bundle%.git}
-    bundle=${bundle:gs/\:/\/}
-    local parts=(${(ps./.)bundle})
-    print ${parts[-2]}/${parts[-1]}
+  local bundle repo
+  bundle="$1"
+  repo="$(__antidote_bundle_repo $bundle)"
+  if [[ -n "$repo" ]]; then
+    print -r -- "$repo"
   else
     __antidote_scrub_home "$bundle"
   fi

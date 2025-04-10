@@ -16,8 +16,8 @@
   bundle=${${bundle/#[[:space:]]#}/%[[:space:]]#}
   # Skip empty bundle strings
   [[ -z "$bundle" ]] && return
-  # 1st field gets 'ref:' prefix for key:val throughout
-  bundle="ref:${bundle}"
+  # 1st field gets 'name:' prefix for key:val throughout
+  bundle="name:${bundle}"
 
   local -a args=(${(Q)${(z)bundle}})  # Split line into key-value pairs, handling quotes
 
@@ -29,10 +29,10 @@
   done
 
   # Enhance the bundle with metadata fields
-  parsed_bundle[_type]="$(__antidote_bundle_type ${parsed_bundle[ref]})"
-  parsed_bundle[_dir]="$(__antidote_bundle_dir ${parsed_bundle[ref]})"
-  parsed_bundle[_url]="$(__antidote_bundle_url ${parsed_bundle[ref]})"
-  parsed_bundle[_name]="$(__antidote_bundle_name ${parsed_bundle[ref]})"
+  parsed_bundle[_type]="$(__antidote_bundle_type ${parsed_bundle[name]})"
+  parsed_bundle[_dir]="$(__antidote_bundle_dir ${parsed_bundle[name]})"
+  parsed_bundle[_url]="$(__antidote_bundle_url ${parsed_bundle[name]})"
+  parsed_bundle[_repo]="$(__antidote_bundle_repo ${parsed_bundle[name]})"
 
   # Print the resulting parsed bundle associative array
   typeset -g REPLY="$(declare -p parsed_bundle)"

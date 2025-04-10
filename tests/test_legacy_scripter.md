@@ -355,25 +355,6 @@ FAIL: Empty
 %
 ```
 
-## Awk filter repos
-
-The repo parser pulls a list of all git URLs in a bundle file so that we can clone missing ones in parallel.
-
-```zsh
-% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_repos.txt
-__antidote_compat_v1_scripter --kind clone --branch baz foobar/foobar &
-__antidote_compat_v1_scripter --kind clone bar/baz &
-__antidote_compat_v1_scripter --kind clone getantidote/zsh-defer &
-__antidote_compat_v1_scripter --kind clone git@github.com:user/repo &
-__antidote_compat_v1_scripter --kind clone http://github.com/user/repo.git &
-__antidote_compat_v1_scripter --kind clone https://github.com/foo/baz &
-__antidote_compat_v1_scripter --kind clone https://github.com/foo/qux &
-__antidote_compat_v1_scripter --kind clone https://github.com/user/repo &
-__antidote_compat_v1_scripter --kind clone user/repo &
-wait
-%
-```
-
 Test empty
 
 ```zsh

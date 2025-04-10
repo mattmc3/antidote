@@ -4,22 +4,27 @@
 #function __antidote_clone_cmd {
   emulate -L zsh; setopt local_options $_adote_funcopts
 
-  local git_url repo_dest branch bundle_name background
+  local git_url repo_dest branch repo_name background
   local -a git_opts
 
-  git_url="$1"
-  repo_dest="$2"
-  branch="$3"
-  background="${4:-1}"
+  repo_name="$1"
+  git_url="$2"
+  repo_dest="$3"
+  branch="$4"
+  background="${5:-1}"
   git_opts=(--quiet --recurse-submodules --shallow-submodules)
   if [[ -n "$branch" ]]; then
     git_opts+=(--branch "${(q)branch}")
   fi
-  bundle_name="$(__antidote_bundle_name "$git_url")"
+
+  if [[ $git_url != *://* && $git_url != git@*:*/* ]]; then
+    # print -ru2 -- "# Bad git URL provided: $git_url"
+    return 1
+  fi
 
   # We print the "cloning..." message to stderr so that we can redirect stdout to the
   # static file without the noise.
-  print -r -- "print -ru2 -- '# antidote cloning $bundle_name...'"
+  print -r -- "print -ru2 -- '# antidote cloning $repo_name...'"
   print -rn -- "git clone $git_opts ${(q)git_url} ${(q)repo_dest}"
   if [[ "$background" -eq 1 ]]; then
     print -rn -- " &"

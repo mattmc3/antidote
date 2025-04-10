@@ -27,10 +27,10 @@ Test basic foo/bar:
 ```zsh
 % __antidote_parse_bundle 'foo/bar' | print_aarr
 _dir      : $ANTIDOTE_HOME/foo/bar
-_name     : foo/bar
+_repo     : foo/bar
 _type     : repo
 _url      : https://fakegitsite.com/foo/bar
-ref       : foo/bar
+name      : foo/bar
 %
 ```
 
@@ -39,10 +39,10 @@ Test trailing comments work:
 ```zsh
 % __antidote_parse_bundle 'foo/bar  # trailing comment' | print_aarr
 _dir      : $ANTIDOTE_HOME/foo/bar
-_name     : foo/bar
+_repo     : foo/bar
 _type     : repo
 _url      : https://fakegitsite.com/foo/bar
-ref       : foo/bar
+name      : foo/bar
 %
 ```
 
@@ -51,14 +51,14 @@ Test annotations:
 ```zsh
 % __antidote_parse_bundle 'https://fakegitsite.com/foo/bar path:plugins/baz kind:fpath pre:"echo hello world" branch:bark' | print_aarr
 _dir      : $ANTIDOTE_HOME/foo/bar
-_name     : foo/bar
+_repo     : foo/bar
 _type     : url
 _url      : https://fakegitsite.com/foo/bar
 branch    : bark
 kind      : fpath
+name      : https://fakegitsite.com/foo/bar
 path      : plugins/baz
 pre       : echo hello world
-ref       : https://fakegitsite.com/foo/bar
 %
 ```
 
@@ -67,10 +67,10 @@ Test word:
 ```zsh
 % __antidote_parse_bundle 'foo' | print_aarr
 _dir      : foo
-_name     : foo
+_repo     :
 _type     : word
-_url      : https://fakegitsite.com/foo
-ref       : foo
+_url      :
+name      : foo
 %
 ```
 
@@ -79,21 +79,21 @@ Test unknown bundle type:
 ```zsh
 % __antidote_parse_bundle 'foo:bar:baz' | print_aarr
 _dir      : foo:bar:baz
-_name     : foo:bar:baz
+_repo     :
 _type     : ?
-_url      : https://fakegitsite.com/foo:bar:baz
-ref       : foo:bar:baz
+_url      :
+name      : foo:bar:baz
 %
 ```
 
 ```zsh
 % __antidote_parse_bundle 'user/repo foo:bar:baz' | print_aarr
 _dir      : $ANTIDOTE_HOME/user/repo
-_name     : user/repo
+_repo     : user/repo
 _type     : repo
 _url      : https://fakegitsite.com/user/repo
 foo       : bar:baz
-ref       : user/repo
+name      : user/repo
 %
 ```
 

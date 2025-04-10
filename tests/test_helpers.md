@@ -15,16 +15,16 @@ Parse a bundle file to find a list of all missing repos so that we can clone the
 in parallel.
 
 ```zsh
-% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_repos.txt
-__antidote_compat_v1_scripter --kind clone --branch baz foobar/foobar &
-__antidote_compat_v1_scripter --kind clone bar/baz &
-__antidote_compat_v1_scripter --kind clone getantidote/zsh-defer &
-__antidote_compat_v1_scripter --kind clone git@github.com:user/repo &
-__antidote_compat_v1_scripter --kind clone http://github.com/user/repo.git &
-__antidote_compat_v1_scripter --kind clone https://github.com/foo/baz &
-__antidote_compat_v1_scripter --kind clone https://github.com/foo/qux &
-__antidote_compat_v1_scripter --kind clone https://github.com/user/repo &
-__antidote_compat_v1_scripter --kind clone user/repo &
+% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_repos.txt | subenv ANTIDOTE_HOME
+() {
+  emulate -L zsh; setopt local_options no_monitor pipefail
+  print -ru2 -- '# antidote cloning user/repo...'
+  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/user/repo $ANTIDOTE_HOME/user/repo &
+  print -ru2 -- '# antidote cloning bar/baz...'
+  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/bar/baz $ANTIDOTE_HOME/bar/baz &
+  print -ru2 -- '# antidote cloning foobar/foobar...'
+  git clone --quiet --recurse-submodules --shallow-submodules --branch baz https://github.com/foobar/foobar $ANTIDOTE_HOME/foobar/foobar &
+}
 wait
 %
 ```
@@ -120,43 +120,36 @@ word
 %
 ```
 
-## Bundle name
+## Bundle repo
 
 ```zsh
-% __antidote_bundle_name $HOME/.zsh/custom/lib/lib1.zsh
-$HOME/.zsh/custom/lib/lib1.zsh
-% __antidote_bundle_name $HOME/.zsh/plugins/myplugin
-$HOME/.zsh/plugins/myplugin
-% __antidote_bundle_name 'git@github.com:foo/bar.git'
+% __antidote_bundle_repo 'git@github.com:foo/bar.git'
 foo/bar
-% __antidote_bundle_name 'https://github.com/foo/bar'
+% __antidote_bundle_repo 'https://github.com/foo/bar'
 foo/bar
-% __antidote_bundle_name 'https:/bad.com/foo/bar.git'
-https:/bad.com/foo/bar.git
-% __antidote_bundle_name ''
-
-% __antidote_bundle_name /foo/bar
-/foo/bar
-% __antidote_bundle_name /foobar
-/foobar
-% __antidote_bundle_name foobar/
-foobar/
-% __antidote_bundle_name '~/foo/bar'
-$HOME/foo/bar
-% __antidote_bundle_name '$foo/bar'
-$foo/bar
-% __antidote_bundle_name foo/bar
+% __antidote_bundle_repo foo/bar
 foo/bar
-% __antidote_bundle_name bar/baz.git
+% __antidote_bundle_repo bar/baz.git
 bar/baz.git
-% __antidote_bundle_name foo/bar/baz
-foo/bar/baz
-% __antidote_bundle_name foobar
-foobar
-% __antidote_bundle_name foo bar baz
-foo
-% __antidote_bundle_name 'foo bar baz'
-foo bar baz
+%
+```
+
+Non-repos
+
+```zsh
+% __antidote_bundle_repo $HOME/.zsh/custom/lib/lib1.zsh #=> --exit 1
+% __antidote_bundle_repo $HOME/.zsh/plugins/myplugin #=> --exit 1
+% __antidote_bundle_repo 'https:/bad.com/foo/bar.git' #=> --exit 1
+% __antidote_bundle_repo '' #=> --exit 1
+% __antidote_bundle_repo /foo/bar #=> --exit 1
+% __antidote_bundle_repo /foobar #=> --exit 1
+% __antidote_bundle_repo foobar/ #=> --exit 1
+% __antidote_bundle_repo '~/foo/bar' #=> --exit 1
+% __antidote_bundle_repo '$foo/bar' #=> --exit 1
+% __antidote_bundle_repo foo/bar/baz #=> --exit 1
+% __antidote_bundle_repo foobar #=> --exit 1
+% __antidote_bundle_repo foo bar baz #=> --exit 1
+% __antidote_bundle_repo 'foo bar baz' #=> --exit 1
 %
 ```
 
@@ -265,54 +258,54 @@ c
 Basic usage:
 
 ```zsh
-% __antidote_clone_cmd foo/bar $ANTIDOTE_HOME/foo/bar | subenv ANTIDOTE_HOME
+% __antidote_clone_cmd foo/bar https://fakegitsite.com/foo/bar $ANTIDOTE_HOME/foo/bar | subenv ANTIDOTE_HOME
 print -ru2 -- '# antidote cloning foo/bar...'
-git clone --quiet --recurse-submodules --shallow-submodules foo/bar $ANTIDOTE_HOME/foo/bar &
+git clone --quiet --recurse-submodules --shallow-submodules https://fakegitsite.com/foo/bar $ANTIDOTE_HOME/foo/bar &
 %
 ```
 
 Clone a branch:
 
 ```zsh
-% __antidote_clone_cmd bar/baz $ANTIDOTE_HOME/bar/baz foo | subenv ANTIDOTE_HOME
+% __antidote_clone_cmd bar/baz https://fakegitsite.com/bar/baz $ANTIDOTE_HOME/bar/baz foo | subenv ANTIDOTE_HOME
 print -ru2 -- '# antidote cloning bar/baz...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch foo bar/baz $ANTIDOTE_HOME/bar/baz &
+git clone --quiet --recurse-submodules --shallow-submodules --branch foo https://fakegitsite.com/bar/baz $ANTIDOTE_HOME/bar/baz &
 %
 ```
 
 Funky strings get escaped:
 
 ```zsh
-% __antidote_clone_cmd foo/bar "$ANTIDOTE_HOME/foo bar" "baz's:qux" | subenv ANTIDOTE_HOME
+% __antidote_clone_cmd foo/bar https://git.com/a/b "$ANTIDOTE_HOME/foo bar" "baz's:qux" | subenv ANTIDOTE_HOME
 print -ru2 -- '# antidote cloning foo/bar...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch baz\'s:qux foo/bar $ANTIDOTE_HOME/foo\ bar &
+git clone --quiet --recurse-submodules --shallow-submodules --branch baz\'s:qux https://git.com/a/b $ANTIDOTE_HOME/foo\ bar &
 %
 ```
 
 Test background flag:
 
 ```zsh
-% __antidote_clone_cmd a b c 1
+% __antidote_clone_cmd a https://git.com/b c d 1
 print -ru2 -- '# antidote cloning a...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch c a b &
-% __antidote_clone_cmd a b c 0
+git clone --quiet --recurse-submodules --shallow-submodules --branch d https://git.com/b c &
+% __antidote_clone_cmd a https://git.com/b c d 0
 print -ru2 -- '# antidote cloning a...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch c a b
+git clone --quiet --recurse-submodules --shallow-submodules --branch d https://git.com/b c
 %
 ```
 
 Other checks:
 
 ```zsh
-% __antidote_clone_cmd a b c
+% __antidote_clone_cmd a https://git.com/b c d
 print -ru2 -- '# antidote cloning a...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch c a b &
-% clone_cmd_array=( ${(@f)"$(__antidote_clone_cmd mygiturl mydir mybranch 2>&1)"} )
+git clone --quiet --recurse-submodules --shallow-submodules --branch d https://git.com/b c &
+% clone_cmd_array=( ${(@f)"$(__antidote_clone_cmd repo https://mygiturl.com mydir mybranch 2>&1)"} )
 % echo ${#clone_cmd_array}
 2
 % print -l -- $clone_cmd_array
-print -ru2 -- '# antidote cloning mygiturl...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch mybranch mygiturl mydir &
+print -ru2 -- '# antidote cloning repo...'
+git clone --quiet --recurse-submodules --shallow-submodules --branch mybranch https://mygiturl.com mydir &
 %
 ```
 
