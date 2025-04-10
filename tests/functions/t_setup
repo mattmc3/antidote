@@ -37,6 +37,9 @@
     cp -rf $p $T_TEMPDIR
   done
 
+  # put testdata into position
+  cp -rf -- $T_PRJDIR/tests/testdata $T_TEMPDIR/testdata
+
   # rename .mockgit to .git
   local mockdir
   for mockdir in $T_TEMPDIR/**/.mock*; do
