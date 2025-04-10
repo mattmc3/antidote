@@ -39,7 +39,7 @@
     printf '%s\n' $zcompile_script
   fi
 
-  # __antidote_legacy_scripter also clones, but this way we can do it all at once in parallel!
+  # __antidote_compat_v1_scripter also clones, but this way we can do it all at once in parallel!
   if (( $#bundles > 1 )); then
     source <(printf '%s\n' $bundles | __antidote_bulk_clone)
   fi

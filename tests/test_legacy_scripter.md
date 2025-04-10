@@ -1,4 +1,4 @@
-# __antidote_legacy_scripter tests
+# __antidote_compat_v1_scripter tests
 
 ## Setup
 
@@ -13,31 +13,31 @@
 ### Fails
 
 ```zsh
-% __antidote_legacy_scripter  #=> --exit 1
+% __antidote_compat_v1_scripter  #=> --exit 1
 antidote: error: bundle argument expected
 %
 ```
 
 ### Arg style
 
-`__antidote_legacy_scripter` accepts '--arg val', '--arg:val', '--arg=val' syntax
+`__antidote_compat_v1_scripter` accepts '--arg val', '--arg:val', '--arg=val' syntax
 
 ```zsh
-% __antidote_legacy_scripter --kind zsh foo/bar  #=> --exit 0
-% __antidote_legacy_scripter --kind:zsh foo/bar  #=> --exit 0
-% __antidote_legacy_scripter --kind=zsh foo/bar  #=> --exit 0
-% __antidote_legacy_scripter --kind+zsh foo/bar  #=> --exit 1
+% __antidote_compat_v1_scripter --kind zsh foo/bar  #=> --exit 0
+% __antidote_compat_v1_scripter --kind:zsh foo/bar  #=> --exit 0
+% __antidote_compat_v1_scripter --kind=zsh foo/bar  #=> --exit 0
+% __antidote_compat_v1_scripter --kind+zsh foo/bar  #=> --exit 1
 %
 ```
 
 ### Scripting types
 
-`__antidote_legacy_scripter` works with local files and directories, as well as remote repos.
+`__antidote_compat_v1_scripter` works with local files and directories, as well as remote repos.
 
 Script a file:
 
 ```zsh
-% __antidote_legacy_scripter $ZDOTDIR/aliases.zsh | subenv ZDOTDIR
+% __antidote_compat_v1_scripter $ZDOTDIR/aliases.zsh | subenv ZDOTDIR
 source $ZDOTDIR/aliases.zsh
 %
 ```
@@ -45,7 +45,7 @@ source $ZDOTDIR/aliases.zsh
 Script a lib directory:
 
 ```zsh
-% __antidote_legacy_scripter $ZDOTDIR/custom/lib | subenv ZDOTDIR
+% __antidote_compat_v1_scripter $ZDOTDIR/custom/lib | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/custom/lib )
 source $ZDOTDIR/custom/lib/lib1.zsh
 source $ZDOTDIR/custom/lib/lib2.zsh
@@ -55,7 +55,7 @@ source $ZDOTDIR/custom/lib/lib2.zsh
 Script a plugin directory:
 
 ```zsh
-% __antidote_legacy_scripter $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
+% __antidote_compat_v1_scripter $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/custom/plugins/myplugin )
 source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 %
@@ -68,14 +68,14 @@ source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 Nothing happens when the plugin already exists.
 
 ```zsh
-% __antidote_legacy_scripter --kind clone foo/bar
+% __antidote_compat_v1_scripter --kind clone foo/bar
 %
 ```
 
 Clone a missing plugin.
 
 ```zsh
-% __antidote_legacy_scripter --kind clone bar/foo
+% __antidote_compat_v1_scripter --kind clone bar/foo
 # antidote cloning bar/foo...
 %
 ```
@@ -83,7 +83,7 @@ Clone a missing plugin.
 ### kind:zsh
 
 ```zsh
-% __antidote_legacy_scripter --kind zsh foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --kind zsh foo/bar | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/foo/bar )
 source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
@@ -92,7 +92,7 @@ source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 ### kind:path
 
 ```zsh
-% __antidote_legacy_scripter --kind path foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --kind path foo/bar | subenv ANTIDOTE_HOME
 export PATH="$ANTIDOTE_HOME/foo/bar:$PATH"
 %
 ```
@@ -100,7 +100,7 @@ export PATH="$ANTIDOTE_HOME/foo/bar:$PATH"
 ### kind:fpath
 
 ```zsh
-% __antidote_legacy_scripter --kind fpath foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --kind fpath foo/bar | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/foo/bar )
 %
 ```
@@ -108,7 +108,7 @@ fpath+=( $ANTIDOTE_HOME/foo/bar )
 ### kind:autoload
 
 ```zsh
-% __antidote_legacy_scripter --kind autoload $ZDOTDIR/functions | subenv ZDOTDIR
+% __antidote_compat_v1_scripter --kind autoload $ZDOTDIR/functions | subenv ZDOTDIR
 fpath+=( $ZDOTDIR/functions )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
 %
@@ -117,7 +117,7 @@ builtin autoload -Uz $fpath[-1]/*(N.:t)
 ### kind:defer
 
 ```zsh
-% __antidote_legacy_scripter --kind defer foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
   source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
@@ -132,7 +132,7 @@ Test defer zstyle settings
 ```zsh
 % zstyle ':antidote:bundle:*' defer-options '-a'
 % zstyle ':antidote:bundle:foo/bar' defer-options '-p'
-% __antidote_legacy_scripter --kind defer foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
   source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
@@ -141,7 +141,7 @@ fpath+=( $ANTIDOTE_HOME/foo/bar )
 zsh-defer -p source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 % # Uses different defer options due to zstyle matching
-% __antidote_legacy_scripter --kind defer foo/baz | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --kind defer foo/baz | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
   source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
@@ -156,7 +156,7 @@ zsh-defer -a source $ANTIDOTE_HOME/foo/baz/baz.plugin.zsh
 ### path:plugin-dir
 
 ```zsh
-% __antidote_legacy_scripter --path plugins/extract ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --path plugins/extract ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/extract )
 source $ANTIDOTE_HOME/ohmy/ohmy/plugins/extract/extract.plugin.zsh
 %
@@ -165,7 +165,7 @@ source $ANTIDOTE_HOME/ohmy/ohmy/plugins/extract/extract.plugin.zsh
 ### path:file
 
 ```zsh
-% __antidote_legacy_scripter --path lib/lib1.zsh ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --path lib/lib1.zsh ohmy/ohmy | subenv ANTIDOTE_HOME
 source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh
 %
 ```
@@ -173,7 +173,7 @@ source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh
 ### path:lib-dir
 
 ```zsh
-% __antidote_legacy_scripter --path lib ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --path lib ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/lib )
 source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh
 source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib2.zsh
@@ -184,7 +184,7 @@ source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib3.zsh
 ### path:theme
 
 ```zsh
-% __antidote_legacy_scripter --path themes/pretty.zsh-theme ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --path themes/pretty.zsh-theme ohmy/ohmy | subenv ANTIDOTE_HOME
 source $ANTIDOTE_HOME/ohmy/ohmy/themes/pretty.zsh-theme
 %
 ```
@@ -192,7 +192,7 @@ source $ANTIDOTE_HOME/ohmy/ohmy/themes/pretty.zsh-theme
 ### conditional:testfunc
 
 ```zsh
-% __antidote_legacy_scripter --conditional is-macos --path plugins/macos ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --conditional is-macos --path plugins/macos ohmy/ohmy | subenv ANTIDOTE_HOME
 if is-macos; then
   fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos )
   source $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh
@@ -203,7 +203,7 @@ fi
 ### autoload:funcdir
 
 ```zsh
-% __antidote_legacy_scripter --path plugins/macos --autoload functions ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --path plugins/macos --autoload functions ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/functions )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
 fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos )
@@ -215,15 +215,15 @@ source $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh
 
 ```zsh
 % # append
-% __antidote_legacy_scripter --fpath-rule append --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --fpath-rule append --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker )
 source $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh
 % # prepend
-% __antidote_legacy_scripter --fpath-rule prepend --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --fpath-rule prepend --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
 fpath=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker $fpath )
 source $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh
 % # whoops
-% __antidote_legacy_scripter --fpath-rule foobar --path plugins/docker ohmy/ohmy 2>&1
+% __antidote_compat_v1_scripter --fpath-rule foobar --path plugins/docker ohmy/ohmy 2>&1
 antidote: error: unexpected fpath rule: 'foobar'
 %
 ```
@@ -232,12 +232,12 @@ antidote: error: unexpected fpath rule: 'foobar'
 
 ```zsh
 % # pre
-% __antidote_legacy_scripter --pre run_before foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --pre run_before foo/bar | subenv ANTIDOTE_HOME
 run_before
 fpath+=( $ANTIDOTE_HOME/foo/bar )
 source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 % # post
-% __antidote_legacy_scripter --post run_after foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --post run_after foo/bar | subenv ANTIDOTE_HOME
 fpath+=( $ANTIDOTE_HOME/foo/bar )
 source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 run_after
@@ -246,7 +246,7 @@ run_after
 
 If a plugin is deferred, so is its post event
 ```zsh
-% __antidote_legacy_scripter --pre pre-event --post post-event --kind defer foo/bar | subenv ANTIDOTE_HOME
+% __antidote_compat_v1_scripter --pre pre-event --post post-event --kind defer foo/bar | subenv ANTIDOTE_HOME
 pre-event
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
@@ -265,8 +265,8 @@ zsh-defer post-event
 setup
 
 ```zsh
-% # load __antidote_initfiles from private funcs in __antidote_legacy_scripter
-% __antidote_legacy_scripter -h &>/dev/null
+% # load __antidote_initfiles from private funcs in __antidote_compat_v1_scripter
+% __antidote_compat_v1_scripter -h &>/dev/null
 % PLUGINDIR=$T_TEMPDIR/initfiles/myplugin
 % mkdir -p $PLUGINDIR
 % touch $PLUGINDIR/myplugin.plugin.zsh
@@ -361,15 +361,15 @@ The repo parser pulls a list of all git URLs in a bundle file so that we can clo
 
 ```zsh
 % __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_repos.txt
-__antidote_legacy_scripter --kind clone --branch baz foobar/foobar &
-__antidote_legacy_scripter --kind clone bar/baz &
-__antidote_legacy_scripter --kind clone getantidote/zsh-defer &
-__antidote_legacy_scripter --kind clone git@github.com:user/repo &
-__antidote_legacy_scripter --kind clone http://github.com/user/repo.git &
-__antidote_legacy_scripter --kind clone https://github.com/foo/baz &
-__antidote_legacy_scripter --kind clone https://github.com/foo/qux &
-__antidote_legacy_scripter --kind clone https://github.com/user/repo &
-__antidote_legacy_scripter --kind clone user/repo &
+__antidote_compat_v1_scripter --kind clone --branch baz foobar/foobar &
+__antidote_compat_v1_scripter --kind clone bar/baz &
+__antidote_compat_v1_scripter --kind clone getantidote/zsh-defer &
+__antidote_compat_v1_scripter --kind clone git@github.com:user/repo &
+__antidote_compat_v1_scripter --kind clone http://github.com/user/repo.git &
+__antidote_compat_v1_scripter --kind clone https://github.com/foo/baz &
+__antidote_compat_v1_scripter --kind clone https://github.com/foo/qux &
+__antidote_compat_v1_scripter --kind clone https://github.com/user/repo &
+__antidote_compat_v1_scripter --kind clone user/repo &
 wait
 %
 ```
@@ -427,19 +427,19 @@ Parse a simple repo:
 
 ```zsh
 % echo foo/bar | __antidote_script_bundles
-__antidote_legacy_scripter foo/bar
+__antidote_compat_v1_scripter foo/bar
 %
 ```
 
 ```zsh
 % echo 'https://github.com/foo/bar path:lib branch:dev' | __antidote_script_bundles
-__antidote_legacy_scripter --path lib --branch dev https://github.com/foo/bar
+__antidote_compat_v1_scripter --path lib --branch dev https://github.com/foo/bar
 % echo 'git@github.com:foo/bar.git kind:clone branch:main' | __antidote_script_bundles
-__antidote_legacy_scripter --kind clone --branch main git@github.com:foo/bar.git
+__antidote_compat_v1_scripter --kind clone --branch main git@github.com:foo/bar.git
 % echo 'foo/bar kind:fpath abc:xyz' | __antidote_script_bundles
-__antidote_legacy_scripter --kind fpath --abc xyz foo/bar
+__antidote_compat_v1_scripter --kind fpath --abc xyz foo/bar
 % echo 'foo/bar path:plugins/myplugin kind:path  # trailing comment' | __antidote_script_bundles
-__antidote_legacy_scripter --path plugins/myplugin --kind path foo/bar
+__antidote_compat_v1_scripter --path plugins/myplugin --kind path foo/bar
 %
 ```
 
@@ -448,26 +448,26 @@ Handle funky whitespace
 ```zsh
 % cr=$'\r'; lf=$'\n'; tab=$'\t'
 % echo "foo/bar${tab}kind:path${cr}${lf}" | __antidote_script_bundles
-__antidote_legacy_scripter --kind path foo/bar
+__antidote_compat_v1_scripter --kind path foo/bar
 %
 ```
 
-The bundle parser is an awk script that turns the bundle DSL into __antidote_legacy_scripter statements.
+The bundle parser is an awk script that turns the bundle DSL into __antidote_compat_v1_scripter statements.
 
 ```zsh
 % __antidote_script_bundles $ZDOTDIR/.zsh_plugins.txt
-__antidote_legacy_scripter ~/foo/bar
-__antidote_legacy_scripter --path plugins/myplugin \$ZSH_CUSTOM
-__antidote_legacy_scripter foo/bar
-__antidote_legacy_scripter git@github.com:foo/qux.git
-__antidote_legacy_scripter --kind clone getantidote/zsh-defer
-__antidote_legacy_scripter --kind zsh foo/bar
-__antidote_legacy_scripter --kind fpath foo/bar
-__antidote_legacy_scripter --kind path foo/bar
-__antidote_legacy_scripter --path lib ohmy/ohmy
-__antidote_legacy_scripter --path plugins/extract ohmy/ohmy
-__antidote_legacy_scripter --path plugins/magic-enter --kind defer ohmy/ohmy
-__antidote_legacy_scripter --path custom/themes/pretty.zsh-theme ohmy/ohmy
+__antidote_compat_v1_scripter ~/foo/bar
+__antidote_compat_v1_scripter --path plugins/myplugin \$ZSH_CUSTOM
+__antidote_compat_v1_scripter foo/bar
+__antidote_compat_v1_scripter git@github.com:foo/qux.git
+__antidote_compat_v1_scripter --kind clone getantidote/zsh-defer
+__antidote_compat_v1_scripter --kind zsh foo/bar
+__antidote_compat_v1_scripter --kind fpath foo/bar
+__antidote_compat_v1_scripter --kind path foo/bar
+__antidote_compat_v1_scripter --path lib ohmy/ohmy
+__antidote_compat_v1_scripter --path plugins/extract ohmy/ohmy
+__antidote_compat_v1_scripter --path plugins/magic-enter --kind defer ohmy/ohmy
+__antidote_compat_v1_scripter --path custom/themes/pretty.zsh-theme ohmy/ohmy
 %
 ```
 

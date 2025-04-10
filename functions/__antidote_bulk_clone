@@ -38,7 +38,7 @@
 
     # Clone zsh-defer if needed by the bundle
     if [[ "$parsed_bundle[kind]" == "defer" ]]; then
-      script+=("__antidote_legacy_scripter $script_opts $zsh_defer_bundle &")
+      script+=("__antidote_compat_v1_scripter $script_opts $zsh_defer_bundle &")
     fi
 
     # Add branch to script options
@@ -46,7 +46,7 @@
       script_opts+=(--branch $parsed_bundle[branch])
     fi
     #script+=("$parsed_bundle_str")
-    script+=("__antidote_legacy_scripter $script_opts ${parsed_bundle[ref]} &")
+    script+=("__antidote_compat_v1_scripter $script_opts ${parsed_bundle[ref]} &")
   done
 
   if (( $#script )); then

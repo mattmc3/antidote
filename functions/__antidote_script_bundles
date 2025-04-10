@@ -26,10 +26,10 @@
       next
     }
 
-    # move flags to front and call __antidote_legacy_scripter
+    # move flags to front and call __antidote_compat_v1_scripter
     {
       sub(/ #.*$/,"",$0)
-      printf "__antidote_legacy_scripter"
+      printf "__antidote_compat_v1_scripter"
       for (i=2; i<=NF; i++) {
         sub(/^/,"--",$i)
         sub(/:/," ",$i)

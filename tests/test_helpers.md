@@ -16,15 +16,15 @@ in parallel.
 
 ```zsh
 % __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_repos.txt
-__antidote_legacy_scripter --kind clone --branch baz foobar/foobar &
-__antidote_legacy_scripter --kind clone bar/baz &
-__antidote_legacy_scripter --kind clone getantidote/zsh-defer &
-__antidote_legacy_scripter --kind clone git@github.com:user/repo &
-__antidote_legacy_scripter --kind clone http://github.com/user/repo.git &
-__antidote_legacy_scripter --kind clone https://github.com/foo/baz &
-__antidote_legacy_scripter --kind clone https://github.com/foo/qux &
-__antidote_legacy_scripter --kind clone https://github.com/user/repo &
-__antidote_legacy_scripter --kind clone user/repo &
+__antidote_compat_v1_scripter --kind clone --branch baz foobar/foobar &
+__antidote_compat_v1_scripter --kind clone bar/baz &
+__antidote_compat_v1_scripter --kind clone getantidote/zsh-defer &
+__antidote_compat_v1_scripter --kind clone git@github.com:user/repo &
+__antidote_compat_v1_scripter --kind clone http://github.com/user/repo.git &
+__antidote_compat_v1_scripter --kind clone https://github.com/foo/baz &
+__antidote_compat_v1_scripter --kind clone https://github.com/foo/qux &
+__antidote_compat_v1_scripter --kind clone https://github.com/user/repo &
+__antidote_compat_v1_scripter --kind clone user/repo &
 wait
 %
 ```
