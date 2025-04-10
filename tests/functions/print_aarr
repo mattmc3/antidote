@@ -14,7 +14,11 @@
 
       for key in ${(ok)assoc_array}; do
         val="$( print -r -- ${assoc_array[$key]} | subenv ANTIDOTE_HOME )"
-        printf '%-10s: %s\n' $key $val
+        if [[ -z "$val" ]]; then
+          printf '%-10s:\n' $key
+        else
+          printf '%-10s: %s\n' $key $val
+        fi
       done
     else
       echo "Error: Input does not match an associative array declaration" >&2
