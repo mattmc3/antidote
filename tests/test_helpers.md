@@ -15,7 +15,22 @@ Parse a bundle file to find a list of all missing repos so that we can clone the
 in parallel.
 
 ```zsh
-% __antidote_parse_bundle < $T_TESTDATA/.zsh_plugins_repos.txt | subenv ANTIDOTE_HOME
+% __antidote_parse_bundles < $T_TESTDATA/.zsh_plugins_repos.txt | subenv ANTIDOTE_HOME HOME
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=repo [_url]=https://github.com/user/repo [name]=user/repo )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=https://github.com/user/repo [name]=https://github.com/user/repo )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=http://github.com/user/repo.git [name]=http://github.com/user/repo.git )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=https://github.com/user/repo [name]=https://github.com/user/repo )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=sshurl [_url]=git@github.com:user/repo [name]=git@github.com:user/repo )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/bar/baz [_repo]=bar/baz [_type]=repo [_url]=https://github.com/bar/baz [name]=bar/baz [path]=plugins/qux )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/bar/baz [_repo]=bar/baz [_type]=repo [_url]=https://github.com/bar/baz [name]=bar/baz [path]=themes/qux.zsh-theme )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/foobar/foobar [_repo]=foobar/foobar [_type]=repo [_url]=https://github.com/foobar/foobar [branch]=baz [name]=foobar/foobar )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/foo/qux [_repo]=foo/qux [_type]=url [_url]=https://github.com/foo/qux [kind]=defer [name]=https://github.com/foo/qux )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/foo/baz [_repo]=foo/baz [_type]=url [_url]=https://github.com/foo/baz [kind]=defer [name]=https://github.com/foo/baz )
+typeset -A parsed_bundle=( [_dir]=foo [_repo]='' [_type]=word [_url]='' [name]=foo )
+typeset -A parsed_bundle=( [_dir]=$HOME/.zplugins/bar [_repo]='' [_type]=path [_url]='' [name]='~/.zplugins/bar' )
+typeset -A parsed_bundle=( [_dir]='$ZDOTDIR/plugins/bar' [_repo]='' [_type]=path [_url]='' [name]='$ZDOTDIR/plugins/bar' )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=repo [_url]=https://github.com/user/repo [name]=user/repo )
+typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=https://github.com/user/repo [name]=https://github.com/user/repo )
 %
 ```
 

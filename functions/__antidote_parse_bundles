@@ -1,0 +1,20 @@
+#!/bin/zsh
+
+### Parse an antidote bundle file.
+# Example:
+#   __antidote_parse_bundles < .zsh_plugins.txt
+#function __antidote_parse_bundles {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+
+  # Declare vars
+  local bundle
+  local -a bundles
+
+  # get piped/passed bundles
+  bundles=( "${(@f)$(__antidote_collect_input "$@")}" )
+  (( $#bundles )) || return 1
+
+  for bundle in $bundles; do
+    __antidote_parse_bundle "$bundle"
+  done
+#}

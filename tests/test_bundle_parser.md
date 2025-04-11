@@ -97,6 +97,14 @@ name      : user/repo
 %
 ```
 
+Test different bundle name:
+
+```zsh
+% __antidote_parse_bundle 'foo/bar' 'mybundle' | subenv ANTIDOTE_HOME
+typeset -A mybundle=( [_dir]=$ANTIDOTE_HOME/foo/bar [_repo]=foo/bar [_type]=repo [_url]=https://fakegitsite.com/foo/bar [name]=foo/bar )
+%
+```
+
 Test path bundle types
 
 ```zsh
@@ -158,8 +166,6 @@ Test word bundle types
 
 ```zsh
 % eval $(__antidote_parse_bundle foobar); echo $parsed_bundle[_type]
-word
-% eval $(__antidote_parse_bundle foo bar baz); echo $parsed_bundle[_type]
 word
 % eval $(__antidote_parse_bundle 'foo bar baz'); echo $parsed_bundle[_type]
 word

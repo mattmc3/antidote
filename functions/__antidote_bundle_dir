@@ -15,10 +15,13 @@
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
   local bundle="$1"
+  if [[ $bundle == '~/'* ]]; then
+    bundle=$HOME/${bundle#\~\/}
+  fi
   local bundle_type="$(__antidote_bundle_type $bundle)"
 
   # handle repo bundle paths
-  if [[ "$bundle_type" == (repo|url|sshurl) ]] && [[ ! -e "$bundle_path" ]]; then
+  if [[ "$bundle_type" == (repo|url|sshurl) ]]; then
     if zstyle -t ':antidote:compatibility-mode' 'antibody'; then
       # sanitize URL for safe use as a dir name
       # ex: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
@@ -40,9 +43,11 @@
         print $(antidote-home)/$bundle
       fi
     fi
-  elif [[ -f "$bundle" ]]; then
-    print ${bundle:A:h}
   else
-    print ${bundle}
+    if [[ -f "$bundle" ]]; then
+      print ${bundle:A:h}
+    else
+      print ${bundle}
+    fi
   fi
 #}

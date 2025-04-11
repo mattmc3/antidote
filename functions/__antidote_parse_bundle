@@ -6,10 +6,12 @@
 #   typeset -A parsed_bundle=( [kind]=fpath [path]=plugins/baz [pre]=myprecmd [name]=foo/bar )
 #function __antidote_parse_bundle {
   emulate -L zsh; setopt local_options $_adote_funcopts
-  local bundle pair key value
+  local bundle varname pair key value declare_output
   local -A parsed_bundle
 
   bundle="$1"
+  varname="${2:-parsed_bundle}"
+
   # Remove anything after the first '#'
   bundle=${bundle%%\#*}
   # Trim spaces
@@ -35,6 +37,7 @@
   parsed_bundle[_repo]="$(__antidote_bundle_repo ${parsed_bundle[name]})"
 
   # Print the resulting parsed bundle associative array
-  typeset -g REPLY="$(declare -p parsed_bundle)"
+  declare_output="$(declare -p parsed_bundle)"
+  typeset -g REPLY="typeset -A ${varname}=${declare_output#*=}"
   print -r -- "$REPLY"
 #}

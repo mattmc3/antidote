@@ -5,7 +5,7 @@
   emulate -L zsh; setopt local_options $_adote_funcopts
 
   # Declare vars
-  local bundle parsed_bundle_str zsh_defer_bundle err
+  local bundle parsed_bundle_str zsh_defer_bundle parsed_zsh_defer_bundle_str err
   local -a bundles cloning
   local -aU clone_cmds
   local -A parsed_bundle parsed_zsh_defer_bundle
@@ -17,7 +17,8 @@
   # Allow the user to define zsh-defer repo in case they want to fork it.
   zstyle -s ':antidote:defer' bundle 'zsh_defer_bundle' \
     || zsh_defer_bundle='romkatv/zsh-defer'
-  parsed_zsh_defer_bundle=$(__antidote_parse_bundle "$zsh_defer_bundle")
+  parsed_zsh_defer_bundle_str=$(__antidote_parse_bundle "$zsh_defer_bundle" "parsed_zsh_defer_bundle")
+  eval "$parsed_zsh_defer_bundle_str"
 
   # Loop through the bundles and parse them into an assoc_arr. Use that to determine
   # which repos need cloned, and generate the script to clone them
