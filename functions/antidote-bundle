@@ -20,7 +20,7 @@
 
   # handle bundles as newline delimited arg strings,
   # or as <redirected or piped| input
-  local -a bundles=("${(@f)$(__antidote_collect_input "$@")}")
+  local -a bundles=("${(@f)$(__antidote_argcollector "$@")}")
   (( $#bundles )) || return 1
 
   # output static file compilation

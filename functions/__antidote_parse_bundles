@@ -11,7 +11,7 @@
   local -a bundles
 
   # get piped/passed bundles
-  bundles=( "${(@f)$(__antidote_collect_input "$@")}" )
+  bundles=( "${(@f)$(__antidote_argcollector "$@")}" )
   (( $#bundles )) || return 1
 
   for bundle in $bundles; do

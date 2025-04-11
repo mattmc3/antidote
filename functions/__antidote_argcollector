@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ### Collect <redirected or piped| input
-#function __antidote_collect_input {
+#function __antidote_argcollector {
   emulate -L zsh; setopt local_options $_adote_funcopts
   local -a input=()
   if (( $# > 0 )); then

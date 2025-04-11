@@ -11,7 +11,7 @@
   local -A parsed_bundle parsed_zsh_defer_bundle
 
   # get piped/passed bundles
-  bundles=( "${(@f)$(__antidote_collect_input "$@")}" )
+  bundles=( "${(@f)$(__antidote_argcollector "$@")}" )
   (( $#bundles )) || return 1
 
   # Allow the user to define zsh-defer repo in case they want to fork it.

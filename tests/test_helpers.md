@@ -263,33 +263,6 @@ git@github.com:sindresorhus/pure.git
 %
 ```
 
-## Collect input
-
-If we \<redirect input it should output that.
-
-```zsh
-% __antidote_collect_input <$ZDOTDIR/.zsh_plugins.txt #=> --file tmp_home/.zsh/.zsh_plugins.txt
-%
-```
-
-If we \|pipe input it should output that.
-
-```zsh
-% cat $ZDOTDIR/.zsh_plugins.txt | __antidote_collect_input #=> --file tmp_home/.zsh/.zsh_plugins.txt
-%
-```
-
-If we pass argument it should output that.
-
-```zsh
-% __antidote_collect_input 'a\nb\nc\n'
-a
-b
-c
-
-%
-```
-
 ## Clone command
 
 Basic usage:

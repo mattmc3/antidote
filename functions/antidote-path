@@ -15,7 +15,7 @@
     return
   fi
 
-  local -a bundles=("${(@f)$(__antidote_collect_input "$@")}")
+  local -a bundles=("${(@f)$(__antidote_argcollector "$@")}")
   if (( $#bundles == 0 )); then
     print -ru2 "antidote: error: required argument 'bundle' not provided, try --help"
     return 1
