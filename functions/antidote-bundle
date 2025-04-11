@@ -39,9 +39,9 @@
     printf '%s\n' $zcompile_script
   fi
 
-  # __antidote_compat_v1_scripter also clones, but this way we can do it all at once in parallel!
-  if (( $#bundles > 1 )); then
-    source <(printf '%s\n' $bundles | __antidote_bulk_clone)
+  # Clone anything that's missing.
+  if (( $#bundles > 0 )); then
+    source <(printf '%s\n' $bundles | __antidote_cloner)
   fi
 
   # generate bundle script

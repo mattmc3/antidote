@@ -35,7 +35,7 @@ typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_t
 ```
 
 ```zsh
-% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_repos.txt | subenv ANTIDOTE_HOME
+% __antidote_cloner < $T_TESTDATA/.zsh_plugins_repos.txt | subenv ANTIDOTE_HOME
 () {
   emulate -L zsh; setopt local_options no_monitor pipefail
   print -ru2 -- '# antidote cloning user/repo...'
@@ -69,7 +69,7 @@ antidote-script --kind clone user/repo &
 Test empty
 
 ```zsh
-% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_empty.txt
+% __antidote_cloner < $T_TESTDATA/.zsh_plugins_empty.txt
 %
 ```
 

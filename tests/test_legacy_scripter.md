@@ -65,18 +65,10 @@ source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
 
 ### kind:clone
 
-Nothing happens when the plugin already exists.
+Nothing happens when the plugin was just for cloning.
 
 ```zsh
 % __antidote_compat_v1_scripter --kind clone foo/bar
-%
-```
-
-Clone a missing plugin.
-
-```zsh
-% __antidote_compat_v1_scripter --kind clone bar/foo
-# antidote cloning bar/foo...
 %
 ```
 
@@ -358,7 +350,7 @@ FAIL: Empty
 Test empty
 
 ```zsh
-% __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_empty.txt
+% __antidote_cloner < $T_TESTDATA/.zsh_plugins_empty.txt
 %
 ```
 

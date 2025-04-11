@@ -1,7 +1,7 @@
 #!/bin/zsh
 
-### Generate background clone commands
-#function __antidote_bulk_clone {
+### Generate clone commands that run in the background
+#function __antidote_cloner {
   emulate -L zsh; setopt local_options $_adote_funcopts
 
   # Declare vars
