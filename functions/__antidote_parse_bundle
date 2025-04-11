@@ -6,7 +6,9 @@
 #   typeset -A parsed_bundle=( [kind]=fpath [path]=plugins/baz [pre]=myprecmd [name]=foo/bar )
 #function __antidote_parse_bundle {
   emulate -L zsh; setopt local_options $_adote_funcopts
-  local bundle varname pair key value declare_output
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+  local bundle varname pair key value bundle_repr
+  local -a args
   local -A parsed_bundle
 
   bundle="$1"
@@ -18,26 +20,36 @@
   bundle=${${bundle/#[[:space:]]#}/%[[:space:]]#}
   # Skip empty bundle strings
   [[ -z "$bundle" ]] && return
-  # 1st field gets 'name:' prefix for key:val throughout
+  # 1st field gets a 'name:' prefix so we can treat everything as key:val pairs
   bundle="name:${bundle}"
 
-  local -a args=(${(Q)${(z)bundle}})  # Split line into key-value pairs, handling quotes
-
+  # Split line into key-value pairs with quoting
+  args=(${(Q)${(z)bundle}})
   for pair in "${args[@]}"; do
     key=${pair%%:*}   # Extract key (before first ':')
     value=${pair#*:}  # Extract value (after first ':')
-
     parsed_bundle[$key]=$value
   done
 
   # Enhance the bundle with metadata fields
   parsed_bundle[_type]="$(__antidote_bundle_type ${parsed_bundle[name]})"
   parsed_bundle[_dir]="$(__antidote_bundle_dir ${parsed_bundle[name]})"
-  parsed_bundle[_url]="$(__antidote_bundle_url ${parsed_bundle[name]})"
-  parsed_bundle[_repo]="$(__antidote_bundle_repo ${parsed_bundle[name]})"
+  if [[ "$parsed_bundle[_type]" == (url|sshurl|repo) ]]; then
+    parsed_bundle[_url]="$(__antidote_bundle_url ${parsed_bundle[name]})"
+    parsed_bundle[_repo]="$(__antidote_bundle_repo ${parsed_bundle[name]})"
+  fi
 
-  # Print the resulting parsed bundle associative array
-  declare_output="$(declare -p parsed_bundle)"
-  typeset -g REPLY="typeset -A ${varname}=${declare_output#*=}"
+  # Print the parsed bundle assoc arr using whatever varname the user wants
+  bundle_repr="$(declare -p parsed_bundle)"
+  bundle_repr="typeset -A ${varname}=${bundle_repr#*=}"
+
+  # Sanity check that I probably don't need.
+  if [[ ! "$bundle_repr" =~ "^typeset\ -A\ ${varname}=" ]]; then
+    print -ru2 -- "antidote: Unable to parse bundle: '$bundle'."
+    return 1
+  fi
+
+  # Return/print the result.
+  typeset -g REPLY="$bundle_repr"
   print -r -- "$REPLY"
 #}

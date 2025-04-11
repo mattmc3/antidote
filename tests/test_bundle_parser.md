@@ -67,9 +67,7 @@ Test word:
 ```zsh
 % __antidote_parse_bundle 'foo' | print_aarr
 _dir      : foo
-_repo     :
 _type     : word
-_url      :
 name      : foo
 %
 ```
@@ -79,9 +77,7 @@ Test unknown bundle type:
 ```zsh
 % __antidote_parse_bundle 'foo:bar:baz' | print_aarr
 _dir      : foo:bar:baz
-_repo     :
 _type     : ?
-_url      :
 name      : foo:bar:baz
 %
 ```
