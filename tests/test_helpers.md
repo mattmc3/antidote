@@ -15,6 +15,11 @@ Parse a bundle file to find a list of all missing repos so that we can clone the
 in parallel.
 
 ```zsh
+% __antidote_parse_bundle < $T_TESTDATA/.zsh_plugins_repos.txt | subenv ANTIDOTE_HOME
+%
+```
+
+```zsh
 % __antidote_bulk_clone < $T_TESTDATA/.zsh_plugins_repos.txt | subenv ANTIDOTE_HOME
 () {
   emulate -L zsh; setopt local_options no_monitor pipefail
@@ -28,6 +33,23 @@ in parallel.
 wait
 %
 ```
+
+  print -ru2 -- '# antidote cloning romkatv/zsh-defer...'
+  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/romkatv/zsh-defer $ANTIDOTE_HOME/romkatv/zsh-defer &
+  print -ru2 -- '# antidote cloning foo/qux...'
+  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/foo/qux $ANTIDOTE_HOME/foo/qux &
+  print -ru2 -- '# antidote cloning foo/baz...'
+  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/foo/baz $ANTIDOTE_HOME/foo/baz &
+
+antidote-script --kind clone --branch baz foobar/foobar &
+antidote-script --kind clone bar/baz &
+antidote-script --kind clone getantidote/zsh-defer &
+antidote-script --kind clone git@github.com:user/repo &
+antidote-script --kind clone http://github.com/user/repo.git &
+antidote-script --kind clone https://github.com/foo/baz &
+antidote-script --kind clone https://github.com/foo/qux &
+antidote-script --kind clone https://github.com/user/repo &
+antidote-script --kind clone user/repo &
 
 Test empty
 
