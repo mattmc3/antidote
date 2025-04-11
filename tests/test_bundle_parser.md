@@ -100,7 +100,7 @@ name      : user/repo
 Test different bundle name:
 
 ```zsh
-% __antidote_parse_bundle 'foo/bar' 'mybundle' | subenv ANTIDOTE_HOME
+% __antidote_parse_bundle 'foo/bar' 'mybundle' | normalize_assoc_arr | subenv ANTIDOTE_HOME
 typeset -A mybundle=( [_dir]=$ANTIDOTE_HOME/foo/bar [_repo]=foo/bar [_type]=repo [_url]=https://fakegitsite.com/foo/bar [name]=foo/bar )
 %
 ```

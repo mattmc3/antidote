@@ -15,7 +15,7 @@ Parse a bundle file to find a list of all missing repos so that we can clone the
 in parallel.
 
 ```zsh
-% __antidote_parse_bundles < $T_TESTDATA/.zsh_plugins_repos.txt | subenv ANTIDOTE_HOME HOME
+% __antidote_parse_bundles < $T_TESTDATA/.zsh_plugins_repos.txt | normalize_assoc_arr | subenv ANTIDOTE_HOME HOME
 typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=repo [_url]=https://github.com/user/repo [name]=user/repo )
 typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=https://github.com/user/repo [name]=https://github.com/user/repo )
 typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=http://github.com/user/repo.git [name]=http://github.com/user/repo.git )

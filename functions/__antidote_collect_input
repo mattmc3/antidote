@@ -2,6 +2,7 @@
 
 ### Collect <redirected or piped| input
 #function __antidote_collect_input {
+  emulate -L zsh; setopt local_options $_adote_funcopts
   local -a input=()
   if (( $# > 0 )); then
     input=("${(s.\n.)${@}}")
