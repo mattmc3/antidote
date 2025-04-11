@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 ### Get the default cache directory per OS
-#function __antidote_get_cachedir {
+#function __antidote_cachedir {
   emulate -L zsh; setopt local_options $_adote_funcopts
 
   local result

@@ -22,7 +22,7 @@
   if [[ -n "$ANTIDOTE_HOME" ]]; then
     result=$ANTIDOTE_HOME
   else
-    result=$(__antidote_get_cachedir "antidote")
+    result=$(__antidote_cachedir "antidote")
   fi
   print $result
   typeset -g REPLY=$result
