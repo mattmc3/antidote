@@ -45,9 +45,9 @@
     fi
   else
     if [[ -f "$bundle" ]]; then
-      print ${bundle:A:h}
+      print -r -- ${bundle:A:h}
     else
-      print ${bundle}
+      print -r -- ${bundle}
     fi
   fi
 #}

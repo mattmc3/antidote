@@ -1,0 +1,103 @@
+#!/bin/zsh
+
+### Generate clone commands that run in the background
+function __antidote_scripter {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+
+  # Declare vars
+  local compat bundle_str bundle_repr zsh_defer
+  local lineno err fpath_script initfile initfiles
+  local plugin_path var_name var_suffix
+  local -a bundles prescript script postscript
+  local -A bundle zsh_defer_bundle
+  local ANTIDOTE_HOME="${ANTIDOTE_HOME:-$(antidote-home)}"
+
+  # Get piped/passed bundles
+  bundles=( "${(@f)$(__antidote_argcollector "$@")}" )
+  (( $#bundles )) || return 1
+
+  # Check for compatibility modes
+  if zstyle -t ':antidote:compatibility-mode' 'antibody'; then
+    compat='antibody'
+  elif zstyle -t ':antidote:compatibility-mode' 'v1'; then
+    compat='v1'
+  fi
+
+  # Allow the user to define zsh-defer repo in case they want to fork it.
+  zstyle -s ':antidote:defer' bundle 'zsh_defer' \
+    || zsh_defer='romkatv/zsh-defer'
+  bundle_repr=$(__antidote_parser "$zsh_defer" "zsh_defer_bundle")
+  eval "$bundle_repr"
+
+  # Loop through the bundles and parse them into an assoc_arr.
+  lineno=0
+  for bundle_str in $bundles; do
+    (( lineno += 1 ))
+
+    # Parse the bundle.
+    bundle_repr=$(__antidote_parser "$bundle_str"); err=$?
+    if [[ -z "$bundle_repr" ]]; then
+      continue
+    elif [[ $err -ne 0 ]]; then
+      print -ru2 -- "antidote: Bundle parser error on line ${lineno}: '$bundle_str'"
+      return 1
+    fi
+
+    # Turn the typeset repr into the bundle assoc_arr
+    eval "$bundle_repr"
+
+    # Nothing to do on a clone-only bundle
+    if [[ "$bundle[kind]" == "clone" ]]; then
+      continue
+    elif [[ ! -v bundle[_plugin] ]]; then
+      print -ru2 -- "antidote: Bundle scripting error on line ${lineno}: '$bundle_str'"
+      return 1
+    fi
+
+    # Try to expand the _plugin value to get a real path. We also support a leading
+    # path variable '$MY_PATH/foo/bar'. Assign plugin_path.
+    if [[ $bundle[_plugin] =~ '^(\$[A-Za-z0-9_]+)(/.*)?$' ]]; then
+      # Extract the variable name without $
+      var_name="${match[1]#$}"
+      var_suffix="${match[2]:-}"
+
+      # Check if the variable exists and is a directory
+      if [[ -n "${(P)var_name}" && -d "${(P)var_name}" ]]; then
+        plugin_path="${(P)var_name}${var_suffix}"
+        #echo "HERE: $plugin_path : $var_name : ${var_suffix} : ${(P)var_name} : $ANTIDOTE_HOME : x$(antidote-home)x"
+      fi
+    else
+      plugin_path="$bundle[_plugin]"
+      #echo "THERE: $plugin_path"
+    fi
+
+    # Script the plugin
+    fpath_script="fpath+=( $bundle[_plugin] )"
+    if [[ "$bundle[kind]" == "fpath" ]]; then
+      script+="$fpath_script"
+    elif [[ "$bundle[kind]" == "path" ]]; then
+      script+="export PATH=\"${bundle[_plugin]}:\$PATH\""
+    else
+      # If the plugin is a file, just source the file
+      if [[ -f "$plugin_path" ]]; then
+        #echo HERE "$plugin_path"
+        script+="source ${bundle[_plugin]}"
+      else
+        # directory/default
+        initfiles=( ${(@f)$( __antidote_initfiles "$plugin_path" )} )
+        # if no init file was found, assume the default
+        if [[ $#initfiles -eq 0 ]]; then
+          initfiles=(${bundle[_plugin]}/${bundle[_plugin]:t}.plugin.zsh)
+        fi
+        script+="$fpath_script"
+        for initfile in $initfiles; do
+          script+="source $initfile"
+        done
+      fi
+    fi
+    # declare -p bundle
+  done
+
+  (( $#script )) && printf "%s\n" $script
+}

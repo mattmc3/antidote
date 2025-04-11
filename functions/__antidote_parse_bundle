@@ -19,7 +19,7 @@
   # Trim spaces
   bundle=${${bundle/#[[:space:]]#}/%[[:space:]]#}
   # Skip empty bundle strings
-  [[ -z "$bundle" ]] && return
+  [[ -z "$bundle" ]] && return 0
   # 1st field gets a 'name:' prefix so we can treat everything as key:val pairs
   bundle="name:${bundle}"
 

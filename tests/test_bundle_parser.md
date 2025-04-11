@@ -26,11 +26,12 @@ Test basic foo/bar:
 
 ```zsh
 % __antidote_parse_bundle 'foo/bar' | print_aarr
-_dir      : $ANTIDOTE_HOME/foo/bar
-_repo     : foo/bar
-_type     : repo
-_url      : https://fakegitsite.com/foo/bar
-name      : foo/bar
+$assoc_arr  : parsed_bundle
+_dir        : $ANTIDOTE_HOME/foo/bar
+_repo       : foo/bar
+_type       : repo
+_url        : https://fakegitsite.com/foo/bar
+name        : foo/bar
 %
 ```
 
@@ -38,11 +39,12 @@ Test trailing comments work:
 
 ```zsh
 % __antidote_parse_bundle 'foo/bar  # trailing comment' | print_aarr
-_dir      : $ANTIDOTE_HOME/foo/bar
-_repo     : foo/bar
-_type     : repo
-_url      : https://fakegitsite.com/foo/bar
-name      : foo/bar
+$assoc_arr  : parsed_bundle
+_dir        : $ANTIDOTE_HOME/foo/bar
+_repo       : foo/bar
+_type       : repo
+_url        : https://fakegitsite.com/foo/bar
+name        : foo/bar
 %
 ```
 
@@ -50,15 +52,16 @@ Test annotations:
 
 ```zsh
 % __antidote_parse_bundle 'https://fakegitsite.com/foo/bar path:plugins/baz kind:fpath pre:"echo hello world" branch:bark' | print_aarr
-_dir      : $ANTIDOTE_HOME/foo/bar
-_repo     : foo/bar
-_type     : url
-_url      : https://fakegitsite.com/foo/bar
-branch    : bark
-kind      : fpath
-name      : https://fakegitsite.com/foo/bar
-path      : plugins/baz
-pre       : echo hello world
+$assoc_arr  : parsed_bundle
+_dir        : $ANTIDOTE_HOME/foo/bar
+_repo       : foo/bar
+_type       : url
+_url        : https://fakegitsite.com/foo/bar
+branch      : bark
+kind        : fpath
+name        : https://fakegitsite.com/foo/bar
+path        : plugins/baz
+pre         : echo hello world
 %
 ```
 
@@ -66,9 +69,10 @@ Test word:
 
 ```zsh
 % __antidote_parse_bundle 'foo' | print_aarr
-_dir      : foo
-_type     : word
-name      : foo
+$assoc_arr  : parsed_bundle
+_dir        : foo
+_type       : word
+name        : foo
 %
 ```
 
@@ -76,20 +80,22 @@ Test unknown bundle type:
 
 ```zsh
 % __antidote_parse_bundle 'foo:bar:baz' | print_aarr
-_dir      : foo:bar:baz
-_type     : ?
-name      : foo:bar:baz
+$assoc_arr  : parsed_bundle
+_dir        : foo:bar:baz
+_type       : ?
+name        : foo:bar:baz
 %
 ```
 
 ```zsh
 % __antidote_parse_bundle 'user/repo foo:bar:baz' | print_aarr
-_dir      : $ANTIDOTE_HOME/user/repo
-_repo     : user/repo
-_type     : repo
-_url      : https://fakegitsite.com/user/repo
-foo       : bar:baz
-name      : user/repo
+$assoc_arr  : parsed_bundle
+_dir        : $ANTIDOTE_HOME/user/repo
+_repo       : user/repo
+_type       : repo
+_url        : https://fakegitsite.com/user/repo
+foo         : bar:baz
+name        : user/repo
 %
 ```
 
