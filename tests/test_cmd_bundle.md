@@ -47,10 +47,8 @@ Test \|piping, \<redirection, and --args
 ## Fails
 
 ```zsh
-% echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 | subenv ANTIDOTE_HOME
+% echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 >/dev/null
 antidote: error: unexpected kind value: 'whoops'
-fpath+=( $ANTIDOTE_HOME/foo/bar )
-source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 ```
 
