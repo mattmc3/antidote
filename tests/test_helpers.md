@@ -3,8 +3,8 @@
 ## Setup
 
 ```zsh
-% source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source ./tests/__init__.zsh
+% t_setup
 %
 ```
 
@@ -35,13 +35,13 @@ $T_TEMPDIR/foo/bar
 ## Bundle type
 
 ```zsh
-% __antidote_bundle_type $PWD/antidote.zsh
+% __antidote_bundle_type $T_PRJDIR/antidote.zsh
 file
-% __antidote_bundle_type $PWD/functions
+% __antidote_bundle_type $T_PRJDIR/functions
 dir
-% __antidote_bundle_type '$PWD/antidote.zsh'
+% __antidote_bundle_type '$T_PRJDIR/antidote.zsh'
 file
-% __antidote_bundle_type \$PWD/functions
+% __antidote_bundle_type \$T_PRJDIR/functions
 dir
 % __antidote_bundle_type 'git@github.com:foo/bar.git'
 sshurl

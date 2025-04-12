@@ -4,8 +4,8 @@
 
 ```zsh
 % TESTDATA=$PWD/tests/testdata
-% source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source ./tests/__init__.zsh
+% t_setup
 % antidote-bundle -h &>/dev/null
 %
 ```

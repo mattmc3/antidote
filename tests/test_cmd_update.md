@@ -3,8 +3,8 @@
 ## Setup
 
 ```zsh
-% source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source ./tests/__init__.zsh
+% t_setup
 %
 ```
 
@@ -25,7 +25,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 1.9.7
+antidote version 1.9.7 (abcd123)
 %
 ```
 

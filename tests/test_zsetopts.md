@@ -3,12 +3,13 @@
 ## Setup
 
 ```zsh
-% source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source ./tests/__init__.zsh
+% t_setup
 %
 ```
 
 Set up a plugin that changes Zsh options
+
 ```zsh
 % plugin_file=$ANTIDOTE_HOME/lampoon/xmas/xmas.plugin.zsh
 % mkdir -p $plugin_file:h && touch $plugin_file
@@ -21,6 +22,7 @@ Set up a plugin that changes Zsh options
 ## Test that plugins that run setopts work
 
 Verify initial state
+
 ```zsh
 % setopt noaliases
 % set -o | grep noaliases
@@ -31,6 +33,7 @@ autocd                off
 ```
 
 Load the plugins and see if the option took
+
 ```zsh
 % antidote load &>/dev/null  #=> --exit 0
 % set -o | grep noaliases
@@ -44,6 +47,7 @@ autocd                on
 
 Tests to ensure [#86](https://github.com/mattmc3/antidote/issues/86) stays fixed.
 Check that stderr is empty.
+
 ```zsh
 % setopt posix_identifiers
 % antidote -v 3>&1 2>&3 >/dev/null #=> --exit 0
