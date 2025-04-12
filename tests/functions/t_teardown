@@ -4,6 +4,9 @@
   emulate -L zsh
   setopt local_options
 
+  # Return to project directory
+  popd
+
   # reset current session
   HOME=$T_PREV_HOME
   ZDOTDIR=$T_PREV_ZDOTDIR
