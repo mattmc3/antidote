@@ -89,13 +89,13 @@ antidote-script foo/bar
 
 ```zsh
 % echo 'https://github.com/foo/bar path:lib branch:dev' | __antidote_parse_bundles
-antidote-script --path lib --branch dev https://github.com/foo/bar
+antidote-script --branch dev --path lib https://github.com/foo/bar
 % echo 'git@github.com:foo/bar.git kind:clone branch:main' | __antidote_parse_bundles
-antidote-script --kind clone --branch main git@github.com:foo/bar.git
+antidote-script --branch main --kind clone git@github.com:foo/bar.git
 % echo 'foo/bar kind:fpath abc:xyz' | __antidote_parse_bundles
-antidote-script --kind fpath --abc xyz foo/bar
+antidote-script --abc xyz --kind fpath foo/bar
 % echo 'foo/bar path:plugins/myplugin kind:path  # trailing comment' | __antidote_parse_bundles
-antidote-script --path plugins/myplugin --kind path foo/bar
+antidote-script --kind path --path plugins/myplugin foo/bar
 %
 ```
 
@@ -111,7 +111,7 @@ antidote-script --kind path foo/bar
 The bundle parser is an awk script that turns the bundle DSL into antidote-script statements.
 
 ```zsh
-% __antidote_parse_bundles $ZDOTDIR/.zsh_plugins.txt
+% __antidote_parse_bundles < $ZDOTDIR/.zsh_plugins.txt
 antidote-script ~/foo/bar
 antidote-script --path plugins/myplugin \$ZSH_CUSTOM
 antidote-script foo/bar
@@ -122,7 +122,7 @@ antidote-script --kind fpath foo/bar
 antidote-script --kind path foo/bar
 antidote-script --path lib ohmy/ohmy
 antidote-script --path plugins/extract ohmy/ohmy
-antidote-script --path plugins/magic-enter --kind defer ohmy/ohmy
+antidote-script --kind defer --path plugins/magic-enter ohmy/ohmy
 antidote-script --path custom/themes/pretty.zsh-theme ohmy/ohmy
 %
 ```

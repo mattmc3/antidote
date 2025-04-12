@@ -14,6 +14,7 @@
 
 ```zsh
 % antidote-script  #=> --exit 1
+% antidote-script
 antidote: error: bundle argument expected
 %
 ```
