@@ -1,0 +1,20 @@
+#!/bin/zsh
+#function aar_val() {
+  emulate -L zsh; setopt local_options
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+
+  local input key val array_name
+  local -A assoc_array
+
+  # Read from standard input
+  while IFS= read -r input; do
+    if [[ $input =~ '^typeset -A ([a-zA-Z_][a-zA-Z0-9_]*)=\((.*)\)$' ]]; then
+      array_name=${match[1]}
+      eval "assoc_array=( ${match[2]} )"
+      print -- "$assoc_array[$1]"
+    else
+      echo "Error: Input does not match an associative array declaration" >&2
+      return 1
+    fi
+  done
+#}
