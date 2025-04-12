@@ -12,6 +12,9 @@
     local parts=(${(ps./.)bundle})
     print ${parts[-2]}/${parts[-1]}
   else
-    print $bundle | sed -e "s|^\~/|$HOME/|" -e "s|^$HOME|\$HOME|"
+    # Replace ~ and $HOME with \$HOME
+    bundle=${bundle/#\~\//\$HOME/}
+    bundle=${bundle/#$HOME/\$HOME}
+    print -r -- "$bundle"
   fi
 #}
