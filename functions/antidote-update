@@ -46,15 +46,18 @@
     [[ -r "$loadable_check_path" ]] && __antidote_del -- "$loadable_check_path"
 
     # Setup temporary directory and tracking
-    local tmpfile tmpdir=$(__antidote_mktemp -d -s update)
+    local tmpfile
+    typeset -g __antidote_update_tmpdir=$(__antidote_mktemp -d -s update)
+    local tmpdir=$__antidote_update_tmpdir
 
     # Cleanup function to ensure we don't leave temp files behind
     __antidote_update_cleanup() {
-      [[ -d "$tmpdir" ]] && __antidote_del -rf -- "$tmpdir"
+      [[ -d "$__antidote_update_tmpdir" ]] && __antidote_del -rf -- "$__antidote_update_tmpdir"
+      unset __antidote_update_tmpdir
     }
 
     # Set trap to ensure cleanup on exit, interrupt, etc.
-    trap __antidote_update_cleanup EXIT INT TERM
+    trap __antidote_update_cleanup EXIT INT TERM HUP
 
     # update all bundles
     for bundledir in $(antidote-list --dirs); do
@@ -129,6 +132,8 @@
       fi
     done
 
+    # The trap will do this cleanup too, but let's run this ASAP.
+    __antidote_update_cleanup
     print "${green}Bundle updates complete.${normal}"
     print ""
   fi
