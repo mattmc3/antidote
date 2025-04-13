@@ -44,6 +44,21 @@ Test \|piping, \<redirection, and --args
 %
 ```
 
+Multiple defers
+
+```zsh
+% antidote bundle 'foo/bar kind:defer\nbar/baz kind:defer' 2>/dev/null | subenv ANTIDOTE_HOME
+if ! (( $+functions[zsh-defer] )); then
+  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
+  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
+fi
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/bar/baz )
+zsh-defer source $ANTIDOTE_HOME/bar/baz/baz.plugin.zsh
+%
+```
+
 ## Fails
 
 ```zsh

@@ -5,7 +5,7 @@
   emulate -L zsh; setopt local_options $_adote_funcopts
 
   # Declare vars
-  local bundle_str bundle_repr collected_input err lineno=0
+  local bundle_str bundle_repr collected_input err lineno=0 skip_load_defer=0
   local key val
   local -a bundles
   local -A bundle
@@ -22,6 +22,7 @@
     return 1
   fi
 
+  # Loop through bundles
   for bundle_str in $bundles; do
     (( lineno += 1 ))
 
@@ -45,7 +46,16 @@
       printf ' --%s %s' $key $val
     done
 
-    # Escape leading $ variables
+    # Add flag for first defer
+    if [[ "${bundle[kind]}" == "defer" ]]; then
+      if [[ "$skip_load_defer" -eq 0 ]]; then
+        skip_load_defer=1
+      else
+        printf ' --skip-load-defer'
+      fi
+    fi
+
+    # Escape leading '$' variables
     if [[ "${bundle[name]}" == '$'* ]]; then
       printf ' \$%s\n' "${bundle[name]#\$}"
     else

@@ -142,6 +142,15 @@ zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 ```
 
+Test skipping defer loading
+
+```zsh
+% antidote-script --kind defer --skip-load-defer foo/bar | subenv ANTIDOTE_HOME
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+%
+```
+
 Test defer zstyle settings
 
 ```zsh

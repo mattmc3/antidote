@@ -4,7 +4,7 @@
 #
 # usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
 #                        [-c|--conditional <func>] [-b|--branch <branch>]
-#                        [--pre <func>] [--post <func>]
+#                        [--pre <func>] [--post <func>] [--skip-load-defer]
 #                        [-a|--autoload <path>] <bundle>
 # <kind>   : zsh,path,fpath,defer,clone,autoload
 # <path>   : Relative path from the bundle root
@@ -18,7 +18,7 @@
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   local REPLY=
 
-  local o_help o_kind o_path o_branch o_cond o_autoload o_pre o_post o_fpath_rule
+  local -a o_help o_kind o_path o_branch o_cond o_autoload o_pre o_post o_fpath_rule o_skip_load_defer
   zparseopts $_adote_zparopt_flags -- \
     h=o_help       -help=h            \
     a:=o_autoload  -autoload:=a       \
@@ -28,6 +28,7 @@
                    -pre:=o_pre        \
                    -post:=o_post      \
                    -fpath-rule:=o_fpath_rule \
+                   -skip-load-defer=o_skip_load_defer \
     c:=o_cond      -conditional:=c    ||
     return 1
 
@@ -119,11 +120,13 @@
     || zsh_defer_bundle='romkatv/zsh-defer'
   if [[ "$o_kind[-1]" == "defer" ]]; then
     source_cmd="${zsh_defer} source"
-    script+=(
-      'if ! (( $+functions[zsh-defer] )); then'
-      "$(antidote-script $zsh_defer_bundle | __antidote_indent)"
-      'fi'
-    )
+    if ! (( $#o_skip_load_defer )); then
+      script+=(
+        'if ! (( $+functions[zsh-defer] )); then'
+        "$(antidote-script $zsh_defer_bundle | __antidote_indent)"
+        'fi'
+      )
+    fi
   fi
 
   # Let's make the path a little nicer to deal with
