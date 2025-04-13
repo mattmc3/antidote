@@ -3,8 +3,8 @@
 ## Setup
 
 ```zsh
-% source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source ./tests/__init__.zsh
+% t_setup
 %
 ```
 
@@ -35,22 +35,35 @@ Test \|piping, \<redirection, and --args
 ```zsh
 % zstyle ':antidote:bundle' use-friendly-names off
 % ANTIDOTE_HOME=$HOME/.cache/antibody
-% antidote bundle foo/bar | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
-% echo 'foo/bar' | antidote bundle | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
+% antidote bundle foo/bar | subenv ANTIDOTE_HOME  #=> --file testdata/antibody/script-foobar.zsh
+% echo 'foo/bar' | antidote bundle | subenv ANTIDOTE_HOME  #=> --file testdata/antibody/script-foobar.zsh
 % echo 'foo/bar' >$ZDOTDIR/.zsh_plugins_simple.txt
-% antidote bundle <$ZDOTDIR/.zsh_plugins_simple.txt | subenv ANTIDOTE_HOME  #=> --file testdata/script-foobar.zsh
+% antidote bundle <$ZDOTDIR/.zsh_plugins_simple.txt | subenv ANTIDOTE_HOME  #=> --file testdata/antibody/script-foobar.zsh
 % zstyle ':antidote:bundle' use-friendly-names on
 % ANTIDOTE_HOME=$HOME/.cache/antidote
+%
+```
+
+Multiple defers
+
+```zsh
+% antidote bundle 'foo/bar kind:defer\nbar/baz kind:defer' 2>/dev/null | subenv ANTIDOTE_HOME
+if ! (( $+functions[zsh-defer] )); then
+  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
+  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
+fi
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+fpath+=( $ANTIDOTE_HOME/bar/baz )
+zsh-defer source $ANTIDOTE_HOME/bar/baz/baz.plugin.zsh
 %
 ```
 
 ## Fails
 
 ```zsh
-% echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 | subenv ANTIDOTE_HOME
+% echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 >/dev/null
 antidote: error: unexpected kind value: 'whoops'
-fpath+=( $ANTIDOTE_HOME/foo/bar )
-source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 ```
 

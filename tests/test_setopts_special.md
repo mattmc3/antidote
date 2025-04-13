@@ -5,9 +5,9 @@
 Tests to handle special Zsh options. [#154](https://github.com/mattmc3/antidote/issues/154).
 
 ```zsh
-% source ./tests/_setup.zsh
+% source ./tests/__init__.zsh
+% t_setup
 % setopt KSH_ARRAYS SH_GLOB
-% source ./antidote.zsh
 %
 ```
 

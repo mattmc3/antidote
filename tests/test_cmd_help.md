@@ -3,8 +3,8 @@
 ## Setup
 
 ```zsh
-% source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source ./tests/__init__.zsh
+% t_setup
 %
 ```
 
@@ -37,8 +37,9 @@ antidote(1) Antidote Manual antidote(1)
 ```
 
 `antidote` man pages are in `$MANPATH`
+
 ```zsh
-% [[ "$MANPATH" == *"$PWD/man:"* ]] || echo 'MANPATH not set properly'
+% [[ "$MANPATH" == *"$T_PRJDIR/man:"* ]] || echo 'MANPATH not set properly'
 %
 ```
 

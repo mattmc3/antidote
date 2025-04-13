@@ -31,11 +31,11 @@
     nocasematch
     cbases
     cdablevars
-    cdsilent
+    # cdsilent           # Not available in Zsh 5.4.2
     chasedots
     chaselinks
     nocheckjobs
-    nocheckrunningjobs
+    # nocheckrunningjobs # Not available in Zsh 5.4.2
     # noclobber
     combiningchars
     completealiases

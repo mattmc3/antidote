@@ -4,8 +4,9 @@
   setopt local_options extended_glob glob_dots
 
   0=${(%):-%x}
-  local prjdir="${0:A:h:h:h}"
-  local testdir="${0:A:h:h}"
+  typeset -g T_PRJDIR="${0:A:h:h:h}"
+  typeset -g T_TESTDATA=$T_PRJDIR/tests/testdata
+  local testdir="$T_PRJDIR/tests"
 
   # save path/fpath
   typeset -ga T_PREV_PATH=( $path )
@@ -36,6 +37,9 @@
     cp -rf $p $T_TEMPDIR
   done
 
+  # put testdata into position
+  cp -rf -- $T_PRJDIR/tests $T_TEMPDIR/tests
+
   # rename .mockgit to .git
   local mockdir
   for mockdir in $T_TEMPDIR/**/.mock*; do
@@ -51,4 +55,11 @@
   zstyle ':antidote:tests' cloning 'off'
   zstyle ':antidote:bundle' use-friendly-names on
   zstyle ':antidote:defer' bundle 'getantidote/zsh-defer'
+
+  # start from tmp home
+  pushd
+  cd $T_TEMPDIR
+
+  # source antidote
+  source $T_PRJDIR/antidote.zsh
 #}

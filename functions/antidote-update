@@ -21,13 +21,15 @@
   fi
 
   # colors
-  local green normal
+  local green blue normal
   if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
     if (( $+commands[tput] )); then
       green=$(tput setaf 2)
+      blue=$(tput setaf 4)
       normal=$(tput sgr0)
     else
       green=$'\E[32m'
+      blue=$'\E[34m'
       normal=$'\E[0m'
     fi
   fi
@@ -43,31 +45,97 @@
     local loadable_check_path="$(antidote-home)/.antidote.load"
     [[ -r "$loadable_check_path" ]] && __antidote_del -- "$loadable_check_path"
 
+    # Setup temporary directory and tracking
+    local tmpfile
+    typeset -g __antidote_update_tmpdir=$(__antidote_mktemp -d -s update)
+    local tmpdir=$__antidote_update_tmpdir
+
+    # Cleanup function to ensure we don't leave temp files behind
+    __antidote_update_cleanup() {
+      [[ -d "$__antidote_update_tmpdir" ]] && __antidote_del -rf -- "$__antidote_update_tmpdir"
+      unset __antidote_update_tmpdir
+    }
+
+    # Set trap to ensure cleanup on exit, interrupt, etc.
+    # (EXIT is special, 2=INT, 15=TERM, 1=HUP)
+    trap __antidote_update_cleanup EXIT 2 15 1
+
     # update all bundles
     for bundledir in $(antidote-list --dirs); do
       url=$(git -C "$bundledir" config remote.origin.url)
       repo="${url:h:t}/${${url:t}%.git}"
       print "antidote: checking for updates: $url"
+
       () {
+        # Create a temporary output file in our temp directory
+        local repo_id="${repo//\//-SLASH-}"
+        local tmpfile="${tmpdir}/${repo_id}.output"
         local oldsha=$(git -C "$1" rev-parse --short HEAD)
+
+        # Set environment variables to isolate git from user config
+        local GIT_CONFIG_GLOBAL=/dev/null
+        local GIT_CONFIG_SYSTEM=/dev/null
+
+        # Unshallow the repo, because with the SHA locking feature coming in v2, we'll
+        # need to have everything.
+        if git -C "$1" rev-parse --is-shallow-repository 2>/dev/null | grep -q "true" || [[ -f "$1/.git/shallow" ]]; then
+          git -C "$1" fetch --quiet --unshallow
+        else
+          git -C "$1" fetch --quiet
+        fi
+
         git -C "$1" pull --quiet --ff --rebase --autostash
         git -C "$1" submodule --quiet sync --recursive
         git -C "$1" submodule --quiet update --init --recursive --depth 1
         local newsha=$(git -C "$1" rev-parse --short HEAD)
-        if [[ $oldsha != $newsha ]]; then
-          print "${green}antidote: updated: $2 ${oldsha} -> ${newsha}${normal}"
-          git -C "$1" --no-pager log --oneline --ancestry-path ${oldsha}..${newsha} 2>/dev/null
-        fi
 
-        # recompile bundles
-        if zstyle -t ":antidote:bundle:$repo" zcompile; then
-          __antidote_bundle_zcompile $bundledir
-        fi
+        # Capture all output to temporary file
+        {
+          if [[ $oldsha != $newsha ]]; then
+            print -- "${green}antidote: updated: $2 ${oldsha} -> ${newsha}${normal}"
+            git -C "$1" --no-pager log --oneline --ancestry-path --first-parent "${oldsha}^..${newsha}" 2>/dev/null
+          fi
+
+          # recompile bundles
+          if zstyle -t ":antidote:bundle:$repo" zcompile; then
+            __antidote_bundle_zcompile $bundledir
+          fi
+        } > "$tmpfile" 2>&1
       } "$bundledir" "$url" &
     done
+
     print "Waiting for bundle updates to complete..."
     print ""
     wait
+
+    # Display all output in sequence
+    for tmpfile in "$tmpdir"/*.output(N); do
+      if [[ -s "$tmpfile" ]]; then
+        # Extract the repo id from the filename and decode it
+        local filename=${tmpfile:t}
+        local repo_id=${filename%.output}
+        repo_id=${repo_id//-SLASH-/\/}
+
+        print "${blue}Bundle ${repo_id} update check complete.${normal}"
+
+        # Colorize the SHA
+        ${__adote_awkcmd:-awk} '
+          BEGIN {
+              YELLOW="\033[33m"
+              NORMAL="\033[0m"
+          }
+          NF >= 1 {
+            printf "%s%s%s %s\n", YELLOW, $1, NORMAL, substr($0, length($1) + 2)
+            next
+          }
+          { print }
+          END { print "" }
+        ' "$tmpfile"
+      fi
+    done
+
+    # The trap will do this cleanup too, but let's run this ASAP.
+    __antidote_update_cleanup
     print "${green}Bundle updates complete.${normal}"
     print ""
   fi

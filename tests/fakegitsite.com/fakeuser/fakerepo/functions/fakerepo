@@ -1,0 +1,5 @@
+#!/bin/zsh
+function fakerepo {
+  echo fakerepo function
+}
+fakerepo "$@"

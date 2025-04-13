@@ -1,0 +1,33 @@
+name: test-zsh-5.4.2
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+        with:
+          repository: "aureliojargas/clitest"
+          path: bin/clitest
+      - run: |
+          sudo apt update
+          sudo apt install -y wget build-essential libncursesw5-dev
+          wget https://sourceforge.net/projects/zsh/files/zsh/5.4.2/zsh-5.4.2.tar.xz
+          tar -xf zsh-5.4.2.tar.xz
+          cd zsh-5.4.2
+          ./configure --with-tcsetpgrp
+          make
+          sudo make install
+      - run: |
+          which zsh
+          zsh --version
+        name: Verify Zsh Installation
+      - run: |
+          export PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH
+          export ZSH_BINARY=/usr/local/bin/zsh
+          make test

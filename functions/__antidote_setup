@@ -22,6 +22,9 @@
 
   builtin autoload -Uz is-at-least
   if is-at-least 5.8; then
+    # -D : Delete flags from the param array once they are detected
+    # -M : Map a flag to alternative names (useful for defining -s(hort) and --long options)
+    # -F : Fail if a flad is provided that was not defined in the zparseops spec
     # the -F option was added in 5.8
     typeset -gHa _adote_zparopt_flags=( -D -M -F )
   else

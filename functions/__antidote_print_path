@@ -1,8 +1,9 @@
 #!/bin/zsh
 ### Pretty print a path
-
+#function __antidote_print_path {
 if zstyle -t ':antidote:compatibility-mode' 'antibody'; then
-  echo "$1"
+  print -r -- "$1"
 else
-  echo "$1" | sed -e "s|^$HOME/|\$HOME/|"
+  print -r -- "${1/#$HOME/\$HOME}"
 fi
+#}

@@ -1,0 +1,123 @@
+#!/bin/zsh
+
+### Parse antidote's bundle DSL to an associative array.
+# Example:
+#   __antidote_parser 'foo/bar path:plugins/baz kind:fpath pre:myprecmd  # comment'
+#   typeset -A bundle=( [kind]=fpath [path]=plugins/baz [pre]=myprecmd [name]=foo/bar )
+#
+# Notes:
+#   bundle_str  : antidote DSL syntax
+#   bundle      : assoc array representation
+#   bundle_repr : Zsh serialization of the bundle assoc arrary
+#
+# Metadata:
+#    _repodir      : The clone destination dir
+#    _type         : The type of bundle (url, repo, path, ?)
+#    _repo         : The user/repo short form of the URL
+#    _url          : The git repo URL
+#
+#function __antidote_parser {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+  local bundle_str bundle_var bundle_repr gitsite str pair key value
+  local -a kvpairs parts
+  local -A bundle
+
+  bundle_str="$1"
+  bundle_var="${2:-bundle}"
+
+  # Allow the user to override the default git site if they really want to
+  zstyle -s ':antidote:gitremote' url 'gitsite' \
+    || gitsite='https://github.com'
+  gitsite="${gitsite%/}"
+
+  # Remove anything after the first '#'
+  bundle_str=${bundle_str%%\#*}
+  # Trim spaces
+  bundle_str=${${bundle_str/#[[:space:]]#}/%[[:space:]]#}
+  # Skip empty bundle strings
+  [[ -z "$bundle_str" ]] && return 0
+  # 1st field gets a 'name:' prefix so we can treat everything as key:val pairs
+  bundle_str="name:${bundle_str}"
+
+  # Split line into key-value pairs with quoting
+  kvpairs=(${(Q)${(z)bundle_str}})
+  for pair in "${kvpairs[@]}"; do
+    key=${pair%%:*}   # Extract key (before first ':')
+    if [[ "$pair" == *:* ]]; then
+      value=${pair#*:}  # Extract value (after first ':')
+    else
+      value=
+    fi
+    bundle[$key]=$value
+  done
+
+  # Enhance the bundle with metadata fields. Metadata fields begin with an underscore
+  # since those will never be part of the DSL. Let's start with _type, which tells us
+  # whether the bundle is a URL, a user/repo, or a path
+  if [[ "$bundle[name]" == *://*/*/* || "$bundle[name]" == (ssh|git)@*:*/* ]]; then
+    if [[ "$bundle[name]" == *://*/*/*/* || "$bundle[name]" == *@*:*/*/* ]]; then
+      bundle[_type]="?"
+    else
+      bundle[_type]="url"
+    fi
+  elif [[ "$bundle[name]" == *('@'|':')* ]] ; then
+    bundle[_type]="?"  # bad URLs
+  elif [[ "$bundle[name]" == ('~'|'$'|'.')* ]]; then
+    bundle[_type]="path"
+  elif [[ "$bundle[name]" == */* && "$bundle[name]" != */*/* ]]; then
+    bundle[_type]="repo"
+  elif [[ "$bundle[name]" == */* ]]; then
+    bundle[_type]="path"
+  else
+    bundle[_type]="?"
+  fi
+
+  # For git repos, we add a metadata field for the URL
+  if [[ "$bundle[_type]" == url ]]; then
+    str="$bundle[name]"
+    str=${str%.git}
+    str=${str:gs/\:/\/}
+    parts=( ${(ps./.)str} )
+    if [[ $#parts -gt 1 ]]; then
+      bundle[_repo]="${parts[-2]}/${parts[-1]}"
+    else
+      bundle[_repo]="$str"
+    fi
+    bundle[_url]="$bundle[name]"
+  elif [[ "$bundle[_type]" == repo ]]; then
+    bundle[_repo]="${bundle[name]}"
+    bundle[_url]="${gitsite}/${bundle[name]}"
+  fi
+
+  # If there's a git URL, we also need to set the _repodir
+  if [[ -v bundle[_url] ]]; then
+    # TODO: Remove for antidote 2.0
+    if zstyle -t ':antidote:compatibility-mode' 'antibody' || ! zstyle -t ':antidote:bundle' use-friendly-names; then
+      # sanitize URL for safe use as a dir name
+      # ex: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
+      str="$bundle[_url]"
+      str=${str%.git}
+      str=${str:gs/\@/-AT-}
+      str=${str:gs/\:/-COLON-}
+      str=${str:gs/\//-SLASH-}
+      bundle[_repodir]="$str"
+    else
+      bundle[_repodir]="$bundle[_repo]"
+    fi
+  fi
+
+  # Print the parsed bundle assoc arr using whatever bundle_var the user wants
+  bundle_repr="$(declare -p bundle)"
+  bundle_repr="typeset -A ${bundle_var}=${bundle_repr#*=}"
+
+  # Sanity check that I probably don't need.
+  if [[ ! "$bundle_repr" =~ "^typeset\ -A\ ${bundle_var}=" ]]; then
+    print -ru2 -- "antidote: Unable to parse bundle string: '$bundle_str'."
+    return 1
+  fi
+
+  # Return/print the result.
+  typeset -g REPLY="$bundle_repr"
+  print -r -- "$REPLY"
+#}

@@ -3,39 +3,63 @@
 ### Parse antidote's bundle DSL.
 #function __antidote_parse_bundles {
   emulate -L zsh; setopt local_options $_adote_funcopts
-  $__adote_awkcmd '
-    BEGIN { RS="[\r\n]" }
 
-    # skip comments and empty lines
-    /^ *$/ || /^ *#/ {next}
+  # Declare vars
+  local bundle_str bundle_repr collected_input err lineno=0 skip_load_defer=0
+  local key val
+  local -a bundles
+  local -A bundle
 
-    # strip trailing comments
-    { sub(/[ \t]#.*$/,"",$0) }
+  # Get piped/passed bundles
+  collected_input="$(__antidote_collect_input "$@")"
+  if [[ -n "$collected_input" ]]; then
+    bundles=( "${(@f)collected_input}" )
+  else
+    bundles=()
+  fi
+  if ! (( $#bundles )) ; then
+    print -ru2 -- "antidote: error: bundle argument expected"
+    return 1
+  fi
 
-    # escape leading $ variables
-    { sub(/^\$/,"\\$",$0) }
+  # Loop through bundles
+  for bundle_str in $bundles; do
+    (( lineno += 1 ))
 
-    # handle extension functionality (eg :use ohmyzsh)
-    $1~/^:/ {
-      sub(/^:/,"",$1)
-      printf "antidote-script-" $1
-      for (i=2; i<=NF; i++) {
-        printf " %s",$i
-      }
-      printf "\n"
-      next
-    }
+    # Parse the bundle.
+    bundle_repr=$(__antidote_parser "$bundle_str"); err=$?
+    if [[ -z "$bundle_repr" ]]; then
+      continue
+    elif [[ "$err" -ne 0 ]]; then
+      print -ru2 -- "antidote: Bundle parser error on line ${lineno}: '$bundle_str'"
+      return 1
+    fi
+
+    # Turn the typeset repr into the bundle assoc_arr
+    eval "$bundle_repr"
 
     # move flags to front and call antidote-script
-    {
-      sub(/ #.*$/,"",$0)
-      printf "antidote-script"
-      for (i=2; i<=NF; i++) {
-        sub(/^/,"--",$i)
-        sub(/:/," ",$i)
-        printf " %s",$i
-      }
-      printf " %s\n",$1
-    }
-  ' "$@"
+    print -rn -- "antidote-script"
+    for key in ${(ok)bundle}; do
+      [[ "$key" != name ]] && [[ "$key" != '_'* ]] || continue
+      val="${bundle[$key]}"
+      printf ' --%s %s' $key $val
+    done
+
+    # Add flag for first defer
+    if [[ "${bundle[kind]}" == "defer" ]]; then
+      if [[ "$skip_load_defer" -eq 0 ]]; then
+        skip_load_defer=1
+      else
+        printf ' --skip-load-defer'
+      fi
+    fi
+
+    # Escape leading '$' variables
+    if [[ "${bundle[name]}" == '$'* ]]; then
+      printf ' \$%s\n' "${bundle[name]#\$}"
+    else
+      printf ' %s\n' "${bundle[name]}"
+    fi
+  done
 #}

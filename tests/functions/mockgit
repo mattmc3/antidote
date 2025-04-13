@@ -9,7 +9,7 @@
   emulate -L zsh; setopt local_options extended_glob
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   0=${(%):-%x}
-
+  local prjdir="${0:A:h:h:h}"
   local args=("$@[@]")
   local o_path o_quiet o_ff o_rebase o_autostash o_short
   local o_depth o_recurse_submodules o_shallow_submodules o_branch
@@ -25,22 +25,24 @@
     -shallow-submodules=o_shallow_submodules \
     -depth:=o_depth                          \
     -branch:=o_branch                        \
-    -init=o_init                            \
+    -init=o_init                             \
     -recursive=o_recursive                  ||
     return 1
 
   if [[ "$@" = "--version" ]]; then
-    echo "0.0.0"
+    echo "mockgit version 0.0.0"
   elif [[ "$1" = "clone" ]]; then
     local giturl="$2"
-    local bundledir="$3"
-    local src="$ANTIDOTE_HOME/${bundledir:t}"
-    if [[ -d $src ]]; then
-      cp -r $src ${bundledir:h}
+    local repo="${giturl:h:t}/${${giturl:t}%.git}"
+    local bundledir="${3:-.}"
+    local gitsite_repodir="$prjdir/tests/fakegitsite.com/${repo}"
+    if [[ -d "$gitsite_repodir" ]]; then
+      [[ -d "${bundledir:A}" ]] || mkdir -p "${bundledir:A}"
+      cp -r -- "$gitsite_repodir" "${bundledir:A}"
     elif ! (( $#o_quiet )); then
-      echo "MOCKGIT: Cloning into '${url:t}'..."
+      echo "MOCKGIT: Cloning into '${repo:t}'..."
       echo "MOCKGIT: Repository not found."
-      echo "MOCKGIT: repository '$url' not found"
+      echo "MOCKGIT: repository '$giturl' not found"
     fi
   elif [[ "$@" = "config remote.origin.url" ]]; then
     if [[ -e $bundledir/.git/config/remote.origin.url ]]; then
@@ -57,11 +59,12 @@
   elif [[ "$@" = "pull" ]]; then
     (( $#o_quiet )) || echo "MOCKGIT: Already up to date."
   elif [[ "$@" = "rev-parse HEAD" ]]; then
-    #echo "a123456"
-    echo ""
-  elif [[ "$@" = "submodule sync" ]]; then
-    # nothing to do
-  elif [[ "$@" = "submodule update" ]]; then
+    if (( $#o_short )); then
+      echo "abcd123"
+    else
+      echo "abcd1230abcd1230abcd1230abcd1230abcd1230"
+    fi
+  elif [[ "$1" == (submodule|fetch) ]]; then
     # nothing to do
   else
     echo >&2 "mocking not implemented for git command: git $@"

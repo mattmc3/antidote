@@ -3,8 +3,8 @@
 ## Setup
 
 ```zsh
-% source ./tests/_setup.zsh
-% source ./antidote.zsh
+% source ./tests/__init__.zsh
+% t_setup
 %
 ```
 
@@ -14,6 +14,7 @@
 
 ```zsh
 % antidote-script  #=> --exit 1
+% antidote-script
 antidote: error: bundle argument expected
 %
 ```
@@ -66,10 +67,10 @@ Script repos in antibody style:
 ```zsh
 % zstyle ':antidote:bundle' use-friendly-names off
 % ANTIDOTE_HOME=$HOME/.cache/antibody
-% antidote-script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-foobar.zsh
-% antidote-script git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/script-fooqux.zsh
+% antidote-script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% antidote-script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% antidote-script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% antidote-script git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-fooqux.zsh
 % zstyle ':antidote:bundle' use-friendly-names on
 % ANTIDOTE_HOME=$HOME/.cache/antidote
 %
@@ -141,6 +142,15 @@ zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 ```
 
+Test skipping defer loading
+
+```zsh
+% antidote-script --kind defer --skip-load-defer foo/bar | subenv ANTIDOTE_HOME
+fpath+=( $ANTIDOTE_HOME/foo/bar )
+zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+%
+```
+
 Test defer zstyle settings
 
 ```zsh
@@ -155,7 +165,7 @@ fpath+=( $ANTIDOTE_HOME/foo/bar )
 zsh-defer -p source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
 %
 % # Uses different defer options due to zstyle matching
-% antidote-script --kind defer bar/baz | subenv ANTIDOTE_HOME
+% antidote-script --kind defer bar/baz 2>/dev/null | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
   source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
@@ -259,6 +269,7 @@ run_after
 ```
 
 If a plugin is deferred, so is its post event
+
 ```zsh
 % antidote-script --pre pre-event --post post-event --kind defer foo/bar | subenv ANTIDOTE_HOME
 pre-event
@@ -274,7 +285,7 @@ zsh-defer post-event
 
 ## Private functions
 
-### __antidote_initfiles
+### \_\_antidote_initfiles
 
 setup
 

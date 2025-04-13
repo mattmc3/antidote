@@ -45,5 +45,5 @@
   fi
 
   # generate bundle script
-  source <(printf '%s\n' $bundles | __antidote_parse_bundles) | __antidote_filter_defers
+  source <(printf '%s\n' $bundles | __antidote_parse_bundles)
 #}
