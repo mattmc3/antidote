@@ -25,7 +25,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 1.9.7 (abcd123)
+antidote version 1.9.8 (abcd123)
 %
 ```
 
