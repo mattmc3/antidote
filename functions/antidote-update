@@ -76,7 +76,8 @@
         local GIT_CONFIG_GLOBAL=/dev/null
         local GIT_CONFIG_SYSTEM=/dev/null
 
-        # Unshallow the repo, because with SHA locking, we'll need to have everything.
+        # Unshallow the repo, because with the SHA locking feature coming in v2, we'll
+        # need to have everything.
         if git -C "$1" rev-parse --is-shallow-repository 2>/dev/null | grep -q "true" || [[ -f "$1/.git/shallow" ]]; then
           git -C "$1" fetch --quiet --unshallow
         else
