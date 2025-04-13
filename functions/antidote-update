@@ -57,7 +57,8 @@
     }
 
     # Set trap to ensure cleanup on exit, interrupt, etc.
-    trap __antidote_update_cleanup EXIT INT TERM HUP
+    # (EXIT is special, 2=INT, 15=TERM, 1=HUP)
+    trap __antidote_update_cleanup EXIT 2 15 1
 
     # update all bundles
     for bundledir in $(antidote-list --dirs); do
