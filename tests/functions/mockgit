@@ -64,9 +64,7 @@
     else
       echo "abcd1230abcd1230abcd1230abcd1230abcd1230"
     fi
-  elif [[ "$@" = "submodule sync" ]]; then
-    # nothing to do
-  elif [[ "$@" = "submodule update" ]]; then
+  elif [[ "$1" == (submodule|fetch) ]]; then
     # nothing to do
   else
     echo >&2 "mocking not implemented for git command: git $@"
