@@ -5,59 +5,54 @@
   emulate -L zsh; setopt local_options $_adote_funcopts
 
   # Declare vars
-  local bundle parsed_bundle_str zsh_defer_bundle parsed_zsh_defer_bundle_str err
+  local bundle_str bundle_repr zsh_defer_str zsh_defer_bundle_repr err
   local -a bundles cloning
   local -aU clone_cmds
-  local -A parsed_bundle parsed_zsh_defer_bundle
+  local -A bundle zsh_defer_bundle
 
   # get piped/passed bundles
   bundles=( "${(@f)$(__antidote_argcollector "$@")}" )
   (( $#bundles )) || return 1
 
   # Allow the user to define zsh-defer repo in case they want to fork it.
-  zstyle -s ':antidote:defer' bundle 'zsh_defer_bundle' \
-    || zsh_defer_bundle='romkatv/zsh-defer'
-  parsed_zsh_defer_bundle_str=$(__antidote_parse_bundle "$zsh_defer_bundle" "parsed_zsh_defer_bundle")
-  eval "$parsed_zsh_defer_bundle_str"
+  zstyle -s ':antidote:defer' bundle 'zsh_defer_str' \
+    || zsh_defer_str='romkatv/zsh-defer'
+  zsh_defer_bundle_repr=$(__antidote_parser "$zsh_defer_str" "zsh_defer_bundle")
+  eval "$zsh_defer_bundle_repr"
 
   # Loop through the bundles and parse them into an assoc_arr. Use that to determine
   # which repos need cloned, and generate the script to clone them
-  for bundle in $bundles; do
-    parsed_bundle_str=$(__antidote_parse_bundle "$bundle")
+  for bundle_str in $bundles; do
+    bundle_repr=$(__antidote_parser "$bundle_str")
     err=$?
-    [[ -n "$parsed_bundle_str" ]] && [[ $err -eq 0 ]] || continue
+    [[ -n "$bundle_repr" ]] && [[ $err -eq 0 ]] || continue
 
-    # Sanity check that I probably don't need.
-    if [[ ! "$parsed_bundle_str" =~ '^typeset\ -A\ parsed_bundle=' ]]; then
-      print -ru2 -- "antidote: Unable to parse bundle: '$bundle'."
-      return 1
-    fi
-
-    # Turn the typeset string into the parsed_bundle assoc_arr
-    eval "$parsed_bundle_str"
+    # Turn the typeset bundle_repr into the bundle assoc_arr
+    eval "$bundle_repr"
 
     # Clone zsh-defer if needed by the bundle
-    if [[ "$parsed_bundle[kind]" == "defer" ]]; then
-      if [[ ! -d $parsed_zsh_defer_bundle[_dir] ]] && ! (( $cloning[(Ie)$parsed_zsh_defer_bundle[_repo]] )); then
-        cloning+=( $parsed_zsh_defer_bundle[_repo] )
-        clone_cmds+=( "${(@f)$(__antidote_clone_cmd $parsed_zsh_defer_bundle[_repo] $parsed_zsh_defer_bundle[_url] $parsed_zsh_defer_bundle[_dir])}" )
+    if [[ "$bundle[kind]" == "defer" ]]; then
+      if [[ ! -d $zsh_defer_bundle[_repodir] ]] && ! (( $cloning[(Ie)$zsh_defer_bundle[_repo]] )); then
+        cloning+=( $zsh_defer_bundle[_repo] )
+        clone_cmds+=( "${(@f)$(__antidote_clone_cmd $zsh_defer_bundle[_repo] $zsh_defer_bundle[_url] $zsh_defer_bundle[_repodir])}" )
       fi
     fi
 
     # Check if the bundle is a proper repo.
-    [[ -n "$parsed_bundle[_repo]" ]] || continue
-    [[ "$parsed_bundle[_type]" == (repo|url|sshurl) ]] || continue
+    [[ -n "$bundle[_repo]" ]] || continue
+    [[ "$bundle[_type]" == (repo|url) ]] || continue
 
     # Clone the bundle if needed.
-    if [[ ! -d $parsed_bundle[_dir] ]] && ! (( $cloning[(Ie)$parsed_bundle[_repo]] )); then
-      cloning+=( $parsed_bundle[_repo] )
-      clone_cmds+=( "${(@f)$(__antidote_clone_cmd $parsed_bundle[_repo] $parsed_bundle[_url] $parsed_bundle[_dir] $parsed_bundle[branch])}" )
+    if [[ ! -d $bundle[_dir] ]] && ! (( $cloning[(Ie)$bundle[_repo]] )); then
+      cloning+=( $bundle[_repo] )
+      clone_cmds+=( "${(@f)$(__antidote_clone_cmd $bundle[_repo] $bundle[_url] $bundle[_repodir] $bundle[branch])}" )
     fi
   done
 
   if (( $#clone_cmds )); then
     print -r -- '() {'
     print -r -- '  emulate -L zsh; setopt local_options no_monitor pipefail'
+    print -r -- '  local ANTIDOTE_HOME="'$(antidote-home)'"'
     printf '  %s\n' ${clone_cmds[@]}
     print -r -- '}'
     print -r -- 'wait'

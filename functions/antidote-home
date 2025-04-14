@@ -24,6 +24,6 @@
   else
     result=$(__antidote_cachedir "antidote")
   fi
-  print $result
+  print -r -- $result
   typeset -g REPLY=$result
 #}

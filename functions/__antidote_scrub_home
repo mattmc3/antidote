@@ -1,7 +1,0 @@
-#!/bin/zsh
-
-### Scrub home from path
-#function __antidote_scrub_home {
-  emulate -L zsh; setopt local_options $_adote_funcopts
-  print "$1" | sed -e "s|^\~/|\$HOME/|" -e "s|^$HOME/|\$HOME/|"
-#}

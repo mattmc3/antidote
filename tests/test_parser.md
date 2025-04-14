@@ -28,6 +28,7 @@ Test assoc array for repo
 % __antidote_parser 'foo/bar' | print_aarr
 $assoc_arr  : bundle
 _plugin     : $ANTIDOTE_HOME/foo/bar
+_repo       : foo/bar
 _repodir    : $ANTIDOTE_HOME/foo/bar
 _type       : repo
 _url        : https://fakegitsite.com/foo/bar
@@ -70,6 +71,7 @@ Test assoc array for everything
 % __antidote_parser 'foo/bar branch:baz kind:zsh path:plugins/baz pre:precmd post:"post cmd"' | print_aarr
 $assoc_arr  : bundle
 _plugin     : $ANTIDOTE_HOME/foo/bar/plugins/baz
+_repo       : foo/bar
 _repodir    : $ANTIDOTE_HOME/foo/bar
 _type       : repo
 _url        : https://fakegitsite.com/foo/bar
@@ -116,6 +118,14 @@ path
 % __antidote_parser 'foo/bar/' | aarr_val _type
 path
 % __antidote_parser 'foo:bar' | aarr_val _type
+?
+% __antidote_parser 'bad@gitsite.com/foo/bar' | aarr_val _type
+?
+% __antidote_parser 'http:/badsite.com/foo/bar' | aarr_val _type
+?
+% __antidote_parser 'https://badsite.com/foo/bar/baz' | aarr_val _type
+?
+% __antidote_parser 'https://badsite.com/foo' | aarr_val _type
 ?
 %
 ```

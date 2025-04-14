@@ -15,6 +15,6 @@
   (( $#bundles )) || return 1
 
   for bundle in $bundles; do
-    __antidote_parse_bundle "$bundle"
+    __antidote_parser "$bundle"
   done
 #}

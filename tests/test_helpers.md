@@ -9,70 +9,6 @@
 %
 ```
 
-## Bulk clone missing repos
-
-Parse a bundle file to find a list of all missing repos so that we can clone them
-in parallel.
-
-```zsh
-% __antidote_parse_bundles < $T_TESTDATA/.zsh_plugins_repos.txt | normalize_assoc_arr | subenv ANTIDOTE_HOME HOME
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=repo [_url]=https://github.com/user/repo [name]=user/repo )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=https://github.com/user/repo [name]=https://github.com/user/repo )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=http://github.com/user/repo.git [name]=http://github.com/user/repo.git )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=https://github.com/user/repo [name]=https://github.com/user/repo )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=sshurl [_url]=git@github.com:user/repo [name]=git@github.com:user/repo )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/bar/baz [_repo]=bar/baz [_type]=repo [_url]=https://github.com/bar/baz [name]=bar/baz [path]=plugins/qux )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/bar/baz [_repo]=bar/baz [_type]=repo [_url]=https://github.com/bar/baz [name]=bar/baz [path]=themes/qux.zsh-theme )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/foobar/foobar [_repo]=foobar/foobar [_type]=repo [_url]=https://github.com/foobar/foobar [branch]=baz [name]=foobar/foobar )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/foo/qux [_repo]=foo/qux [_type]=url [_url]=https://github.com/foo/qux [kind]=defer [name]=https://github.com/foo/qux )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/foo/baz [_repo]=foo/baz [_type]=url [_url]=https://github.com/foo/baz [kind]=defer [name]=https://github.com/foo/baz )
-typeset -A parsed_bundle=( [_dir]=foo [_type]=word [name]=foo )
-typeset -A parsed_bundle=( [_dir]=$HOME/.zplugins/bar [_type]=path [name]='~/.zplugins/bar' )
-typeset -A parsed_bundle=( [_dir]='$ZDOTDIR/plugins/bar' [_type]=path [name]='$ZDOTDIR/plugins/bar' )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=repo [_url]=https://github.com/user/repo [name]=user/repo )
-typeset -A parsed_bundle=( [_dir]=$ANTIDOTE_HOME/user/repo [_repo]=user/repo [_type]=url [_url]=https://github.com/user/repo [name]=https://github.com/user/repo )
-%
-```
-
-```zsh
-% __antidote_cloner < $T_TESTDATA/.zsh_plugins_repos.txt | subenv ANTIDOTE_HOME
-() {
-  emulate -L zsh; setopt local_options no_monitor pipefail
-  print -ru2 -- '# antidote cloning user/repo...'
-  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/user/repo $ANTIDOTE_HOME/user/repo &
-  print -ru2 -- '# antidote cloning bar/baz...'
-  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/bar/baz $ANTIDOTE_HOME/bar/baz &
-  print -ru2 -- '# antidote cloning foobar/foobar...'
-  git clone --quiet --recurse-submodules --shallow-submodules --branch baz https://github.com/foobar/foobar $ANTIDOTE_HOME/foobar/foobar &
-}
-wait
-%
-```
-
-  print -ru2 -- '# antidote cloning romkatv/zsh-defer...'
-  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/romkatv/zsh-defer $ANTIDOTE_HOME/romkatv/zsh-defer &
-  print -ru2 -- '# antidote cloning foo/qux...'
-  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/foo/qux $ANTIDOTE_HOME/foo/qux &
-  print -ru2 -- '# antidote cloning foo/baz...'
-  git clone --quiet --recurse-submodules --shallow-submodules https://github.com/foo/baz $ANTIDOTE_HOME/foo/baz &
-
-antidote-script --kind clone --branch baz foobar/foobar &
-antidote-script --kind clone bar/baz &
-antidote-script --kind clone getantidote/zsh-defer &
-antidote-script --kind clone git@github.com:user/repo &
-antidote-script --kind clone http://github.com/user/repo.git &
-antidote-script --kind clone https://github.com/foo/baz &
-antidote-script --kind clone https://github.com/foo/qux &
-antidote-script --kind clone https://github.com/user/repo &
-antidote-script --kind clone user/repo &
-
-Test empty
-
-```zsh
-% __antidote_cloner < $T_TESTDATA/.zsh_plugins_empty.txt
-%
-```
-
 ## Safe removal
 
 Appease my paranoia and ensure that you can't remove a path you shouldn't be able to:
@@ -260,62 +196,6 @@ git://github.com/ohmyzsh/ohmyzsh
 ftp://github.com/ohmyzsh/ohmyzsh
 % __antidote_bundle_url git@github.com:sindresorhus/pure.git
 git@github.com:sindresorhus/pure.git
-%
-```
-
-## Clone command
-
-Basic usage:
-
-```zsh
-% __antidote_clone_cmd foo/bar https://fakegitsite.com/foo/bar $ANTIDOTE_HOME/foo/bar | subenv ANTIDOTE_HOME
-print -ru2 -- '# antidote cloning foo/bar...'
-git clone --quiet --recurse-submodules --shallow-submodules https://fakegitsite.com/foo/bar $ANTIDOTE_HOME/foo/bar &
-%
-```
-
-Clone a branch:
-
-```zsh
-% __antidote_clone_cmd bar/baz https://fakegitsite.com/bar/baz $ANTIDOTE_HOME/bar/baz foo | subenv ANTIDOTE_HOME
-print -ru2 -- '# antidote cloning bar/baz...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch foo https://fakegitsite.com/bar/baz $ANTIDOTE_HOME/bar/baz &
-%
-```
-
-Funky strings get escaped:
-
-```zsh
-% __antidote_clone_cmd foo/bar https://git.com/a/b "$ANTIDOTE_HOME/foo bar" "baz's:qux" | subenv ANTIDOTE_HOME
-print -ru2 -- '# antidote cloning foo/bar...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch baz\'s:qux https://git.com/a/b $ANTIDOTE_HOME/foo\ bar &
-%
-```
-
-Test background flag:
-
-```zsh
-% __antidote_clone_cmd a https://git.com/b c d 1
-print -ru2 -- '# antidote cloning a...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch d https://git.com/b c &
-% __antidote_clone_cmd a https://git.com/b c d 0
-print -ru2 -- '# antidote cloning a...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch d https://git.com/b c
-%
-```
-
-Other checks:
-
-```zsh
-% __antidote_clone_cmd a https://git.com/b c d
-print -ru2 -- '# antidote cloning a...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch d https://git.com/b c &
-% clone_cmd_array=( ${(@f)"$(__antidote_clone_cmd repo https://mygiturl.com mydir mybranch 2>&1)"} )
-% echo ${#clone_cmd_array}
-2
-% print -l -- $clone_cmd_array
-print -ru2 -- '# antidote cloning repo...'
-git clone --quiet --recurse-submodules --shallow-submodules --branch mybranch https://mygiturl.com mydir &
 %
 ```
 
