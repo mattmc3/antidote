@@ -37,9 +37,8 @@ antidote(1) Antidote Manual antidote(1)
 ```
 
 `antidote` man pages are in `$MANPATH`
-
 ```zsh
-% [[ "$MANPATH" == *"$T_PRJDIR/man:"* ]] || echo 'MANPATH not set properly'
+% [[ "$MANPATH" == *"$T_PRJDIR/man:"* ]] || echo "MANPATH not set properly"
 %
 ```
 
@@ -151,11 +150,11 @@ antidote-update(1) Antidote Manual antidote-update(1)
 %
 ```
 
-## antidote-script
+## antidote-foo
 
 ```zsh
-% antidote help script
-No manual entry for antidote-script
+% antidote help foo
+No manual entry for antidote-foo
 antidote - the cure to slow zsh plugin management
 
 usage: antidote [<flags>] <command> [<args> ...]
