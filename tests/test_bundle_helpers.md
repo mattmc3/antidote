@@ -98,6 +98,29 @@ fi
 %
 ```
 
+```zsh
+% bundle="foo/bar pre:'echo hello \$world' post:\"echo \\\"goodbye \$world\\\"\""
+% echo $bundle
+foo/bar pre:'echo hello $world' post:"echo \"goodbye $world\""
+% __antidote_parser $bundle | print_aarr
+$assoc_arr  : bundle
+_repo       : foo/bar
+_repodir    : foo/bar
+_type       : repo
+_url        : https://github.com/foo/bar
+name        : foo/bar
+post        : echo "goodbye $world"
+pre         : echo hello $world
+% __antidote_parse_bundles $bundle
+antidote-script --post "echo \"goodbye \$world\"" --pre "echo hello \$world" foo/bar
+% antidote bundle $bundle
+echo hello $world
+fpath+=( $HOME/.cache/antidote/foo/bar )
+source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+echo "goodbye $world"
+%
+```
+
 The bundle parser turns the bundle DSL into antidote-script statements.
 
 ```zsh
