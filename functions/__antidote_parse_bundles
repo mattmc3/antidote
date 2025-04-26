@@ -43,7 +43,11 @@
     for key in ${(ok)bundle}; do
       [[ "$key" != name ]] && [[ "$key" != '_'* ]] || continue
       val="${bundle[$key]}"
-      printf ' --%s %s' $key $val
+      if [[ "$val" == "${(q)val}" ]]; then
+        printf ' --%s %s' $key $val
+      else
+        printf ' --%s %s' $key ${(qqq)val}
+      fi
     done
 
     # Add flag for first defer
