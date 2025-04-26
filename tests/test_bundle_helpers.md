@@ -76,7 +76,52 @@ antidote-script --kind path foo/bar
 %
 ```
 
-The bundle parser is an awk script that turns the bundle DSL into antidote-script statements.
+The bundle parser needs to properly handle quoted annotations.
+
+```zsh
+% bundle='foo/bar conditional:"is-macos || is-linux"'
+% __antidote_parser $bundle | print_aarr
+$assoc_arr  : bundle
+_repo       : foo/bar
+_repodir    : foo/bar
+_type       : repo
+_url        : https://github.com/foo/bar
+conditional : is-macos || is-linux
+name        : foo/bar
+% __antidote_parse_bundles $bundle
+antidote-script --conditional "is-macos || is-linux" foo/bar
+% antidote bundle $bundle
+if is-macos || is-linux; then
+  fpath+=( $HOME/.cache/antidote/foo/bar )
+  source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+fi
+%
+```
+
+```zsh
+% bundle="foo/bar pre:'echo hello \$world' post:\"echo \\\"goodbye \$world\\\"\""
+% echo $bundle
+foo/bar pre:'echo hello $world' post:"echo \"goodbye $world\""
+% __antidote_parser $bundle | print_aarr
+$assoc_arr  : bundle
+_repo       : foo/bar
+_repodir    : foo/bar
+_type       : repo
+_url        : https://github.com/foo/bar
+name        : foo/bar
+post        : echo "goodbye $world"
+pre         : echo hello $world
+% __antidote_parse_bundles $bundle
+antidote-script --post "echo \"goodbye \$world\"" --pre "echo hello \$world" foo/bar
+% antidote bundle $bundle
+echo hello $world
+fpath+=( $HOME/.cache/antidote/foo/bar )
+source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+echo "goodbye $world"
+%
+```
+
+The bundle parser turns the bundle DSL into antidote-script statements.
 
 ```zsh
 % __antidote_parse_bundles < $ZDOTDIR/.zsh_plugins.txt

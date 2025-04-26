@@ -18,7 +18,7 @@ fpath+=( $HOME/.cache/antidote/foo/bar )
 
 fpath can be told to explicitly append, but it's unnecessary
 
-````zsh
+```zsh
 % antidote bundle foo/bar kind:zsh fpath-rule:append
 fpath+=( $HOME/.cache/antidote/foo/bar )
 source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
@@ -50,7 +50,7 @@ builtin autoload -Uz $fpath[-1]/*(N.:t)
 fpath=( $HOME/.cache/antidote/foo/baz/baz $fpath )
 builtin autoload -Uz $fpath[1]/*(N.:t)
 %
-````
+```
 
 fpath rules are also used for `autoload:funcdir`
 

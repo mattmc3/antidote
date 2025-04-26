@@ -1,9 +1,11 @@
 # antidote core tests
 
+Tests for antidote's most basic functionality.
+
 fails gracefully when someone tries bash
 
 ```zsh
-% bash -c "source $PWD/antidote.zsh"
+% bash -c "source ./antidote.zsh"
 antidote: Expecting zsh. Found 'bash'.
 %
 ```
@@ -79,7 +81,7 @@ No arg exit status is 2:
 
 ```zsh
 % antidote --version
-antidote version 1.9.8 (abcd123)
+antidote version 1.9.9 (abcd123)
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?
@@ -109,21 +111,9 @@ antidote: command not found 'foo'
 ## All commands
 
 ```zsh
-% cmds=( bundle help home init install list load path purge update script main null )
-% for cmd in $cmds; echo $+functions[antidote-$cmd]
-1
-1
-1
-1
-1
-1
-1
-1
-1
-1
-1
-1
-0
+% cmds=( bundle help home init install list load path purge update main null )
+% for cmd in $cmds; printf '%s' $+functions[antidote-$cmd]; echo
+111111111110
 %
 ```
 
