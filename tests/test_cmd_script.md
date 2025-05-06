@@ -39,7 +39,7 @@ Script a file:
 
 ```zsh
 % antidote-script $ZDOTDIR/aliases.zsh | subenv ZDOTDIR
-source $ZDOTDIR/aliases.zsh
+source "$ZDOTDIR/aliases.zsh"
 %
 ```
 
@@ -47,9 +47,9 @@ Script a lib directory:
 
 ```zsh
 % antidote-script $ZDOTDIR/custom/lib | subenv ZDOTDIR
-fpath+=( $ZDOTDIR/custom/lib )
-source $ZDOTDIR/custom/lib/lib1.zsh
-source $ZDOTDIR/custom/lib/lib2.zsh
+fpath+=( "$ZDOTDIR/custom/lib" )
+source "$ZDOTDIR/custom/lib/lib1.zsh"
+source "$ZDOTDIR/custom/lib/lib2.zsh"
 %
 ```
 
@@ -57,8 +57,8 @@ Script a plugin directory:
 
 ```zsh
 % antidote-script $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
-fpath+=( $ZDOTDIR/custom/plugins/myplugin )
-source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
+fpath+=( "$ZDOTDIR/custom/plugins/myplugin" )
+source "$ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh"
 %
 ```
 
@@ -99,8 +99,8 @@ Clone a missing plugin.
 
 ```zsh
 % antidote-script --kind zsh foo/bar | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/foo/bar )
-source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/foo/bar" )
+source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
 %
 ```
 
@@ -116,7 +116,7 @@ export PATH="$ANTIDOTE_HOME/foo/bar:$PATH"
 
 ```zsh
 % antidote-script --kind fpath foo/bar | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/foo/bar )
+fpath+=( "$ANTIDOTE_HOME/foo/bar" )
 %
 ```
 
@@ -124,7 +124,7 @@ fpath+=( $ANTIDOTE_HOME/foo/bar )
 
 ```zsh
 % antidote-script --kind autoload $ZDOTDIR/functions | subenv ZDOTDIR
-fpath+=( $ZDOTDIR/functions )
+fpath+=( "$ZDOTDIR/functions" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
 %
 ```
@@ -134,11 +134,11 @@ builtin autoload -Uz $fpath[-1]/*(N.:t)
 ```zsh
 % antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
-  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( "$ANTIDOTE_HOME/getantidote/zsh-defer" )
+  source "$ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( $ANTIDOTE_HOME/foo/bar )
-zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/foo/bar" )
+zsh-defer source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
 %
 ```
 
@@ -146,8 +146,8 @@ Test skipping defer loading
 
 ```zsh
 % antidote-script --kind defer --skip-load-defer foo/bar | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/foo/bar )
-zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/foo/bar" )
+zsh-defer source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
 %
 ```
 
@@ -158,20 +158,20 @@ Test defer zstyle settings
 % zstyle ':antidote:bundle:foo/bar' defer-options '-p'
 % antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
-  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( "$ANTIDOTE_HOME/getantidote/zsh-defer" )
+  source "$ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( $ANTIDOTE_HOME/foo/bar )
-zsh-defer -p source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/foo/bar" )
+zsh-defer -p source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
 %
 % # Uses different defer options due to zstyle matching
 % antidote-script --kind defer bar/baz 2>/dev/null | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
-  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( "$ANTIDOTE_HOME/getantidote/zsh-defer" )
+  source "$ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( $ANTIDOTE_HOME/bar/baz )
-zsh-defer -a source $ANTIDOTE_HOME/bar/baz/baz.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/bar/baz" )
+zsh-defer -a source "$ANTIDOTE_HOME/bar/baz/baz.plugin.zsh"
 % # cleanup
 % t_reset
 %
@@ -181,8 +181,8 @@ zsh-defer -a source $ANTIDOTE_HOME/bar/baz/baz.plugin.zsh
 
 ```zsh
 % antidote-script --path plugins/extract ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/extract )
-source $ANTIDOTE_HOME/ohmy/ohmy/plugins/extract/extract.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/extract" )
+source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/extract/extract.plugin.zsh"
 %
 ```
 
@@ -190,7 +190,7 @@ source $ANTIDOTE_HOME/ohmy/ohmy/plugins/extract/extract.plugin.zsh
 
 ```zsh
 % antidote-script --path lib/lib1.zsh ohmy/ohmy | subenv ANTIDOTE_HOME
-source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh
+source "$ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh"
 %
 ```
 
@@ -198,10 +198,10 @@ source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh
 
 ```zsh
 % antidote-script --path lib ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/lib )
-source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh
-source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib2.zsh
-source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib3.zsh
+fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/lib" )
+source "$ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh"
+source "$ANTIDOTE_HOME/ohmy/ohmy/lib/lib2.zsh"
+source "$ANTIDOTE_HOME/ohmy/ohmy/lib/lib3.zsh"
 %
 ```
 
@@ -209,7 +209,7 @@ source $ANTIDOTE_HOME/ohmy/ohmy/lib/lib3.zsh
 
 ```zsh
 % antidote-script --path themes/pretty.zsh-theme ohmy/ohmy | subenv ANTIDOTE_HOME
-source $ANTIDOTE_HOME/ohmy/ohmy/themes/pretty.zsh-theme
+source "$ANTIDOTE_HOME/ohmy/ohmy/themes/pretty.zsh-theme"
 %
 ```
 
@@ -218,8 +218,8 @@ source $ANTIDOTE_HOME/ohmy/ohmy/themes/pretty.zsh-theme
 ```zsh
 % antidote-script --conditional is-macos --path plugins/macos ohmy/ohmy | subenv ANTIDOTE_HOME
 if is-macos; then
-  fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos )
-  source $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh
+  fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos" )
+  source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh"
 fi
 %
 ```
@@ -228,10 +228,10 @@ fi
 
 ```zsh
 % antidote-script --path plugins/macos --autoload functions ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/functions )
+fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/functions" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
-fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos )
-source $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos" )
+source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh"
 %
 ```
 
@@ -240,12 +240,12 @@ source $ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh
 ```zsh
 % # append
 % antidote-script --fpath-rule append --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker )
-source $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/docker" )
+source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
 % # prepend
 % antidote-script --fpath-rule prepend --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath=( $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker $fpath )
-source $ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh
+fpath=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/docker" $fpath )
+source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
 % # whoops
 % antidote-script --fpath-rule foobar --path plugins/docker ohmy/ohmy 2>&1
 antidote: error: unexpected fpath rule: 'foobar'
@@ -258,12 +258,12 @@ antidote: error: unexpected fpath rule: 'foobar'
 % # pre
 % antidote-script --pre run_before foo/bar | subenv ANTIDOTE_HOME
 run_before
-fpath+=( $ANTIDOTE_HOME/foo/bar )
-source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/foo/bar" )
+source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
 % # post
 % antidote-script --post run_after foo/bar | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/foo/bar )
-source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/foo/bar" )
+source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
 run_after
 %
 ```
@@ -274,11 +274,11 @@ If a plugin is deferred, so is its post event
 % antidote-script --pre pre-event --post post-event --kind defer foo/bar | subenv ANTIDOTE_HOME
 pre-event
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $ANTIDOTE_HOME/getantidote/zsh-defer )
-  source $ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( "$ANTIDOTE_HOME/getantidote/zsh-defer" )
+  source "$ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( $ANTIDOTE_HOME/foo/bar )
-zsh-defer source $ANTIDOTE_HOME/foo/bar/bar.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/foo/bar" )
+zsh-defer source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
 zsh-defer post-event
 %
 ```

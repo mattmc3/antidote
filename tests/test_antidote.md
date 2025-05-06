@@ -53,8 +53,8 @@ Bundle a repo at https://github.com/foobar/foo
 ```zsh
 % antidote bundle foobar/foo
 # antidote cloning foobar/foo...
-fpath+=( $HOME/.cache/antidote/foobar/foo )
-source $HOME/.cache/antidote/foobar/foo/foo.plugin.zsh
+fpath+=( "$HOME/.cache/antidote/foobar/foo" )
+source "$HOME/.cache/antidote/foobar/foo/foo.plugin.zsh"
 %
 ```
 
@@ -63,8 +63,8 @@ Bundle a repo at https://gitlab.com/foobar/bar
 ```zsh
 % antidote bundle https://gitlab.com/foobar/bar
 # antidote cloning foobar/bar...
-fpath+=( $HOME/.cache/antidote/foobar/bar )
-source $HOME/.cache/antidote/foobar/bar/bar.plugin.zsh
+fpath+=( "$HOME/.cache/antidote/foobar/bar" )
+source "$HOME/.cache/antidote/foobar/bar/bar.plugin.zsh"
 %
 ```
 
@@ -73,8 +73,8 @@ Bundle a repo at git@bitbucket.org:foobar/baz
 ```zsh
 % antidote bundle git@bitbucket.org:foobar/baz
 # antidote cloning foobar/baz...
-fpath+=( $HOME/.cache/antidote/foobar/baz )
-source $HOME/.cache/antidote/foobar/baz/baz.plugin.zsh
+fpath+=( "$HOME/.cache/antidote/foobar/baz" )
+source "$HOME/.cache/antidote/foobar/baz/baz.plugin.zsh"
 %
 ```
 
@@ -84,8 +84,8 @@ Bundle the foo/bar repo using old antibody style directories:
 % zstyle ':antidote:bundle' use-friendly-names off
 % antidote bundle foo/bar
 # antidote cloning foo/bar...
-fpath+=( $HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar )
-source $HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh
+fpath+=( "$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar" )
+source "$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh"
 % zstyle ':antidote:bundle' use-friendly-names on
 %
 ```
@@ -95,8 +95,8 @@ Bundle a specific branch of a repo with `branch:<branch>`.
 ```zsh
 % antidote bundle foobar/foo branch:dev
 # antidote cloning foobar/foo...
-fpath+=( $HOME/.cache/antidote/foobar/foo )
-source $HOME/.cache/antidote/foobar/foo/foo.plugin.zsh
+fpath+=( "$HOME/.cache/antidote/foobar/foo" )
+source "$HOME/.cache/antidote/foobar/foo/foo.plugin.zsh"
 %
 ```
 
@@ -113,8 +113,8 @@ Bundles support a `kind:` annotation. The default is `kind:zsh`.
 
 ```zsh
 % antidote bundle foo/bar kind:zsh
-fpath+=( $HOME/.cache/antidote/foo/bar )
-source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+fpath+=( "$HOME/.cache/antidote/foo/bar" )
+source "$HOME/.cache/antidote/foo/bar/bar.plugin.zsh"
 %
 ```
 
@@ -130,7 +130,7 @@ Bundle foo/bar with `kind:fpath` to add it to your `$fpath`.
 
 ```zsh
 % antidote bundle foo/bar kind:fpath
-fpath+=( $HOME/.cache/antidote/foo/bar )
+fpath+=( "$HOME/.cache/antidote/foo/bar" )
 %
 ```
 
@@ -145,7 +145,7 @@ Autoload a path within foo/bar with the `kind:autoload` annotation.
 
 ```zsh
 % antidote bundle foo/baz kind:autoload path:functions
-fpath+=( $HOME/.cache/antidote/foo/baz/functions )
+fpath+=( "$HOME/.cache/antidote/foo/baz/functions" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
 %
 ```
@@ -155,11 +155,11 @@ Defer loading the foo/bar bundle with the `kind:defer` annotation.
 ```zsh
 % antidote bundle foo/baz kind:defer
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( $HOME/.cache/antidote/getantidote/zsh-defer )
-  source $HOME/.cache/antidote/getantidote/zsh-defer/zsh-defer.plugin.zsh
+  fpath+=( "$HOME/.cache/antidote/getantidote/zsh-defer" )
+  source "$HOME/.cache/antidote/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( $HOME/.cache/antidote/foo/baz )
-zsh-defer source $HOME/.cache/antidote/foo/baz/baz.plugin.zsh
+fpath+=( "$HOME/.cache/antidote/foo/baz" )
+zsh-defer source "$HOME/.cache/antidote/foo/baz/baz.plugin.zsh"
 %
 ```
 
@@ -169,8 +169,8 @@ Use the `path:<path>` annotation to load subplugins.
 
 ```zsh
 % antidote bundle ohmy/ohmy path:plugins/docker
-fpath+=( $HOME/.cache/antidote/ohmy/ohmy/plugins/docker )
-source $HOME/.cache/antidote/ohmy/ohmy/plugins/docker/docker.plugin.zsh
+fpath+=( "$HOME/.cache/antidote/ohmy/ohmy/plugins/docker" )
+source "$HOME/.cache/antidote/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
 %
 ```
 
@@ -178,10 +178,10 @@ Use `path:<lib>` to load a whole directory full of files.
 
 ```zsh
 % antidote bundle ohmy/ohmy path:lib
-fpath+=( $HOME/.cache/antidote/ohmy/ohmy/lib )
-source $HOME/.cache/antidote/ohmy/ohmy/lib/lib1.zsh
-source $HOME/.cache/antidote/ohmy/ohmy/lib/lib2.zsh
-source $HOME/.cache/antidote/ohmy/ohmy/lib/lib3.zsh
+fpath+=( "$HOME/.cache/antidote/ohmy/ohmy/lib" )
+source "$HOME/.cache/antidote/ohmy/ohmy/lib/lib1.zsh"
+source "$HOME/.cache/antidote/ohmy/ohmy/lib/lib2.zsh"
+source "$HOME/.cache/antidote/ohmy/ohmy/lib/lib3.zsh"
 %
 ```
 
@@ -189,7 +189,7 @@ Use `path:<file>` to load a specific file.
 
 ```zsh
 % antidote bundle ohmy/ohmy path:custom/themes/pretty.zsh-theme
-source $HOME/.cache/antidote/ohmy/ohmy/custom/themes/pretty.zsh-theme
+source "$HOME/.cache/antidote/ohmy/ohmy/custom/themes/pretty.zsh-theme"
 %
 ```
 
@@ -201,8 +201,8 @@ Use a existing boolean function to wrap a bundle in `if` logic:
 % is-macos() { [[ "$OSTYPE" == "darwin"* ]]; }
 % antidote bundle foo/bar conditional:is-macos
 if is-macos; then
-  fpath+=( $HOME/.cache/antidote/foo/bar )
-  source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+  fpath+=( "$HOME/.cache/antidote/foo/bar" )
+  source "$HOME/.cache/antidote/foo/bar/bar.plugin.zsh"
 fi
 %
 ```

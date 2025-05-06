@@ -92,8 +92,8 @@ name        : foo/bar
 antidote-script --conditional "is-macos || is-linux" foo/bar
 % antidote bundle $bundle
 if is-macos || is-linux; then
-  fpath+=( $HOME/.cache/antidote/foo/bar )
-  source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+  fpath+=( "$HOME/.cache/antidote/foo/bar" )
+  source "$HOME/.cache/antidote/foo/bar/bar.plugin.zsh"
 fi
 %
 ```
@@ -115,8 +115,8 @@ pre         : echo hello $world
 antidote-script --post "echo \"goodbye \$world\"" --pre "echo hello \$world" foo/bar
 % antidote bundle $bundle
 echo hello $world
-fpath+=( $HOME/.cache/antidote/foo/bar )
-source $HOME/.cache/antidote/foo/bar/bar.plugin.zsh
+fpath+=( "$HOME/.cache/antidote/foo/bar" )
+source "$HOME/.cache/antidote/foo/bar/bar.plugin.zsh"
 echo "goodbye $world"
 %
 ```
