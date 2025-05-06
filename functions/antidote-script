@@ -135,10 +135,10 @@
   # handle autoloading before sourcing
   if (( $#o_autoload )); then
     if [[ "$o_fpath_rule[-1]" == prepend ]]; then
-      script+=("fpath=( ${print_bundle_path}/${o_autoload[-1]} \$fpath )")
+      script+=("fpath=( \"${print_bundle_path}/${o_autoload[-1]}\" \$fpath )")
       script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
     else
-      script+=("fpath+=( ${print_bundle_path}/${o_autoload[-1]} )")
+      script+=("fpath+=( \"${print_bundle_path}/${o_autoload[-1]}\" )")
       script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
     fi
   fi
@@ -147,9 +147,9 @@
   bundle_type="$(__antidote_bundle_type $bundle_path)"
   local fpath_script
   if [[ "$o_fpath_rule[-1]" == prepend ]]; then
-    fpath_script="fpath=( $print_bundle_path \$fpath )"
+    fpath_script="fpath=( \"$print_bundle_path\" \$fpath )"
   else
-    fpath_script="fpath+=( $print_bundle_path )"
+    fpath_script="fpath+=( \"$print_bundle_path\" )"
   fi
 
   if [[ "$o_kind[-1]" == fpath ]]; then
@@ -171,7 +171,7 @@
       __antidote_bundle_zcompile $bundle_path
     fi
     if [[ $bundle_type == file ]]; then
-      script+="$source_cmd $print_bundle_path"
+      script+="$source_cmd \"$print_bundle_path\""
     else
       # directory/default
       local initfile initfiles
@@ -188,7 +188,7 @@
       local print_initfile
       for initfile in $initfiles; do
         print_initfile="$(__antidote_print_path "$initfile")"
-        script+="$source_cmd $print_initfile"
+        script+="$source_cmd \"$print_initfile\""
       done
     fi
   fi

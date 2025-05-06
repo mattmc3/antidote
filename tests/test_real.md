@@ -115,16 +115,16 @@ Clone and generate bundle script
 ```zsh
 % antidote bundle <$T_TESTDATA/.zsh_plugins.crlf.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/null
 % cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/rupa/z )
-source $ANTIDOTE_HOME/rupa/z/z.sh
-fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting )
-source $ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
-fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-completions )
-source $ANTIDOTE_HOME/zsh-users/zsh-completions/zsh-completions.plugin.zsh
-fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions )
-source $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
-fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search )
-source $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search/zsh-history-substring-search.plugin.zsh
+fpath+=( "$ANTIDOTE_HOME/rupa/z" )
+source "$ANTIDOTE_HOME/rupa/z/z.sh"
+fpath+=( "$ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting" )
+source "$ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
+fpath+=( "$ANTIDOTE_HOME/zsh-users/zsh-completions" )
+source "$ANTIDOTE_HOME/zsh-users/zsh-completions/zsh-completions.plugin.zsh"
+fpath+=( "$ANTIDOTE_HOME/zsh-users/zsh-autosuggestions" )
+source "$ANTIDOTE_HOME/zsh-users/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh"
+fpath+=( "$ANTIDOTE_HOME/zsh-users/zsh-history-substring-search" )
+source "$ANTIDOTE_HOME/zsh-users/zsh-history-substring-search/zsh-history-substring-search.plugin.zsh"
 %
 ```
 
@@ -191,13 +191,13 @@ completions are not in fpath
 % wc -l <$ZDOTDIR/.zsh_plugins.txt | sed 's/ //g'
 1
 % cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/rupa/z )
-source $ANTIDOTE_HOME/rupa/z/z.sh
+fpath+=( "$ANTIDOTE_HOME/rupa/z" )
+source "$ANTIDOTE_HOME/rupa/z/z.sh"
 % echo "zsh-users/zsh-completions path:src kind:fpath" >> $ZDOTDIR/.zsh_plugins.txt
 % # static cache file hasn't changed yet
 % cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/rupa/z )
-source $ANTIDOTE_HOME/rupa/z/z.sh
+fpath+=( "$ANTIDOTE_HOME/rupa/z" )
+source "$ANTIDOTE_HOME/rupa/z/z.sh"
 %
 ```
 
@@ -207,9 +207,9 @@ source $ANTIDOTE_HOME/rupa/z/z.sh
 % antidote load 2>&1
 # antidote cloning zsh-users/zsh-completions...
 % cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME
-fpath+=( $ANTIDOTE_HOME/rupa/z )
-source $ANTIDOTE_HOME/rupa/z/z.sh
-fpath+=( $ANTIDOTE_HOME/zsh-users/zsh-completions/src )
+fpath+=( "$ANTIDOTE_HOME/rupa/z" )
+source "$ANTIDOTE_HOME/rupa/z/z.sh"
+fpath+=( "$ANTIDOTE_HOME/zsh-users/zsh-completions/src" )
 % echo $+aliases[z]
 1
 % (( $fpath[(Ie)$compdir] )) && echo "completions are in fpath"

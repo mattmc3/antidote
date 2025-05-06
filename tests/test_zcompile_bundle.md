@@ -16,11 +16,11 @@ Ensure a compiled file does not exist:
 % zstyle ':antidote:bundle:*' zcompile 'no'
 % ! test -e $ZDOTDIR/custom/lib/lib1.zsh.zwc  #=> --exit 0
 % antidote bundle $ZDOTDIR/custom/lib/lib1.zsh | subenv ZDOTDIR
-source $ZDOTDIR/custom/lib/lib1.zsh
+source "$ZDOTDIR/custom/lib/lib1.zsh"
 % ! test -e $ZDOTDIR/custom/lib/lib1.zsh.zwc  #=> --exit 0
 % antidote bundle $ZDOTDIR/custom/plugins/mytheme | subenv ZDOTDIR
-fpath+=( $ZDOTDIR/custom/plugins/mytheme )
-source $ZDOTDIR/custom/plugins/mytheme/mytheme.zsh-theme
+fpath+=( "$ZDOTDIR/custom/plugins/mytheme" )
+source "$ZDOTDIR/custom/plugins/mytheme/mytheme.zsh-theme"
 % ! test -e $ZDOTDIR/custom/plugins/mytheme/mytheme.zsh-theme.zwc  #=> --exit 0
 %
 ```
@@ -31,17 +31,17 @@ Ensure a compiled file exists:
 % zstyle ':antidote:bundle:*' zcompile 'yes'
 % ! test -e $ZDOTDIR/custom/lib/lib2.zsh.zwc  #=> --exit 0
 % antidote bundle $ZDOTDIR/custom/lib/lib2.zsh | subenv ZDOTDIR
-source $ZDOTDIR/custom/lib/lib2.zsh
+source "$ZDOTDIR/custom/lib/lib2.zsh"
 % test -e $ZDOTDIR/custom/lib/lib2.zsh.zwc  #=> --exit 0
 % # plugin
 % antidote bundle $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
-fpath+=( $ZDOTDIR/custom/plugins/myplugin )
-source $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh
+fpath+=( "$ZDOTDIR/custom/plugins/myplugin" )
+source "$ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh"
 % test -e $ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh.zwc  #=> --exit 0
 % # zsh-theme
 % antidote bundle $ZDOTDIR/custom/plugins/mytheme | subenv ZDOTDIR
-fpath+=( $ZDOTDIR/custom/plugins/mytheme )
-source $ZDOTDIR/custom/plugins/mytheme/mytheme.zsh-theme
+fpath+=( "$ZDOTDIR/custom/plugins/mytheme" )
+source "$ZDOTDIR/custom/plugins/mytheme/mytheme.zsh-theme"
 % test -e $ZDOTDIR/custom/plugins/mytheme/mytheme.zsh-theme.zwc  #=> --exit 0
 %
 ```
