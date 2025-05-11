@@ -1,0 +1,15 @@
+#!/bin/zsh
+
+### Get the clone path using legacy antibody style
+#function __antidote_clone_path_antibody {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+
+  # sanitize URL for safe use as a dir name
+  # ex: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
+  local result=$(__antidote_tourl "$1")
+  result=${result%.git}
+  result=${result:gs/\@/-AT-}
+  result=${result:gs/\:/-COLON-}
+  result=${result:gs/\//-SLASH-}
+  print $result
+#}

@@ -94,14 +94,7 @@
   if [[ -v bundle[_url] ]]; then
     # TODO: Remove for antidote 2.0
     if zstyle -t ':antidote:compatibility-mode' 'antibody' || ! zstyle -t ':antidote:bundle' use-friendly-names; then
-      # sanitize URL for safe use as a dir name
-      # ex: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
-      str="$bundle[_url]"
-      str=${str%.git}
-      str=${str:gs/\@/-AT-}
-      str=${str:gs/\:/-COLON-}
-      str=${str:gs/\//-SLASH-}
-      bundle[_repodir]="$str"
+      bundle[_repodir]="$(__antidote_clone_path_antibody "$bundle[_repo]")"
     else
       bundle[_repodir]="$bundle[_repo]"
     fi

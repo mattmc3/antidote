@@ -31,12 +31,7 @@
     else
       # sanitize URL for safe use as a dir name
       # ex: $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions
-      local url=$(__antidote_tourl $bundle)
-      url=${url%.git}
-      url=${url:gs/\@/-AT-}
-      url=${url:gs/\:/-COLON-}
-      url=${url:gs/\//-SLASH-}
-      print $(antidote-home)/$url
+      printf '%s/%s\n' $(antidote-home) $(__antidote_clone_path_antibody $bundle)
     fi
   elif [[ -f "$bundle" ]]; then
     print ${bundle:A:h}

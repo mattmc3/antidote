@@ -3,11 +3,19 @@
 ### Get the url from a repo bundle.
 #function __antidote_tourl {
   emulate -L zsh; setopt local_options $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
 
-  local bundle=$1
-  local url=$bundle
-  if [[ $bundle != *://* && $bundle != git@*:*/* ]]; then
-    url=https://github.com/$bundle
+  local bundle="$1"
+  local url="$bundle"
+  local gitsite
+
+  zstyle -s ':antidote:gitremote' url 'gitsite' \
+    || gitsite="https://github.com"
+  gitsite="${gitsite%/}"
+
+  if [[ "$bundle" != *://* && "$bundle" != git@*:*/* ]]; then
+    url="$gitsite/$bundle"
   fi
-  print $url
+
+  print "$url"
 #}
