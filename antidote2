@@ -1,0 +1,217 @@
+#!/bin/zsh
+# shellcheck disable=SC2296
+
+ANTIDOTE_VERSION=2.0.0-beta
+: "${ANTIDOTE_DEFAUT_GITSITE:=https://github.com}"
+NL=$'\n'
+REPLY=
+reply=()
+
+# Helper functions
+_print()    { printf %s\\n "$@" ;}
+_printerr() { printf %s\\n "antidote: $*" >&2 ;}
+_isfunc()   { typeset -f "${1}" >/dev/null 2>&1 ;}
+_iscmd()    { command -v "${1}" >/dev/null 2>&1 ;}
+
+##? Cross-shell method of getting the absolute path.
+_abspath() {
+  local filename parentdir
+  filename="${1}"
+  parentdir="$(dirname "${filename}")"
+
+  [[ -e "${filename}" ]] || return 1
+  if [[ -d "${filename}" ]]; then
+    _print "$(cd "${filename}" && pwd)"
+  elif [[ -d "${parentdir}" ]]; then
+    _print "$(cd "${parentdir}" && pwd)/$(basename "${filename}")"
+  fi
+}
+
+# Get script path in a Bash/Zsh compatible way, falling back to $0
+# shellcheck disable=SC2296
+SCRIPT_PATH="$(_abspath "${BASH_SOURCE[0]:-${(%):-%N}}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+##? Print TMPDIR by OS.
+_tempdir() {
+  local tmpd
+  if [[ -n "$TMPDIR" && (( -d "$TMPDIR" && -w "$TMPDIR" ) || ! ( -d /tmp && -w /tmp )) ]]; then
+    tmpd="${TMPDIR%/}"
+  else
+    tmpd="/tmp"
+  fi
+  _print "$tmpd"
+}
+
+##? Collect <redirected or piped| input.
+_collect_args() {
+  local arg line
+  reply=()
+  for arg in "$@"; do
+    arg="${arg//\\n/$NL}"
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      reply+=("$line")
+    done < <(printf '%s' "$arg")
+  done
+  if [[ ! -t 0 ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      reply+=("$line")
+    done
+  fi
+}
+
+##? Get the default cache directory by OS.
+_cachedir() {
+  local result
+
+  if [[ "${OSTYPE}" == darwin* ]]; then
+    result="$HOME/Library/Caches"
+  elif [[ "${OSTYPE}" == cygwin* || "${OSTYPE}" == msys* ]]; then
+    result="${LOCALAPPDATA:-$LocalAppData}"
+    if _iscmd cygpath; then
+      result="$(cygpath "$result")"
+    fi
+  fi
+  [[ -n "$result" ]] || result="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+  if [[ -n "$1" ]]; then
+    if [[ $result == *\\* ]] && [[ $result != */* ]]; then
+      result+="\\$1"
+    else
+      result+="/$1"
+    fi
+  fi
+  _print "$result"
+}
+
+##? Parse bundles into an associative array.
+_parse_bundles() {
+  _collect_args "$@"
+  local -a bundles=( "${reply[@]}" )
+  local -a reply=()
+  local bundle lineno=0
+  local parsed_bundle=()
+  declare -A parsed_bundle=()
+
+  for bundle in "${bundles[@]}"; do
+    (( lineno += 1 ))
+
+    bundle="${bundle%%\#*}"                        # Remove anything after the first '#'
+    bundle="${bundle#"${bundle%%[![:space:]]*}"}"  # Trim leading spaces
+    bundle="${bundle%"${bundle##*[![:space:]]}"}"  # Trim trailing spaces
+
+    # Skip empty bundles
+    [[ -n "$bundle" ]] || continue
+
+    # 1st field gets a 'name:' prefix so we can treat everything as key:val pairs
+    bundle="name:${bundle}"
+
+    # Split line into key-value pairs with quoting
+    parsed_bundle[lineno]="$lineno"
+    # shellcheck disable=SC2206
+    kvpairs=(${(Q)${(z)bundle}})
+    for pair in "${kvpairs[@]}"; do
+      key="${pair%%:*}"  # Extract key (before first ':')
+      if [[ "$pair" == *:* ]]; then
+        value="${pair#*:}"  # Extract value (after first ':')
+      else
+        value=""
+      fi
+      parsed_bundle[$key]="$value"
+    done
+
+    reply+=( "$(declare -p parsed_bundle)" )
+  done
+  printf '%s\n' "${reply[@]}"
+}
+
+##? Get the antidote version.
+_antidote_version() {
+  local ver gitsha
+  ver="$ANTIDOTE_VERSION"
+  gitsha="$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null)"
+  [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
+  _print "antidote version $ver"
+}
+
+##? Print help for antidote or one of its subcommands.
+antidote_help() {
+  local -a antidote_usage=(
+    "antidote - the cure to slow zsh plugin management"
+    ""
+    "usage: antidote [<flags>] <command> [<args> ...]"
+    ""
+    "flags:"
+    "  -h, --help           Show context-sensitive help"
+    "  -v, --version        Show application version"
+    ""
+    "commands:"
+    "  help      Show documentation"
+    "  load      Statically source all bundles from the plugins file"
+    "  bundle    Clone bundle(s) and generate the static load script"
+    "  install   Clone a new bundle and add it to your plugins file"
+    "  update    Update antidote and its cloned bundles"
+    "  purge     Remove a cloned bundle"
+    "  home      Print where antidote is cloning bundles"
+    "  list      List cloned bundles"
+    "  path      Print the path of a cloned bundle"
+    "  init      Initialize the shell for dynamic bundles"
+  )
+  _print "${antidote_usage[@]}"
+}
+
+##? Print home directory for antidote.
+antidote_home() {
+  local result
+
+  case "${1}" in
+    -h|--help)
+      antidote_help home
+      return 0
+      ;;
+  esac
+
+  if [[ -n "$ANTIDOTE_HOME" ]]; then
+    result="$ANTIDOTE_HOME"
+  else
+    result="$(_cachedir antidote)"
+  fi
+  _print "$result"
+}
+
+##? Main dispatch function.
+antidote_main() {
+  local cmd
+
+  case "${1}" in
+    ''|help|-h|--help)
+      antidote_help "${2:-antidote}"
+      return 0
+      ;;
+    -v|--version)
+      _antidote_version
+      return 0
+      ;;
+    -d|--debug)
+      shift
+      cmd="$1"
+      shift
+      "${cmd}" "$@"
+      return $?
+      ;;
+    -*)
+      _printerr "unknown flag '${1}', try --help"
+      return 1
+      ;;
+  esac
+
+  if _isfunc "antidote_${1}"; then
+    cmd="${1}"; shift
+    "antidote_${cmd}" "$@"
+    return $?
+  else
+    _printerr "command not found '${1}'"
+    return 1
+  fi
+}
+antidote_main "$@"
