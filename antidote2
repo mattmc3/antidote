@@ -1,17 +1,38 @@
-#!/bin/zsh
-# shellcheck disable=SC2296
+#!/usr/bin/env bash
+# shellcheck disable=SC2120,SC2296
 
 ANTIDOTE_VERSION=2.0.0-beta
+: "${OSTYPE:="$(uname -s | tr '[:upper:]' '[:lower:]')"}"
 : "${ANTIDOTE_DEFAUT_GITSITE:=https://github.com}"
+ANTIDOTE_DEBUG=false
 NL=$'\n'
 REPLY=
 reply=()
 
 # Helper functions
-_print()    { printf %s\\n "$@" ;}
-_printerr() { printf %s\\n "antidote: $*" >&2 ;}
-_isfunc()   { typeset -f "${1}" >/dev/null 2>&1 ;}
-_iscmd()    { command -v "${1}" >/dev/null 2>&1 ;}
+_isfunc() { typeset -f "${1}" >/dev/null 2>&1 ;}
+_iscmd()  { command -v "${1}" >/dev/null 2>&1 ;}
+
+##? Check shell version requirements
+_check_shell_version() {
+  if [[ -n "$ZSH_VERSION" ]]; then
+    builtin autoload -Uz is-at-least
+    if ! is-at-least 5.4.2; then
+      printf >&2 '%s\n' "Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >=5.4.2."
+      exit 1
+    fi
+  elif [[ -n "$BASH_VERSION" ]]; then
+    if [[ "${BASH_VERSION%%.*}" -lt 4 ]]; then
+      printf >&2 '%s\n' "Unsupported Bash version '$BASH_VERSION'. Expecting Bash >=4.0."
+      exit 1
+    fi
+  else
+    shellname=$(ps -p $$ -oargs= | awk 'NR=1{print $1}')
+    printf >&2 '%s\n' "antidote: Expecting zsh or bash. Found '$shellname'."
+    exit 1
+  fi
+}
+_check_shell_version
 
 ##? Cross-shell method of getting the absolute path.
 _abspath() {
@@ -21,9 +42,9 @@ _abspath() {
 
   [[ -e "${filename}" ]] || return 1
   if [[ -d "${filename}" ]]; then
-    _print "$(cd "${filename}" && pwd)"
+    printf '%s\n' "$(cd "${filename}" && pwd)"
   elif [[ -d "${parentdir}" ]]; then
-    _print "$(cd "${parentdir}" && pwd)/$(basename "${filename}")"
+    printf '%s\n' "$(cd "${parentdir}" && pwd)/$(basename "${filename}")"
   fi
 }
 
@@ -34,13 +55,15 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 
 ##? Print TMPDIR by OS.
 _tempdir() {
+  REPLY=
   local tmpd
   if [[ -n "$TMPDIR" && (( -d "$TMPDIR" && -w "$TMPDIR" ) || ! ( -d /tmp && -w /tmp )) ]]; then
     tmpd="${TMPDIR%/}"
   else
     tmpd="/tmp"
   fi
-  _print "$tmpd"
+  REPLY="$tmpd"
+  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "$REPLY"
 }
 
 ##? Collect <redirected or piped| input.
@@ -58,12 +81,13 @@ _collect_args() {
       reply+=("$line")
     done
   fi
+  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${reply[@]}"
 }
 
 ##? Get the default cache directory by OS.
 _cachedir() {
+  REPLY=
   local result
-
   if [[ "${OSTYPE}" == darwin* ]]; then
     result="$HOME/Library/Caches"
   elif [[ "${OSTYPE}" == cygwin* || "${OSTYPE}" == msys* ]]; then
@@ -81,26 +105,28 @@ _cachedir() {
       result+="/$1"
     fi
   fi
-  _print "$result"
+  REPLY="$result"
+  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "$REPLY"
 }
 
 ##? # Use shell's lexer for word splitting rules
 _parse_kvpairs() {
+  reply=()
   local str="$*"
   str="${str//\$/\\\$}"
-  reply=()
   eval "set -- $str"
   reply=("$@")
 }
 
 ##? Parse bundles into an associative array.
 _parse_bundles() {
-  _collect_args "$@"
+  reply=()
+  _collect_args "$@" >/dev/null
   local -a bundles=( "${reply[@]}" )
+  reply=()
   local -a kvpairs=() results=()
   local pair key value bundle lineno=0
-  local parsed_bundle=()
-  declare -A parsed_bundle=()
+  local -A parsed_bundle=()
 
   for bundle in "${bundles[@]}"; do
     (( lineno += 1 ))
@@ -121,7 +147,6 @@ _parse_bundles() {
 
     _parse_kvpairs "${bundle}"
     kvpairs=("${reply[@]}")
-    reply=()
 
     for pair in "${kvpairs[@]}"; do
       key="${pair%%:*}"  # Extract key (before first ':')
@@ -162,7 +187,7 @@ _antidote_version() {
   ver="$ANTIDOTE_VERSION"
   gitsha="$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null)"
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
-  _print "antidote version $ver"
+  printf '%s\n' "antidote version $ver"
 }
 
 ##? Print help for antidote or one of its subcommands.
@@ -172,23 +197,36 @@ antidote_help() {
     ""
     "usage: antidote [<flags>] <command> [<args> ...]"
     ""
-    "flags:"
+    "Flags:"
     "  -h, --help           Show context-sensitive help"
     "  -v, --version        Show application version"
     ""
-    "commands:"
-    "  help      Show documentation"
-    "  load      Statically source all bundles from the plugins file"
-    "  bundle    Clone bundle(s) and generate the static load script"
-    "  install   Clone a new bundle and add it to your plugins file"
-    "  update    Update antidote and its cloned bundles"
-    "  purge     Remove a cloned bundle"
-    "  home      Print where antidote is cloning bundles"
-    "  list      List cloned bundles"
-    "  path      Print the path of a cloned bundle"
-    "  init      Initialize the shell for dynamic bundles"
+    "Commands:"
+    "  help [<command>]"
+    "    Show documentation"
+    ""
+    "  bundle <bundles>..."
+    "    Clone bundle(s) and generate the static load script"
+    ""
+    "  update"
+    "    Update antidote and its cloned bundles"
+    ""
+    "  home"
+    "    Print where antidote is cloning bundles"
+    ""
+    "  purge <bundle>"
+    "    Remove a cloned bundle"
+    ""
+    "  list"
+    "    List cloned bundles"
+    ""
+    "  path <bundle>"
+    "    Print the path of a cloned bundle"
+    ""
+    "  init"
+    "    Initialize the shell for dynamic bundles"
   )
-  _print "${antidote_usage[@]}"
+  printf '%s\n' "${antidote_usage[@]}"
 }
 
 ##? Print home directory for antidote.
@@ -205,9 +243,28 @@ antidote_home() {
   if [[ -n "$ANTIDOTE_HOME" ]]; then
     result="$ANTIDOTE_HOME"
   else
-    result="$(_cachedir antidote)"
+    _cachedir antidote >/dev/null
+    result="$REPLY"; REPLY=
   fi
-  _print "$result"
+  printf '%s\n' "$result"
+}
+
+antidote_init() {
+  printf '#!/usr/bin/env zsh\n'
+  printf 'antidote2() {\n'
+  printf '  case "$1" in\n'
+  printf '    bundle)\n'
+  printf '      source <( "%s" bundle "$@" ) || "%s" bundle "$@"\n' "$SCRIPT_PATH" "$SCRIPT_PATH"
+  printf '      ;;\n'
+  printf '    *)\n'
+  printf '      "%s" "$@"\n' "$SCRIPT_PATH"
+  printf '      ;;\n'
+  printf '  esac\n'
+  printf '}\n'
+  printf '_antidote2() {\n'
+  printf '  IFS='\'' '\'' read -A reply <<< "help bundle update home purge list init"\n'
+  printf '}\n'
+  printf 'compctl -K _antidote2 antidote2\n'
 }
 
 ##? Main dispatch function.
@@ -225,24 +282,34 @@ antidote_main() {
       ;;
     -d|--debug)
       shift
-      cmd="$1"
+      ANTIDOTE_DEBUG=true
+      ;;
+    --)
       shift
-      "${cmd}" "$@"
-      return $?
       ;;
     -*)
-      _printerr "unknown flag '${1}', try --help"
+      printf >&2 '%s\n' "unknown flag '${1}', try --help"
       return 1
       ;;
   esac
+
+  # Allow running any function if we're in debug mode
+  if [[ "$ANTIDOTE_DEBUG" == true ]] && [[ "$1" == run ]]; then
+    shift
+    cmd="$1"
+    shift
+    "${cmd}" "$@"
+    return $?
+  fi
 
   if _isfunc "antidote_${1}"; then
     cmd="${1}"; shift
     "antidote_${cmd}" "$@"
     return $?
   else
-    _printerr "command not found '${1}'"
+    printf >&2 '%s\n' "command not found '${1}'"
     return 1
   fi
 }
+
 antidote_main "$@"
