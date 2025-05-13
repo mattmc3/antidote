@@ -84,12 +84,21 @@ _cachedir() {
   _print "$result"
 }
 
+##? # Use shell's lexer for word splitting rules
+_parse_kvpairs() {
+  local str="$*"
+  str="${str//\$/\\\$}"
+  reply=()
+  eval "set -- $str"
+  reply=("$@")
+}
+
 ##? Parse bundles into an associative array.
 _parse_bundles() {
   _collect_args "$@"
   local -a bundles=( "${reply[@]}" )
-  local -a reply=()
-  local bundle lineno=0
+  local -a kvpairs=() results=()
+  local pair key value bundle lineno=0
   local parsed_bundle=()
   declare -A parsed_bundle=()
 
@@ -107,9 +116,13 @@ _parse_bundles() {
     bundle="name:${bundle}"
 
     # Split line into key-value pairs with quoting
+    parsed_bundle=()
     parsed_bundle[lineno]="$lineno"
-    # shellcheck disable=SC2206
-    kvpairs=(${(Q)${(z)bundle}})
+
+    _parse_kvpairs "${bundle}"
+    kvpairs=("${reply[@]}")
+    reply=()
+
     for pair in "${kvpairs[@]}"; do
       key="${pair%%:*}"  # Extract key (before first ':')
       if [[ "$pair" == *:* ]]; then
@@ -120,7 +133,25 @@ _parse_bundles() {
       parsed_bundle[$key]="$value"
     done
 
-    reply+=( "$(declare -p parsed_bundle)" )
+    results+=( "$(declare -p parsed_bundle)" )
+  done
+  reply=("${results[@]}")
+  printf '%s\n' "${reply[@]}"
+}
+
+##? Get the details of all cloned repos
+_repo_details() {
+  local bundle_dir repo_details antidote_home reply=()
+  declare -A repo_details=()
+  antidote_home="$(antidote_home)"
+  for bundle_dir in "${antidote_home}"/*/*/.git; do
+    bundle_dir="$(git -C "$bundle_dir/.." rev-parse --show-toplevel)"
+    repo_details[dir]="$bundle_dir"
+    repo_details[url]="$(git -C "$bundle_dir" config remote.origin.url)"
+    repo_details[repo]="$(basename "$(dirname "$bundle_dir")")/$(basename "$bundle_dir")"
+    repo_details[branch]="$(git -C "$bundle_dir" branch --show-current)"
+    repo_details[sha]="$(git -C "$bundle_dir" rev-parse HEAD)"
+    reply+=( "$(declare -p repo_details)" )
   done
   printf '%s\n' "${reply[@]}"
 }
