@@ -2,12 +2,20 @@
 # shellcheck disable=SC2120,SC2296
 
 ANTIDOTE_VERSION=2.0.0-beta
+
+if [[ -n "$BASH_VERSION" ]]; then
+  shopt -s nullglob
+elif [[ -n "$ZSH_VERSION" ]]; then
+  setopt NULL_GLOB
+fi
+
 : "${OSTYPE:="$(uname -s | tr '[:upper:]' '[:lower:]')"}"
 : "${ANTIDOTE_DEFAUT_GITSITE:=https://github.com}"
 ANTIDOTE_DEBUG=false
 NL=$'\n'
-REPLY=
-reply=()
+TAB=$'\t'
+typeset -g REPLY=
+typeset -ga reply=()
 
 # Helper functions
 _isfunc() { typeset -f "${1}" >/dev/null 2>&1 ;}
@@ -166,17 +174,19 @@ _parse_bundles() {
 
 ##? Get the details of all cloned repos
 _repo_details() {
-  local bundle_dir repo_details antidote_home reply=()
-  declare -A repo_details=()
+  reply=()
+  local bundle_dir repo_details antidote_home
+  local -A repo_detail=()
   antidote_home="$(antidote_home)"
   for bundle_dir in "${antidote_home}"/*/*/.git; do
     bundle_dir="$(git -C "$bundle_dir/.." rev-parse --show-toplevel)"
-    repo_details[dir]="$bundle_dir"
-    repo_details[url]="$(git -C "$bundle_dir" config remote.origin.url)"
-    repo_details[repo]="$(basename "$(dirname "$bundle_dir")")/$(basename "$bundle_dir")"
-    repo_details[branch]="$(git -C "$bundle_dir" branch --show-current)"
-    repo_details[sha]="$(git -C "$bundle_dir" rev-parse HEAD)"
-    reply+=( "$(declare -p repo_details)" )
+    repo_detail[path]="$bundle_dir"
+    repo_detail[url]="$(git -C "$bundle_dir" config remote.origin.url)"
+    repo_detail[repo]="$(basename "$(dirname "$bundle_dir")")/$(basename "$bundle_dir")"
+    repo_detail[branch]="$(git -C "$bundle_dir" branch --show-current)"
+    repo_detail[sha]="$(git -C "$bundle_dir" rev-parse HEAD)"
+    repo_detail[date]="$(git -C "$bundle_dir" log -1 --format=%cd --date=short)"
+    reply+=( "$(declare -p repo_detail)" )
   done
   printf '%s\n' "${reply[@]}"
 }
@@ -249,6 +259,7 @@ antidote_home() {
   printf '%s\n' "$result"
 }
 
+##? Initialize the shell for dynamic bundles.
 antidote_init() {
   printf '#!/usr/bin/env zsh\n'
   printf 'antidote2() {\n'
@@ -265,6 +276,60 @@ antidote_init() {
   printf '  IFS='\'' '\'' read -A reply <<< "help bundle update home purge list init"\n'
   printf '}\n'
   printf 'compctl -K _antidote2 antidote2\n'
+}
+
+##? List cloned bundles.
+antidote_list() {
+  reply=()
+  local -A repo_detail=()
+  local -a repo_details=()
+  local formatstr outstr deetstr
+
+  case "${1}" in
+    -f|--format)
+      shift
+      formatstr="$1"
+      (( $# > 0 )) && shift
+      ;;
+    --)
+      shift
+      ;;
+    -*)
+      printf >&2 '%s\n' "unknown flag '${1}'"
+      return 1
+      ;;
+  esac
+
+  _repo_details >/dev/null
+  repo_details=("${reply[@]}")
+  for deetstr in "${repo_details[@]}"; do
+    [[ -n "$deetstr" ]] || continue
+
+    # Turn the typeset repr into an assoc_arr
+    repo_detail=()
+    eval "$deetstr"
+
+    if [[ -n "$formatstr" ]]; then
+      outstr="$formatstr"
+      outstr="${outstr//%b/${repo_detail[branch]}}"
+      outstr="${outstr//%d/${repo_detail[date]}}"
+      outstr="${outstr//%p/${repo_detail[path]}}"
+      outstr="${outstr//%r/${repo_detail[repo]}}"
+      outstr="${outstr//%s/${repo_detail[sha]}}"
+      outstr="${outstr//%u/${repo_detail[url]}}"
+      printf '%s\n' "$outstr"
+    else
+      printf '%s\n' "${repo_detail[repo]}"
+      printf '%s\n' "=================================================="
+      printf '%12s: %s\n' "Repo (%r)" "${repo_detail[repo]}"
+      printf '%12s: %s\n' "Path (%p)" "${repo_detail[path]}"
+      printf '%12s: %s\n' "URL (%u)" "${repo_detail[url]}"
+      printf '%12s: %s\n' "Branch (%b)" "${repo_detail[branch]}"
+      printf '%12s: %s\n' "SHA (%s)" "${repo_detail[sha]}"
+      printf '%12s: %s\n' "Date (%d)" "${repo_detail[date]}"
+      printf '\n'
+    fi
+  done
 }
 
 ##? Main dispatch function.
