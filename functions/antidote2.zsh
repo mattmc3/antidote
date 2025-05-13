@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 # shellcheck disable=SC2120,SC2296
 
 ANTIDOTE_VERSION=2.0.0-beta
@@ -60,6 +60,17 @@ _abspath() {
 # shellcheck disable=SC2296
 SCRIPT_PATH="$(_abspath "${BASH_SOURCE[0]:-${(%):-%N}}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+_shellver() {
+  if [[ -n "$ZSH_VERSION" ]]; then
+    printf '%s\n' "zsh ${ZSH_VERSION}"
+  elif [[ -n "$BASH_VERSION" ]]; then
+    printf '%s\n' "bash ${BASH_VERSION}"
+  else
+    printf >&2 '%s\n' "antidote: unknown shell"
+  fi
+}
+
 
 ##? Print TMPDIR by OS.
 _tempdir() {
@@ -311,12 +322,21 @@ antidote_list() {
 
     if [[ -n "$formatstr" ]]; then
       outstr="$formatstr"
-      outstr="${outstr//%b/${repo_detail[branch]}}"
-      outstr="${outstr//%d/${repo_detail[date]}}"
-      outstr="${outstr//%p/${repo_detail[path]}}"
-      outstr="${outstr//%r/${repo_detail[repo]}}"
-      outstr="${outstr//%s/${repo_detail[sha]}}"
-      outstr="${outstr//%u/${repo_detail[url]}}"
+      if [[ -n "$ZSH_VERSION" ]]; then
+        outstr=${outstr:gs/%b/${repo_detail[branch]}}
+        outstr=${outstr:gs/%d/${repo_detail[date]}}
+        outstr=${outstr:gs/%p/${repo_detail[path]}}
+        outstr=${outstr:gs/%r/${repo_detail[repo]}}
+        outstr=${outstr:gs/%s/${repo_detail[sha]}}
+        outstr=${outstr:gs/%u/${repo_detail[url]}}
+      else
+        outstr="${outstr//%b/${repo_detail[branch]}}"
+        outstr="${outstr//%d/${repo_detail[date]}}"
+        outstr="${outstr//%p/${repo_detail[path]}}"
+        outstr="${outstr//%r/${repo_detail[repo]}}"
+        outstr="${outstr//%s/${repo_detail[sha]}}"
+        outstr="${outstr//%u/${repo_detail[url]}}"
+      fi
       printf '%s\n' "$outstr"
     else
       printf '%s\n' "${repo_detail[repo]}"
