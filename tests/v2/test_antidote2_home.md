@@ -4,6 +4,7 @@
 
 ```zsh
 % path+=($PWD)
+% ANTIDOTE_DEBUG=true
 % subenv() { : "${1:=HOME}"; sed "s|$(eval echo \"\$$1\")|$\\$1|g" ;}
 %
 ```
@@ -41,7 +42,7 @@ $HOME/.cache/antidote
 `antidote2 home` is `~/Library/Caches/antidote` on macOS
 
 ```zsh
-% OSTYPE=darwin21.3.0 antidote2 home | subenv
+% ANTIDOTE_OSTYPE=darwin21.3.0 antidote2 home | subenv
 $HOME/Library/Caches/antidote
 %
 ```
@@ -49,7 +50,7 @@ $HOME/Library/Caches/antidote
 `antidote2 home` is `$LOCALAPPDATA/antidote` on msys
 
 ```zsh
-% OSTYPE=msys LOCALAPPDATA=$HOME/AppData antidote2 home | subenv
+% ANTIDOTE_OSTYPE=msys LOCALAPPDATA=$HOME/AppData antidote2 home | subenv
 $HOME/AppData/antidote
 %
 ```
@@ -57,7 +58,7 @@ $HOME/AppData/antidote
 `antidote2 home` uses `$XDG_CACHE_HOME` on an OS that defines it.
 
 ```zsh
-% OSTYPE=foobar XDG_CACHE_HOME=$HOME/.xdg-cache antidote2 home | subenv
+% ANTIDOTE_OSTYPE=foobar XDG_CACHE_HOME=$HOME/.xdg-cache antidote2 home | subenv
 $HOME/.xdg-cache/antidote
 %
 ```
@@ -65,7 +66,7 @@ $HOME/.xdg-cache/antidote
 `antidote2 home` uses `$HOME/.cache` otherwise.
 
 ```zsh
-% OSTYPE=foobar XDG_CACHE_HOME= antidote2 home | subenv
+% ANTIDOTE_OSTYPE=foobar XDG_CACHE_HOME= antidote2 home | subenv
 $HOME/.cache/antidote
 %
 ```

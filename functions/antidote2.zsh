@@ -6,16 +6,17 @@ ANTIDOTE_VERSION=2.0.0-beta
 if [[ -n "$BASH_VERSION" ]]; then
   shopt -s nullglob
 elif [[ -n "$ZSH_VERSION" ]]; then
-  setopt NULL_GLOB
+  setopt NULL_GLOB EXTENDED_GLOB NO_MONITOR PIPEFAIL
 fi
 
-: "${OSTYPE:="$(uname -s | tr '[:upper:]' '[:lower:]')"}"
 : "${ANTIDOTE_DEFAUT_GITSITE:=https://github.com}"
-ANTIDOTE_DEBUG=false
+: "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
+: "${ANTIDOTE_DEBUG:=false}"
+
 NL=$'\n'
-TAB=$'\t'
-typeset -g REPLY=
-typeset -ga reply=()
+#TAB=$'\t'
+#typeset -g REPLY=
+#typeset -ga reply=()
 
 # Helper functions
 _isfunc() { typeset -f "${1}" >/dev/null 2>&1 ;}
@@ -26,12 +27,12 @@ _check_shell_version() {
   if [[ -n "$ZSH_VERSION" ]]; then
     builtin autoload -Uz is-at-least
     if ! is-at-least 5.4.2; then
-      printf >&2 '%s\n' "Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >=5.4.2."
+      printf >&2 '%s\n' "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >=5.4.2."
       exit 1
     fi
   elif [[ -n "$BASH_VERSION" ]]; then
     if [[ "${BASH_VERSION%%.*}" -lt 4 ]]; then
-      printf >&2 '%s\n' "Unsupported Bash version '$BASH_VERSION'. Expecting Bash >=4.0."
+      printf >&2 '%s\n' "antidote: Unsupported Bash version '$BASH_VERSION'. Expecting Bash >=4.0."
       exit 1
     fi
   else
@@ -61,55 +62,55 @@ _abspath() {
 SCRIPT_PATH="$(_abspath "${BASH_SOURCE[0]:-${(%):-%N}}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 
+##? Display the version of the shell running antidote.
 _shellver() {
   if [[ -n "$ZSH_VERSION" ]]; then
     printf '%s\n' "zsh ${ZSH_VERSION}"
   elif [[ -n "$BASH_VERSION" ]]; then
     printf '%s\n' "bash ${BASH_VERSION}"
   else
-    printf >&2 '%s\n' "antidote: unknown shell"
+    printf >&2 '%s\n' "antidote: Unknown shell"
   fi
 }
 
-
 ##? Print TMPDIR by OS.
 _tempdir() {
-  REPLY=
-  local tmpd
+  local result tmpd
   if [[ -n "$TMPDIR" && (( -d "$TMPDIR" && -w "$TMPDIR" ) || ! ( -d /tmp && -w /tmp )) ]]; then
     tmpd="${TMPDIR%/}"
   else
     tmpd="/tmp"
   fi
-  REPLY="$tmpd"
-  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "$REPLY"
+  result="$tmpd"
+  typeset -g REPLY="$result"
+  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "$result"
 }
 
 ##? Collect <redirected or piped| input.
 _collect_args() {
-  local arg line
-  reply=()
+  local arg line results=()
+
   for arg in "$@"; do
     arg="${arg//\\n/$NL}"
     while IFS= read -r line || [[ -n "$line" ]]; do
-      reply+=("$line")
+      results+=("$line")
     done < <(printf '%s' "$arg")
   done
   if [[ ! -t 0 ]]; then
     while IFS= read -r line || [[ -n "$line" ]]; do
-      reply+=("$line")
+      results+=("$line")
     done
   fi
-  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${reply[@]}"
+  typeset -ga reply=("${results[@]}")
+  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${results[@]}"
 }
 
 ##? Get the default cache directory by OS.
 _cachedir() {
-  REPLY=
   local result
-  if [[ "${OSTYPE}" == darwin* ]]; then
+  if [[ "${ANTIDOTE_OSTYPE}" == darwin* ]]; then
     result="$HOME/Library/Caches"
-  elif [[ "${OSTYPE}" == cygwin* || "${OSTYPE}" == msys* ]]; then
+  elif [[ "${ANTIDOTE_OSTYPE}" == cygwin* || "${ANTIDOTE_OSTYPE}" == msys* ]]; then
     result="${LOCALAPPDATA:-$LocalAppData}"
     if _iscmd cygpath; then
       result="$(cygpath "$result")"
@@ -124,25 +125,23 @@ _cachedir() {
       result+="/$1"
     fi
   fi
-  REPLY="$result"
-  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "$REPLY"
+  typeset -g REPLY="$result"
+  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "$result"
 }
 
 ##? # Use shell's lexer for word splitting rules
 _parse_kvpairs() {
-  reply=()
   local str="$*"
   str="${str//\$/\\\$}"
   eval "set -- $str"
-  reply=("$@")
+  typeset -ga reply=("$@")
 }
 
 ##? Parse bundles into an associative array.
 _parse_bundles() {
-  reply=()
   _collect_args "$@" >/dev/null
   local -a bundles=( "${reply[@]}" )
-  reply=()
+  unset reply
   local -a kvpairs=() results=()
   local pair key value bundle lineno=0
   local -A parsed_bundle=()
@@ -179,8 +178,8 @@ _parse_bundles() {
 
     results+=( "$(declare -p parsed_bundle)" )
   done
-  reply=("${results[@]}")
-  printf '%s\n' "${reply[@]}"
+  typeset -ga reply=("${results[@]}")
+  printf '%s\n' "${results[@]}"
 }
 
 ##? Get the details of all cloned repos
@@ -265,18 +264,20 @@ antidote_home() {
     result="$ANTIDOTE_HOME"
   else
     _cachedir antidote >/dev/null
-    result="$REPLY"; REPLY=
+    result="$REPLY"
+    unset REPLY
   fi
   printf '%s\n' "$result"
 }
 
+# shellcheck disable=SC2016
 ##? Initialize the shell for dynamic bundles.
 antidote_init() {
   printf '#!/usr/bin/env zsh\n'
   printf 'antidote2() {\n'
-  printf '  case "$1" in\n'
+  printf '  case "%s" in\n' '$1'
   printf '    bundle)\n'
-  printf '      source <( "%s" bundle "$@" ) || "%s" bundle "$@"\n' "$SCRIPT_PATH" "$SCRIPT_PATH"
+  printf '      source <( "%s" bundle "%s" ) || "%s" bundle "%s"\n' "$SCRIPT_PATH" '$@' "$SCRIPT_PATH" '$@'
   printf '      ;;\n'
   printf '    *)\n'
   printf '      "%s" "$@"\n' "$SCRIPT_PATH"
@@ -291,7 +292,6 @@ antidote_init() {
 
 ##? List cloned bundles.
 antidote_list() {
-  reply=()
   local -A repo_detail=()
   local -a repo_details=()
   local formatstr outstr deetstr
@@ -306,7 +306,7 @@ antidote_list() {
       shift
       ;;
     -*)
-      printf >&2 '%s\n' "unknown flag '${1}'"
+      printf >&2 '%s\n' "antidote: unknown flag '${1}'"
       return 1
       ;;
   esac
@@ -352,6 +352,53 @@ antidote_list() {
   done
 }
 
+##? Get the path to a bundle
+_bundletype() {
+  local result
+  local bundle="$1"
+
+  # Try to expand '~' prefix
+  # shellcheck disable=SC2088
+  if [[ $bundle == '~/'* ]]; then
+    bundle="${HOME}/${bundle#\~/*}"
+  fi
+
+  # Determine the bundle type.
+  if [[ -e "$bundle" ]]; then
+    [[ -f $bundle ]] && result="file" || result="dir"
+  elif [[ -z "$bundle" ]] || [[ "$bundle" =~ ^[[:space:]]*$ ]]; then
+    result=empty
+  else
+    case "$bundle" in
+      /*)       result="path"     ;;
+      '$'*)     result="path"     ;;
+      *://*)    result="url"      ;;
+      *@*:*/*)  result="sshurl"   ;;
+      *:*)      result="?"        ;;
+      *@*)      result="?"        ;;
+      */*/*)    result="relpath"  ;;
+      */)       result="relpath"  ;;
+      */*)      result="repo"     ;;
+      *)        result="word"     ;;
+    esac
+  fi
+
+  typeset -g REPLY="$result"
+  printf '%s\n' "$result"
+}
+
+##? Print the path of a cloned bundle.
+# antidote_path() {
+#   local bundle
+#   if (( $# == 0 )); then
+#     printf >&2 '%s\n' "antidote path: required argument 'bundle' not provided."
+#     return 1
+#   fi
+#   for bundle in "$@"; do
+
+#   done
+# }
+
 ##? Main dispatch function.
 antidote_main() {
   local cmd
@@ -368,12 +415,13 @@ antidote_main() {
     -d|--debug)
       shift
       ANTIDOTE_DEBUG=true
+      [[ -n "$ZSH_VERSION" ]] && setopt WARN_CREATE_GLOBAL WARN_NESTED_VAR
       ;;
     --)
       shift
       ;;
     -*)
-      printf >&2 '%s\n' "unknown flag '${1}', try --help"
+      printf >&2 '%s\n' "antidote: unknown flag '${1}', try --help"
       return 1
       ;;
   esac
@@ -392,7 +440,7 @@ antidote_main() {
     "antidote_${cmd}" "$@"
     return $?
   else
-    printf >&2 '%s\n' "command not found '${1}'"
+    printf >&2 '%s\n' "antidote: command not found '${1}'"
     return 1
   fi
 }

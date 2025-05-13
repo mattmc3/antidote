@@ -4,6 +4,7 @@
 
 ```zsh
 % path+=($PWD)
+% ANTIDOTE_DEBUG=true
 % scrub_ver() { sed -E 's/^(.*[0-9]+\.[0-9]+\.[0-9]+).*/\1/' ;}
 % subenv() { : "${1:=HOME}"; sed "s|$(eval echo \"\$$1\")|$\\$1|g" ;}
 %
@@ -12,8 +13,8 @@
 ## Shellcheck
 
 ```zsh
-% shellcheck --shell bash antidote2 #=> --exit 0
-% shellcheck --shell bash antidote2
+% shellcheck --shell bash ./functions/antidote2.zsh #=> --exit 0
+% shellcheck --shell bash ./functions/antidote2.zsh
 %
 ```
 

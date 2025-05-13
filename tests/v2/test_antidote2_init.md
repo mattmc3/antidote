@@ -4,6 +4,7 @@
 
 ```zsh
 % path+=($PWD)
+% ANTIDOTE_DEBUG=true
 % subenv() { : "${1:=HOME}"; sed "s|$(eval echo \"\$$1\")|$\\$1|g" ;}
 %
 ```
@@ -24,10 +25,10 @@
 antidote2() {
   case "$1" in
     bundle)
-      source <( "$PWD/antidote2" bundle "$@" ) || "$PWD/antidote2" bundle "$@"
+      source <( "$PWD/functions/antidote2.zsh" bundle "$@" ) || "$PWD/functions/antidote2.zsh" bundle "$@"
       ;;
     *)
-      "$PWD/antidote2" "$@"
+      "$PWD/functions/antidote2.zsh" "$@"
       ;;
   esac
 }
