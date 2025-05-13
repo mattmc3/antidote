@@ -80,8 +80,8 @@ No arg exit status is 2:
 `-v` and `--version` work:
 
 ```zsh
-% antidote --version
-antidote version 1.9.10 (abcd123)
+% antidote --version | scrub_ver
+antidote version 2.0.0
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?

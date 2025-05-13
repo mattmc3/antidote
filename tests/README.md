@@ -58,8 +58,8 @@ commands:
 The `-v/--version` flag displays the current version:
 
 ```zsh
-% antidote --version
-antidote version 1.9.10 (abcd123)
+% antidote --version | scrub_ver
+antidote version 2.0.0
 %
 ```
 

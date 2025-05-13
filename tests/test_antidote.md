@@ -13,8 +13,8 @@
 Show antidote's version:
 
 ```zsh
-% antidote --version
-antidote version 1.9.10 (abcd123)
+% antidote --version | scrub_ver
+antidote version 2.0.0
 %
 ```
 
@@ -290,7 +290,7 @@ $HOME/.cache/antidote/ohmy/ohmy
 ## Update bundles
 
 ```zsh
-% antidote update
+% antidote update | scrub_ver
 Updating bundles...
 antidote: checking for updates: https://github.com/foo/bar
 antidote: checking for updates: https://github.com/foo/baz
@@ -304,7 +304,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 1.9.10 (abcd123)
+antidote version 2.0.0
 %
 ```
 

@@ -20,7 +20,7 @@
   local ret=0
 
   if (( ${#o_version} )); then
-    __antidote_version
+    zsh "$__ANTIDOTE2" --version
 
   elif (( ${#o_help} )); then
     antidote-help "$@"

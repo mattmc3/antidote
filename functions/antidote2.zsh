@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # shellcheck disable=SC2120,SC2296
 
-ANTIDOTE_VERSION=2.0.0-beta
+ANTIDOTE_VERSION=2.0.0
 
 if [[ -n "$BASH_VERSION" ]]; then
   shopt -s nullglob

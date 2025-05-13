@@ -6,7 +6,9 @@
   fpath=( "${0:A:h}" $fpath )
   local fn
   for fn in ${0:A:h}/*; do
-    [[ ${fn:t} != '__antidote_setup' ]] || continue
+    if [[ "${fn:t}" == '__antidote_setup' ]] || [[ -n "${fn:e}" ]]; then
+      continue
+    fi
     if typeset -f ${fn:t} > /dev/null; then
       unfunction -- ${fn:t}
     fi
@@ -30,6 +32,8 @@
   else
     typeset -gHa _adote_zparopt_flags=( -D -M )
   fi
+
+  typeset -gH __ANTIDOTE2="${0:A:h}/antidote2.zsh"
 
   typeset -gHa _adote_funcopts=( extended_glob no_monitor pipefail )
   if zstyle -t ':antidote:tests' set-warn-options; then
