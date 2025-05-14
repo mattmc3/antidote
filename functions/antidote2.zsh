@@ -7,8 +7,21 @@ ANTIDOTE_VERSION=2.0.0
 if [[ -n "$BASH_VERSION" ]]; then
   shopt -s nullglob
   shopt -s globstar
+  if [[ "${BASH_VERSION%%.*}" -lt 4 ]]; then
+    printf >&2 '%s\n' "antidote: Unsupported Bash version '$BASH_VERSION'. Expecting Bash >=4.0."
+    exit 1
+  fi
 elif [[ -n "$ZSH_VERSION" ]]; then
   setopt NULL_GLOB EXTENDED_GLOB NO_MONITOR PIPEFAIL
+  builtin autoload -Uz is-at-least
+  if ! is-at-least 5.4.2; then
+    printf >&2 '%s\n' "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >=5.4.2."
+    exit 1
+  fi
+else
+  shellname=$(ps -p $$ -oargs= | awk 'NR=1{print $1}')
+  printf >&2 '%s\n' "antidote: Expecting zsh or bash. Found '$shellname'."
+  exit 1
 fi
 
 # Set variables
@@ -25,27 +38,6 @@ NL=$'\n'
 # Helper functions
 _isfunc() { typeset -f "${1}" >/dev/null 2>&1 ;}
 _iscmd()  { command -v "${1}" >/dev/null 2>&1 ;}
-
-##? Check shell version requirements
-_check_shell_version() {
-  if [[ -n "$ZSH_VERSION" ]]; then
-    builtin autoload -Uz is-at-least
-    if ! is-at-least 5.4.2; then
-      printf >&2 '%s\n' "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >=5.4.2."
-      exit 1
-    fi
-  elif [[ -n "$BASH_VERSION" ]]; then
-    if [[ "${BASH_VERSION%%.*}" -lt 4 ]]; then
-      printf >&2 '%s\n' "antidote: Unsupported Bash version '$BASH_VERSION'. Expecting Bash >=4.0."
-      exit 1
-    fi
-  else
-    shellname=$(ps -p $$ -oargs= | awk 'NR=1{print $1}')
-    printf >&2 '%s\n' "antidote: Expecting zsh or bash. Found '$shellname'."
-    exit 1
-  fi
-}
-_check_shell_version
 
 ##? Cross-shell method of getting the absolute path.
 _abspath() {

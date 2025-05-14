@@ -8,7 +8,9 @@
   emulate -L zsh; setopt local_options $_adote_funcopts
   local TAB=$'\t'
 
-  local o_help o_format o_short o_url o_dirs formatstr formatargs=()
+  local formatstr
+  local -a o_help o_format o_short o_url o_dirs formatargs=()
+
   zparseopts $_adote_zparopt_flags -- \
     h=o_help    -help=h    \
     d=o_dirs    -dirs=d    \
@@ -43,7 +45,7 @@
   fi
 
   if (( $#o_format )); then
-    antidote2 list -f "$o_format[-1]" "$@"
+    antidote2 list -f "${o_format[-1]}" "$@"
   else
     if [[ $# -ne 0 ]]; then
       print -ru2 "antidote: error: unexpected $1, try --help"
