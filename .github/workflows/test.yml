@@ -17,7 +17,9 @@ jobs:
         with:
           repository: "aureliojargas/clitest"
           path: bin/clitest
-      - run: sudo apt install zsh
+      - run: sudo apt install zsh shellcheck
         if: ${{ runner.os == 'Linux' }}
+      - run: brew install shellcheck
+        if: ${{ runner.os == 'macOS' }}
       - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
         shell: zsh {0}
