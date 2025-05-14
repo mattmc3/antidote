@@ -3,12 +3,15 @@
 
 ANTIDOTE_VERSION=2.0.0
 
+# This script supports both Bash and Zsh
 if [[ -n "$BASH_VERSION" ]]; then
   shopt -s nullglob
+  shopt -s globstar
 elif [[ -n "$ZSH_VERSION" ]]; then
   setopt NULL_GLOB EXTENDED_GLOB NO_MONITOR PIPEFAIL
 fi
 
+# Set variables
 : "${ANTIDOTE_DEFAUT_GITSITE:=https://github.com}"
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_DEBUG:=false}"
@@ -89,7 +92,8 @@ _tempdir() {
 
 ##? Collect <redirected or piped| input.
 _collect_args() {
-  local arg line results=()
+  local arg line
+  local -a results=()
 
   for arg in "$@"; do
     arg="${arg//\\n/$NL}"
@@ -183,23 +187,41 @@ _parse_bundles() {
   printf '%s\n' "${results[@]}"
 }
 
+##? Convert git URLs to user/repo format
+_url2repo() {
+  local repo url
+  url="${1%.git}"    # strip trailing .git
+  repo="${url##*:}"  # strip from left up to last ':'
+  repo="$(basename "$(dirname "$repo")")/$(basename "$repo")"
+  if [[ "$repo" != */* ]] || [[ "$repo" == */*/* ]]; then
+    printf >&2 'antidote: Unable to convert URL to short repo '%s'.\n' "$1"
+    return 1
+  fi
+  printf '%s\n' "$repo"
+}
+
 ##? Get the details of all cloned repos
 _repo_details() {
-  reply=()
-  local bundle_dir repo_details antidote_home
+  local bundle_dir repo_details antidote_home url repo
+  local -a results=()
   local -A repo_detail=()
   antidote_home="$(antidote_home)"
   for bundle_dir in "${antidote_home}"/**/.git; do
+    declare -A repo_detail=()
     bundle_dir="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir/.." rev-parse --show-toplevel 2>/dev/null)"
+    url="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" config remote.origin.url 2>/dev/null)"
+    repo="$(_url2repo "$url" 2>/dev/null)"
+
     repo_detail[path]="$bundle_dir"
-    repo_detail[url]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" config remote.origin.url 2>/dev/null)"
-    repo_detail[repo]="$(basename "$(dirname "$bundle_dir")")/$(basename "$bundle_dir")"
+    repo_detail[url]="$url"
+    repo_detail[repo]="$repo"
     repo_detail[branch]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" branch --show-current 2>/dev/null)"
     repo_detail[sha]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" rev-parse HEAD 2>/dev/null)"
     repo_detail[date]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" log -1 --format=%cd --date=short 2>/dev/null)"
-    reply+=( "$(declare -p repo_detail)" )
+    results+=( "$(declare -p repo_detail)" )
   done
-  printf '%s\n' "${reply[@]}"
+  typeset -ga reply=("${results[@]}")
+  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${results[@]}"
 }
 
 ##? Get the antidote version.
