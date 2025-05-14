@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# shellcheck disable=SC2120,SC2296
+# shellcheck disable=SC2120,SC2296,SC2034
 
 ANTIDOTE_VERSION=2.0.0
 
@@ -31,7 +31,14 @@ fi
 : "${ANTIDOTE_GITCMD:=git}"
 
 NL=$'\n'
-#TAB=$'\t'
+TAB=$'\t'
+if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
+  FG_GREEN=$'\033[32m'
+  FG_BLUE=$'\033[34m'
+  FG_YELLOW=$'\033[33m'
+  NORMAL=$'\033[0m'
+fi
+
 #typeset -g REPLY=
 #typeset -ga reply=()
 
@@ -58,48 +65,39 @@ _abspath() {
 SCRIPT_PATH="$(_abspath "${BASH_SOURCE[0]:-${(%):-%N}}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 
-##? Display the version of the shell running antidote.
-_shellver() {
-  if [[ -n "$ZSH_VERSION" ]]; then
-    printf '%s\n' "zsh ${ZSH_VERSION}"
-  elif [[ -n "$BASH_VERSION" ]]; then
-    printf '%s\n' "bash ${BASH_VERSION}"
-  else
-    printf >&2 '%s\n' "antidote: Unknown shell"
-  fi
-}
+##? Get the path to a bundle
+_bundletype() {
+  local result
+  local bundle="$1"
 
-##? Print TMPDIR by OS.
-_tempdir() {
-  local result tmpd
-  if [[ -n "$TMPDIR" && (( -d "$TMPDIR" && -w "$TMPDIR" ) || ! ( -d /tmp && -w /tmp )) ]]; then
-    tmpd="${TMPDIR%/}"
-  else
-    tmpd="/tmp"
+  # Try to expand '~' prefix
+  # shellcheck disable=SC2088
+  if [[ $bundle == '~/'* ]]; then
+    bundle="${HOME}/${bundle#\~/*}"
   fi
-  result="$tmpd"
+
+  # Determine the bundle type.
+  if [[ -e "$bundle" ]]; then
+    [[ -f $bundle ]] && result="file" || result="dir"
+  elif [[ -z "$bundle" ]] || [[ "$bundle" =~ ^[[:space:]]*$ ]]; then
+    result=empty
+  else
+    case "$bundle" in
+      /*)       result="path"     ;;
+      '$'*)     result="path"     ;;
+      *://*)    result="url"      ;;
+      *@*:*/*)  result="sshurl"   ;;
+      *:*)      result="?"        ;;
+      *@*)      result="?"        ;;
+      */*/*)    result="relpath"  ;;
+      */)       result="relpath"  ;;
+      */*)      result="repo"     ;;
+      *)        result="word"     ;;
+    esac
+  fi
+
   typeset -g REPLY="$result"
-  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "$result"
-}
-
-##? Collect <redirected or piped| input.
-_collect_args() {
-  local arg line
-  local -a results=()
-
-  for arg in "$@"; do
-    arg="${arg//\\n/$NL}"
-    while IFS= read -r line || [[ -n "$line" ]]; do
-      results+=("$line")
-    done < <(printf '%s' "$arg")
-  done
-  if [[ ! -t 0 ]]; then
-    while IFS= read -r line || [[ -n "$line" ]]; do
-      results+=("$line")
-    done
-  fi
-  typeset -ga reply=("${results[@]}")
-  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${results[@]}"
+  printf '%s\n' "$result"
 }
 
 ##? Get the default cache directory by OS.
@@ -126,12 +124,65 @@ _cachedir() {
   [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "$result"
 }
 
-##? # Use shell's lexer for word splitting rules
-_parse_kvpairs() {
-  local str="$*"
-  str="${str//\$/\\\$}"
-  eval "set -- $str"
-  typeset -ga reply=("$@")
+##? Collect <redirected or piped| input.
+_collect_args() {
+  local arg line
+  local -a results=()
+
+  for arg in "$@"; do
+    arg="${arg//\\n/$NL}"
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      results+=("$line")
+    done < <(printf '%s' "$arg")
+  done
+  if [[ ! -t 0 ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      results+=("$line")
+    done
+  fi
+  typeset -ga reply=("${results[@]}")
+  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${results[@]}"
+}
+
+##? Make a temp file or directory.
+_mktemp() {
+  local -a o_dir=() o_suffix=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -d)  o_dir+=("$1");     shift ;;
+      -s)  o_suffix+=("$1");  shift ;;
+      --)  shift;             break ;;
+      -*)  o_badopt+=("$1");  break ;;
+      *)   break ;;
+    esac
+  done
+  if (( $#o_badopt > 0 )); then
+    printf >&2 "antidote: bad option: '%s'.\n" "${o_badopt[-1]}"
+    return 1
+  fi
+
+  local tmpbase pattern
+
+  # Set the appropriate temp directory
+  tmpbase="$(_tempdir)"
+
+  # Create the pattern with PID
+  pattern="antidote.$$"
+
+  # Add suffix if provided with -s
+  if (( $#o_suffix )) && [[ -n "${o_suffix[-1]}" ]]; then
+    pattern="${pattern}.${o_suffix[-1]}"
+  fi
+
+  # Add random chars
+  pattern="${pattern}.XXXXXXXXXX"
+
+  # Create temp directory or file
+  if (( $#o_dir )); then
+    mktemp -d "${tmpbase}/${pattern}"
+  else
+    mktemp "${tmpbase}/${pattern}"
+  fi
 }
 
 ##? Parse bundles into an associative array.
@@ -179,17 +230,12 @@ _parse_bundles() {
   printf '%s\n' "${results[@]}"
 }
 
-##? Convert git URLs to user/repo format
-_url2repo() {
-  local repo url
-  url="${1%.git}"    # strip trailing .git
-  repo="${url##*:}"  # strip from left up to last ':'
-  repo="$(basename "$(dirname "$repo")")/$(basename "$repo")"
-  if [[ "$repo" != */* ]] || [[ "$repo" == */*/* ]]; then
-    printf >&2 'antidote: Unable to convert URL to short repo '%s'.\n' "$1"
-    return 1
-  fi
-  printf '%s\n' "$repo"
+##? # Use shell's lexer for word splitting rules
+_parse_kvpairs() {
+  local str="$*"
+  str="${str//\$/\\\$}"
+  eval "set -- $str"
+  typeset -ga reply=("$@")
 }
 
 ##? Get the details of all cloned repos
@@ -216,6 +262,86 @@ _repo_details() {
   [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${results[@]}"
 }
 
+##? Repeat a string (s) n times, optionally joined with j
+_repeat() {
+  local n="$1"
+  local s="$2"
+  local j="$3"
+  for (( i = 0; i < n; i++ )); do
+    (( i > 0 )) && printf '%s' "$j"
+    printf '%s' "$s"
+  done
+  printf '\n'
+}
+
+##? Safe rm wrapper
+_rm() {
+  # Call me paranoid, but I want to be really certain antidote will never rm something
+  # it shouldn't. This function wraps rm to double check that any paths being removed
+  # are valid. If it's not in your $HOME or $TMPDIR, we need to block it.
+  local p tmpdir
+  local -a rmflags
+
+  while (( $# )); do
+    case "$1" in
+      --)  shift; break     ;;
+      -*)  rmflags+=("$1")  ;;
+      *)   break            ;;
+    esac
+    shift
+  done
+  (( $# > 0 )) || return 1
+
+  tmpdir="$(_tempdir)"
+  for p in "$@"; do
+    p="$(_abspath "$p")"
+    if [[ "$p" != "$HOME"/* ]] && [[ "$p" != "$tmpdir"/* ]]; then
+      printf >&2 "antidote: Blocked attempt to rm path: '%s'." "$p"
+      return 1
+    fi
+  done
+
+  rm "${rmflags[@]}" -- "$@"
+}
+
+##? Display the version of the shell running antidote.
+_shellver() {
+  if [[ -n "$ZSH_VERSION" ]]; then
+    printf '%s\n' "zsh ${ZSH_VERSION}"
+  elif [[ -n "$BASH_VERSION" ]]; then
+    printf '%s\n' "bash ${BASH_VERSION}"
+  else
+    printf >&2 '%s\n' "antidote: Unknown shell"
+  fi
+}
+
+##? Print TMPDIR by OS.
+_tempdir() {
+  local result tmpd
+
+  # Set the appropriate temp directory (cargo cult code from p10k)
+  if [[ -n "$TMPDIR" && (( -d "$TMPDIR" && -w "$TMPDIR" ) || ! ( -d /tmp && -w /tmp )) ]]; then
+    tmpd="${TMPDIR%/}"
+  else
+    tmpd="/tmp"
+  fi
+  result="$tmpd"
+  printf '%s\n' "$result"
+}
+
+##? Convert git URLs to user/repo format
+_url2repo() {
+  local repo url
+  url="${1%.git}"    # strip trailing .git
+  repo="${url##*:}"  # strip from left up to last ':'
+  repo="$(basename "$(dirname "$repo")")/$(basename "$repo")"
+  if [[ "$repo" != */* ]] || [[ "$repo" == */*/* ]]; then
+    printf >&2 'antidote: Unable to convert URL to short repo '%s'.\n' "$1"
+    return 1
+  fi
+  printf '%s\n' "$repo"
+}
+
 ##? Get the antidote version.
 _antidote_version() {
   local ver gitsha
@@ -223,6 +349,12 @@ _antidote_version() {
   gitsha="$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null)"
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   printf '%s\n' "antidote version $ver"
+}
+
+# Cleanup function to ensure we don't leave temp files behind.
+_antidote_update_cleanup() {
+  [[ -d "$__antidote_update_tmpdir" ]] && _rm -rf -- "$__antidote_update_tmpdir"
+  unset __antidote_update_tmpdir
 }
 
 ##? Print help for antidote or one of its subcommands.
@@ -311,20 +443,38 @@ antidote_list() {
   local -a repo_details=() formatargs=() output=()
   local arg formatstr deetstr
 
-  case "${1}" in
-    -f|--format)
-      shift
-      formatstr="$1"
-      (( $# > 0 )) && shift
-      ;;
-    --)
-      shift
-      ;;
-    -*)
-      printf >&2 '%s\n' "antidote: unknown flag '${1}'"
-      return 1
-      ;;
-  esac
+  local -a o_format=() fmtcodes=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p|--path)    fmtcodes+=("%p");  shift ;;
+      -r|--repo)    fmtcodes+=("%r");  shift ;;
+      -u|--url)     fmtcodes+=("%u");  shift ;;
+      -b|--branch)  fmtcodes+=("%b");  shift ;;
+      -d|--date)    fmtcodes+=("%d");  shift ;;
+      -s|--sha)     fmtcodes+=("%s");  shift ;;
+      -f|--format)
+        o_format+=("$1")
+        shift
+        (( $# > 0 )) && o_format+=("$1") && shift
+        ;;
+      --)  shift;             break ;;
+      -*)  o_badopt+=("$1");  break ;;
+      *)                      break ;;
+    esac
+  done
+  if (( $#o_badopt > 0 )); then
+    printf >&2 "antidote list: bad option: '%s'.\n" "${o_badopt[-1]}"
+    return 1
+  elif (( $#o_format > 0 )) && (( $#fmtcodes > 0 )); then
+    printf >&2 "antidote list: -f/--format flag is mutually exclusive with other flags.\n"
+    return 1
+  fi
+  if (( ${#o_format} > 0 )); then
+    formatstr="${o_format[-1]}"
+    fmtcodes=("$@")
+  elif (( ${#fmtcodes} > 0 )); then
+    formatstr="$( _repeat "${#fmtcodes}" "%s" "$TAB" )"
+  fi
 
   _repo_details >/dev/null
   repo_details=("${reply[@]}")
@@ -338,7 +488,7 @@ antidote_list() {
     eval "$deetstr"
 
     formatargs=()
-    for arg in "$@"; do
+    for arg in "${fmtcodes[@]}"; do
       case "$arg" in
         '%b')  formatargs+=("${repo_detail[branch]}") ;;
         '%d')  formatargs+=("${repo_detail[date]}")   ;;
@@ -368,40 +518,46 @@ antidote_list() {
   (( ${#output} == 0 )) || printf '%s\n' "${output[@]}" | sort
 }
 
-##? Get the path to a bundle
-_bundletype() {
-  local result
-  local bundle="$1"
-
-  # Try to expand '~' prefix
-  # shellcheck disable=SC2088
-  if [[ $bundle == '~/'* ]]; then
-    bundle="${HOME}/${bundle#\~/*}"
-  fi
-
-  # Determine the bundle type.
-  if [[ -e "$bundle" ]]; then
-    [[ -f $bundle ]] && result="file" || result="dir"
-  elif [[ -z "$bundle" ]] || [[ "$bundle" =~ ^[[:space:]]*$ ]]; then
-    result=empty
-  else
-    case "$bundle" in
-      /*)       result="path"     ;;
-      '$'*)     result="path"     ;;
-      *://*)    result="url"      ;;
-      *@*:*/*)  result="sshurl"   ;;
-      *:*)      result="?"        ;;
-      *@*)      result="?"        ;;
-      */*/*)    result="relpath"  ;;
-      */)       result="relpath"  ;;
-      */*)      result="repo"     ;;
-      *)        result="word"     ;;
+##? Update cloned bundles.
+antidote_update() {
+  local -a o_self=() o_bundles=() o_badopt=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -s|--self)    o_self+=("$1");    shift ;;
+      -b|--bundles) o_bundles+=("$1"); shift ;;
+      --)           shift;             break ;;
+      -*)           o_badopt+=("$1");  break ;;
+      *)                               break ;;
     esac
+  done
+  if (( $#o_badopt > 0 )); then
+    printf >&2 "antidote: bad option: '%s'.\n" "${o_badopt[-1]}"
+    return 1
   fi
 
-  typeset -g REPLY="$result"
-  printf '%s\n' "$result"
+  local loadable_check_path tmpfile
+  if (( $#o_bundles )) || ! (( $#o_self )); then
+    print "Updating bundles..."
+    local bundledir url repo
+
+    # Remove zcompiled files
+    _rm -rf "$(antidote_home)"/**/*.zwc
+
+    # remove check file
+    loadable_check_path="$(antidote_home)/.antidote.load"
+    [[ -r "$loadable_check_path" ]] && _rm -- "$loadable_check_path"
+
+    # Setup temporary directory and tracking
+    local tmpfile tmpdir
+    tmpdir="$(_mktemp -d -s update)"
+
+    # Set trap to ensure tempdir cleanup on exit, interrupt, etc.
+    # (EXIT is special, 2=INT, 15=TERM, 1=HUP)
+    typeset -g __antidote_update_tmpdir="$tmpdir"
+    trap __antidote_update_cleanup EXIT 2 15 1
+  fi
 }
+
 
 ##? Print the path of a cloned bundle.
 # antidote_path() {
