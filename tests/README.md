@@ -35,21 +35,40 @@ antidote - the cure to slow zsh plugin management
 
 usage: antidote [<flags>] <command> [<args> ...]
 
-flags:
+Flags:
   -h, --help           Show context-sensitive help
   -v, --version        Show application version
 
-commands:
-  help      Show documentation
-  load      Statically source all bundles from the plugins file
-  bundle    Clone bundle(s) and generate the static load script
-  install   Clone a new bundle and add it to your plugins file
-  update    Update antidote and its cloned bundles
-  purge     Remove a cloned bundle
-  home      Print where antidote is cloning bundles
-  list      List cloned bundles
-  path      Print the path of a cloned bundle
-  init      Initialize the shell for dynamic bundles
+Commands:
+  help [<command>]
+    Show documentation
+
+  bundle <bundles>...
+    Clone bundle(s) and generate the static load script
+
+  update
+    Update antidote and its cloned bundles
+
+  home
+    Print where antidote is cloning bundles
+
+  purge <bundle>
+    Remove a cloned bundle
+
+  list
+    List cloned bundles
+
+  path <bundle>
+    Print the path of a cloned bundle
+
+  init
+    Initialize the shell for dynamic bundles
+
+  load
+    Statically source all bundles from the plugins file
+
+  install
+    Clone a new bundle and add it to your plugins file
 %
 ```
 

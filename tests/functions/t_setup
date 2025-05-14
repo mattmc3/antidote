@@ -22,6 +22,7 @@
 
   # mock git
   function git { mockgit "$@" }
+  ANTIDOTE_GITCMD="$T_PRJDIR/tests/tools/mockgit"
 
   # works with BSD and GNU gmktemp
   T_TEMPDIR=${$(mktemp -d -t t_antidote.XXXXXXXX):A}

@@ -18,8 +18,8 @@
 % antidote list --short | subenv ANTIDOTE_HOME
 foo/bar
 foo/baz
+foo/qux
 getantidote/zsh-defer
-git@github.com:foo/qux
 ohmy/ohmy
 %
 ```

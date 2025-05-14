@@ -1,0 +1,132 @@
+#!/bin/zsh
+
+# handle these commands:
+  # - `mockgit -C "$dir" config remote.origin.url`
+  # - `mockgit -C "$dir" pull --ff --rebase --autostash`
+  # - `mockgit -C "$dir" rev-parse --short HEAD`
+  # - `mockgit clone --depth 1 --recurse-submodules --shallow-submodules --branch branch $url $dir`
+  # - `mockgit branch --show-current`
+  # - `mockgit --version`
+
+0=${(%):-%N}
+typeset -g PROJ_DIR="${0:A:h:h:h}"
+typeset -g GITPATH
+
+function mockgit_log {
+  if [[ "$*" == "-1 --format=%cd --date=short" ]]; then
+    echo "2023-12-31"
+  else
+    echo >&2 "mockgit log: mocking not implemented for command: log $*"
+  fi
+}
+
+function mockgit_branch {
+  if [[ "$*" == "--show-current" ]]; then
+    echo "main-fake"
+  else
+    echo >&2 "mockgit branch: mocking not implemented for command: branch $*"
+  fi
+}
+
+function mockgit_pull {
+  local -a o_quiet o_ff o_rebase o_autostash
+  zparseopts -D -E --      \
+    -quiet=o_quiet         \
+    -ff=o_ff               \
+    -rebase=o_rebase       \
+    -autostash=o_autostash ||
+    return 1
+  (( $#o_quiet )) || echo "MOCKGIT: Already up to date."
+}
+
+function mockgit_rev_parse {
+  local -a o_short
+  zparseopts -D -E -- -short=o_short || return 1
+  if [[ "$*" = "HEAD" ]]; then
+    if (( $#o_short )); then
+      echo "abcd123"
+    else
+      echo "abcd1230abcd1230abcd1230abcd1230abcd1230"
+    fi
+  elif [[ "$*" = "--show-toplevel" ]]; then
+    echo "${${GITPATH:-.}:A}"
+  else
+    echo >&2 "mockgit rev-parse: mocking not implemented for command: rev-parse $*"
+  fi
+}
+
+function mockgit_config {
+  if [[ "$*" = "remote.origin.url" ]]; then
+    if [[ -e $GITPATH/.git/config/remote.origin.url ]]; then
+      cat $GITPATH/.git/config/remote.origin.url
+    else
+      local clonepath=$o_path[-1]
+      if [[ "${clonepath:t}" == (https-COLON-|git-AT)* ]]; then
+        # un-sanitize dir into URL
+        local url=$clonepath
+        url=${url:t}
+        url=${url:gs/-AT-/\@}
+        url=${url:gs/-COLON-/\:}
+        url=${url:gs/-SLASH-/\/}
+        echo "$url"
+      else
+        echo "https://fakegitsite.com/${clonepath:h:t}/${clonepath:t}"
+      fi
+    fi
+  else
+    echo >&2 "mockgit config: mocking not implemented for command: config $*"
+  fi
+}
+
+function mockgit_clone {
+  local -a o_quiet o_depth o_recurse_submodules o_shallow_submodules o_branch o_recursive
+  zparseopts -D -E --      \
+    -quiet=o_quiet         \
+    -depth:=o_depth        \
+    -branch:=o_branch      \
+    -recurse-submodules=o_recurse_submodules \
+    -shallow-submodules=o_shallow_submodules \
+    -recursive=o_recursive                  ||
+    return 1
+
+  local giturl="$1"
+  local repo="${giturl:h:t}/${${giturl:t}%.git}"
+  local bundledir="${2:-.}"
+  local gitsite_repodir="$PROJ_DIR/tests/fakegitsite.com/${repo}"
+  if [[ -d "$gitsite_repodir" ]]; then
+    [[ -d "${bundledir:A}" ]] || mkdir -p "${bundledir:A}"
+    echo "MOCKGIT: Cloning into '${repo:t}'..."
+    cp -r -- "$gitsite_repodir" "${bundledir:A}"
+  elif ! (( $#o_quiet )); then
+    echo "MOCKGIT: Cloning into '${repo:t}'..."
+    echo "MOCKGIT: Repository not found."
+    echo "MOCKGIT: repository '$giturl' not found"
+  fi
+}
+
+function mockgit {
+  emulate -L zsh; setopt local_options extended_glob
+
+  local o_path ret=0
+  zparseopts -D -E -- C:=o_path || return 1
+  GITPATH="${o_path[-1]:-.}"
+
+  if (( $+functions[mockgit_${1}] )); then
+    local cmd=${1}; shift
+    "mockgit_${cmd}" "$@"
+    ret=$?
+  elif [[ "$1" == "rev-parse" ]]; then
+    shift
+    mockgit_rev_parse "$@"
+    ret=$?
+  elif [[ "$1" == (submodule|fetch) ]]; then
+    # Nothing to do
+  elif [[ "$@" = "--version" ]]; then
+    echo "mockgit version 0.0.0"
+  else
+    echo >&2 "mockgit: mocking not implemented for command: mockgit $*"
+    ret=1
+  fi
+  [[ "$ret" == 0 ]] || exit $ret
+}
+mockgit "$@"

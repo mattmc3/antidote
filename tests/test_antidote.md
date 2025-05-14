@@ -23,26 +23,10 @@ antidote version 2.0.0
 Show antidote's functionality:
 
 ```zsh
-% antidote --help
+% antidote --help | head -n 3
 antidote - the cure to slow zsh plugin management
 
 usage: antidote [<flags>] <command> [<args> ...]
-
-flags:
-  -h, --help           Show context-sensitive help
-  -v, --version        Show application version
-
-commands:
-  help      Show documentation
-  load      Statically source all bundles from the plugins file
-  bundle    Clone bundle(s) and generate the static load script
-  install   Clone a new bundle and add it to your plugins file
-  update    Update antidote and its cloned bundles
-  purge     Remove a cloned bundle
-  home      Print where antidote is cloning bundles
-  list      List cloned bundles
-  path      Print the path of a cloned bundle
-  init      Initialize the shell for dynamic bundles
 %
 ```
 
@@ -270,8 +254,8 @@ List short repos:
 % antidote list --short
 foo/bar
 foo/baz
+foo/qux
 getantidote/zsh-defer
-git@github.com:foo/qux
 ohmy/ohmy
 %
 ```

@@ -12,6 +12,7 @@ fi
 : "${ANTIDOTE_DEFAUT_GITSITE:=https://github.com}"
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_DEBUG:=false}"
+: "${ANTIDOTE_GITCMD:=git}"
 
 NL=$'\n'
 #TAB=$'\t'
@@ -188,14 +189,14 @@ _repo_details() {
   local bundle_dir repo_details antidote_home
   local -A repo_detail=()
   antidote_home="$(antidote_home)"
-  for bundle_dir in "${antidote_home}"/*/*/.git; do
-    bundle_dir="$(git -C "$bundle_dir/.." rev-parse --show-toplevel)"
+  for bundle_dir in "${antidote_home}"/**/.git; do
+    bundle_dir="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir/.." rev-parse --show-toplevel 2>/dev/null)"
     repo_detail[path]="$bundle_dir"
-    repo_detail[url]="$(git -C "$bundle_dir" config remote.origin.url)"
+    repo_detail[url]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" config remote.origin.url 2>/dev/null)"
     repo_detail[repo]="$(basename "$(dirname "$bundle_dir")")/$(basename "$bundle_dir")"
-    repo_detail[branch]="$(git -C "$bundle_dir" branch --show-current)"
-    repo_detail[sha]="$(git -C "$bundle_dir" rev-parse HEAD)"
-    repo_detail[date]="$(git -C "$bundle_dir" log -1 --format=%cd --date=short)"
+    repo_detail[branch]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" branch --show-current 2>/dev/null)"
+    repo_detail[sha]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" rev-parse HEAD 2>/dev/null)"
+    repo_detail[date]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" log -1 --format=%cd --date=short 2>/dev/null)"
     reply+=( "$(declare -p repo_detail)" )
   done
   printf '%s\n' "${reply[@]}"
@@ -273,28 +274,28 @@ antidote_home() {
 # shellcheck disable=SC2016
 ##? Initialize the shell for dynamic bundles.
 antidote_init() {
-  printf '#!/usr/bin/env zsh\n'
-  printf 'antidote2() {\n'
-  printf '  case "%s" in\n' '$1'
-  printf '    bundle)\n'
-  printf '      source <( "%s" bundle "%s" ) || "%s" bundle "%s"\n' "$SCRIPT_PATH" '$@' "$SCRIPT_PATH" '$@'
-  printf '      ;;\n'
-  printf '    *)\n'
-  printf '      "%s" "$@"\n' "$SCRIPT_PATH"
-  printf '      ;;\n'
-  printf '  esac\n'
-  printf '}\n'
-  printf '_antidote2() {\n'
-  printf '  IFS='\'' '\'' read -A reply <<< "help bundle update home purge list init"\n'
-  printf '}\n'
-  printf 'compctl -K _antidote2 antidote2\n'
+  printf '%s\n' '#!/usr/bin/env zsh'
+  printf '%s\n' 'antidote2() {'
+  printf        '  case "%s" in\n' '$1'
+  printf '%s\n' '    bundle)'
+  printf        '      source <( "%s" bundle "%s" ) || "%s" bundle "%s"\n' "$SCRIPT_PATH" '$@' "$SCRIPT_PATH" '$@'
+  printf '%s\n' '      ;;'
+  printf '%s\n' '    *)'
+  printf        '      "%s" "$@"\n' "$SCRIPT_PATH"
+  printf '%s\n' '      ;;'
+  printf '%s\n' '  esac'
+  printf '%s\n' '}'
+  printf '%s\n' '_antidote2() {'
+  printf '%s\n' '  IFS='\'' '\'' read -A reply <<< "help bundle update home purge list init"'
+  printf '%s\n' '}'
+  printf '%s\n' 'compctl -K _antidote2 antidote2'
 }
 
 ##? List cloned bundles.
 antidote_list() {
   local -A repo_detail=()
-  local -a repo_details=()
-  local formatstr outstr deetstr
+  local -a repo_details=() formatargs=() output=()
+  local arg formatstr deetstr
 
   case "${1}" in
     -f|--format)
@@ -313,6 +314,8 @@ antidote_list() {
 
   _repo_details >/dev/null
   repo_details=("${reply[@]}")
+  unset reply
+
   for deetstr in "${repo_details[@]}"; do
     [[ -n "$deetstr" ]] || continue
 
@@ -320,24 +323,22 @@ antidote_list() {
     repo_detail=()
     eval "$deetstr"
 
+    formatargs=()
+    for arg in "$@"; do
+      case "$arg" in
+        '%b')  formatargs+=("${repo_detail[branch]}") ;;
+        '%d')  formatargs+=("${repo_detail[date]}")   ;;
+        '%p')  formatargs+=("${repo_detail[path]}")   ;;
+        '%r')  formatargs+=("${repo_detail[repo]}")   ;;
+        '%s')  formatargs+=("${repo_detail[sha]}")    ;;
+        '%u')  formatargs+=("${repo_detail[url]}")    ;;
+        *)     formatargs+=("$arg")                   ;;
+      esac
+    done
+
     if [[ -n "$formatstr" ]]; then
-      outstr="$formatstr"
-      if [[ -n "$ZSH_VERSION" ]]; then
-        outstr=${outstr:gs/%b/${repo_detail[branch]}}
-        outstr=${outstr:gs/%d/${repo_detail[date]}}
-        outstr=${outstr:gs/%p/${repo_detail[path]}}
-        outstr=${outstr:gs/%r/${repo_detail[repo]}}
-        outstr=${outstr:gs/%s/${repo_detail[sha]}}
-        outstr=${outstr:gs/%u/${repo_detail[url]}}
-      else
-        outstr="${outstr//%b/${repo_detail[branch]}}"
-        outstr="${outstr//%d/${repo_detail[date]}}"
-        outstr="${outstr//%p/${repo_detail[path]}}"
-        outstr="${outstr//%r/${repo_detail[repo]}}"
-        outstr="${outstr//%s/${repo_detail[sha]}}"
-        outstr="${outstr//%u/${repo_detail[url]}}"
-      fi
-      printf '%s\n' "$outstr"
+      # shellcheck disable=SC2059
+      output+=( "$(printf "${formatstr}" "${formatargs[@]}")" )
     else
       printf '%s\n' "${repo_detail[repo]}"
       printf '%s\n' "=================================================="
@@ -350,6 +351,7 @@ antidote_list() {
       printf '\n'
     fi
   done
+  (( ${#output} == 0 )) || printf '%s\n' "${output[@]}" | sort
 }
 
 ##? Get the path to a bundle

@@ -22,11 +22,21 @@
     manpage="antidote-${1}"
   fi
 
+  local usage=("${(@f)$(antidote2 --help)}")
+  usage+=(
+    ''
+    '  load'
+    '    Statically source all bundles from the plugins file'
+    ''
+    '  install'
+    '    Clone a new bundle and add it to your plugins file'
+  )
+
   if (( $+commands[man] )) && [[ -n "$manpage" ]]; then
     man "$manpage" || {
-      __antidote_usage && return 1
+      printf '%s\n' "${usage[@]}" && return 1
     }
   else
-    __antidote_usage
+    printf '%s\n' "${usage[@]}"
   fi
 #}

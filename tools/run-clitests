@@ -12,9 +12,9 @@ testfiles=()
 if (( $# > 0 )); then
   testfiles=($@)
 elif (( $#o_unit )); then
-  testfiles=($T_PRJDIR/tests/README.md $T_PRJDIR/tests/test_*.md~*test_real*~*foo*)
+  testfiles=($T_PRJDIR/tests/README.md $T_PRJDIR/tests/test_*.md~*test_real*~*foo* $T_PRJDIR/tests/v2/test_*.md)
 else
-  testfiles=($T_PRJDIR/tests/README.md $T_PRJDIR/tests/test_*.md)
+  testfiles=($T_PRJDIR/tests/README.md $T_PRJDIR/tests/test_*.md $T_PRJDIR/tests/v2/test_*.md)
 fi
 
 # if tests are run in reverse order, I can catch places where I didn't teardown properly

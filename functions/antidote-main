@@ -19,8 +19,11 @@
 
   local ret=0
 
+  [[ -n "$XDG_CACHE_HOME" ]] && export XDG_CACHE_HOME
+  [[ -n "$XDG_CACHE_HOME" ]] && export XDG_CACHE_HOME
+
   if (( ${#o_version} )); then
-    zsh "$__ANTIDOTE2" --version
+    antidote2 --version
 
   elif (( ${#o_help} )); then
     antidote-help "$@"

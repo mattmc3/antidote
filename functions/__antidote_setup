@@ -33,7 +33,7 @@
     typeset -gHa _adote_zparopt_flags=( -D -M )
   fi
 
-  typeset -gH __ANTIDOTE2="${0:A:h}/antidote2.zsh"
+  typeset -gH __ANTIDOTE2_ZSH="${0:A:h}/antidote2.zsh"
 
   typeset -gHa _adote_funcopts=( extended_glob no_monitor pipefail )
   if zstyle -t ':antidote:tests' set-warn-options; then

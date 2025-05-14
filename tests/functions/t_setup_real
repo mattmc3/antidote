@@ -13,6 +13,7 @@
   # undo setup so we clone for real
   zstyle ':antidote:tests' cloning 'on'
   (( $+functions[git] )) && unfunction git
+  ANTIDOTE_GITCMD=git
 
   # unset other testing zstyles
   zstyle -d ':antidote:defer' bundle
