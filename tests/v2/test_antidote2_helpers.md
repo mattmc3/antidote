@@ -11,6 +11,8 @@
 
 ## Helper funcs
 
+### _abspath
+
 `_abspath` returns absolute paths
 
 ```zsh
@@ -19,32 +21,47 @@ $PWD/antidote2
 %
 ```
 
-`_isfunc` identifies functions
+### _bundletype
+
+`_bundletype` identifies the type of bundle string passed
 
 ```zsh
-% antidote2 --debug run _isfunc foobar ./antidote2 #=> --exit 1
-% antidote2 --debug run _isfunc _isfunc ./antidote2 #=> --exit 0
+% antidote2 --debug run _bundletype
+empty
+% antidote2 --debug run _bundletype foo
+word
+% antidote2 --debug run _bundletype https://gitsite.com/foo/bar
+url
+% antidote2 --debug run _bundletype git@gitsite.com:foo/bar.git
+sshurl
+% antidote2 --debug run _bundletype foo/bar/baz
+relpath
+% antidote2 --debug run _bundletype foo/
+relpath
+% antidote2 --debug run _bundletype /foo/bar
+path
+% antidote2 --debug run _bundletype foo/bar
+repo
 %
 ```
 
-`_iscmd` identifies commands
+### _cachedir
+
+`_cachedir` gets cache dir
 
 ```zsh
-% antidote2 --debug run _iscmd foobar ./antidote2 #=> --exit 1
-% antidote2 --debug run _iscmd git ./antidote2 #=> --exit 0
+% ANTIDOTE_OSTYPE=darwin21.3.0 antidote2 --debug run _cachedir | subenv
+$HOME/Library/Caches
+% ANTIDOTE_OSTYPE=msys LOCALAPPDATA=$HOME/AppData antidote2 --debug run _cachedir | subenv
+$HOME/AppData
+% ANTIDOTE_OSTYPE=linux antidote2 --debug run _cachedir | subenv
+$HOME/.cache
+% ANTIDOTE_OSTYPE=foobar XDG_CACHE_HOME=$HOME/.xdg-cache antidote2 --debug run _cachedir | subenv
+$HOME/.xdg-cache
 %
 ```
 
-`_isurl` identifies urls
-
-```zsh
-% antidote2 --debug run _isurl foo #=> --exit 1
-% antidote2 --debug run _isurl git@gitsite.com/foo/bar.git #=> --exit 1
-% antidote2 --debug run _isurl https:/gitsite.com/foo/bar #=> --exit 1
-% antidote2 --debug run _isurl https://gitsite.com/foo/bar #=> --exit 0
-% antidote2 --debug run _isurl git@gitsite.com:foo/bar.git #=> --exit 0
-%
-```
+### _collect_args
 
 `_collect_args` collects args
 
@@ -68,19 +85,55 @@ f
 %
 ```
 
-`_cachedir` gets cache dir
+### _git
+
+`_git` wraps git and supports mocking
 
 ```zsh
-% ANTIDOTE_OSTYPE=darwin21.3.0 antidote2 --debug run _cachedir | subenv
-$HOME/Library/Caches
-% ANTIDOTE_OSTYPE=msys LOCALAPPDATA=$HOME/AppData antidote2 --debug run _cachedir | subenv
-$HOME/AppData
-% ANTIDOTE_OSTYPE=linux antidote2 --debug run _cachedir | subenv
-$HOME/.cache
-% ANTIDOTE_OSTYPE=foobar XDG_CACHE_HOME=$HOME/.xdg-cache antidote2 --debug run _cachedir | subenv
-$HOME/.xdg-cache
+% export ANTIDOTE_GIT=$PWD/tests/tools/mockgit
+% antidote2 --debug run _git --version
+mockgit version 0.0.0
+% antidote2 --debug run _git foo
+antidote: unexpected git error on command 'git foo'.
+antidote: error details:
+mockgit: mocking not implemented for command: mockgit foo
 %
 ```
+
+### _iscmd
+
+`_iscmd` identifies commands
+
+```zsh
+% antidote2 --debug run _iscmd foobar #=> --exit 1
+% antidote2 --debug run _iscmd git    #=> --exit 0
+%
+```
+
+### _isfunc
+
+`_isfunc` identifies functions
+
+```zsh
+% antidote2 --debug run _isfunc foobar  #=> --exit 1
+% antidote2 --debug run _isfunc _isfunc #=> --exit 0
+%
+```
+
+### _isurl
+
+`_isurl` identifies urls
+
+```zsh
+% antidote2 --debug run _isurl foo #=> --exit 1
+% antidote2 --debug run _isurl git@gitsite.com/foo/bar.git #=> --exit 1
+% antidote2 --debug run _isurl https:/gitsite.com/foo/bar  #=> --exit 1
+% antidote2 --debug run _isurl https://gitsite.com/foo/bar #=> --exit 0
+% antidote2 --debug run _isurl git@gitsite.com:foo/bar.git #=> --exit 0
+%
+```
+
+### _repeat
 
 `_repeat` repeats strings with an optional joiner
 
@@ -92,15 +145,7 @@ la-la-la-la-la
 %
 ```
 
-`_url2repo` converts URLs to user/repo form
-
-```zsh
-% antidote2 --debug run _url2repo https://gitsite.com/foo/bar | subenv
-foo/bar
-% antidote2 --debug run _url2repo git@gitsite.com:foo/bar.git | subenv
-foo/bar
-%
-```
+### _url2path
 
 `_url2path` converts URLs to paths
 
@@ -126,6 +171,20 @@ $HOME/.cache/antidote/git-AT-gitsite.com-COLON-foo-SLASH-bar.git
 % unset ANTIDOTE_HOME ANTIDOTE_COMPATIBILITY_MODE
 %
 ```
+
+### _url2repo
+
+`_url2repo` converts URLs to user/repo form
+
+```zsh
+% antidote2 --debug run _url2repo https://gitsite.com/foo/bar | subenv
+foo/bar
+% antidote2 --debug run _url2repo git@gitsite.com:foo/bar.git | subenv
+foo/bar
+%
+```
+
+### _wordsplit
 
 `_wordsplit` uses the shell's lexer to word split respecting quotes
 
