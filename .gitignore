@@ -10,3 +10,4 @@ sandbox/
 *.old
 **/realzdotdir/zsh_plugins.zsh
 foo*.*
+* copy
