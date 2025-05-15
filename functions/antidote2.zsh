@@ -28,6 +28,7 @@ fi
 : "${ANTIDOTE_DEFAUT_GITSITE:=https://github.com}"
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_DEBUG:=false}"
+: "${ANTIDOTE_COMPATIBILITY_MODE:=}"
 
 NL=$'\n'
 TAB=$'\t'
@@ -46,6 +47,7 @@ fi
 # Helper functions
 _isfunc() { typeset -f "${1}" >/dev/null 2>&1 ;}
 _iscmd()  { command -v "${1}" >/dev/null 2>&1 ;}
+_isurl()  { [[ "$1" == *://* || "$1" == git@*:*/* ]] ;}
 
 ##? Cross-shell method of getting the absolute path.
 _abspath() {
@@ -122,7 +124,7 @@ _cachedir() {
     fi
   fi
   typeset -g REPLY="$result"
-  [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "$result"
+  printf '%s\n' "$result"
 }
 
 ##? Collect <redirected or piped| input.
@@ -228,8 +230,9 @@ _parse_bundles() {
     parsed_bundle=()
     parsed_bundle[lineno]="$lineno"
 
-    _parse_kvpairs "${bundle}"
+    _wordsplit "${bundle}" >/dev/null
     kvpairs=("${reply[@]}")
+    unset reply
 
     for pair in "${kvpairs[@]}"; do
       key="${pair%%:*}"  # Extract key (before first ':')
@@ -248,11 +251,12 @@ _parse_bundles() {
 }
 
 ##? # Use shell's lexer for word splitting rules
-_parse_kvpairs() {
+_wordsplit() {
   local str="$*"
   str="${str//\$/\\\$}"
   eval "set -- $str"
   typeset -ga reply=("$@")
+  printf '%s\n' "${reply[@]}"
 }
 
 ##? Get the details of all cloned repos
@@ -285,9 +289,7 @@ _repo_details() {
 
 ##? Repeat a string (s) n times, optionally joined with j
 _repeat() {
-  local n="$1"
-  local s="$2"
-  local j="$3"
+  local i n="$1" s="$2" j="$3"
   for (( i = 0; i < n; i++ )); do
     (( i > 0 )) && printf '%s' "$j"
     printf '%s' "$s"
@@ -363,6 +365,25 @@ _url2repo() {
   printf '%s\n' "$repo"
 }
 
+##? Convert a git URL to a bundle path
+_url2path() {
+  local url result
+  url="$1"
+  _isurl "$url" || return 1
+
+  if [[ "$ANTIDOTE_COMPATIBILITY_MODE" == antibody ]]; then
+    result="$(
+      printf '%s\n' "$url" |
+      sed -e "s|@|-AT-|g"    \
+          -e "s|:|-COLON-|g" \
+          -e "s|/|-SLASH-|g"
+    )" || return 1
+  else
+    result="$(_url2repo "$url")" || return 1
+  fi
+  printf '%s/%s\n' "$(antidote_home)" "$result"
+}
+
 ##? Get the antidote version.
 _antidote_version() {
   local ver gitsha
@@ -431,9 +452,7 @@ antidote_home() {
   if [[ -n "$ANTIDOTE_HOME" ]]; then
     result="$ANTIDOTE_HOME"
   else
-    _cachedir antidote >/dev/null
-    result="$REPLY"
-    unset REPLY
+    result="$(_cachedir antidote)"
   fi
   printf '%s\n' "$result"
 }

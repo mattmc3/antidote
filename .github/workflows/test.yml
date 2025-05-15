@@ -21,5 +21,5 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
       - run: brew install shellcheck
         if: ${{ runner.os == 'macOS' }}
-      - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
+      - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make testall
         shell: zsh {0}

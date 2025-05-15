@@ -89,68 +89,6 @@ antidote version alternatives all produce the same output:
 %
 ```
 
-## Private funcs
-
-`_abspath` returns absolute paths
-
-```zsh
-% antidote2 --debug run _abspath ./antidote2 | subenv PWD
-$PWD/antidote2
-%
-```
-
-`_isfunc` identifies functions
-
-```zsh
-% antidote2 --debug run _isfunc foobar ./antidote2 #=> --exit 1
-% antidote2 --debug run _isfunc _isfunc ./antidote2 #=> --exit 0
-%
-```
-
-`_iscmd` identifies commands
-
-```zsh
-% antidote2 --debug run _iscmd foobar ./antidote2 #=> --exit 1
-% antidote2 --debug run _iscmd git ./antidote2 #=> --exit 0
-%
-```
-
-`_collect_args` collects args
-
-```zsh
-% zero=( ${(@f)$(antidote2 --debug run _collect_args)} )
-% echo "${#zero}"
-0
-% one=( ${(@f)$(antidote2 --debug run _collect_args a)} )
-% echo "${#one}"
-1
-% three_three=( ${(@f)$(printf '%s\n' d e f | antidote2 --debug run _collect_args a b c)} )
-% echo $#three_three
-6
-% printf '%s\n' "${three_three[@]}"
-a
-b
-c
-d
-e
-f
-%
-```
-
-`_cachedir` gets cache dir
-
-```zsh
-% ANTIDOTE_OSTYPE=darwin21.3.0 antidote2 --debug run _cachedir | subenv
-$HOME/Library/Caches
-% ANTIDOTE_OSTYPE=msys LOCALAPPDATA=$HOME/AppData antidote2 --debug run _cachedir | subenv
-$HOME/AppData
-% ANTIDOTE_OSTYPE=linux antidote2 --debug run _cachedir | subenv
-$HOME/.cache
-% ANTIDOTE_OSTYPE=foobar XDG_CACHE_HOME=$HOME/.xdg-cache antidote2 --debug run _cachedir | subenv
-$HOME/.xdg-cache
-%
-```
-
 ## Teardown
 
 ```zsh

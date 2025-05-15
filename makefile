@@ -23,13 +23,13 @@ build:
 buildman:
 	./tools/buildman
 
-##? test        run tests
+##? test        run only unit tests
 test:
-	./tools/run-clitests
-
-##? unittest    run only unittests
-unittest:
 	./tools/run-clitests --unit
+
+##? testall     run all tests
+testall:
+	./tools/run-clitests
 
 ##? bump-maj    bump the major version (X.0.0)
 bump-maj:

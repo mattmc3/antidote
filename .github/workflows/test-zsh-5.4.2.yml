@@ -30,4 +30,4 @@ jobs:
       - run: |
           export PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH
           export ZSH_BINARY=/usr/local/bin/zsh
-          make test
+          make testall
