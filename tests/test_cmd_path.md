@@ -24,7 +24,7 @@ $ANTIDOTE_HOME/foo/bar
 ```zsh
 % antidote path bar/foo &>/dev/null  #=> --exit 1
 % antidote path bar/foo; err=$?
-antidote: error: bar/foo does not exist in cloned paths
+antidote path: error: 'bar/foo' does not exist in cloned paths
 % echo $err
 1
 %
@@ -46,7 +46,7 @@ $ANTIDOTE_HOME/ohmy/ohmy
 
 ```zsh
 % ZSH_CUSTOM=$ZDOTDIR/custom
-% antidote path '$ZSH_CUSTOM/plugins/myplugin' | subenv
+% antidote path $ZSH_CUSTOM/plugins/myplugin | subenv
 $HOME/.zsh/custom/plugins/myplugin
 %
 ```

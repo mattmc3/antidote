@@ -597,6 +597,9 @@ antidote_path() {
     return 1
   fi
 
+  # If a real path was provided, then that's the path.
+  [[ -e "$1" && "$1" == /* ]] && printf '%s\n' "$1" && return 0
+
   # Figure out the bundle directory.
   bundle_dir="$(_bundledir "$1")" || ret=1
   [[ "$ret" -eq 0 ]] && bundle_path="$(antidote_home)/${bundle_dir}"
