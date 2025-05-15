@@ -188,6 +188,14 @@ _collect_args() {
   [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${results[@]}"
 }
 
+##? Check if the first argument exists in the rest of the arg array
+_contains() {
+  (( $# )) || return 1
+  local s val="$1"; shift
+  for s in "$@"; do [[ "$s" == "$val" ]] && return 0; done
+  return 1
+}
+
 ##? git wrapper
 _git() {
   local result ret
@@ -202,6 +210,13 @@ _git() {
     fi
   fi
   printf '%s\n' "$result"
+}
+
+##? Indent args.
+_indent() {
+  _collect_args "$@" >/dev/null
+  printf "  %s\n" "${reply[@]}"
+  unset reply
 }
 
 ##? Make a temp file or directory.
@@ -423,10 +438,106 @@ _antidote_version() {
   printf '%s\n' "antidote version $ver"
 }
 
+##? Script generator
+antidote_script() {
+  local opt
+  local -A flags=()
+
+  # set defaults
+  flags[kind]=zsh
+  flags[fpath_rule]="${ANTIDOTE_DEFAULT_FPATH_RULE:-append}"
+
+  # Use getopts now that all options are short
+  while getopts ":a:b:c:k:p:r:1:z:2" opt; do
+    case "$opt" in
+      a) flags[autoload]="$OPTARG"    ;;
+      b) flags[branch]="$OPTARG"      ;;
+      c) flags[cond]="$OPTARG"        ;;
+      k) flags[kind]="$OPTARG"        ;;
+      p) flags[path]="$OPTARG"        ;;
+      r) flags[fpath_rule]="$OPTARG"  ;;
+      1) flags[pre]="$OPTARG"         ;;
+      z) flags[post]="$OPTARG"        ;;
+      2) flags[skip_load_defer]=true  ;;
+      \?) flags[bad]="$opt"           ;;
+    esac
+  done
+  shift $((OPTIND - 1))
+  unset OPTARG OPTIND OPTOPT
+
+  if ! _contains "${flags[kind]}" autoload clone defer fpath path zsh; then
+    printf >&2 "antidote: error: unexpected kind value: '%s'.\n" "${flags[kind]}"
+    return 1
+  fi
+  if ! _contains "${flags[fpath_rule]}" append prepend; then
+    printf >&2 "antidote: error: unexpected fpath-rule value: '%s'.\n" "${flags[fpath_rule]}"
+    return 1
+  fi
+  local bundle="$1"
+  if [[ -z "$bundle" ]]; then
+    printf >&2 "antidote: error: bundle argument expected.\n"
+    return 1
+  fi
+
+  # replace ~/ with $HOME/
+  # shellcheck disable=SC2088
+  if [[ "$bundle" == '~/'* ]]; then
+    bundle=$HOME/${bundle#'~/'*}
+  fi
+
+  # Store the generated script
+  local -a script=()
+
+  # Add pre-load function.
+  [[ -n "${flags[pre]}" ]] && script+=("${flags[pre]}")
+
+  # Handle defers
+  local source_cmd="source"
+  local zsh_defer="zsh-defer ${ANTIDOTE_DEFAULT_ZSH_DEFER_OPTS:-}"
+  local zsh_defer_bundle="${ANTIDOTE_DEFAULT_ZSH_DEFER_BUNDLE:-romkatv/zsh-defer}"
+  if [[ "${flags[kind]}" == "defer" ]]; then
+    source_cmd="${zsh_defer} source"
+    if [[ "${flags[skip_load_defer]}" != true ]]; then
+      script+=(
+        'if ! (( $+functions[zsh-defer] )); then'
+        "$(antidote_script "$zsh_defer_bundle" | _indent)"
+        'fi'
+      )
+    fi
+  fi
+
+  declare -p flags
+  echo "$bundle"
+
+  # Add post-load function.
+  if [[ -n "${flags[post]}" ]]; then
+    if [[ "${flags[kind]}" == "defer" ]]; then
+      script+=("${zsh_defer} ${flags[post]}")
+    else
+      script+=("${flags[post]}")
+    fi
+  fi
+
+  # Wrap if there was a conditional.
+  if [[ -n "${flags[cond]}" ]]; then
+    print "if ${flags[cond]}; then"
+    printf "  %s\n" "${script[@]}"
+    print "fi"
+  else
+    printf "%s\n" "${script[@]}"
+  fi
+}
+
 # Cleanup function to ensure we don't leave temp files behind.
 _antidote_update_cleanup() {
   [[ -d "$__antidote_update_tmpdir" ]] && _rm -rf -- "$__antidote_update_tmpdir"
   unset __antidote_update_tmpdir
+}
+
+##? Clone bundle(s) and generate the load script.
+antidote_bundle() {
+  # TODO
+  :
 }
 
 ##? Print help for antidote or one of its subcommands.
@@ -566,7 +677,7 @@ antidote_list() {
         '%r')  formatargs+=("${repo_properties[repo]}")   ;;
         '%s')  formatargs+=("${repo_properties[sha]}")    ;;
         '%u')  formatargs+=("${repo_properties[url]}")    ;;
-        *)     formatargs+=("$arg")                   ;;
+        *)     formatargs+=("$arg")                       ;;
       esac
     done
 
@@ -611,6 +722,12 @@ antidote_path() {
     printf >&2 "antidote path: error: '%s' does not exist in cloned paths\n" "$1"
     return 1
   fi
+}
+
+##? Purge a cloned bundle
+antidote_purge() {
+  # TODO
+  :
 }
 
 ##? Update cloned bundles.
