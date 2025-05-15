@@ -25,7 +25,7 @@ else
 fi
 
 # Set variables
-: "${ANTIDOTE_DEFAUT_GITSITE:=https://github.com}"
+: "${ANTIDOTE_GIT_SITE:=https://github.com}"
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_DEBUG:=false}"
 : "${ANTIDOTE_COMPATIBILITY_MODE:=}"
@@ -47,7 +47,6 @@ fi
 # Helper functions
 _isfunc() { typeset -f "${1}" >/dev/null 2>&1 ;}
 _iscmd()  { command -v "${1}" >/dev/null 2>&1 ;}
-_isurl()  { [[ "$1" == *://* || "$1" == git@*:*/* ]] ;}
 
 ##? Cross-shell method of getting the absolute path.
 _abspath() {
@@ -67,6 +66,48 @@ _abspath() {
 # shellcheck disable=SC2296
 SCRIPT_PATH="$(_abspath "${BASH_SOURCE[0]:-${(%):-%N}}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+##? Get the name of the bundle directory
+_bundledir() {
+  local bundle_type result repo_user repo_name
+  local bundle="$1" gitsite="${ANTIDOTE_GIT_SITE:-https://github.com}" ret=0
+  gitsite="${gitsite%/}"
+  bundle_type="$(_bundletype "$bundle")"
+
+  case "$bundle_type" in
+    repo|url|sshurl) : ;;
+    *) return 1 ;;
+  esac
+
+  if [[ "$ANTIDOTE_COMPATIBILITY_MODE" == antibody ]]; then
+    # antibody reqs a URL to determine the dir, so we can't use the simple repo form
+    [[ "$bundle_type" == repo ]] && bundle="${gitsite}/${bundle}"
+    result="$(
+      printf '%s\n' "$bundle" |
+      sed -e "s|@|-AT-|g"    \
+          -e "s|:|-COLON-|g" \
+          -e "s|/|-SLASH-|g"
+    )" || return 1
+  else
+    if [[ "$bundle_type" == repo ]]; then
+      result="${bundle}"
+    else
+      # Reminder: '#' strips from the left, '%' from the right
+      bundle="${bundle%.git}"   # strip trailing .git
+      repo_name="${bundle##*/}" # keep the repo name
+      bundle="${bundle%/*}"     # strip the repo name
+
+      if [[ "$bundle_type" == sshurl ]]; then
+        repo_user="${bundle##*:}"
+      else
+        repo_user="${bundle##*/}"
+      fi
+      [[ -n "$repo_user" ]] && [[ -n "$repo_name" ]] || return 1
+      result="${repo_user}/${repo_name}"
+    fi
+  fi
+  printf '%s\n' "$result"
+}
 
 ##? Get the path to a bundle
 _bundletype() {
@@ -354,34 +395,23 @@ _tempdir() {
 
 ##? Convert git URLs to user/repo format
 _url2repo() {
-  local repo url
-  url="${1%.git}"    # strip trailing .git
-  repo="${url##*:}"  # strip from left up to last ':'
-  repo="$(basename "$(dirname "$repo")")/$(basename "$repo")"
-  if [[ "$repo" != */* ]] || [[ "$repo" == */*/* ]]; then
-    printf >&2 'antidote: Unable to convert URL to short repo '%s'.\n' "$1"
+  local str
+
+  str="${1%/}"       # strip trailing /
+  str="${str%.git}"  # strip trailing .git
+
+  # strip the domain
+  if [[ "$str" == *://*/*/* ]]; then
+    str="${str#*://*/}"
+  elif [[ "$str" == git@*:*/* ]]; then
+    str="${str#git@*:}"
+  else
     return 1
   fi
-  printf '%s\n' "$repo"
-}
 
-##? Convert a git URL to a bundle path
-_url2path() {
-  local url result
-  url="$1"
-  _isurl "$url" || return 1
-
-  if [[ "$ANTIDOTE_COMPATIBILITY_MODE" == antibody ]]; then
-    result="$(
-      printf '%s\n' "$url" |
-      sed -e "s|@|-AT-|g"    \
-          -e "s|:|-COLON-|g" \
-          -e "s|/|-SLASH-|g"
-    )" || return 1
-  else
-    result="$(_url2repo "$url")" || return 1
-  fi
-  printf '%s/%s\n' "$(antidote_home)" "$result"
+  # make sure whatever is left is repo_user/repo_name
+  [[ "$str" == */* ]] && [[ "$str" != */*/* ]] || return 1
+  printf '%s\n' "$str"
 }
 
 ##? Get the antidote version.
@@ -558,6 +588,28 @@ antidote_list() {
   (( ${#output} == 0 )) || printf '%s\n' "${output[@]}" | sort
 }
 
+##? Print the path of a cloned bundle.
+antidote_path() {
+  local bundle_dir bundle_path ret=0
+
+  if (( $# == 0 )); then
+    printf >&2 '%s\n' "antidote path: required argument 'bundle' not provided."
+    return 1
+  fi
+
+  # Figure out the bundle directory.
+  bundle_dir="$(_bundledir "$1")" || ret=1
+  [[ "$ret" -eq 0 ]] && bundle_path="$(antidote_home)/${bundle_dir}"
+
+  # If we haven't errored and we have a valid directory, print it.
+  if [[ "$ret" -eq 0 ]] && [[ -n "${bundle_dir}" ]] && [[ -d "${bundle_path}/.git" ]]; then
+    printf '%s\n' "$bundle_path"
+  else
+    printf >&2 "antidote path: error: '%s' does not exist in cloned paths\n" "$1"
+    return 1
+  fi
+}
+
 ##? Update cloned bundles.
 antidote_update() {
   local -a o_self=() o_bundles=() o_badopt=()
@@ -609,19 +661,6 @@ antidote_update() {
   fi
 }
 
-
-##? Print the path of a cloned bundle.
-# antidote_path() {
-#   local bundle
-#   if (( $# == 0 )); then
-#     printf >&2 '%s\n' "antidote path: required argument 'bundle' not provided."
-#     return 1
-#   fi
-#   for bundle in "$@"; do
-
-#   done
-# }
-
 ##? Main dispatch function.
 antidote_main() {
   local cmd
@@ -669,3 +708,31 @@ antidote_main() {
 }
 
 antidote_main "$@"
+
+
+##? Convert a repo format (user/repo) to URL
+# _repo2url() {
+#   [[ "$(_bundletype "$1")" == repo ]] || return 1
+#   local gitsite="${ANTIDOTE_GIT_SITE:-https://github.com}"
+#   gitsite="${gitsite%/}"
+#   printf '%s/%s\n' "$gitsite" "$1"
+# }
+
+##? Convert a git URL to a bundle path
+# _url2path() {
+#   local url result
+#   url="$1"
+#   _isurl "$url" || return 1
+
+#   if [[ "$ANTIDOTE_COMPATIBILITY_MODE" == antibody ]]; then
+#     result="$(
+#       printf '%s\n' "$url" |
+#       sed -e "s|@|-AT-|g"    \
+#           -e "s|:|-COLON-|g" \
+#           -e "s|/|-SLASH-|g"
+#     )" || return 1
+#   else
+#     result="$(_url2repo "$url")" || return 1
+#   fi
+#   printf '%s/%s\n' "$(antidote_home)" "$result"
+# }

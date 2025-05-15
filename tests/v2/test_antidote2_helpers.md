@@ -21,6 +21,45 @@ $PWD/antidote2
 %
 ```
 
+### _bundledir
+
+`_bundledir` returns the name of the bundle directory
+
+Setup:
+```zsh
+% repo="mattmc3/antidote"
+% url="https://github.com/mattmc3/antidote"
+% sshurl="git@github.com:mattmc3/antidote.git"
+%
+```
+
+```zsh
+% antidote2 --debug run _bundledir "$repo"
+mattmc3/antidote
+% antidote2 --debug run _bundledir "$url"
+mattmc3/antidote
+% antidote2 --debug run _bundledir "$sshurl"
+mattmc3/antidote
+% antidote2 --debug run _bundledir foo; echo $?
+1
+% antidote2 --debug run _bundledir http://example.com; echo $?
+1
+%
+```
+
+```zsh
+% repo="mattmc3/antidote"
+% url="https://github.com/mattmc3/antidote"
+% sshurl="git@github.com:mattmc3/antidote.git"
+% antidote2 --debug run _bundledir "$repo"
+mattmc3/antidote
+% antidote2 --debug run _bundledir "$url"
+mattmc3/antidote
+% antidote2 --debug run _bundledir "$sshurl"
+mattmc3/antidote
+%
+```
+
 ### _bundletype
 
 `_bundletype` identifies the type of bundle string passed
@@ -120,19 +159,6 @@ mockgit: mocking not implemented for command: mockgit foo
 %
 ```
 
-### _isurl
-
-`_isurl` identifies urls
-
-```zsh
-% antidote2 --debug run _isurl foo #=> --exit 1
-% antidote2 --debug run _isurl git@gitsite.com/foo/bar.git #=> --exit 1
-% antidote2 --debug run _isurl https:/gitsite.com/foo/bar  #=> --exit 1
-% antidote2 --debug run _isurl https://gitsite.com/foo/bar #=> --exit 0
-% antidote2 --debug run _isurl git@gitsite.com:foo/bar.git #=> --exit 0
-%
-```
-
 ### _repeat
 
 `_repeat` repeats strings with an optional joiner
@@ -145,33 +171,6 @@ la-la-la-la-la
 %
 ```
 
-### _url2path
-
-`_url2path` converts URLs to paths
-
-```zsh
-% export ANTIDOTE_HOME=~/.cache/antidote
-% antidote2 --debug run _url2path https://gitsite.com/foo/bar | subenv
-$HOME/.cache/antidote/foo/bar
-% antidote2 --debug run _url2path git@gitsite.com:foo/bar.git | subenv
-$HOME/.cache/antidote/foo/bar
-% unset ANTIDOTE_HOME
-%
-```
-
-`_url2path` supports compatibility mode
-
-```zsh
-% export ANTIDOTE_HOME=~/.cache/antidote
-% export ANTIDOTE_COMPATIBILITY_MODE=antibody
-% antidote2 --debug run _url2path https://gitsite.com/foo/bar | subenv
-$HOME/.cache/antidote/https-COLON--SLASH--SLASH-gitsite.com-SLASH-foo-SLASH-bar
-% antidote2 --debug run _url2path git@gitsite.com:foo/bar.git | subenv
-$HOME/.cache/antidote/git-AT-gitsite.com-COLON-foo-SLASH-bar.git
-% unset ANTIDOTE_HOME ANTIDOTE_COMPATIBILITY_MODE
-%
-```
-
 ### _url2repo
 
 `_url2repo` converts URLs to user/repo form
@@ -181,6 +180,24 @@ $HOME/.cache/antidote/git-AT-gitsite.com-COLON-foo-SLASH-bar.git
 foo/bar
 % antidote2 --debug run _url2repo git@gitsite.com:foo/bar.git | subenv
 foo/bar
+% antidote2 --debug run _url2repo https://example.com/foo/bar/
+foo/bar
+%
+```
+
+`_url2repo` Fails on bad URLs
+
+```zsh
+% antidote2 --debug run _url2repo foo; echo $?
+1
+% antidote2 --debug run _url2repo /foo/bar/baz; echo $?
+1
+% antidote2 --debug run _url2repo https://example.com/; echo $?
+1
+% antidote2 --debug run _url2repo https://example.com/foo/; echo $?
+1
+% antidote2 --debug run _url2repo https://example.com/foo/bar/baz; echo $?
+1
 %
 ```
 
