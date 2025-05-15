@@ -42,16 +42,24 @@ function mockgit_pull {
 }
 
 function mockgit_rev_parse {
-  local -a o_short
-  zparseopts -D -E -- -short=o_short || return 1
-  if [[ "$*" = "HEAD" ]]; then
+  local -a o_short o_show_toplevel o_abbrev_ref
+  zparseopts -D -E --  \
+    -short=o_short \
+    -show-toplevel=o_show_toplevel \
+    -abbrev-ref=o_abbrev_ref || return 1
+
+  if (( $#o_show_toplevel )); then
+    # root directory
+    echo "${${GITPATH:-.}:A}"
+  elif (( $#o_abbrev_ref )) && [[ "$*" = "HEAD" ]]; then
+    # branch
+    echo "main-fake"
+  elif [[ "$*" = "HEAD" ]]; then
     if (( $#o_short )); then
       echo "abcd123"
     else
       echo "abcd1230abcd1230abcd1230abcd1230abcd1230"
     fi
-  elif [[ "$*" = "--show-toplevel" ]]; then
-    echo "${${GITPATH:-.}:A}"
   else
     echo >&2 "mockgit rev-parse: mocking not implemented for command: rev-parse $*"
   fi

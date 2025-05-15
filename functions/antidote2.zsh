@@ -147,7 +147,18 @@ _collect_args() {
 
 ##? git wrapper
 _git() {
-  "${ANTIDOTE_GIT:-git}" "$@"
+  local result ret
+  result="$("${ANTIDOTE_GIT:-git}" "$@" 2>&1)"
+  ret=$?
+  if (( ret > 0 )); then
+    if [[ -n "$result" ]]; then
+      printf >&2 "antidote: unexpected git error on command 'git %s'.\n" "$*"
+      printf >&2 "antidote: error details:\n"
+      printf >&2 "%s\n" "$result"
+      return $ret
+    fi
+  fi
+  printf '%s\n' "$result"
 }
 
 ##? Make a temp file or directory.
@@ -246,22 +257,26 @@ _parse_kvpairs() {
 
 ##? Get the details of all cloned repos
 _repo_details() {
-  local bundle_dir repo_details antidote_home url repo
+  local bundle_dir bundle_root repo_details antidote_home url repo branch sha date errcount
   local -a results=()
   local -A repo_properties=()
   antidote_home="$(antidote_home)"
   for bundle_dir in "${antidote_home}"/**/.git; do
     repo_properties=()
-    bundle_dir="$(_git -C "$bundle_dir/.." rev-parse --show-toplevel 2>/dev/null)"
-    url="$(_git -C "$bundle_dir" config remote.origin.url 2>/dev/null)"
+
+    bundle_root="$(_git -C "$bundle_dir/.." rev-parse --show-toplevel)" || return 1
+    url="$(_git -C "$bundle_root" config remote.origin.url)" || return 1
+    branch="$(_git -C "$bundle_root" rev-parse --abbrev-ref HEAD)" || return 1
+    sha="$(_git -C "$bundle_root" rev-parse HEAD)" || return 1
+    date="$(_git -C "$bundle_root" log -1 --format=%cd --date=short)" || return 1
     repo="$(_url2repo "$url" 2>/dev/null)"
 
-    repo_properties[path]="$bundle_dir"
+    repo_properties[path]="$bundle_root"
     repo_properties[url]="$url"
+    repo_properties[branch]="$branch"
+    repo_properties[sha]="$sha"
+    repo_properties[date]="$date"
     repo_properties[repo]="$repo"
-    repo_properties[branch]="$(_git -C "$bundle_dir" branch --show-current 2>/dev/null)"
-    repo_properties[sha]="$(_git -C "$bundle_dir" rev-parse HEAD 2>/dev/null)"
-    repo_properties[date]="$(_git -C "$bundle_dir" log -1 --format=%cd --date=short 2>/dev/null)"
     results+=( "$(declare -p repo_properties)" )
   done
   typeset -ga reply=("${results[@]}")
