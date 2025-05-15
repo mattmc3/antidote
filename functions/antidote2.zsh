@@ -28,7 +28,6 @@ fi
 : "${ANTIDOTE_DEFAUT_GITSITE:=https://github.com}"
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_DEBUG:=false}"
-: "${ANTIDOTE_GITCMD:=git}"
 
 NL=$'\n'
 TAB=$'\t'
@@ -39,8 +38,10 @@ if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
   NORMAL=$'\033[0m'
 fi
 
-#typeset -g REPLY=
-#typeset -ga reply=()
+# Global shared
+# typeset -g REPLY=
+# typeset -ga reply=()
+# typeset -gA repo_properties
 
 # Helper functions
 _isfunc() { typeset -f "${1}" >/dev/null 2>&1 ;}
@@ -144,6 +145,11 @@ _collect_args() {
   [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${results[@]}"
 }
 
+##? git wrapper
+_git() {
+  "${ANTIDOTE_GIT:-git}" "$@"
+}
+
 ##? Make a temp file or directory.
 _mktemp() {
   local -a o_dir=() o_suffix=()
@@ -242,21 +248,21 @@ _parse_kvpairs() {
 _repo_details() {
   local bundle_dir repo_details antidote_home url repo
   local -a results=()
-  local -A repo_detail=()
+  local -A repo_properties=()
   antidote_home="$(antidote_home)"
   for bundle_dir in "${antidote_home}"/**/.git; do
-    declare -A repo_detail=()
-    bundle_dir="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir/.." rev-parse --show-toplevel 2>/dev/null)"
-    url="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" config remote.origin.url 2>/dev/null)"
+    repo_properties=()
+    bundle_dir="$(_git -C "$bundle_dir/.." rev-parse --show-toplevel 2>/dev/null)"
+    url="$(_git -C "$bundle_dir" config remote.origin.url 2>/dev/null)"
     repo="$(_url2repo "$url" 2>/dev/null)"
 
-    repo_detail[path]="$bundle_dir"
-    repo_detail[url]="$url"
-    repo_detail[repo]="$repo"
-    repo_detail[branch]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" branch --show-current 2>/dev/null)"
-    repo_detail[sha]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" rev-parse HEAD 2>/dev/null)"
-    repo_detail[date]="$("${ANTIDOTE_GITCMD}" -C "$bundle_dir" log -1 --format=%cd --date=short 2>/dev/null)"
-    results+=( "$(declare -p repo_detail)" )
+    repo_properties[path]="$bundle_dir"
+    repo_properties[url]="$url"
+    repo_properties[repo]="$repo"
+    repo_properties[branch]="$(_git -C "$bundle_dir" branch --show-current 2>/dev/null)"
+    repo_properties[sha]="$(_git -C "$bundle_dir" rev-parse HEAD 2>/dev/null)"
+    repo_properties[date]="$(_git -C "$bundle_dir" log -1 --format=%cd --date=short 2>/dev/null)"
+    results+=( "$(declare -p repo_properties)" )
   done
   typeset -ga reply=("${results[@]}")
   [[ "$ANTIDOTE_DEBUG" != true ]] || printf '%s\n' "${results[@]}"
@@ -439,7 +445,7 @@ antidote_init() {
 
 ##? List cloned bundles.
 antidote_list() {
-  local -A repo_detail=()
+  local -A repo_properties=()
   local -a repo_details=() formatargs=() output=()
   local arg formatstr deetstr
 
@@ -484,18 +490,18 @@ antidote_list() {
     [[ -n "$deetstr" ]] || continue
 
     # Turn the typeset repr into an assoc_arr
-    repo_detail=()
+    repo_properties=()
     eval "$deetstr"
 
     formatargs=()
     for arg in "${fmtcodes[@]}"; do
       case "$arg" in
-        '%b')  formatargs+=("${repo_detail[branch]}") ;;
-        '%d')  formatargs+=("${repo_detail[date]}")   ;;
-        '%p')  formatargs+=("${repo_detail[path]}")   ;;
-        '%r')  formatargs+=("${repo_detail[repo]}")   ;;
-        '%s')  formatargs+=("${repo_detail[sha]}")    ;;
-        '%u')  formatargs+=("${repo_detail[url]}")    ;;
+        '%b')  formatargs+=("${repo_properties[branch]}") ;;
+        '%d')  formatargs+=("${repo_properties[date]}")   ;;
+        '%p')  formatargs+=("${repo_properties[path]}")   ;;
+        '%r')  formatargs+=("${repo_properties[repo]}")   ;;
+        '%s')  formatargs+=("${repo_properties[sha]}")    ;;
+        '%u')  formatargs+=("${repo_properties[url]}")    ;;
         *)     formatargs+=("$arg")                   ;;
       esac
     done
@@ -504,14 +510,14 @@ antidote_list() {
       # shellcheck disable=SC2059
       output+=( "$(printf "${formatstr}" "${formatargs[@]}")" )
     else
-      printf '%s\n' "${repo_detail[repo]}"
+      printf '%s\n' "${repo_properties[repo]}"
       printf '%s\n' "=================================================="
-      printf '%12s: %s\n' "Repo (%r)" "${repo_detail[repo]}"
-      printf '%12s: %s\n' "Path (%p)" "${repo_detail[path]}"
-      printf '%12s: %s\n' "URL (%u)" "${repo_detail[url]}"
-      printf '%12s: %s\n' "Branch (%b)" "${repo_detail[branch]}"
-      printf '%12s: %s\n' "SHA (%s)" "${repo_detail[sha]}"
-      printf '%12s: %s\n' "Date (%d)" "${repo_detail[date]}"
+      printf '%12s: %s\n' "Repo (%r)" "${repo_properties[repo]}"
+      printf '%12s: %s\n' "Path (%p)" "${repo_properties[path]}"
+      printf '%12s: %s\n' "URL (%u)" "${repo_properties[url]}"
+      printf '%12s: %s\n' "Branch (%b)" "${repo_properties[branch]}"
+      printf '%12s: %s\n' "SHA (%s)" "${repo_properties[sha]}"
+      printf '%12s: %s\n' "Date (%d)" "${repo_properties[date]}"
       printf '\n'
     fi
   done
@@ -555,6 +561,17 @@ antidote_update() {
     # (EXIT is special, 2=INT, 15=TERM, 1=HUP)
     typeset -g __antidote_update_tmpdir="$tmpdir"
     trap __antidote_update_cleanup EXIT 2 15 1
+
+    # We can save the date on update!
+    # git config --local antidote.lastUpdated "$(date "+%Y-%m-%d %H:%M:%S %z")"
+    # git config --get antidote.lastUpdated
+
+    # Update bundles
+    for bundledir in $(antidote_list --path); do
+      url="$(git -C "$bundledir" config remote.origin.url)"
+      printf "antidote: checking for updates: '%s'" "$url"
+      repo="$(_url2repo "$url")"
+    done
   fi
 }
 
