@@ -5,19 +5,23 @@ ANTIDOTE_VERSION=2.0.0
 
 # This script supports both Bash and Zsh
 if [[ -n "$BASH_VERSION" ]]; then
-  shopt -s nullglob
-  shopt -s globstar
   if [[ "${BASH_VERSION%%.*}" -lt 4 ]]; then
     printf >&2 '%s\n' "antidote: Unsupported Bash version '$BASH_VERSION'. Expecting Bash >=4.0."
     exit 1
   fi
+
+  # Set Bash options
+  shopt -s nullglob
+  shopt -s globstar
 elif [[ -n "$ZSH_VERSION" ]]; then
-  setopt NULL_GLOB EXTENDED_GLOB NO_MONITOR PIPEFAIL
   builtin autoload -Uz is-at-least
   if ! is-at-least 5.4.2; then
     printf >&2 '%s\n' "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >=5.4.2."
     exit 1
   fi
+
+  # Set Zsh options
+  setopt NULL_GLOB NO_BANG_HIST EXTENDED_GLOB NO_MONITOR PIPEFAIL
 else
   shellname=$(ps -p $$ -oargs= | awk 'NR=1{print $1}')
   printf >&2 '%s\n' "antidote: Expecting zsh or bash. Found '$shellname'."
@@ -32,6 +36,7 @@ fi
 
 NL=$'\n'
 TAB=$'\t'
+SEP=$'\x1F'
 if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
   FG_GREEN=$'\033[32m'
   FG_BLUE=$'\033[34m'
@@ -40,8 +45,9 @@ if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
 fi
 
 # Global shared
-# typeset -g REPLY=
-# typeset -ga reply=()
+typeset -g REPLY=
+typeset -ga reply=()
+typeset -gA kvreply=()
 # typeset -gA repo_properties
 
 # Helper functions
@@ -262,6 +268,12 @@ _mktemp() {
 
 ##? Parse bundles into an associative array.
 _parse_bundles() {
+  # Creates a parsed_bundle associative array with following contents:
+  #   parsed_bundle[name]: Name of the bundle
+  #   parsed_bundle[lineno]: The line number from .zsh_plugins.txt
+  #   parsed_bundle[$annotation]: key:value pairs for all provided annotations
+  # No attempt to check for validity, just a humble parser.
+
   _collect_args "$@" >/dev/null
   local -a bundles=( "${reply[@]}" )
   unset reply
