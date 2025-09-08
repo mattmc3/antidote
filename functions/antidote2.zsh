@@ -9,8 +9,6 @@ if [[ -n "$BASH_VERSION" ]]; then
     printf >&2 '%s\n' "antidote: Unsupported Bash version '$BASH_VERSION'. Expecting Bash >=4.0."
     exit 1
   fi
-
-  # Set Bash options
   shopt -s nullglob
   shopt -s globstar
 elif [[ -n "$ZSH_VERSION" ]]; then
@@ -19,8 +17,6 @@ elif [[ -n "$ZSH_VERSION" ]]; then
     printf >&2 '%s\n' "antidote: Unsupported Zsh version '$ZSH_VERSION'. Expecting Zsh >=5.4.2."
     exit 1
   fi
-
-  # Set Zsh options
   setopt NULL_GLOB NO_BANG_HIST EXTENDED_GLOB NO_MONITOR PIPEFAIL
 else
   shellname=$(ps -p $$ -oargs= | awk 'NR=1{print $1}')
@@ -148,6 +144,66 @@ _bundletype() {
 
   typeset -g REPLY="$result"
   printf '%s\n' "$result"
+}
+
+##? Set kvreply to bundle detail
+_bundle_detail() {
+  local tmpstr bundle_type url repo repo_name repo_user bundle_handle="$1"
+  local gitsite="${ANTIDOTE_GIT_SITE:-https://github.com}"
+
+  # Determine the bundle type (url, repo, path, ?)
+  if [[ "$bundle_handle" == *://*/*/* || "$bundle_handle" == (ssh|git)@*:*/* ]]; then
+    if [[ "$bundle_handle" == *://*/*/*/* || "$bundle_handle" == *@*:*/*/* ]]; then
+      bundle_type="?"
+    else
+      bundle_type="url"
+    fi
+  elif [[ "$bundle_handle" == *('@'|':')* ]] ; then
+    bundle_type="?"  # bad URLs
+  elif [[ "$bundle_handle" == ('~'|'$'|'.')* ]]; then
+    bundle_type="path"
+  elif [[ "$bundle_handle" == */* && "$bundle_handle" != */*/* ]]; then
+    bundle_type="repo"
+  elif [[ "$bundle_handle" == */* ]]; then
+    bundle_type="path"
+  else
+    bundle_type="?"
+  fi
+
+  # Determine the URL and the repo short name format (user/repo)
+  # Reminder: '#' strips from the left, '%' from the right
+  if [[ "$bundle_type" == repo ]]; then
+      repo="${bundle_handle}"
+      url="${gitsite%/}/${bundle_handle}"
+  elif [[ "$bundle_type" == url ]]; then
+    url="${bundle_handle}"
+    tmpstr="${bundle_handle%.git}"   # strip trailing .git
+    tmpstr="${tmpstr##*:}"        # strip up to the colon
+    repo_name="${tmpstr##*/}"     # keep the repo name
+    repo_user="${tmpstr%/*}"      # strip the repo name
+    repo_user="${repo_user##*/}"  # strip any prefix to the user
+
+    if [[ -n "$repo_user" ]] && [[ -n "$repo_name" ]]; then
+      repo="${repo_user}/${repo_name}"
+    else
+      repo=""
+    fi
+  fi
+
+  # Set the kvreply
+  typeset -gA kvreply=()
+  kvreply[handle]="$bundle_handle"
+  kvreply[type]="$bundle_type"
+  [[ -n "$url" ]] && kvreply[url]="$url"
+  [[ -n "$repo" ]] && kvreply[repo]="$repo"
+  [[ "$ANTIDOTE_DEBUG" != true ]] || declare -p kvreply
+
+  # # Bash supported way of populating an assoc array from the arg array
+  # # Zsh would have just let us simply do bundle_detail=("$@")
+  # while (( $# )); do
+  #   bundle_detail["$1"]="$2"
+  #   shift $(($# > 1 ? 2 : 1))
+  # done
 }
 
 ##? Get the default cache directory by OS.
@@ -485,16 +541,21 @@ antidote_script() {
     printf >&2 "antidote: error: unexpected fpath-rule value: '%s'.\n" "${flags[fpath_rule]}"
     return 1
   fi
-  local bundle="$1"
-  if [[ -z "$bundle" ]]; then
+
+  # The bundle is the only positional arg, and is required.
+  if [[ -z "$1" ]]; then
     printf >&2 "antidote: error: bundle argument expected.\n"
     return 1
   fi
 
+  local -A bundle=()
+  bundle[name]="$1"
+
+
   # replace ~/ with $HOME/
   # shellcheck disable=SC2088
-  if [[ "$bundle" == '~/'* ]]; then
-    bundle=$HOME/${bundle#'~/'*}
+  if [[ "${bundle[name]}" == '~/'* ]]; then
+    bundle[name]=$HOME/${bundle[name]#'~/'*}
   fi
 
   # Store the generated script
@@ -519,7 +580,7 @@ antidote_script() {
   fi
 
   declare -p flags
-  echo "$bundle"
+  declare -p bundle
 
   # Add post-load function.
   if [[ -n "${flags[post]}" ]]; then
