@@ -50,24 +50,51 @@ typeset -gA kvreply=()
 _isfunc() { typeset -f "${1}" >/dev/null 2>&1 ;}
 _iscmd()  { command -v "${1}" >/dev/null 2>&1 ;}
 
-##? Cross-shell method of getting the absolute path.
-_abspath() {
-  local filename parentdir
-  filename="${1}"
-  parentdir="$(dirname "${filename}")"
+##? Normalize a path string without requiring it to exist.
+_normalize_path() {
+  local IFS=/ part out=
+  for part in $1; do
+    case $part in
+      ""|.) continue ;;               # skip empty or "."
+      ..)  out=${out%/*} ;;           # pop last element
+      *)   out="$out/$part" ;;
+    esac
+  done
+  # Ensure at least "/"
+  [ -z "$out" ] && out="/"
+  printf '%s\n' "$out"
+}
 
-  [[ -e "${filename}" ]] || return 1
-  if [[ -d "${filename}" ]]; then
-    printf '%s\n' "$(cd "${filename}" && pwd)"
-  elif [[ -d "${parentdir}" ]]; then
-    printf '%s\n' "$(cd "${parentdir}" && pwd)/$(basename "${filename}")"
-  fi
+##? Cross-shell method of manipulating paths.
+_path() {
+  local opt p
+
+  eval "p=\${$#}"
+
+  OPTIND=1
+  while getopts "ahret" opt; do
+    case $opt in
+      a) # opt_abs (string-only)
+         if [[ $p != /* ]]; then
+           p="$PWD/$p"
+         fi
+         p=$(_normalize_path "$p")
+         ;;
+      h) p=$(dirname -- "$p") ;;
+      r) p=${p%.*} ;;
+      e) p=${p##*.} ;;
+      t) p=$(basename -- "$p") ;;
+      *) echo "Usage: path [-a] [-h] [-r] [-e] [-t] path" >&2; return 1 ;;
+    esac
+  done
+
+  printf '%s\n' "$p"
 }
 
 # Get script path in a Bash/Zsh compatible way, falling back to $0
 # shellcheck disable=SC2296
-SCRIPT_PATH="$(_abspath "${BASH_SOURCE[0]:-${(%):-%N}}")"
-SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+SCRIPT_PATH="$(_path -a "${BASH_SOURCE[0]:-${(%):-%N}}")"
+SCRIPT_DIR="$(_path -h "$SCRIPT_PATH")"
 
 ##? Get the name of the bundle directory
 _bundledir() {
@@ -177,11 +204,11 @@ _bundle_detail() {
       url="${gitsite%/}/${bundle_handle}"
   elif [[ "$bundle_type" == url ]]; then
     url="${bundle_handle}"
-    tmpstr="${bundle_handle%.git}"   # strip trailing .git
-    tmpstr="${tmpstr##*:}"        # strip up to the colon
-    repo_name="${tmpstr##*/}"     # keep the repo name
-    repo_user="${tmpstr%/*}"      # strip the repo name
-    repo_user="${repo_user##*/}"  # strip any prefix to the user
+    tmpstr="${bundle_handle%.git}"  # strip trailing .git
+    tmpstr="${tmpstr##*:}"          # strip up to the colon
+    repo_name="${tmpstr##*/}"       # keep the repo name
+    repo_user="${tmpstr%/*}"        # strip the repo name
+    repo_user="${repo_user##*/}"    # strip any prefix to the user
 
     if [[ -n "$repo_user" ]] && [[ -n "$repo_name" ]]; then
       repo="${repo_user}/${repo_name}"
@@ -441,7 +468,7 @@ _rm() {
 
   tmpdir="$(_tempdir)"
   for p in "$@"; do
-    p="$(_abspath "$p")"
+    p="$(_path -a "$p")"
     if [[ "$p" != "$HOME"/* ]] && [[ "$p" != "$tmpdir"/* ]]; then
       printf >&2 "antidote: Blocked attempt to rm path: '%s'." "$p"
       return 1
@@ -610,7 +637,7 @@ _antidote_update_cleanup() {
 ##? Clone bundle(s) and generate the load script.
 antidote_bundle() {
   # TODO
-  :
+  echo "TODO"
 }
 
 ##? Print help for antidote or one of its subcommands.
