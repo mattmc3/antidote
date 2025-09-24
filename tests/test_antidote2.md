@@ -48,6 +48,91 @@ Commands:
 %
 ```
 
+## antidote home
+
+`antidote home` command exists
+
+```zsh
+% antidote2 home &>/dev/null; echo $?
+0
+%
+```
+
+`antidote home --h/--help` works
+
+```zsh
+% antidote2 home --help
+usage: antidote home
+
+Prints where antidote is cloning bundles
+
+Flags:
+  -h, --help   Show context-sensitive help.
+% test "$(antidote2 home --help)" = "$(antidote2 home -h)" #=> --exit 0
+% test "$(antidote2 home --help)" = "$(antidote2 help home)" #=> --exit 0
+0
+%
+```
+
+`$ANTIDOTE_HOME` is used if set...
+
+```zsh
+% export ANTIDOTE_HOME=$HOME/.cache/antidote
+% antidote2 home | subenv
+$HOME/.cache/antidote
+% unset ANTIDOTE_HOME
+%
+```
+
+`antidote home` is `~/Library/Caches/antidote` on macOS
+
+```zsh
+% export ANTIDOTE_OSTYPE=darwin21.3.0
+% antidote2 home | subenv
+$HOME/Library/Caches/antidote
+% unset ANTIDOTE_OSTYPE
+%
+```
+
+`antidote home` is `$LOCALAPPDATA/antidote` on msys
+
+```zsh
+% export ANTIDOTE_OSTYPE=msys
+% export LOCALAPPDATA=$HOME/AppData
+% antidote2 home | subenv
+$HOME/AppData/antidote
+% unset ANTIDOTE_OSTYPE LOCALAPPDATA
+%
+```
+
+`antidote home` uses `$XDG_CACHE_HOME` on an OS that defines it.
+
+```zsh
+% # Setup
+% export ANTIDOTE_OSTYPE=foobar
+% OLD_XDG_CACHE_HOME=$XDG_CACHE_HOME; XDG_CACHE_HOME=$HOME/.xdg-cache
+% # Run test
+% antidote2 home | subenv XDG_CACHE_HOME
+$XDG_CACHE_HOME/antidote
+% # Teardown
+% unset ANTIDOTE_OSTYPE; XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME
+%
+```
+
+`antidote home` uses `$HOME/.cache` otherwise.
+
+```zsh
+% # Setup
+% export ANTIDOTE_OSTYPE=foobar
+% OLD_XDG_CACHE_HOME=$XDG_CACHE_HOME; XDG_CACHE_HOME=
+% # Run test
+% antidote2 home | subenv
+$HOME/.cache/antidote
+% # Teardown
+% unset ANTIDOTE_OSTYPE; XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME
+%
+```
+
 ## antidote init
 
 ```zsh
