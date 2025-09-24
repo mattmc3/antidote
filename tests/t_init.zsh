@@ -1,0 +1,68 @@
+#!/bin/zsh
+0=${(%):-%N}
+
+function t_setup {
+  emulate -L zsh
+  setopt local_options extended_glob glob_dots
+
+  0=${(%):-%x}
+  typeset -g T_PRJDIR="${0:A:h:h:h}"
+  typeset -g T_TESTDATA=$T_PRJDIR/tests/testdata
+  local testdir="$T_PRJDIR/tests"
+
+  # save path/fpath
+  typeset -ga T_PREV_PATH=( $path )
+  typeset -ga T_PREV_FPATH=( $fpath )
+
+  # save zstyles, and clear them all for the test session
+  typeset -ga T_PREV_ZSTYLES=( ${(@f)"$(zstyle -L ':antidote:*')"} )
+  source <(zstyle -L ':antidote:*' | awk '{print "zstyle -d",$2}')
+
+  # setup test functions
+  # fpath+=( $testdir/functions )
+  # autoload -Uz $testdir/functions/*
+
+  # mock git
+  # function git { mockgit "$@" }
+
+  # works with BSD and GNU gmktemp
+  # T_TEMPDIR=${$(mktemp -d -t t_antidote.XXXXXXXX):A}
+  # typeset -g T_PREV_HOME=$HOME
+  # typeset -g T_PREV_ZDOTDIR=$ZDOTDIR
+
+  # export HOME=$T_TEMPDIR
+  # export ZDOTDIR=$HOME/.zsh
+  # typeset -g ANTIDOTE_HOME=$HOME/.cache/antidote
+
+  # put tmp_home into position
+  # for p in $testdir/tmp_home/*; do
+  #   cp -rf $p $T_TEMPDIR
+  # done
+
+  # put testdata into position
+  # cp -rf -- $T_PRJDIR/tests $T_TEMPDIR/tests
+
+  # rename .mockgit to .git
+  # local mockdir
+  # for mockdir in $T_TEMPDIR/**/.mock*; do
+  #   mv $mockdir ${mockdir:s/.mock/.}
+  # done
+
+  # our mock plugins use this
+  typeset -ga plugins=()
+  typeset -ga libs=()
+
+  # setup antidote
+  zstyle ':antidote:tests' set-warn-options 'on'
+  zstyle ':antidote:tests' cloning 'off'
+  zstyle ':antidote:bundle' use-friendly-names on
+  zstyle ':antidote:defer' bundle 'getantidote/zsh-defer'
+
+  # start from tmp home
+  #pushd
+  #cd $T_TEMPDIR
+}
+
+path+=($PWD ${0:a:h}/bin)
+export ANTIDOTE_GITCMD=${0:a:h}/bin/mockgit
+t_setup

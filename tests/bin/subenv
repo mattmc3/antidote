@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+function subenv {
+  emulate -L zsh; setopt local_options
+
+  local -a sedargs=(-e "s|$PWD|\$PWD|g" -e "s|$HOME|\$HOME|g")
+  while (( $# )); do
+    if [[ -v "$1" ]]; then
+      sedargs+=(-e "s|${(P)1}|\$$1|g")
+    fi
+    shift
+  done
+  sed "$sedargs[@]"
+
+  #echo "ran sed $sedargs[@]"
+}
+subenv "$@"
