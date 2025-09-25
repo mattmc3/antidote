@@ -156,3 +156,16 @@ _antidote() {
 compctl -K _antidote antidote
 %
 ```
+
+## private functions
+
+Test cache_dir
+
+```zsh
+% export ANTIDOTE_OSTYPE=foobar
+% OLD_XDG_CACHE_HOME=$XDG_CACHE_HOME; export XDG_CACHE_HOME=$HOME/.xdg-cache
+% antidote2 --debug run cache_dir | subenv
+$HOME/.xdg-cache
+% unset ANTIDOTE_OSTYPE; XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME
+%
+```
