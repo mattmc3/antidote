@@ -1,9 +1,13 @@
 #compdef antidote
 
+gawk --version &>/dev/null &&
+  typeset -gH ANTIDOTE_AWKCMD=gawk ||
+  typeset -gH ANTIDOTE_AWKCMD=awk
+
 function _antidote_subcommands {
   local usage=$(
     antidote --help |
-    ${__adote_awkcmd:-awk} '
+    ${ANTIDOTE_AWKCMD:-awk} '
       BEGIN{OFS=":"; p=0}
       /^commands:$/ {p=1; next}
       !p{next}
