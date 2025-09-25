@@ -21,7 +21,6 @@ fi
 
 # Set antidote variables.
 ANTIDOTE_VERSION=2.0.0
-gitcmd="${ANTIDOTE_GITCMD:=git}"
 : "${ANTIDOTE_GIT_SITE:=https://github.com}"
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_DEBUG:=false}"
@@ -88,6 +87,52 @@ collect_args() {
   [[ "$ANTIDOTE_DEBUG" != true ]] || say "${reply[@]}"
 }
 
+# Safe rm wrapper
+del() {
+  # Call me paranoid, but I want to be really certain antidote will never rm something
+  # it shouldn't. This function wraps rm to double check that any paths being removed
+  # are valid. If it's not in your $HOME or $TMPDIR, we need to block it.
+  local p tmpdir
+  local -a rmflags
+
+  while (( $# )); do
+    case "$1" in
+      --)  shift; break     ;;
+      -*)  rmflags+=("$1")  ;;
+      *)   break            ;;
+    esac
+    shift
+  done
+  (( $# > 0 )) || return 1
+
+  tmpdir="$(temp_dir)"
+  for p in "$@"; do
+    p="${p:a}"
+    if [[ "$p" != "$HOME"/* ]] && [[ "$p" != "$tmpdir"/* ]]; then
+      warn "Blocked attempt to rm path: '$p'."
+      return 1
+    fi
+  done
+
+  rm "${rmflags[@]}" -- "$@"
+}
+
+# git command
+gitcmd() {
+  local result ret
+  result="$("${ANTIDOTE_GITCMD:-git}" "$@" 2>&1)"
+  ret=$?
+  if (( ret > 0 )); then
+    if [[ -n "$result" ]]; then
+      printf >&2 "antidote: unexpected git error on command 'git %s'.\n" "$*"
+      printf >&2 "antidote: error details:\n"
+      printf >&2 "%s\n" "$result"
+      return $ret
+    fi
+  fi
+  printf '%s\n' "$result"
+}
+
 # Use shell's lexer for word splitting rules
 wordsplit() {
   local str="$*"
@@ -103,7 +148,6 @@ parse_bundles() {
   #   parsed_bundle[name]: Name of the bundle
   #   parsed_bundle[lineno]: The line number from .zsh_plugins.txt
   #   parsed_bundle[$annotation]: key:value pairs for all provided annotations
-  # No attempt to check for validity, just a humble parser.
 
   collect_args "$@" >/dev/null
   local -a bundles=( "${reply[@]}" )
@@ -147,12 +191,34 @@ parse_bundles() {
       parsed_bundle[$key]="$value"
     done
 
+    # Enhance bundle
+
+
     results+=( "$(declare -p parsed_bundle)" )
   done
 
   # Set reply array
   typeset -ga reply=("${results[@]}")
   [[ "$ANTIDOTE_DEBUG" != true ]] || say "${reply[@]}"
+}
+
+# Expand bundles into an associative array.
+expand_bundles() {
+
+}
+
+# Print the OS specific temp dir.
+temp_dir() {
+  local result tmpd
+
+  # Set the appropriate temp directory (cargo cult code from p10k)
+  if [[ -n "$TMPDIR" && (( -d "$TMPDIR" && -w "$TMPDIR" ) || ! ( -d /tmp && -w /tmp )) ]]; then
+    tmpd="${TMPDIR%/}"
+  else
+    tmpd="/tmp"
+  fi
+  result="$tmpd"
+  say "$result"
 }
 
 # Print help.
@@ -277,48 +343,48 @@ antidote_init() {
 antidote_version() {
   local ver gitsha
   ver="$ANTIDOTE_VERSION"
-  gitsha="$($gitcmd -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null)"
+  gitsha="$(gitcmd -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null)"
   [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   say "antidote version $ver"
 }
 
 antidote2() {
-  local o_help o_version
+  local o_help o_version o_debug
   zparseopts ${ANTIDOTE_ZPARSEOPTS} -- \
+    d=o_debug   -debug=d   \
     h=o_help    -help=h    \
     v=o_version -version=v ||
     return 1
 
-  local ret=0
+  if (( ${#o_debug} )); then
+    ANTIDOTE_DEBUG=true
+    setopt WARN_CREATE_GLOBAL WARN_NESTED_VAR
+  fi
 
   if (( ${#o_version} )); then
     antidote_version
+    return 0
 
   elif (( ${#o_help} )); then
     antidote_help "$@"
+    return 0
 
   elif [[ ${#} -eq 0 ]]; then
     antidote_help
-    ret=2
-
-  elif (( $+functions[antidote_${1}] )); then
-    local cmd=${1}; shift
-    antidote_${cmd} "$@"
-    ret=$?
+    return 2
   fi
 
-  return $ret
+  local cmd=${1}; shift
+  if [[ "$ANTIDOTE_DEBUG" == true ]] && [[ "$cmd" == run ]]; then
+    cmd="$1"
+    shift
+    "${cmd}" "$@"
+    return $?
+  elif (( $+functions[antidote_${cmd}] )); then
+    antidote_${cmd} "$@"
+    return $?
+  else
+    die 2 "command not found '$cmd'."
+  fi
 }
 antidote2 "$@"
-
-# parse_bundles "$@"
-# # antidote_version "$@"
-# # antidote_init "$@"
-
-# antidote_help bundle
-# antidote_help home
-# antidote_help init
-# antidote_help path
-# antidote_help
-
-# antidote_home "$@"
