@@ -149,13 +149,56 @@ If your plugin is hosted somewhere other than GitHub, you can use this:
 antidote install https://bitbucket.org/bb_user/bb_repo
 ```
 
+## antidote DSL (simplified)
+
+```txt
+<bundle_line> ::= <bundle_ref> [ <space> <annotation> ... ]
+
+<bundle_ref> ::= <repo_short> | <repo_url> | <repo_ssh> | <local_entry>
+
+<repo_short> ::= owner "/" repo [ "#" ref ]
+<repo_url>   ::= "https://" domain "/" owner "/" repo [ ".git" ] [ "#" ref ]
+<repo_ssh>   ::= "git@" domain ":" owner "/" repo [ ".git" ] [ "#" ref ]
+
+<local_entry> ::= <env_var> "/" path
+                | "/" path
+                | "./" path
+                | "../" path
+                | "~/" path
+                | bare_relative_path
+
+<annotation> ::= key ":" value
+<key> ::= kind | path | branch | fpath-rule | autoload | pre | post | conditional
+
+kind ::= zsh | path | fpath | defer | clone | autoload
+fpath-rule ::= append | prepend
+```
+
+Rules / notes (delta-focused):
+
+- ref after '#' = branch/tag/commit (optional). Delimiter '#' retained for compatibility and to avoid ambiguity with git@ in SSH specs.
+- repo_url accepts http or https; .git suffix ignored.
+- env_var_path expands the environment variable first (e.g. $ZDOTDIR/plugins, $HOME, $XDG_DATA_HOME/zsh). If no trailing path, the var value itself is the bundle root.
+- path (annotation) targets a subdirectory or file inside the resolved bundle root (not related to kind=path).
+- Remaining bullets (duplicates override, conditional/pre/post/autoload behavior, etc.) unchanged.
+
+Examples:
+
+```txt
+romkatv/powerlevel10k kind:zsh
+zsh-users/zsh-autosuggestions kind:defer ref:main
+https://github.com/zsh-users/zsh-completions kind:autoload autoload:src fpath-rule:prepend
+git@github.com:ohmyzsh/ohmyzsh.git path:lib conditional:'[[ $TERM != dumb ]]' kind:defer
+~/dev/zsh-snips kind:fpath fpath-rule:append
+./scripts/myplugin.zsh kind:zsh pre:init_before post:init_after
+```
+
 ## Credits
 
 A big thank you to [Carlos](https://github.com/caarlos0) for all his work on
 [antibody] over the years.
 
-[antigen]:        https://github.com/zsh-users/antigen
-[antibody]:       https://github.com/getantibody/antibody
-[antidote]:       https://antidote.sh
-[benchmarks]:     https://github.com/romkatv/zsh-bench/blob/master/doc/linux-desktop.md
-[zsh]:            https://www.zsh.org
+[antigen]: https://github.com/zsh-users/antigen
+[antibody]: https://github.com/getantibody/antibody
+[antidote]: https://antidote.sh
+[benchmarks]: https://github.com/romkatv/zsh-bench
