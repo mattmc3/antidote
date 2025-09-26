@@ -8,6 +8,10 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 2
 
+[*.txt]
+indent_style = tab
+indent_size = 8
+
 [*.crlf.*]
 end_of_line = crlf
 
