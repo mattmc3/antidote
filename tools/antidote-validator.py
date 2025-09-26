@@ -17,7 +17,11 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import List
 
-from lark import Lark, UnexpectedInput, UnexpectedToken, UnexpectedCharacters
+try:
+    from lark import Lark, UnexpectedInput, UnexpectedToken, UnexpectedCharacters
+except ImportError:
+    print("Missing dependency: lark. Install with: pip install lark")
+    raise
 
 GRAMMAR = r"""
 // -------- Top Level --------
@@ -76,7 +80,7 @@ BAREKEY: /[A-Za-z_][A-Za-z0-9_.-]*/
 VALUEWORD: /[^ \t\n"'#]+/
 
 WS: /[ \t]+/
-NEWLINE: /\r?\n/
+NEWLINE: /\r\n|\n|\r/
 
 %ignore /[ \t]+(?=#)/
 %ignore /[ \t]+(?=\r?\n)/
