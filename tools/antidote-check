@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+0=${(%):-%N}
+SCRIPT_DIR=${0:a:h}
+: ${WORKON_HOME:=${XDG_DATA_HOME:-$HOME/.local/share}/venvs}
+
+if [[ -d $WORKON_HOME/antidote ]]; then
+  source $WORKON_HOME/antidote/bin/activate
+else
+  mkdir -p "$WORKON_HOME"
+  python3 -m venv "$WORKON_HOME/$antidote"
+  source $WORKON_HOME/antidote/bin/activate
+  pip install ${0:a:h}/requirements.txt
+fi
+python $SCRIPT_DIR/antidote-check.py "$@"
+deactivate

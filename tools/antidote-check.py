@@ -23,68 +23,12 @@ except ImportError:
     print("Missing dependency: lark. Install with: pip install lark")
     raise
 
-GRAMMAR = r"""
-// -------- Top Level --------
-file: (_line)* statement?        -> file
-
-_line: statement NEWLINE
-     | NEWLINE
-
-statement: comment
-         | entry
-
-comment: /[ \t]*#[^\n]*/
-
-// -------- Entries --------
-entry: WS? primary (WS attribute)* (WS extra_token)* (WS inline_comment)?  -> entry
-
-inline_comment: /#[^\n]*/
-
-// -------- Primary Token --------
-primary: URL    -> url
-       | SLUG   -> slug
-       | PATH   -> path
-       | VALUEWORD -> loneword
-
-// -------- Attributes --------
-attribute: key ":" value        -> attribute
-
-# Support bare, double-quoted, and single-quoted keys.
-key: BAREKEY
-   | STRING
-   | SSTRING
-
-# Support double or single quoted values, or VALUEWORD.
-value: STRING
-     | SSTRING
-     | VALUEWORD
-
-extra_token: STRING
-           | SSTRING
-           | VALUEWORD
-
-// -------- Terminals --------
-//
-// STRING / SSTRING support escapes for the respective quote and backslash.
-//
-STRING: /"([^"\\]|\\.)*"/
-SSTRING: /'([^'\\]|\\.)*'/
-
-URL: /(https?:\/\/[^\s#"]+)/
-SLUG: /[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+/
-PATH: /\$[A-Za-z0-9_\/.$-]+/
-BAREKEY: /[A-Za-z_][A-Za-z0-9_.-]*/
-
-// Exclude both double and single quotes so quoted tokens are distinct.
-// Allow ':' within VALUEWORD so values like is:this work.
-VALUEWORD: /[^ \t\n"'#]+/
-
-WS: /[ \t]+/
-NEWLINE: /\r\n|\n|\r/
-
-%ignore /[ \t]+(?=#)/
-%ignore /[ \t]+(?=\r?\n)/
-"""
+# Load grammar from external .lark file (same directory as this script)
+GRAMMAR_PATH = Path(__file__).with_name("antidote.lark")
+try:
+    GRAMMAR_TEXT = GRAMMAR_PATH.read_text(encoding="utf-8")
+except FileNotFoundError:
+    raise RuntimeError(f"Grammar file not found: {GRAMMAR_PATH}")
 
 @dataclass
 class ValidationError:
@@ -96,10 +40,12 @@ class ValidationError:
 class AntidoteValidator:
     def __init__(self, debug: bool = False):
         self.debug = debug
+        if self.debug:
+            print(f"[debug] Loading grammar from {GRAMMAR_PATH}")
         self.parser = Lark(
-            GRAMMAR,
+            GRAMMAR_TEXT,
             start="file",
-            parser="lalr",   # LALR with this grammar (BNF-ish)
+            parser="lalr",
             maybe_placeholders=False,
         )
 
@@ -117,7 +63,7 @@ class AntidoteValidator:
 
     def _line_by_line_errors(self, text: str) -> List[ValidationError]:
         line_parser = Lark(
-            GRAMMAR,
+            GRAMMAR_TEXT,
             start="statement",
             parser="lalr",
             maybe_placeholders=False,
