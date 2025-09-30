@@ -21,6 +21,7 @@ fi
 
 # Set antidote variables.
 ANTIDOTE_VERSION=2.0.0
+: "${ANTIDOTE_USE:=}"
 : "${ANTIDOTE_GIT_SITE:=https://github.com}"
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_DEBUG:=false}"
@@ -38,11 +39,13 @@ TAB=$'\t'
 SEP=$'\x1F'
 
 # Util functions.
-die()  { ec=$1; shift; warn "$@"; exit $ec; }
+die()  { local ec=$1; shift; warn "$@"; exit $ec; }
 warn() { printf '%s: %s\n' "$SCRIPT_NAME" "$*" >&2; }
 say()  { printf '%s\n' "$@"; }
 #is_func() { typeset -f "${1}" >/dev/null 2>&1 ; }
 #is_cmd()  { command -v "${1}" >/dev/null 2>&1 ; }
+is-true() { [[ -n "$1" && "${1:l}" == (1|y(es|)|t(rue|)|o(n|)) ]]; }
+
 
 # Get the default cache directory by OS.
 cache_dir() {
@@ -144,40 +147,45 @@ wordsplit() {
 
 # Parse bundles into an associative array.
 parse_bundles() {
-  # Creates a parsed_bundle associative array with following contents:
-  #   parsed_bundle[name]: Name of the bundle
-  #   parsed_bundle[lineno]: The line number from .zsh_plugins.txt
-  #   parsed_bundle[$annotation]: key:value pairs for all provided annotations
+  # Creates a bundle associative array with following contents:
+  #   bundle[ref]: Reference name of the bundle
+  #   bundle[lineno]: The line number from .zsh_plugins.txt
+  #   bundle[$annotation]: key:value pairs for all provided annotations
 
   collect_args "$@" >/dev/null
   local -a bundles=( "${reply[@]}" )
   unset reply
   local -a kvpairs=() results=()
-  local pair key value bundle lineno=0
-  local -A parsed_bundle=()
+  local pair key value line lineno=0 itemno=0
+  local -A bundle=()
 
-  for bundle in "${bundles[@]}"; do
-    (( lineno += 1 ))
+  for line in "${bundles[@]}"; do
+    (( lineno++ ))
 
-    bundle="${bundle%%\#*}"                        # Remove anything after the first '#'
-    bundle="${bundle#"${bundle%%[![:space:]]*}"}"  # Trim leading spaces
-    bundle="${bundle%"${bundle##*[![:space:]]}"}"  # Trim trailing spaces
+    line="${line%%\#*}"                      # Remove anything after the first '#'
+    line="${line#"${line%%[![:space:]]*}"}"  # Trim leading spaces
+    line="${line%"${line##*[![:space:]]}"}"  # Trim trailing spaces
 
-    # Skip empty bundles
-    [[ -n "$bundle" ]] || continue
-
-    # 1st field gets a 'name:' prefix so we can treat everything as key:val pairs
-    bundle="name:${bundle}"
+    # Skip empty lines
+    [[ -n "$line" ]] || continue
 
     # Split line into key-value pairs with quoting
-    parsed_bundle=()
-    parsed_bundle[lineno]="$lineno"
-
-    wordsplit "${bundle}" >/dev/null
+    wordsplit "${line}" >/dev/null
     kvpairs=("${reply[@]}")
     unset reply
 
+    bundle=()
+    bundle[lineno]="$lineno"
+    itemno=0
     for pair in "${kvpairs[@]}"; do
+      (( itemno++ ))
+      # 1st field gets a '_:' prefix so we can treat everything as key:val pairs
+      if [[ $itemno -eq 1 ]]; then
+        if [[ "$pair" != *:* || "$pair" == (git|http)* ]]; then
+          pair="_:${pair}"
+        fi
+      fi
+
       if [[ "$pair" != *:* ]]; then
         die 1 "missing ':' in bundle annotation '$pair' on line $lineno"
       fi
@@ -188,23 +196,18 @@ parse_bundles() {
       else
         value=""
       fi
-      parsed_bundle[$key]="$value"
+      bundle[$key]="$value"
     done
 
     # Enhance bundle
 
 
-    results+=( "$(declare -p parsed_bundle)" )
+    results+=( "$(declare -p bundle)" )
   done
 
   # Set reply array
   typeset -ga reply=("${results[@]}")
   [[ "$ANTIDOTE_DEBUG" != true ]] || say "${reply[@]}"
-}
-
-# Expand bundles into an associative array.
-expand_bundles() {
-
 }
 
 # Print the OS specific temp dir.
@@ -337,6 +340,73 @@ antidote_init() {
     "compctl -K _antidote antidote"
   )
   say "$script[@]"
+}
+
+# Get the URL for a bundle.
+tourl() {
+  local bundle=$1
+  if [[ $bundle != *://* && $bundle != git@*:*/* ]]; then
+    say ${ANTIDOTE_GIT_SITE:-https://github.com}/$bundle
+  else
+    say $bundle
+  fi
+}
+
+# Get the base directory of a bundle.
+bundle_dir() {
+  if (( $# == 0 )); then
+    die 1 "required argument 'bundle' not provided"
+  fi
+
+  local bundle=$1
+  if [[ "$bundle" == /* ]]; then
+    say "$bundle"
+  elif [[ "$bundle" == (git@|http://|https://)* ]]; then
+    if is-true "$ANTIDOTE_COMPATIBILITY_MODE"; then
+      local url=$(tourl $bundle)
+      url=${url%.git}
+      url=${url:gs/\@/-AT-}
+      url=${url:gs/\:/-COLON-}
+      url=${url:gs/\//-SLASH-}
+      say $(antidote_home)/$url
+    else
+      # user/repo format
+      # ex: $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
+      bundle=${bundle%.git}
+      bundle=${bundle:gs/\:/\/}
+      local parts=( ${(ps./.)bundle} )
+      if [[ $#parts -gt 1 ]]; then
+        say $(antidote_home)/${parts[-2]}/${parts[-1]}
+      else
+        say $(antidote_home)/$bundle
+      fi
+    fi
+  elif [[ "$bundle" == */* && "$bundle" != */*/* ]]; then
+    say "$(antidote_home)/$bundle"
+  else
+    die 1 "unexpected bundle argument '$bundle'."
+  fi
+}
+
+# Print the path of a cloned bundle.
+antidote_path() {
+  local bundle_dir bundle="$1"
+  (( $# > 0 )) || die 1 "required argument 'bundle' not provided."
+
+  # If a real path was provided, then that's the path.
+  if [[ -e "$bundle" && "$bundle" == /* ]]; then
+    say "$bundle" && return 0
+  fi
+
+  # Figure out the bundle directory.
+  bundle_dir="$(bundle_dir "$bundle")"
+
+  # If we haven't errored and we have a valid directory, print it.
+  if [[ -d "$bundle_dir" ]]; then
+    say "$bundle_dir"
+  else
+    die 1 "path error: '$bundle' does not exist in cloned paths."
+  fi
 }
 
 # Get the antidote version.
