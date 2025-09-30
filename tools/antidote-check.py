@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Antidote plugin DSL validator.
+antidote plugin DSL checker.
 
 Usage:
-  python tools/antidote-validator.py .zsh_plugins.txt
-  python tools/antidote-validator.py --debug .zsh_plugins.txt
+  python tools/antidote-check.py .zsh_plugins.txt
+  python tools/antidote-check.py --debug .zsh_plugins.txt
 
 Exit codes:
   0 = valid
@@ -37,7 +37,7 @@ class ValidationError:
     message: str
     text: str
 
-class AntidoteValidator:
+class AntidoteChecker:
     def __init__(self, debug: bool = False):
         self.debug = debug
         if self.debug:
@@ -57,8 +57,7 @@ class AntidoteValidator:
         try:
             self.parser.parse(text)
             return []
-        except (UnexpectedInput, UnexpectedToken, UnexpectedCharacters) as e:
-            # Fallback to per-line parse to isolate multiple errors.
+        except (UnexpectedInput, UnexpectedToken, UnexpectedCharacters):
             return self._line_by_line_errors(text)
 
     def _line_by_line_errors(self, text: str) -> List[ValidationError]:
@@ -114,7 +113,7 @@ def main(argv: List[str]) -> int:
         print("Error: provide a file to validate.", file=sys.stderr)
         return 2
 
-    validator = AntidoteValidator(debug=debug)
+    validator = AntidoteChecker(debug=debug)
     overall_errors: List[ValidationError] = []
 
     for p in paths:
