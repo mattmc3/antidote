@@ -44,8 +44,16 @@ warn() { printf '%s: %s\n' "$SCRIPT_NAME" "$*" >&2; }
 say()  { printf '%s\n' "$@"; }
 #is_func() { typeset -f "${1}" >/dev/null 2>&1 ; }
 #is_cmd()  { command -v "${1}" >/dev/null 2>&1 ; }
-is-true() { [[ -n "$1" && "${1:l}" == (1|y(es|)|t(rue|)|o(n|)) ]]; }
+is_true() { [[ -n "$1" && "${1:l}" == (1|y(es|)|t(rue|)|o(n|)) ]]; }
 
+# Trim string.
+trim() {
+  local s="$1"
+  # Trim leading and trailing spaces.
+  s="${s#"${s%%[![:space:]]*}"}"
+  s="${s%"${s##*[![:space:]]}"}"
+  printf '%s' "$s"
+}
 
 # Get the default cache directory by OS.
 cache_dir() {
@@ -162,9 +170,9 @@ parse_bundles() {
   for line in "${bundles[@]}"; do
     (( lineno++ ))
 
-    line="${line%%\#*}"                      # Remove anything after the first '#'
-    line="${line#"${line%%[![:space:]]*}"}"  # Trim leading spaces
-    line="${line%"${line##*[![:space:]]}"}"  # Trim trailing spaces
+    # Remove anything after the first '#' and trim
+    line="${line%%\#*}"
+    line="$(trim "$line")"
 
     # Skip empty lines
     [[ -n "$line" ]] || continue
@@ -224,124 +232,6 @@ temp_dir() {
   say "$result"
 }
 
-# Print help.
-antidote_help() {
-  local -a usage=(
-    "antidote - the cure to slow zsh plugin management"
-    ""
-    "Usage: antidote [<flags>] <command> [<args> ...]"
-    ""
-    "Flags:"
-    "  -h, --help           Show context-sensitive help"
-    "  -v, --version        Show application version"
-    ""
-    "Commands:"
-    "  help      Show documentation"
-    "  load      Statically source all bundles from the plugins file"
-    "  bundle    Clone bundle(s) and generate the static load script"
-    "  install   Clone a new bundle and add it to your plugins file"
-    "  update    Update antidote and its cloned bundles"
-    "  purge     Remove a cloned bundle"
-    "  home      Print where antidote is cloning bundles"
-    "  list      List cloned bundles"
-    "  path      Print the path of a cloned bundle"
-    "  init      Initialize the shell for dynamic bundles"
-  )
-
-  local -a bundle_usage=(
-    "Usage: antidote bundle [<bundles>...]"
-    ""
-    "Clones a bundle and prints its source line"
-    ""
-    "Flags:"
-    "  -h, --help   Show context-sensitive help."
-    ""
-    "Args:"
-    "  [<bundles>]  Bundle list"
-  )
-
-  local -a home_usage=(
-    "usage: antidote home"
-    ""
-    "Prints where antidote is cloning bundles"
-    ""
-    "Flags:"
-    "  -h, --help   Show context-sensitive help."
-  )
-
-  local -a init_usage=(
-    "usage: antidote init"
-    ""
-    "Initializes the shell so antidote can load bundles dynmically"
-    ""
-    "Flags:"
-    "  -h, --help   Show context-sensitive help."
-  )
-
-  local -a path_usage=(
-    "usage: antidote path <bundle>"
-    ""
-    "Prints the path of a currently cloned bundle"
-    ""
-    "Flags:"
-    "  -h, --help   Show context-sensitive help."
-    ""
-    "Args:"
-    "  <bundle>     The Bundle path to print"
-  )
-
-  case "$1" in
-    bundle) say "${bundle_usage[@]}" ;;
-    home)   say "${home_usage[@]}"   ;;
-    init)   say "${init_usage[@]}"   ;;
-    path)   say "${path_usage[@]}"   ;;
-    *)      say "${usage[@]}"        ;;
-  esac
-}
-
-# Print home directory for antidote.
-antidote_home() {
-  local result
-
-  case "$1" in
-    -h|--help)
-      antidote_help home
-      return 0
-      ;;
-  esac
-
-  if [[ -n "$ANTIDOTE_HOME" ]]; then
-    result="$ANTIDOTE_HOME"
-  else
-    result="$(cache_dir antidote)"
-  fi
-  printf '%s\n' "$result"
-}
-
-# Initialize the shell for dynamic bundles.
-antidote_init() {
-  local -a script=(
-    "#!/usr/bin/env zsh"
-    "antidote() {"
-    "  local antidote_cmd=\"$SCRIPT_PATH\""
-    "  case \"\$1\" in"
-    "    bundle)"
-    "      source <( \$antidote_cmd \$@ ) || \$antidote_cmd \$@"
-    "      ;;"
-    "    *)"
-    "      \$antidote_cmd \$@"
-    "      ;;"
-    "  esac"
-    "}"
-    ""
-    "_antidote() {"
-    "  IFS=' ' read -A reply <<< \"help bundle update home purge list init\""
-    "}"
-    "compctl -K _antidote antidote"
-  )
-  say "$script[@]"
-}
-
 # Get the URL for a bundle.
 tourl() {
   local bundle=$1
@@ -350,6 +240,27 @@ tourl() {
   else
     say $bundle
   fi
+}
+
+# Convert git URLs to user/repo format
+url_to_short_repo() {
+  local str
+
+  str="${1%/}"       # strip trailing /
+  str="${str%.git}"  # strip trailing .git
+
+  # strip the domain
+  if [[ "$str" == *://*/*/* ]]; then
+    str="${str#*://*/}"
+  elif [[ "$str" == git@*:*/* ]]; then
+    str="${str#git@*:}"
+  else
+    return 1
+  fi
+
+  # make sure whatever is left is repo_user/repo_name
+  [[ "$str" == */* ]] && [[ "$str" != */*/* ]] || return 1
+  say "$str"
 }
 
 # Get the base directory of a bundle.
@@ -362,7 +273,7 @@ bundle_dir() {
   if [[ "$bundle" == /* ]]; then
     say "$bundle"
   elif [[ "$bundle" == (git@|http://|https://)* ]]; then
-    if is-true "$ANTIDOTE_COMPATIBILITY_MODE"; then
+    if is_true "$ANTIDOTE_COMPATIBILITY_MODE"; then
       local url=$(tourl $bundle)
       url=${url%.git}
       url=${url:gs/\@/-AT-}
@@ -388,8 +299,229 @@ bundle_dir() {
   fi
 }
 
+# Print help.
+print_help() {
+  0="${(%):-%x}"
+  local cmd funcname line print_on=0
+  local -a lines
+
+  # Read whole file into an array (pure zsh, no external commands).
+  lines=("${(@f)$(<"${0:a}")}")
+  cmd="$1"
+  if (( $+functions[antidote_${cmd}] )); then
+    funcname="antidote_${cmd}"
+  else
+    funcname="antidote2"
+  fi
+
+  for line in $lines; do
+    # Trim leading and trailing spaces.
+    line="$(trim "$line")"
+    if [[ $line == "${funcname}() {" ]]; then
+      print_on=1
+    elif [[ $line == "##?"* ]]; then
+      line="${line#\#\#\? }"
+      line="${line#\#\#\?}"
+      if [[ $print_on -ne 0 ]]; then
+        say $line
+      fi
+    elif [[ $line == "}" && $print_on -ne 0 ]]; then
+      return
+    fi
+  done
+}
+
+# git helpers
+git_basedir()  { gitcmd -C "$1" rev-parse --show-toplevel; }
+git_url()      { gitcmd -C "$1" config remote.origin.url; }
+git_branch()   { gitcmd -C "$1" rev-parse --abbrev-ref HEAD; }
+git_sha()      { gitcmd -C "$1" rev-parse HEAD; }
+git_repodate() { gitcmd -C "$1" log -1 --format=%cd --date=short; }
+
+# Parse bundles into an associative array.
+antidote_bundle() {
+  ##? Usage: antidote bundle [<bundles>...]
+  ##?
+  ##? Clones a bundle and prints its source line.
+  ##?
+  ##? Flags:
+  ##?   -h, --help   Show context-sensitive help.
+  ##?
+  ##? Args:
+  ##?   [<bundles>]  Bundle list.
+}
+
+# Print help.
+antidote_help() {
+  print_help "$@"
+}
+
+# Print home directory for antidote.
+antidote_home() {
+  ##? usage: antidote home
+  ##?
+  ##? Prints where antidote is cloning bundles.
+  ##?
+  ##? Flags:
+  ##?   -h, --help   Show context-sensitive help.
+  [[ "$1" == (-h|--help) ]] && { print_help home; return }
+
+  local result
+
+  case "$1" in
+    -h|--help)
+      antidote_help home
+      return 0
+      ;;
+  esac
+
+  if [[ -n "$ANTIDOTE_HOME" ]]; then
+    result="$ANTIDOTE_HOME"
+  else
+    result="$(cache_dir antidote)"
+  fi
+  printf '%s\n' "$result"
+}
+
+# Initialize the shell for dynamic bundles.
+antidote_init() {
+  ##? usage: antidote init
+  ##?
+  ##? Initializes the shell so antidote can load bundles dynmically.
+  ##?
+  ##? Flags:
+  ##?   -h, --help   Show context-sensitive help.
+  [[ "$1" == (-h|--help) ]] && { print_help init; return }
+
+  local -a script=(
+    "#!/usr/bin/env zsh"
+    "antidote() {"
+    "  local antidote_cmd=\"$SCRIPT_PATH\""
+    "  case \"\$1\" in"
+    "    bundle)"
+    "      source <( \$antidote_cmd \$@ ) || \$antidote_cmd \$@"
+    "      ;;"
+    "    *)"
+    "      \$antidote_cmd \$@"
+    "      ;;"
+    "  esac"
+    "}"
+    ""
+    "_antidote() {"
+    "  IFS=' ' read -A reply <<< \"help bundle update home purge list init\""
+    "}"
+    "compctl -K _antidote antidote"
+  )
+  say "$script[@]"
+}
+
+# List cloned bundles.
+antidote_list() {
+  ##? usage: antidote list [-d|--details] [-bcprsu]
+  ##?
+  ##? Lists all currently installed bundles
+  ##?
+  ##? Flags:
+  ##?   -h, --help     Show context-sensitive help.
+  ##?   -d, --detail   Show full bundle details.
+  ##?
+  ##? Format flags:
+  ##?   -b             Bundle's branch.
+  ##?   -c             Bundle's last commit date.
+  ##?   -p             Bundle's path.
+  ##?   -r             Bundle's short repo name.
+  ##?   -s             Bundle's SHA.
+  ##?   -u             Bundle's URL.
+
+  local spec bundle_dir bundle_gitdir branch sha repodate url short_repo
+  local -a bundles=() o_detail o_help o_format
+  zparseopts ${ANTIDOTE_ZPARSEOPTS} -- \
+    {d,-detail}=o_detail \
+    {h,-help}=o_help \
+    b+=o_format \
+    p+=o_format \
+    u+=o_format \
+    r+=o_format \
+    s+=o_format \
+    c+=o_format ||
+    return 1
+
+  if (( ${#o_help} )); then
+    antidote_help list
+    return 0
+  fi
+
+  if is_true "$ANTIDOTE_COMPATIBILITY_MODE"; then
+    bundles=($(antidote_home)/*/.git(N/))
+  else
+    bundles=($(antidote_home)/*/*/.git(N/))
+  fi
+
+  # Set the vars.
+  for bundle_gitdir in $bundles; do
+
+    # Do this in parallel because we want speed.
+    bundle_dir="${bundle_gitdir:a:h}"
+    {
+      exec {fd_branch}< <(git_branch "$bundle_dir")
+      exec {fd_sha}< <(git_sha "$bundle_dir")
+      exec {fd_repodate}< <(git_repodate "$bundle_dir")
+      exec {fd_url}< <(git_url "$bundle_dir")
+
+      IFS= read -r branch <&$fd_branch
+      IFS= read -r sha <&$fd_sha
+      IFS= read -r repodate <&$fd_repodate
+      IFS= read -r url <&$fd_url
+    } always {
+      exec {fd_branch}>&- 2>/dev/null
+      exec {fd_sha}>&- 2>/dev/null
+      exec {fd_repodate}>&- 2>/dev/null
+      exec {fd_url}>&- 2>/dev/null
+    }
+    short_repo="$(url_to_short_repo "$url" 2>/dev/null)"
+
+    # If we want full details, emit verbose block.
+    if (( ${#o_format} )); then
+      for spec in $o_format; do
+        case $spec in
+          -b) printf '%s\t' "$branch"     ;;
+          -p) printf '%s\t' "$bundle_dir" ;;
+          -r) printf '%s\t' "$short_repo" ;;
+          -s) printf '%s\t' "$sha"        ;;
+          -u) printf '%s\t' "$url"        ;;
+          -c) printf '%s\t' "$repodate"   ;;
+        esac
+      done
+      print
+    elif (( ${#o_detail} )); then
+      say "$short_repo"
+      say "====================================================="
+      say "Dir:         $bundle_dir"
+      say "Branch:      $branch"
+      say "SHA:         $sha"
+      say "URL:         $url"
+      say "Last Commit: $repodate"
+      say
+    else
+      # Default to 'repo dir'
+      printf '%-28s  %s\n' $short_repo $bundle_dir
+    fi
+  done
+}
+
 # Print the path of a cloned bundle.
 antidote_path() {
+  ##? usage: antidote path <bundle>
+  ##?
+  ##? Prints the path of a currently cloned bundle.
+  ##?
+  ##? Flags:
+  ##?   -h, --help   Show context-sensitive help.
+  ##?
+  ##? Args:
+  ##?   <bundle>     The Bundle path to print.
+  [[ "$1" == (-h|--help) ]] && { print_help path; return }
+
   local bundle_dir bundle="$1"
   (( $# > 0 )) || die 1 "required argument 'bundle' not provided."
 
@@ -419,6 +551,24 @@ antidote_version() {
 }
 
 antidote2() {
+  ##? antidote - the cure to slow zsh plugin management
+  ##?
+  ##? Usage: antidote [<flags>] <command> [<args> ...]
+  ##?
+  ##? Flags:
+  ##?   -h, --help             Show context-sensitive help.
+  ##?   -v, --version          Show application version.
+  ##?
+  ##? Commands:
+  ##?   help <command>         Show documentation.
+  ##?   bundle [<bundles>...]  Clone bundle(s) and generate Zsh source.
+  ##?   update                 Update cloned bundles.
+  ##?   home                   Print where antidote is cloning bundles.
+  ##?   purge <bundle>         Remove a cloned bundle.
+  ##?   list                   List cloned bundles.
+  ##?   path <bundle>          Print the path of a cloned bundle.
+  ##?   init                   Initialize the shell for dynamic bundles.
+
   local o_help o_version o_debug
   zparseopts ${ANTIDOTE_ZPARSEOPTS} -- \
     d=o_debug   -debug=d   \
