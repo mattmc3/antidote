@@ -155,6 +155,45 @@ compctl -K _antidote antidote
 %
 ```
 
+## antidote path
+
+```zsh
+% export ANTIDOTE_HOME=$HOME/.cache/repos
+% antidote2 path ohmyzsh/ohmyzsh | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/ohmyzsh/ohmyzsh
+% antidote2 path foo/bar
+antidote2: path error: 'foo/bar' does not exist in cloned paths.
+% unset ANTIDOTE_HOME
+%
+```
+
+## antidote list
+
+```zsh
+% export ANTIDOTE_HOME=$HOME/.cache/repos
+% antidote2 list | subenv ANTIDOTE_HOME
+aloxaf/fzf-tab                $ANTIDOTE_HOME/aloxaf/fzf-tab
+jeffreytse/zsh-vi-mode        $ANTIDOTE_HOME/jeffreytse/zsh-vi-mode
+mattmc3/antidote              $ANTIDOTE_HOME/mattmc3/antidote
+mattmc3/ez-compinit           $ANTIDOTE_HOME/mattmc3/ez-compinit
+mattmc3/zephyr                $ANTIDOTE_HOME/mattmc3/zephyr
+mattmc3/zman                  $ANTIDOTE_HOME/mattmc3/zman
+mattmc3/zsh_custom            $ANTIDOTE_HOME/mattmc3/zsh_custom
+ohmyzsh/ohmyzsh               $ANTIDOTE_HOME/ohmyzsh/ohmyzsh
+romkatv/powerlevel10k         $ANTIDOTE_HOME/romkatv/powerlevel10k
+romkatv/zsh-bench             $ANTIDOTE_HOME/romkatv/zsh-bench
+romkatv/zsh-no-ps2            $ANTIDOTE_HOME/romkatv/zsh-no-ps2
+sorin-ionescu/prezto          $ANTIDOTE_HOME/sorin-ionescu/prezto
+zsh-hooks/zsh-hooks           $ANTIDOTE_HOME/zsh-hooks/zsh-hooks
+zsh-users/zsh-completions     $ANTIDOTE_HOME/zsh-users/zsh-completions
+zsh-users/zsh-history-substring-search  $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search
+% antidote2 list -b | head -n 1 | tr -d '\t'
+main
+% antidote2 list -s | head -n 1 | tr -d '\t'
+abcd1230abcd1230abcd1230abcd1230abcd1230
+%
+```
+
 ## private functions
 
 Test cache_dir

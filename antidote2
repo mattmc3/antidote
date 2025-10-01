@@ -42,8 +42,6 @@ SEP=$'\x1F'
 die()  { local ec=$1; shift; warn "$@"; exit $ec; }
 warn() { printf '%s: %s\n' "$SCRIPT_NAME" "$*" >&2; }
 say()  { printf '%s\n' "$@"; }
-#is_func() { typeset -f "${1}" >/dev/null 2>&1 ; }
-#is_cmd()  { command -v "${1}" >/dev/null 2>&1 ; }
 is_true() { [[ -n "$1" && "${1:l}" == (1|y(es|)|t(rue|)|o(n|)) ]]; }
 
 # Trim string.

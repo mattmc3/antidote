@@ -31,6 +31,7 @@ function mockgit {
     -recursive=o_recursive                  ||
     return 1
 
+  bundledir="$o_path[-1]"
   if [[ "$*" == (-v|--version) ]]; then
     echo "mockgit version 0.0.0"
   elif [[ "$1" = "clone" ]]; then
@@ -47,25 +48,23 @@ function mockgit {
       echo "MOCKGIT: repository '$giturl' not found"
     fi
   elif [[ "$@" = "config remote.origin.url" ]]; then
-    if [[ -e $bundledir/.git/config/remote.origin.url ]]; then
-      cat $bundledir/.git/config/remote.origin.url
+    if [[ -e $bundledir/.git/config ]]; then
+      awk '/^[[:space:]]*url =/ {print $3}' $bundledir/.git/config
     else
-      # un-sanitize dir into URL
-      local url=$o_path[-1]
-      url=${url:t}
-      url=${url:gs/-AT-/\@}
-      url=${url:gs/-COLON-/\:}
-      url=${url:gs/-SLASH-/\/}
-      echo "$url"
+      echo "https://gitsite.com/${bundledir:h:t}/${bundledir:t}"
     fi
   elif [[ "$@" = "pull" ]]; then
     (( $#o_quiet )) || echo "MOCKGIT: Already up to date."
+  elif [[ "$@" = "rev-parse --abbrev-ref HEAD" ]]; then
+    echo "main"
   elif [[ "$@" = "rev-parse HEAD" ]]; then
     if (( $#o_short )); then
-      echo "abcd123"
+      print "abcd123"
     else
-      echo "abcd1230abcd1230abcd1230abcd1230abcd1230"
+      print "abcd1230abcd1230abcd1230abcd1230abcd1230"
     fi
+  elif [[ "$@" = "log -1 --format=%cd --date=short" ]]; then
+    echo "2006-01-02"
   elif [[ "$1" == (submodule|fetch) ]]; then
     # nothing to do
   else
