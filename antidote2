@@ -36,16 +36,18 @@ is-at-least 5.8 && ANTIDOTE_ZPARSEOPTS+=(-F)
 # Set variables.
 NL=$'\n'
 TAB=$'\t'
-SEP=$'\x1F'
+#SEP=$'\x1F'
 
 # Util functions.
-die()  { local ec=$1; shift; warn "$@"; exit $ec; }
+die()  { local ec=$1; shift; warn "$@"; exit "$ec"; }
 warn() { printf '%s: %s\n' "$SCRIPT_NAME" "$*" >&2; }
 say()  { printf '%s\n' "$@"; }
-is_true() { [[ -n "$1" && "${1:l}" == (1|y(es|)|t(rue|)|o(n|)) ]]; }
+# is_func() { typeset -f "${1}" >/dev/null 2>&1 ; }
+# is_cmd()  { command -v "${1}" >/dev/null 2>&1 ; }
+is_true() { [[ -n "$1" ]] && "${1:l}" == (1|y(es|)|t(rue|)|o(n|)) ]]; }
 
 # Trim string.
-trim() {
+str_trim() {
   local s="$1"
   # Trim leading and trailing spaces.
   s="${s#"${s%%[![:space:]]*}"}"
@@ -96,7 +98,7 @@ collect_args() {
   [[ "$ANTIDOTE_DEBUG" != true ]] || say "${reply[@]}"
 }
 
-# Safe rm wrapper
+# Safe rm wrapper.
 del() {
   # Call me paranoid, but I want to be really certain antidote will never rm something
   # it shouldn't. This function wraps rm to double check that any paths being removed
@@ -163,14 +165,14 @@ parse_bundles() {
   unset reply
   local -a kvpairs=() results=()
   local pair key value line lineno=0 itemno=0
-  local -A bundle=()
+  local -A abundle=()
 
-  for line in "${bundles[@]}"; do
+  for line in $bundles; do
     (( lineno++ ))
 
     # Remove anything after the first '#' and trim
     line="${line%%\#*}"
-    line="$(trim "$line")"
+    line="$(str_trim "$line")"
 
     # Skip empty lines
     [[ -n "$line" ]] || continue
@@ -180,16 +182,18 @@ parse_bundles() {
     kvpairs=("${reply[@]}")
     unset reply
 
-    bundle=()
-    bundle[lineno]="$lineno"
+    abundle=()
+    abundle[lineno]="$lineno"
     itemno=0
-    for pair in "${kvpairs[@]}"; do
+    for pair in $kvpairs; do
       (( itemno++ ))
       # 1st field gets a '_:' prefix so we can treat everything as key:val pairs
       if [[ $itemno -eq 1 ]]; then
-        if [[ "$pair" != *:* || "$pair" == (git|http)* ]]; then
-          pair="_:${pair}"
-        fi
+        case $pair in
+          git*|http*) pair="_:$pair" ;;
+          *:*) ;;
+          *) pair="_:$pair" ;;
+        esac
       fi
 
       if [[ "$pair" != *:* ]]; then
@@ -202,13 +206,13 @@ parse_bundles() {
       else
         value=""
       fi
-      bundle[$key]="$value"
+      abundle[$key]="$value"
     done
 
     # Enhance bundle
 
 
-    results+=( "$(declare -p bundle)" )
+    results+=( "$(declare -p abundle)" )
   done
 
   # Set reply array
@@ -234,9 +238,9 @@ temp_dir() {
 tourl() {
   local bundle=$1
   if [[ $bundle != *://* && $bundle != git@*:*/* ]]; then
-    say ${ANTIDOTE_GIT_SITE:-https://github.com}/$bundle
+    say "${ANTIDOTE_GIT_SITE:-https://github.com}/$bundle"
   else
-    say $bundle
+    say "$bundle"
   fi
 }
 
@@ -263,31 +267,34 @@ url_to_short_repo() {
 
 # Get the base directory of a bundle.
 bundle_dir() {
+  local url bundle
+  local -a parts=()
+
   if (( $# == 0 )); then
     die 1 "required argument 'bundle' not provided"
   fi
 
-  local bundle=$1
+  bundle=$1
   if [[ "$bundle" == /* ]]; then
     say "$bundle"
-  elif [[ "$bundle" == (git@|http://|https://)* ]]; then
+  elif [[ "$bundle" == "git@"* || "$bundle" == "http://"* || "$bundle" == "https://"* ]]; then
     if is_true "$ANTIDOTE_COMPATIBILITY_MODE"; then
-      local url=$(tourl $bundle)
+      url="$(tourl "$bundle")"
       url=${url%.git}
       url=${url:gs/\@/-AT-}
       url=${url:gs/\:/-COLON-}
       url=${url:gs/\//-SLASH-}
-      say $(antidote_home)/$url
+      say "$(antidote_home)/$url"
     else
       # user/repo format
       # ex: $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
       bundle=${bundle%.git}
       bundle=${bundle:gs/\:/\/}
-      local parts=( ${(ps./.)bundle} )
-      if [[ $#parts -gt 1 ]]; then
-        say $(antidote_home)/${parts[-2]}/${parts[-1]}
+      parts=( "${(ps./.)bundle}" )
+      if [[ ${#parts} -gt 1 ]]; then
+        say "$(antidote_home)/${parts[-2]}/${parts[-1]}"
       else
-        say $(antidote_home)/$bundle
+        say "$(antidote_home)/$bundle"
       fi
     fi
   elif [[ "$bundle" == */* && "$bundle" != */*/* ]]; then
@@ -314,14 +321,14 @@ print_help() {
 
   for line in $lines; do
     # Trim leading and trailing spaces.
-    line="$(trim "$line")"
+    line="$(str_trim "$line")"
     if [[ $line == "${funcname}() {" ]]; then
       print_on=1
     elif [[ $line == "##?"* ]]; then
       line="${line#\#\#\? }"
       line="${line#\#\#\?}"
       if [[ $print_on -ne 0 ]]; then
-        say $line
+        say "$line"
       fi
     elif [[ $line == "}" && $print_on -ne 0 ]]; then
       return
@@ -347,6 +354,7 @@ antidote_bundle() {
   ##?
   ##? Args:
   ##?   [<bundles>]  Bundle list.
+  :
 }
 
 # Print help.
@@ -410,7 +418,7 @@ antidote_init() {
     "}"
     "compctl -K _antidote antidote"
   )
-  say "$script[@]"
+  printf '%s\n' "${script[@]}"
 }
 
 # List cloned bundles.
@@ -431,7 +439,7 @@ antidote_list() {
   ##?   -s             Bundle's SHA.
   ##?   -u             Bundle's URL.
 
-  local spec bundle_dir bundle_gitdir branch sha repodate url short_repo
+  local i spec bundle_dir bundle_gitdir branch sha repodate url short_repo
   local -a bundles=() o_detail o_help o_format
   zparseopts ${ANTIDOTE_ZPARSEOPTS} -- \
     {d,-detail}=o_detail \
@@ -457,7 +465,6 @@ antidote_list() {
 
   # Set the vars.
   for bundle_gitdir in $bundles; do
-
     # Do this in parallel because we want speed.
     bundle_dir="${bundle_gitdir:a:h}"
     {
@@ -476,18 +483,25 @@ antidote_list() {
       exec {fd_repodate}>&- 2>/dev/null
       exec {fd_url}>&- 2>/dev/null
     }
+    # branch=$(git_branch "$bundle_dir")
+    # sha=$(git_sha "$bundle_dir")
+    # repodate=$(git_repodate "$bundle_dir")
+    # url=$(git_url "$bundle_dir")
     short_repo="$(url_to_short_repo "$url" 2>/dev/null)"
 
     # If we want full details, emit verbose block.
     if (( ${#o_format} )); then
+      i=0
       for spec in $o_format; do
+        (( i++ ))
+        (( i > 1 )) && printf '%s' $TAB
         case $spec in
-          -b) printf '%s\t' "$branch"     ;;
-          -p) printf '%s\t' "$bundle_dir" ;;
-          -r) printf '%s\t' "$short_repo" ;;
-          -s) printf '%s\t' "$sha"        ;;
-          -u) printf '%s\t' "$url"        ;;
-          -c) printf '%s\t' "$repodate"   ;;
+          -b) printf '%s' "$branch"     ;;
+          -p) printf '%s' "$bundle_dir" ;;
+          -r) printf '%s' "$short_repo" ;;
+          -s) printf '%s' "$sha"        ;;
+          -u) printf '%s' "$url"        ;;
+          -c) printf '%s' "$repodate"   ;;
         esac
       done
       print
@@ -502,7 +516,7 @@ antidote_list() {
       say
     else
       # Default to 'repo dir'
-      printf '%-28s  %s\n' $short_repo $bundle_dir
+      printf '%-40s  %s\n' "$short_repo" "$bundle_dir"
     fi
   done
 }
@@ -537,6 +551,50 @@ antidote_path() {
   else
     die 1 "path error: '$bundle' does not exist in cloned paths."
   fi
+}
+
+# TODO
+antidote_purge() {
+  ##? usage: antidote purge <bundle>
+  ##?
+  ##? Purges a bundle from your computer.
+  ##?
+  ##? Flags:
+  ##?   -h, --help   Show context-sensitive help.
+  ##?
+  ##? Args:
+  ##?   <bundle>     The bundle to be purged.
+
+  local bundle
+  local -a o_help o_all bundles
+  zparseopts ${ANTIDOTE_ZPARSEOPTS} -- \
+    {h,-help}=o_help \
+    {a,-all}=o_all   ||
+    return 1
+
+  if (( $#o_help )); then
+    antidote_help purge
+    return
+  fi
+
+  if [[ $# -eq 0 ]] && ! (( $#o_all )); then
+    die 1 "purge error: required argument 'bundle' not provided, try --help"
+  fi
+
+  if (( $#o_all )); then
+    (( ! $# )) || die 1 "purge error: cannot use '${o_all[-1]}' flag with named bundle arguments."
+    bundles=( ${(@f)"$(antidote_list -p)"} )
+  else
+    bundles=( ${(@f)"$(antidote_path "$1" 2>/dev/null)"} )
+    [[ $? -eq 0 ]] || die 1 "purge error: '$1' does not exist in cloned paths."
+  fi
+
+  (( ${#bundles} )) || die 1 "no bundles to purge."
+
+  for bundle in $bundles; do
+    say "Removing $bundle..."
+    del -rf -- "$bundle"
+  done
 }
 
 # Get the antidote version.
@@ -599,7 +657,7 @@ antidote2() {
     "${cmd}" "$@"
     return $?
   elif (( $+functions[antidote_${cmd}] )); then
-    antidote_${cmd} "$@"
+    "antidote_${cmd}" "$@"
     return $?
   else
     die 2 "command not found '$cmd'."

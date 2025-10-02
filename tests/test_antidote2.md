@@ -172,21 +172,25 @@ antidote2: path error: 'foo/bar' does not exist in cloned paths.
 ```zsh
 % export ANTIDOTE_HOME=$HOME/.cache/repos
 % antidote2 list | subenv ANTIDOTE_HOME
-aloxaf/fzf-tab                $ANTIDOTE_HOME/aloxaf/fzf-tab
-jeffreytse/zsh-vi-mode        $ANTIDOTE_HOME/jeffreytse/zsh-vi-mode
-mattmc3/antidote              $ANTIDOTE_HOME/mattmc3/antidote
-mattmc3/ez-compinit           $ANTIDOTE_HOME/mattmc3/ez-compinit
-mattmc3/zephyr                $ANTIDOTE_HOME/mattmc3/zephyr
-mattmc3/zman                  $ANTIDOTE_HOME/mattmc3/zman
-mattmc3/zsh_custom            $ANTIDOTE_HOME/mattmc3/zsh_custom
-ohmyzsh/ohmyzsh               $ANTIDOTE_HOME/ohmyzsh/ohmyzsh
-romkatv/powerlevel10k         $ANTIDOTE_HOME/romkatv/powerlevel10k
-romkatv/zsh-bench             $ANTIDOTE_HOME/romkatv/zsh-bench
-romkatv/zsh-no-ps2            $ANTIDOTE_HOME/romkatv/zsh-no-ps2
-sorin-ionescu/prezto          $ANTIDOTE_HOME/sorin-ionescu/prezto
-zsh-hooks/zsh-hooks           $ANTIDOTE_HOME/zsh-hooks/zsh-hooks
-zsh-users/zsh-completions     $ANTIDOTE_HOME/zsh-users/zsh-completions
-zsh-users/zsh-history-substring-search  $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search
+dracula/zsh                               $ANTIDOTE_HOME/dracula/zsh
+mattmc3/antidote                          $ANTIDOTE_HOME/mattmc3/antidote
+mattmc3/ez-compinit                       $ANTIDOTE_HOME/mattmc3/ez-compinit
+mattmc3/zman                              $ANTIDOTE_HOME/mattmc3/zman
+mattmc3/zsh_custom                        $ANTIDOTE_HOME/mattmc3/zsh_custom
+ohmyzsh/ohmyzsh                           $ANTIDOTE_HOME/ohmyzsh/ohmyzsh
+peterhurford/up.zsh                       $ANTIDOTE_HOME/peterhurford/up.zsh
+romkatv/powerlevel10k                     $ANTIDOTE_HOME/romkatv/powerlevel10k
+romkatv/zsh-bench                         $ANTIDOTE_HOME/romkatv/zsh-bench
+romkatv/zsh-defer                         $ANTIDOTE_HOME/romkatv/zsh-defer
+rummik/zsh-tailf                          $ANTIDOTE_HOME/rummik/zsh-tailf
+rupa/z                                    $ANTIDOTE_HOME/rupa/z
+sindresorhus/pure                         $ANTIDOTE_HOME/sindresorhus/pure
+zdharma-continuum/fast-syntax-highlighting  $ANTIDOTE_HOME/zdharma-continuum/fast-syntax-highlighting
+zsh-users/antigen                         $ANTIDOTE_HOME/zsh-users/antigen
+zsh-users/zsh-autosuggestions             $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
+zsh-users/zsh-completions                 $ANTIDOTE_HOME/zsh-users/zsh-completions
+zsh-users/zsh-history-substring-search    $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search
+zsh-users/zsh-syntax-highlighting         $ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting
 % antidote2 list -b | head -n 1 | tr -d '\t'
 main
 % antidote2 list -s | head -n 1 | tr -d '\t'
