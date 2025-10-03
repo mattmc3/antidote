@@ -13,6 +13,7 @@ if [[ -n "$ZSH_VERSION" ]]; then
     exit 1
   fi
   setopt NULL_GLOB NO_BANG_HIST EXTENDED_GLOB NO_MONITOR PIPEFAIL
+  zmodload -i zsh/datetime 2>/dev/null || true
 else
   shellname=$(ps -p $$ -oargs= | awk 'NR=1{print $1}')
   print -ru2 -- "$SCRIPT_NAME: Expecting zsh or bash. Found '$shellname'."
@@ -23,6 +24,7 @@ fi
 ANTIDOTE_VERSION=2.0.0
 : "${ANTIDOTE_USE:=}"
 : "${ANTIDOTE_GIT_SITE:=https://github.com}"
+: "${ANTIDOTE_DEFER_REPO:=https://github.com/romkatv/zsh-defer}"
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_DEBUG:=false}"
 : "${ANTIDOTE_COMPATIBILITY_MODE:=}"
@@ -53,6 +55,35 @@ str_trim() {
   s="${s#"${s%%[![:space:]]*}"}"
   s="${s%"${s##*[![:space:]]}"}"
   printf '%s' "$s"
+}
+
+epoch() {
+  if [[ -n "$EPOCHREALTIME" ]]; then
+    printf '%s\n' "$EPOCHREALTIME"
+  else
+    printf '%s.000000\n' "$EPOCHSECONDS"
+  fi
+}
+
+to_human_time() {
+  local start=${1:-$(epoch)}
+  local end=${2:-$(epoch)}
+  local diff_ms_f diff_ms min sec ms sign=""
+
+  if (( end < start )); then
+    sign="-"
+    local tmp=$start; start=$end; end=$tmp
+  fi
+
+  diff_ms_f=$(( (end - start) * 1000 + 0.5 ))
+  diff_ms=${diff_ms_f%.*}
+
+  min=$(( diff_ms / 60000 ))
+  sec=$(( (diff_ms / 1000) % 60 ))
+  ms=$(( diff_ms % 1000 ))
+
+  # Format mm:ss.mmm with zero padding.
+  printf "%s%02d:%02d.%03d\n" "$sign" $min $sec $ms
 }
 
 # Get the default cache directory by OS.
@@ -156,16 +187,23 @@ wordsplit() {
 # Parse bundles into an associative array.
 parse_bundles() {
   # Creates a bundle associative array with following contents:
-  #   bundle[ref]: Reference name of the bundle
-  #   bundle[lineno]: The line number from .zsh_plugins.txt
+  #   bundle[_]: Reference name of the bundle
+  #   bundle[_line]: The line number from .zsh_plugins.txt
+  #   bundle[_path]: The bundle path
+  #   bundle[_type]: The bundle type
+  #   bundle[_url]: The bundle URL
   #   bundle[$annotation]: key:value pairs for all provided annotations
 
-  collect_args "$@" >/dev/null
-  local -a bundles=( "${reply[@]}" )
-  unset reply
-  local -a kvpairs=() results=()
-  local pair key value line lineno=0 itemno=0
+  local defer_repo_path pair key value line
+  local lineno=0 itemno=0 start_time=$(epoch)
+  local -a bundles=() kvpairs=() results=() cloning=()
   local -A abundle=()
+
+  defer_repo_path="$(bundle_path "$ANTIDOTE_DEFER_REPO")"
+
+  collect_args "$@" >/dev/null
+  bundles=( "${reply[@]}" )
+  unset reply
 
   for line in $bundles; do
     (( lineno++ ))
@@ -183,8 +221,9 @@ parse_bundles() {
     unset reply
 
     abundle=()
-    abundle[lineno]="$lineno"
+    abundle[_line]="$lineno"
     itemno=0
+
     for pair in $kvpairs; do
       (( itemno++ ))
       # 1st field gets a '_:' prefix so we can treat everything as key:val pairs
@@ -209,11 +248,43 @@ parse_bundles() {
       abundle[$key]="$value"
     done
 
-    # Enhance bundle
+    # Expand bundles
+    if [[ -v abundle[_] ]]; then
+      # Default to kind:zsh
+      [[ -v abundle[kind] ]] || abundle[kind]=zsh
 
+      # Determine bundle type
+      abundle[_type]="$(bundle_type $abundle[_])"
+
+      # URL
+      if [[ $abundle[_type] == (url|short) ]]; then
+        abundle[_url]="$(bundle_url "$abundle[_]")"
+      fi
+
+      # Path
+      abundle[_path]="$(bundle_path "$abundle[_]")"
+    fi
+
+    # Clone if missing.
+    if [[ -n "$abundle[_url]" && ! -e "$abundle[_path]" ]] && ! (( $cloning[(Ie)$abundle[_path]] )); then
+      if [[ "$abundle[kind]" == defer ]] && ! (( $cloning[(Ie)$defer_repo_path] )); then
+        print -ru2 -- "# antidote cloning $(bundle_short $ANTIDOTE_DEFER_REPO)..."
+        cloning+=("$defer_repo_path")
+        git_clone "$ANTIDOTE_DEFER_REPO" "$defer_repo_path" &
+      fi
+
+      print -ru2 -- "# antidote cloning $(bundle_short $abundle[_])..."
+      cloning+=("$abundle[_path]")
+      git_clone "$abundle[_url]" "$abundle[_path]" "$abundle[branch]" &
+    fi
 
     results+=( "$(declare -p abundle)" )
   done
+  wait
+
+  if (( ${#cloning} > 0 )); then
+    print -ru2 -- "# antidote finished cloning ${#cloning} bundles in $(to_human_time "$start_time")"
+  fi
 
   # Set reply array
   typeset -ga reply=("${results[@]}")
@@ -235,17 +306,19 @@ temp_dir() {
 }
 
 # Get the URL for a bundle.
-tourl() {
+bundle_url() {
   local bundle=$1
-  if [[ $bundle != *://* && $bundle != git@*:*/* ]]; then
+  if [[ $bundle == *://* || $bundle == git@*:*/* ]]; then
+    say "$bundle"
+  elif [[ $bundle != /* && $bundle == */* && $bundle != */*/* ]]; then
     say "${ANTIDOTE_GIT_SITE:-https://github.com}/$bundle"
   else
-    say "$bundle"
+    return 1
   fi
 }
 
-# Convert git URLs to user/repo format
-url_to_short_repo() {
+# Convert git URLs to user/repo format.
+bundle_short() {
   local str
 
   str="${1%/}"       # strip trailing /
@@ -256,8 +329,10 @@ url_to_short_repo() {
     str="${str#*://*/}"
   elif [[ "$str" == git@*:*/* ]]; then
     str="${str#git@*:}"
-  else
+  elif [[ "$str" != */* ]]; then
     return 1
+  else
+    str="${str:h:t}/${str:t}"
   fi
 
   # make sure whatever is left is repo_user/repo_name
@@ -265,21 +340,37 @@ url_to_short_repo() {
   say "$str"
 }
 
+# Bundle type.
+bundle_type() {
+  local result
+  case "$1" in
+    (\$|~|/)*)   result=path  ;;
+    http*://*)   result=url   ;;
+    (git|ssh)@*) result=url   ;;
+    */*/*)       result=?     ;;
+    */*)         result=short ;;
+    *)           result=use   ;;
+  esac
+  typeset -g REPLY=$result
+  say $REPLY
+}
+
 # Get the base directory of a bundle.
-bundle_dir() {
-  local url bundle
+bundle_path() {
+  local url bundle bundle_type
   local -a parts=()
 
   if (( $# == 0 )); then
     die 1 "required argument 'bundle' not provided"
   fi
 
-  bundle=$1
-  if [[ "$bundle" == /* ]]; then
+  bundle="$1"
+  bundle_type="$(bundle_type $bundle)"
+  if [[ "$bundle_type" == "path" ]]; then
     say "$bundle"
-  elif [[ "$bundle" == "git@"* || "$bundle" == "http://"* || "$bundle" == "https://"* ]]; then
+  elif [[ "$bundle_type" == "url" ]]; then
     if is_true "$ANTIDOTE_COMPATIBILITY_MODE"; then
-      url="$(tourl "$bundle")"
+      url="$(bundle_url "$bundle")"
       url=${url%.git}
       url=${url:gs/\@/-AT-}
       url=${url:gs/\:/-COLON-}
@@ -336,12 +427,17 @@ print_help() {
   done
 }
 
-# git helpers
+# git helpers.
 git_basedir()  { gitcmd -C "$1" rev-parse --show-toplevel; }
 git_url()      { gitcmd -C "$1" config remote.origin.url; }
 git_branch()   { gitcmd -C "$1" rev-parse --abbrev-ref HEAD; }
 git_sha()      { gitcmd -C "$1" rev-parse HEAD; }
 git_repodate() { gitcmd -C "$1" log -1 --format=%cd --date=short; }
+git_clone() {
+  local -a $o_branch=()
+  [[ -z "$3" ]] || o_branch=(--branch "$3")
+  gitcmd clone --quiet --recurse-submodules --shallow-submodules $o_branch "$1" "$2"
+}
 
 # Parse bundles into an associative array.
 antidote_bundle() {
@@ -354,7 +450,21 @@ antidote_bundle() {
   ##?
   ##? Args:
   ##?   [<bundles>]  Bundle list.
-  :
+  [[ "$1" == (-h|--help) ]] && { print_help bundle; return }
+
+  local bundle_str
+  local -a bundles
+  local -A bundle
+
+  parse_bundles "$@" || die 1 "bundle error: unable to parse bundles"
+  bundles=( "${reply[@]}" )
+  unset reply
+
+  for bundle_str in $bundles; do
+    eval "$bundle_str"  # populate abundle
+    # echo "bundle: $bundle_str"
+    declare -p abundle
+  done
 }
 
 # Print help.
@@ -487,7 +597,7 @@ antidote_list() {
     # sha=$(git_sha "$bundle_dir")
     # repodate=$(git_repodate "$bundle_dir")
     # url=$(git_url "$bundle_dir")
-    short_repo="$(url_to_short_repo "$url" 2>/dev/null)"
+    short_repo="$(bundle_short "$url" 2>/dev/null)"
 
     # If we want full details, emit verbose block.
     if (( ${#o_format} )); then
@@ -543,7 +653,7 @@ antidote_path() {
   fi
 
   # Figure out the bundle directory.
-  bundle_dir="$(bundle_dir "$bundle")"
+  bundle_dir="$(bundle_path "$bundle")"
 
   # If we haven't errored and we have a valid directory, print it.
   if [[ -d "$bundle_dir" ]]; then
@@ -553,7 +663,7 @@ antidote_path() {
   fi
 }
 
-# TODO
+# Remove a bundle.
 antidote_purge() {
   ##? usage: antidote purge <bundle>
   ##?

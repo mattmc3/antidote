@@ -210,3 +210,13 @@ $HOME/.xdg-cache
 % unset ANTIDOTE_OSTYPE; XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME
 %
 ```
+
+antidote parse_bundles
+
+```zsh
+% antidote2 --debug run parse_bundles 'ohmyzsh/ohmyzsh' | subenv ANTIDOTE_HOME
+typeset -A abundle=( [_]=ohmyzsh/ohmyzsh [_line]=1 [_path]=$ANTIDOTE_HOME/ohmyzsh/ohmyzsh [_type]=short [_url]=https://github.com/ohmyzsh/ohmyzsh [kind]=zsh )
+% antidote2 --debug run parse_bundles 'git@github.com:zsh-users/zsh-completions kind:fpath' | subenv ANTIDOTE_HOME
+typeset -A abundle=( [_]=git@github.com:zsh-users/zsh-completions [_line]=1 [_path]=$ANTIDOTE_HOME/zsh-users/zsh-completions [_type]=url [_url]=git@github.com:zsh-users/zsh-completions [kind]=fpath )
+%
+```
