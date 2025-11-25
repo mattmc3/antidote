@@ -50,11 +50,8 @@ is_true() { [[ -n "$1" ]] && "${1:l}" == (1|y(es|)|t(rue|)|o(n|)) ]]; }
 
 # Trim string.
 str_trim() {
-  local s="$1"
-  # Trim leading and trailing spaces.
-  s="${s#"${s%%[![:space:]]*}"}"
-  s="${s%"${s##*[![:space:]]}"}"
-  printf '%s' "$s"
+  # Trim leading and trailing spaces using parameter expansion.
+  printf '%s' "${${1##[[:space:]]##}%%[[:space:]]##}"
 }
 
 epoch() {
@@ -91,7 +88,7 @@ cache_dir() {
   local result
   if [[ "${ANTIDOTE_OSTYPE}" == darwin* ]]; then
     result="$HOME/Library/Caches"
-  elif [[ "${ANTIDOTE_OSTYPE}" == cygwin* || "${ANTIDOTE_OSTYPE}" == msys* ]]; then
+  elif [[ "${ANTIDOTE_OSTYPE}" == (cygwin|msys)* ]]; then
     result="${LOCALAPPDATA:-$LocalAppData}"
     if (( $+commands[cygpath] )); then
       result="$(cygpath "$result")"
@@ -109,22 +106,23 @@ cache_dir() {
   say "$result"
 }
 
-# Collect <redirected or piped| input.
+# Collect <redirected or piped> input.
 collect_args() {
-  local arg line
   local -a results=()
 
-  for arg in "$@"; do
-    arg="${arg//\\n/$NL}"
-    while IFS= read -r line || [[ -n "$line" ]]; do
-      results+=("$line")
-    done < <(printf '%s' "$arg")
-  done
+  # Process arguments (split on newlines)
+  if (( $# > 0 )); then
+    results=("${(f@)${(j:\n:)@}}")
+  fi
+
+  # Read from stdin if not a terminal
   if [[ ! -t 0 ]]; then
+    local line
     while IFS= read -r line || [[ -n "$line" ]]; do
       results+=("$line")
     done
   fi
+
   typeset -ga reply=("${results[@]}")
   [[ "$ANTIDOTE_DEBUG" != true ]] || say "${reply[@]}"
 }
@@ -177,10 +175,8 @@ gitcmd() {
 
 # Use shell's lexer for word splitting rules
 wordsplit() {
-  local str="$*"
-  str="${str//\$/\\\$}"
-  eval "set -- $str"
-  typeset -ga reply=("$@")
+  # Use the (z) flag for shell word splitting
+  typeset -ga reply=("${(z)*}")
   [[ "$ANTIDOTE_DEBUG" != true ]] || say "${reply[@]}"
 }
 
@@ -434,7 +430,7 @@ git_branch()   { gitcmd -C "$1" rev-parse --abbrev-ref HEAD; }
 git_sha()      { gitcmd -C "$1" rev-parse HEAD; }
 git_repodate() { gitcmd -C "$1" log -1 --format=%cd --date=short; }
 git_clone() {
-  local -a $o_branch=()
+  local -a o_branch=()
   [[ -z "$3" ]] || o_branch=(--branch "$3")
   gitcmd clone --quiet --recurse-submodules --shallow-submodules $o_branch "$1" "$2"
 }
