@@ -2,11 +2,11 @@
 # shellcheck disable=SC3043
 
 # Helpers
-die()  { ERR=$1; shift; warn "$@"; exit "$ERR"; }
-say()  { printf '%s\n' "$@"; }
-warn() { say "$@" >&2; }
-emit() { printf "${INDENT}%s\n" "$@"; }
-noop() { :; }
+die()    { ERR=$1; shift; warn "$@"; exit "$ERR"; }
+say()    { printf '%s\n' "$@"; }
+warn()   { say "$@" >&2; }
+emit()   { printf "${INDENT}%s\n" "$@"; }
+noop()   { :; }
 is_cmd() { command -v "$1" >/dev/null 2>&1; }
 is_cmd local || alias local=noop
 
@@ -15,8 +15,6 @@ is_cmd local || alias local=noop
 # TAB=$'\t'
 # SEP=$'\x1F'
 INDENT=
-LPAREN='('
-RPAREN=')'
 
 script_fpath() {
   if [ "${O_FPATH_RULE:-append}" = append ]; then
@@ -64,18 +62,14 @@ temp_dir() {
 
 antidote_help() {
   case "$1" in
-    home)
-      say "$ANTIDOTE_HOME_HELP"
-      ;;
-    init)
-      say "$ANTIDOTE_INIT_HELP"
-      ;;
-    list)
-      say "$ANTIDOTE_LIST_HELP"
-      ;;
-    *)
-      say "$ANTIDOTE_HELP"
-      ;;
+    bundle)  say "$ANTIDOTE_BUNDLE_HELP"  ;;
+    home)    say "$ANTIDOTE_HOME_HELP"    ;;
+    init)    say "$ANTIDOTE_INIT_HELP"    ;;
+    list)    say "$ANTIDOTE_LIST_HELP"    ;;
+    path)    say "$ANTIDOTE_PATH_HELP"    ;;
+    purge)   say "$ANTIDOTE_PURGE_HELP"   ;;
+    update)  say "$ANTIDOTE_UPDATE_HELP"  ;;
+    *)       say "$ANTIDOTE_HELP"         ;;
   esac
 }
 
@@ -83,19 +77,29 @@ antidote_bundle() {
   antidote_script "$@"
 }
 
-antidote_update() {
-  :
-}
-
 antidote_home() {
   say "$ANTIDOTE_HOME"
 }
 
-antidote_purge() {
-  :
+antidote_init() {
+  say "#!/usr/bin/env zsh"
+  say "function antidote {"
+  say "  case \"\$1\" in"
+  say "    bundle)"
+  say "      source <( \"${ANTIDOTE_SCRIPT}\" \"\$@\" ) || \"${ANTIDOTE_SCRIPT}\" \"\$@\""
+  say "      ;;"
+  say "    *)"
+  say "      \"${ANTIDOTE_SCRIPT}\" \"\$@\""
+  say "      ;;"
+  say "  esac"
+  say "}"
 }
 
 antidote_list() {
+  :
+}
+
+antidote_purge() {
   :
 }
 
@@ -103,8 +107,8 @@ antidote_path() {
   :
 }
 
-antidote_init() {
-  say "$ANTIDOTE_INIT"
+antidote_update() {
+  :
 }
 
 bundle_info() {
@@ -302,15 +306,20 @@ antidote() {
       say "antidote version $ANTIDOTE_VERSION"
       return
       ;;
+    --debug)
+      ANTIDOTE_DEBUG=true
+      ;;
   esac
 
   if is_cmd "antidote_$1"; then
     cmd="antidote_$1"
     shift
     "$cmd" "$@"
-  elif [ "$1" = info ]; then
-    shift
-    bundle_info "$@"
+  elif [ "$ANTIDOTE_DEBUG" = true ]; then
+    if [ "$1" = info ]; then
+      shift
+      bundle_info "$@"
+    fi
   else
     die 1 "antidote: error: expected command but got \"$1\"."
   fi
@@ -318,6 +327,7 @@ antidote() {
 
 # Set antidote variables.
 ANTIDOTE_VERSION=2.0.0
+ANTIDOTE_SCRIPT="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 # shellcheck disable=SC3028
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_GIT_SITE:=https://github.com}"
@@ -326,7 +336,7 @@ ANTIDOTE_VERSION=2.0.0
 : "${ANTIDOTE_COMPATIBILITY_MODE:=}"
 
 ANTIDOTE_HELP=$(
-cat <<'EOF'
+cat <<'EOS'
 antidote - the cure to slow zsh plugin management
 
 usage: antidote [<flags>] <command> [<args> ...]
@@ -346,33 +356,47 @@ commands:
   list      List cloned bundles
   path      Print the path of a cloned bundle
   init      Initialize the shell for dynamic bundles
-EOF
+EOS
+)
+
+ANTIDOTE_BUNDLE_HELP=$(
+cat <<'EOS'
+Usage: antidote bundle [<bundles>...]
+
+Clones a bundle and prints its source line.
+
+Flags:
+  -h, --help   Show context-sensitive help.
+
+Args:
+  [<bundles>]  Bundle list.
+EOS
 )
 
 ANTIDOTE_HOME_HELP=$(
-cat <<'EOF'
+cat <<'EOS'
 usage: antidote home
 
 Prints where antidote is cloning bundles.
 
 Flags:
   -h, --help   Show context-sensitive help.
-EOF
+EOS
 )
 
 ANTIDOTE_INIT_HELP=$(
-cat <<'EOF'
+cat <<'EOS'
 usage: antidote init
 
 Initializes the shell so antidote can load bundles dynmically.
 
 Flags:
   -h, --help   Show context-sensitive help.
-EOF
+EOS
 )
 
 ANTIDOTE_LIST_HELP=$(
-cat <<'EOF'
+cat <<'EOS'
 usage: antidote list [-d|--details] [-bcprsu]
 
 Lists all currently installed bundles
@@ -388,23 +412,52 @@ Format flags:
   -r             Bundle's short repo name.
   -s             Bundle's SHA.
   -u             Bundle's URL.
-EOF
+EOS
 )
 
-ANTIDOTE_INIT=$(
-cat <<EOF
-#!/usr/bin/env zsh
-function antidote {
-  case "\$1" in
-    bundle${RPAREN}
-      source <${LPAREN} antidote-main \$@ ${RPAREN} || antidote-main \$@
-      ;;
-    *${RPAREN}
-      antidote-main \$@
-      ;;
-  esac
-}
-EOF
+ANTIDOTE_PATH_HELP=$(
+cat <<'EOS'
+usage: antidote path <bundle>
+
+Prints the path of a currently cloned bundle.
+
+Flags:
+  -h, --help   Show context-sensitive help.
+
+Args:
+  <bundle>     The Bundle path to print.
+EOS
+)
+
+ANTIDOTE_PURGE_HELP=$(
+cat <<'EOS'
+usage: antidote purge <bundle>
+
+Purges a bundle from your computer.
+
+Flags:
+  -h, --help   Show context-sensitive help.
+
+Args:
+  <bundle>     The bundle to be purged.
+EOS
+)
+
+ANTIDOTE_UPDATE_HELP=$(
+cat <<'EOS'
+usage: antidote update [-b|--bundles] [-s|--self]
+       antidote update <bundle>
+
+Updates cloned bundle(s) and antidote itself.
+
+Flags:
+  -h, --help     Show context-sensitive help.
+  -s, --self     Update antidote.
+  -b, --bundles  Update bundles.
+
+Args:
+  <bundle>     The bundle to be updated.
+EOS
 )
 
 # Run antidote!
