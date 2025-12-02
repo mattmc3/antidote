@@ -1,8 +1,8 @@
 #!/bin/sh
-# shellcheck disable=SC3043
+# shellcheck disable=SC2120,SC3043
 
 # Helpers
-die()    { ERR=$1; shift; warn "$@"; exit "$ERR"; }
+die()    { local err="$1"; shift; warn "$@"; exit "$err"; }
 say()    { printf '%s\n' "$@"; }
 warn()   { say "$@" >&2; }
 emit()   { printf "${INDENT}%s\n" "$@"; }
@@ -35,8 +35,6 @@ cache_dir() {
       result="${LOCALAPPDATA:-$LocalAppData}"
       if command -v cygpath >/dev/null 2>&1; then
         result="$(cygpath "$result")"
-      else
-        result="$(printf '%s' "$result" | tr \\ /)"
       fi
       ;;
   esac
@@ -78,7 +76,26 @@ antidote_bundle() {
 }
 
 antidote_home() {
-  say "$ANTIDOTE_HOME"
+  local cachedir slash
+  if [ $# -gt 0 ]; then
+    die 1 "antidote: error: unexpected '$1'."
+  fi
+  if [ -n "$ANTIDOTE_HOME" ]; then
+    say "$ANTIDOTE_HOME"
+  else
+    # Use forward slashes unless everything is a backslash.
+    slash='/'
+    cachedir="$(cache_dir)"
+    case "$cachedir" in
+      *\\*)
+        case "$cachedir" in
+          */*) ;;
+          *) slash=\\ ;;
+        esac
+        ;;
+    esac
+    say "${cachedir}${slash}antidote"
+  fi
 }
 
 antidote_init() {
@@ -104,52 +121,19 @@ antidote_purge() {
 }
 
 antidote_path() {
-  :
+  if [ -z "$1" ]; then
+    die 1 "antidote: error: required argument 'bundle' not provided"
+  fi
+  bundle_info "$1"
+  if [ -e "$BUNDLE_PATH" ]; then
+    say "$BUNDLE_PATH"
+  else
+    die 1 "antidote: error: '$1' does not exist in cloned paths"
+  fi
 }
 
 antidote_update() {
   :
-}
-
-bundle_info() {
-  [ -n "$1" ] || exit 1
-  BUNDLE_ID="$1"
-
-  # Bundle name is the last component
-  BUNDLE_NAME="${BUNDLE_ID%/}" # strip trailing /
-  BUNDLE_NAME="${BUNDLE_NAME%.git}" # strip trailing .git
-  BUNDLE_NAME="${BUNDLE_NAME##*/}"
-  BUNDLE_TYPE=
-  BUNDLE_URL=
-  BUNDLE_PATH=
-
-  # Set the bundle type.
-  case "$BUNDLE_ID" in
-    \$*|~*|/*)
-      BUNDLE_TYPE=path
-      BUNDLE_PATH="$BUNDLE_ID"
-      ;;
-    http://*|https://*|ssh@*|git@*)
-      BUNDLE_TYPE=repo
-      BUNDLE_URL="$BUNDLE_ID"
-      ;;
-    */*/*)
-      BUNDLE_TYPE='?'
-      ;;
-    */*)
-      BUNDLE_TYPE=repo
-      BUNDLE_URL="${ANTIDOTE_GIT_SITE:-https://github.com}/$BUNDLE_ID"
-      ;;
-    *)
-      BUNDLE_TYPE=custom
-      ;;
-  esac
-
-  [ -n "$BUNDLE_ID" ] && printf '%s\n' "BUNDLE_ID=\"${BUNDLE_ID}\""
-  [ -n "$BUNDLE_NAME" ] && printf '%s\n' "BUNDLE_NAME=\"${BUNDLE_NAME}\""
-  [ -n "$BUNDLE_TYPE" ] && printf '%s\n' "BUNDLE_TYPE=\"${BUNDLE_TYPE}\""
-  [ -n "$BUNDLE_URL" ] && printf '%s\n' "BUNDLE_URL=\"${BUNDLE_URL}\""
-  [ -n "$BUNDLE_PATH" ] && printf '%s\n' "BUNDLE_PATH=\"${BUNDLE_PATH}\""
 }
 
 antidote_script() {
@@ -218,7 +202,6 @@ antidote_script() {
   esac
 
   # Set vars
-  ANTIDOTE_HOME="${ANTIDOTE_HOME:-$HOME/.cache/antidote}" # TODO: Fix this
   ZSH_DEFER_BUNDLE="${ZSH_DEFER_BUNDLE:-romkatv/zsh-defer}"
 
   BUNDLE_HOME=$BUNDLE
@@ -293,9 +276,92 @@ antidote_script() {
   [ -n "$O_COND" ] && emit "fi"
 }
 
+antidote_version() {
+  local ver gitsha
+  ver="$ANTIDOTE_VERSION"
+  if [ "$ANTIDOTE_DEBUG" != true ]; then
+    gitsha="$(gitcmd -C "$ANTIDOTE_PROJDIR" rev-parse --short HEAD 2>/dev/null)"
+    [ -n "$gitsha" ] && ver="$ver ($gitsha)"
+  fi
+  say "antidote version $ver"
+}
+
+bundle_info() {
+  local scrubbed last second_last
+
+  [ -n "$1" ] || exit 1
+  BUNDLE_ID="$1"
+  scrubbed="${BUNDLE_ID%/}" # strip trailing slash
+  scrubbed="${scrubbed%.git}" # strip trailing .git
+
+  # Initialize bundle vars.
+  BUNDLE_NAME="${scrubbed##*/}"
+  BUNDLE_TYPE=
+  BUNDLE_REPO=
+  BUNDLE_URL=
+  BUNDLE_PATH=
+
+  # Set the bundle type.
+  case "$BUNDLE_ID" in
+    \$*|~*|/*)
+      BUNDLE_TYPE=path
+      BUNDLE_PATH="$BUNDLE_ID"
+      ;;
+    http://*|https://*|ssh@*|git@*)
+      BUNDLE_TYPE=repo
+      BUNDLE_URL="$BUNDLE_ID"
+      scrubbed="${scrubbed#*:}"
+      last="${scrubbed##*/}"
+      second_last="${scrubbed%/*}"
+      second_last="${second_last##*/}"
+      BUNDLE_REPO="${second_last}/${last}"
+      ;;
+    */*/*|*:*)
+      BUNDLE_TYPE='?'
+      ;;
+    */*)
+      BUNDLE_TYPE=repo
+      BUNDLE_URL="${ANTIDOTE_GIT_SITE:-https://github.com}/$BUNDLE_ID"
+      BUNDLE_REPO="$BUNDLE_ID"
+      ;;
+    *)
+      BUNDLE_TYPE=custom
+      ;;
+  esac
+
+  if [ "$BUNDLE_TYPE" = repo ]; then
+    BUNDLE_PATH="$ANTIDOTE_HOME/$BUNDLE_REPO"
+  fi
+}
+
+debug_bundle_info() {
+  bundle_info "$@"
+  say "BUNDLE_ID=\"${BUNDLE_ID}\""
+  say "BUNDLE_NAME=\"${BUNDLE_NAME}\""
+  say "BUNDLE_TYPE=\"${BUNDLE_TYPE}\""
+  say "BUNDLE_REPO=\"${BUNDLE_REPO}\""
+  say "BUNDLE_URL=\"${BUNDLE_URL}\""
+  say "BUNDLE_PATH=\"${BUNDLE_PATH}\""
+}
+
+gitcmd() {
+  local result err
+  result="$("${ANTIDOTE_GITCMD}" "$@" 2>&1)"
+  err=$?
+  if [ "$err" -ne 0 ]; then
+    if [ -n "$result" ]; then
+      warn "antidote: unexpected git error on command 'git $*'."
+      warn "antidote: error details:"
+      warn "$result"
+      return $err
+    fi
+  fi
+  say "$result"
+}
+
 antidote() {
   local cmd
-  : "${ANTIDOTE_HOME:="$(cache_dir)"/antidote}"
+  : "${ANTIDOTE_HOME:="$(antidote_home)"}"
 
   case "$1" in
     -h|--help)
@@ -303,11 +369,12 @@ antidote() {
       return
       ;;
     -v|--version)
-      say "antidote version $ANTIDOTE_VERSION"
+      antidote_version
       return
       ;;
     --debug)
       ANTIDOTE_DEBUG=true
+      shift
       ;;
   esac
 
@@ -316,9 +383,9 @@ antidote() {
     shift
     "$cmd" "$@"
   elif [ "$ANTIDOTE_DEBUG" = true ]; then
-    if [ "$1" = info ]; then
+    if [ "$1" = bundle_info ]; then
       shift
-      bundle_info "$@"
+      debug_bundle_info "$@"
     fi
   else
     die 1 "antidote: error: expected command but got \"$1\"."
@@ -328,12 +395,15 @@ antidote() {
 # Set antidote variables.
 ANTIDOTE_VERSION=2.0.0
 ANTIDOTE_SCRIPT="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+ANTIDOTE_PROJDIR="${ANTIDOTE_SCRIPT%/*/*}"
+
 # shellcheck disable=SC3028
 : "${ANTIDOTE_OSTYPE:=${OSTYPE:-$(uname -s | tr '[:upper:]' '[:lower:]')}}"
 : "${ANTIDOTE_GIT_SITE:=https://github.com}"
 : "${ANTIDOTE_DEFER_REPO:=https://github.com/romkatv/zsh-defer}"
 : "${ANTIDOTE_DEBUG:=false}"
 : "${ANTIDOTE_COMPATIBILITY_MODE:=}"
+: "${ANTIDOTE_GITCMD:=git}"
 
 ANTIDOTE_HELP=$(
 cat <<'EOS'
