@@ -11,3 +11,4 @@ sandbox/
 **/realzdotdir/zsh_plugins.zsh
 foo*.*
 !footer.*
+tests/fixtures/*/
