@@ -1,0 +1,9 @@
+== Bugs
+See GitHub Issues: https://github.com/mattmc3/antidote/issues
+
+== Authors
+- Copyright (c) 2021-2026 Matt McElheny
+- antidote contributors: https://github.com/mattmc3/antidote/graphs/contributors
+
+== License
+MIT
