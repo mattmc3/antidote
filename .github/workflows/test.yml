@@ -12,12 +12,27 @@ jobs:
         os: [macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           repository: "aureliojargas/clitest"
           path: bin/clitest
-      - run: sudo apt install zsh
+      - name: Install latest Zsh
+        run: sudo apt install zsh
         if: ${{ runner.os == 'Linux' }}
-      - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
+      - name: Install shellcheck on Linux
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          if ! command -v shellcheck >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y shellcheck
+          fi
+      - name: Install shellcheck on macOS
+        if: ${{ runner.os == 'macOS' }}
+        run: |
+          if ! command -v shellcheck >/dev/null; then
+            brew update
+            brew install shellcheck
+          fi
+      - name: Run unit tests
+        run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
         shell: zsh {0}
