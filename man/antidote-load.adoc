@@ -1,10 +1,10 @@
 = antidote-load(1)
 :doctype: manpage
-:man manual: Antidote Manual
-:man source: antidote
+:manmanual: Antidote Manual
+:mansource: antidote
 
 == Name
-antidote load - statically source bundles
+antidote-load - statically source bundles
 
 == Synopsis
 *antidote load* [<bundlefile> [<staticfile>]]

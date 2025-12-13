@@ -1,10 +1,10 @@
 = antidote-update(1)
 :doctype: manpage
-:man manual: Antidote Manual
-:man source: antidote
+:manmanual: Antidote Manual
+:mansource: antidote
 
 == Name
-antidote update - update bundles
+antidote-update - update bundles
 
 == Synopsis
 *antidote update* [-h|--help] [-s|--self] [-b|--bundles]

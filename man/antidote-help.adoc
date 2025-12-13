@@ -1,10 +1,10 @@
 = antidote-help(1)
 :doctype: manpage
-:man manual: Antidote Manual
-:man source: antidote
+:manmanual: Antidote Manual
+:mansource: antidote
 
 == Name
-antidote help - show antidote documentation
+antidote-help - show antidote documentation
 
 == Synopsis
 *antidote help* [<command>]

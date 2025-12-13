@@ -32,7 +32,7 @@
 
 ```zsh
 % PAGER=cat man antidote | head -n 1 | sed 's/  */ /g'
-antidote(1) Antidote Manual antidote(1)
+ANTIDOTE(1) Antidote Manual ANTIDOTE(1)
 %
 ```
 
@@ -46,11 +46,11 @@ antidote(1) Antidote Manual antidote(1)
 
 ```zsh
 % antidote help bundle | head -n 1 | sed 's/  */ /g'
-antidote-bundle(1) Antidote Manual antidote-bundle(1)
+ANTIDOTE-BUNDLE(1) Antidote Manual ANTIDOTE-BUNDLE(1)
 % antidote bundle --help | head -n 1 | sed 's/  */ /g'
-antidote-bundle(1) Antidote Manual antidote-bundle(1)
+ANTIDOTE-BUNDLE(1) Antidote Manual ANTIDOTE-BUNDLE(1)
 % antidote bundle -h | head -n 1 | sed 's/  */ /g'
-antidote-bundle(1) Antidote Manual antidote-bundle(1)
+ANTIDOTE-BUNDLE(1) Antidote Manual ANTIDOTE-BUNDLE(1)
 %
 ```
 
@@ -58,11 +58,11 @@ antidote-bundle(1) Antidote Manual antidote-bundle(1)
 
 ```zsh
 % antidote help help | head -n 1 | sed 's/  */ /g'
-antidote-help(1) Antidote Manual antidote-help(1)
+ANTIDOTE-HELP(1) Antidote Manual ANTIDOTE-HELP(1)
 % antidote help --help | head -n 1 | sed 's/  */ /g'
-antidote-help(1) Antidote Manual antidote-help(1)
+ANTIDOTE-HELP(1) Antidote Manual ANTIDOTE-HELP(1)
 % antidote help -h | head -n 1 | sed 's/  */ /g'
-antidote-help(1) Antidote Manual antidote-help(1)
+ANTIDOTE-HELP(1) Antidote Manual ANTIDOTE-HELP(1)
 %
 ```
 
@@ -70,11 +70,11 @@ antidote-help(1) Antidote Manual antidote-help(1)
 
 ```zsh
 % antidote help home | head -n 1 | sed 's/  */ /g'
-antidote-home(1) Antidote Manual antidote-home(1)
+ANTIDOTE-HOME(1) Antidote Manual ANTIDOTE-HOME(1)
 % antidote home --help | head -n 1 | sed 's/  */ /g'
-antidote-home(1) Antidote Manual antidote-home(1)
+ANTIDOTE-HOME(1) Antidote Manual ANTIDOTE-HOME(1)
 % antidote home -h | head -n 1 | sed 's/  */ /g'
-antidote-home(1) Antidote Manual antidote-home(1)
+ANTIDOTE-HOME(1) Antidote Manual ANTIDOTE-HOME(1)
 %
 ```
 
@@ -82,11 +82,11 @@ antidote-home(1) Antidote Manual antidote-home(1)
 
 ```zsh
 % antidote help init | head -n 1 | sed 's/  */ /g'
-antidote-init(1) Antidote Manual antidote-init(1)
+ANTIDOTE-INIT(1) Antidote Manual ANTIDOTE-INIT(1)
 % antidote init --help | head -n 1 | sed 's/  */ /g'
-antidote-init(1) Antidote Manual antidote-init(1)
+ANTIDOTE-INIT(1) Antidote Manual ANTIDOTE-INIT(1)
 % antidote init -h | head -n 1 | sed 's/  */ /g'
-antidote-init(1) Antidote Manual antidote-init(1)
+ANTIDOTE-INIT(1) Antidote Manual ANTIDOTE-INIT(1)
 %
 ```
 
@@ -94,11 +94,11 @@ antidote-init(1) Antidote Manual antidote-init(1)
 
 ```zsh
 % antidote help install | head -n 1 | sed 's/  */ /g'
-antidote-install(1) Antidote Manual antidote-install(1)
+ANTIDOTE-INSTALL(1) Antidote Manual ANTIDOTE-INSTALL(1)
 % antidote install --help | head -n 1 | sed 's/  */ /g'
-antidote-install(1) Antidote Manual antidote-install(1)
+ANTIDOTE-INSTALL(1) Antidote Manual ANTIDOTE-INSTALL(1)
 % antidote install -h | head -n 1 | sed 's/  */ /g'
-antidote-install(1) Antidote Manual antidote-install(1)
+ANTIDOTE-INSTALL(1) Antidote Manual ANTIDOTE-INSTALL(1)
 %
 ```
 
@@ -106,11 +106,11 @@ antidote-install(1) Antidote Manual antidote-install(1)
 
 ```zsh
 % antidote help list | head -n 1 | sed 's/  */ /g'
-antidote-list(1) Antidote Manual antidote-list(1)
+ANTIDOTE-LIST(1) Antidote Manual ANTIDOTE-LIST(1)
 % antidote list --help | head -n 1 | sed 's/  */ /g'
-antidote-list(1) Antidote Manual antidote-list(1)
+ANTIDOTE-LIST(1) Antidote Manual ANTIDOTE-LIST(1)
 % antidote list -h | head -n 1 | sed 's/  */ /g'
-antidote-list(1) Antidote Manual antidote-list(1)
+ANTIDOTE-LIST(1) Antidote Manual ANTIDOTE-LIST(1)
 %
 ```
 
@@ -118,11 +118,11 @@ antidote-list(1) Antidote Manual antidote-list(1)
 
 ```zsh
 % antidote help load | head -n 1 | sed 's/  */ /g'
-antidote-load(1) Antidote Manual antidote-load(1)
+ANTIDOTE-LOAD(1) Antidote Manual ANTIDOTE-LOAD(1)
 % antidote load --help | head -n 1 | sed 's/  */ /g'
-antidote-load(1) Antidote Manual antidote-load(1)
+ANTIDOTE-LOAD(1) Antidote Manual ANTIDOTE-LOAD(1)
 % antidote load -h | head -n 1 | sed 's/  */ /g'
-antidote-load(1) Antidote Manual antidote-load(1)
+ANTIDOTE-LOAD(1) Antidote Manual ANTIDOTE-LOAD(1)
 %
 ```
 
@@ -130,11 +130,11 @@ antidote-load(1) Antidote Manual antidote-load(1)
 
 ```zsh
 % antidote help path | head -n 1 | sed 's/  */ /g'
-antidote-path(1) Antidote Manual antidote-path(1)
+ANTIDOTE-PATH(1) Antidote Manual ANTIDOTE-PATH(1)
 % antidote path --help | head -n 1 | sed 's/  */ /g'
-antidote-path(1) Antidote Manual antidote-path(1)
+ANTIDOTE-PATH(1) Antidote Manual ANTIDOTE-PATH(1)
 % antidote path -h | head -n 1 | sed 's/  */ /g'
-antidote-path(1) Antidote Manual antidote-path(1)
+ANTIDOTE-PATH(1) Antidote Manual ANTIDOTE-PATH(1)
 %
 ```
 
@@ -142,11 +142,11 @@ antidote-path(1) Antidote Manual antidote-path(1)
 
 ```zsh
 % antidote help update | head -n 1 | sed 's/  */ /g'
-antidote-update(1) Antidote Manual antidote-update(1)
+ANTIDOTE-UPDATE(1) Antidote Manual ANTIDOTE-UPDATE(1)
 % antidote update --help | head -n 1 | sed 's/  */ /g'
-antidote-update(1) Antidote Manual antidote-update(1)
+ANTIDOTE-UPDATE(1) Antidote Manual ANTIDOTE-UPDATE(1)
 % antidote update -h | head -n 1 | sed 's/  */ /g'
-antidote-update(1) Antidote Manual antidote-update(1)
+ANTIDOTE-UPDATE(1) Antidote Manual ANTIDOTE-UPDATE(1)
 %
 ```
 

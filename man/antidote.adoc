@@ -1,7 +1,7 @@
 = antidote(1)
 :doctype: manpage
-:man manual: Antidote Manual
-:man source: antidote
+:manmanual: Antidote Manual
+:mansource: antidote
 
 == Name
 antidote - the cure to slow zsh plugin management

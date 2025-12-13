@@ -1,10 +1,10 @@
 = antidote-purge(1)
 :doctype: manpage
-:man manual: Antidote Manual
-:man source: antidote
+:manmanual: Antidote Manual
+:mansource: antidote
 
 == Name
-antidote purge - remove a bundle
+antidote-purge - remove a bundle
 
 == Synopsis
 *antidote purge* <bundle>

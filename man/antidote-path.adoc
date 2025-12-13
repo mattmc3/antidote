@@ -1,10 +1,10 @@
 = antidote-path(1)
 :doctype: manpage
-:man manual: Antidote Manual
-:man source: antidote
+:manmanual: Antidote Manual
+:mansource: antidote
 
 == Name
-antidote path - print the path of a cloned bundle
+antidote-path - print the path of a cloned bundle
 
 == Synopsis
 *antidote path* <bundle>

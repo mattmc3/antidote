@@ -1,10 +1,10 @@
 = antidote-install(1)
 :doctype: manpage
-:man manual: Antidote Manual
-:man source: antidote
+:manmanual: Antidote Manual
+:mansource: antidote
 
 == Name
-antidote install - install a bundle
+antidote-install - install a bundle
 
 == Synopsis
 *antidote install* [-h|--help] [-k|--kind <kind>] [-p|--path <path>] [-a|--autoload <path>] [-c|--conditional <func>] [--pre <func>] [--post <func>] [-b|--branch <branch>] <bundle> [<bundlefile>]

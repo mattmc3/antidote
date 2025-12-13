@@ -1,10 +1,10 @@
 = antidote-list(1)
 :doctype: manpage
-:man manual: Antidote Manual
-:man source: antidote
+:manmanual: Antidote Manual
+:mansource: antidote
 
 == Name
-antidote list - list cloned bundles
+antidote-list - list cloned bundles
 
 == Synopsis
 *antidote list* [-h|--help] [-s|--short] [-d|--dirs] [-u|--url]

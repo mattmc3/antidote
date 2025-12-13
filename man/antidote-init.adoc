@@ -1,10 +1,10 @@
 = antidote-init(1)
 :doctype: manpage
-:man manual: Antidote Manual
-:man source: antidote
+:manmanual: Antidote Manual
+:mansource: antidote
 
 == Name
-antidote init - initialize the shell for dynamic bundles
+antidote-init - initialize the shell for dynamic bundles
 
 == Synopsis
 `source <(antidote init)`
