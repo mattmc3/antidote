@@ -2,7 +2,7 @@
 # shellcheck disable=SC2120,SC3043
 
 # Helpers
-die()    { local err="$1"; shift; warn "$@"; exit "$err"; }
+die()    { warn "$@"; exit "${ERR:-1}"; }
 say()    { printf '%s\n' "$@"; }
 warn()   { say "$@" >&2; }
 emit()   { printf "${INDENT}%s\n" "$@"; }
@@ -61,6 +61,7 @@ temp_dir() {
 antidote_help() {
   case "$1" in
     bundle)  say "$ANTIDOTE_BUNDLE_HELP"  ;;
+    help)    say "$ANTIDOTE_HELP"         ;;
     home)    say "$ANTIDOTE_HOME_HELP"    ;;
     init)    say "$ANTIDOTE_INIT_HELP"    ;;
     list)    say "$ANTIDOTE_LIST_HELP"    ;;
@@ -78,7 +79,7 @@ antidote_bundle() {
 antidote_home() {
   local cachedir slash
   if [ $# -gt 0 ]; then
-    die 1 "antidote: error: unexpected '$1'."
+    die "antidote: error: unexpected '$1'."
   fi
   if [ -n "$ANTIDOTE_HOME" ]; then
     say "$ANTIDOTE_HOME"
@@ -122,13 +123,13 @@ antidote_purge() {
 
 antidote_path() {
   if [ -z "$1" ]; then
-    die 1 "antidote: error: required argument 'bundle' not provided"
+    die "antidote: error: required argument 'bundle' not provided"
   fi
   bundle_info "$1"
   if [ -e "$BUNDLE_PATH" ]; then
     say "$BUNDLE_PATH"
   else
-    die 1 "antidote: error: '$1' does not exist in cloned paths"
+    die "antidote: error: '$1' does not exist in cloned paths"
   fi
 }
 
@@ -140,7 +141,7 @@ antidote_script() {
   # The first param is the bundle.
   BUNDLE="$1"
   if [ -z "$BUNDLE" ]; then
-    die 1 "antidote: error: bundle argument expected"
+    die "antidote: error: bundle argument expected"
   fi
   shift
 
@@ -192,13 +193,13 @@ antidote_script() {
   # Validate O_KIND
   case "$O_KIND" in
     autoload|clone|defer|fpath|path|zsh) ;;
-    *) die 1 "antidote: error: unexpected kind value: $O_KIND" ;;
+    *) die "antidote: error: unexpected kind value: $O_KIND" ;;
   esac
 
   # Validate O_FPATH_RULE
   case "$O_FPATH_RULE" in
     append|prepend) ;;
-    *) die 1 "antidote: error: unexpected fpath-rule value: $O_FPATH_RULE" ;;
+    *) die "antidote: error: unexpected fpath-rule value: $O_FPATH_RULE" ;;
   esac
 
   # Set vars
@@ -363,7 +364,7 @@ antidote() {
   local cmd
   : "${ANTIDOTE_HOME:="$(antidote_home)"}"
 
-  case "$1" in
+  case "${1:-?}" in
     -h|--help)
       antidote_help "$@"
       return
@@ -375,6 +376,10 @@ antidote() {
     --debug)
       ANTIDOTE_DEBUG=true
       shift
+      ;;
+    \?)
+      antidote_help "$@"
+      exit
       ;;
   esac
 
@@ -388,7 +393,7 @@ antidote() {
       debug_bundle_info "$@"
     fi
   else
-    die 1 "antidote: error: expected command but got \"$1\"."
+    die "antidote: error: expected command but got \"$1\"."
   fi
 }
 
@@ -409,13 +414,13 @@ ANTIDOTE_HELP=$(
 cat <<'EOS'
 antidote - the cure to slow zsh plugin management
 
-usage: antidote [<flags>] <command> [<args> ...]
+Usage: antidote [<flags>] <command> [<args> ...]
 
-flags:
+Flags:
   -h, --help           Show context-sensitive help
   -v, --version        Show application version
 
-commands:
+Commands:
   help      Show documentation
   load      Statically source all bundles from the plugins file
   bundle    Clone bundle(s) and generate the static load script
@@ -445,7 +450,7 @@ EOS
 
 ANTIDOTE_HOME_HELP=$(
 cat <<'EOS'
-usage: antidote home
+Usage: antidote home
 
 Prints where antidote is cloning bundles.
 
@@ -456,7 +461,7 @@ EOS
 
 ANTIDOTE_INIT_HELP=$(
 cat <<'EOS'
-usage: antidote init
+Usage: antidote init
 
 Initializes the shell so antidote can load bundles dynmically.
 
@@ -467,7 +472,7 @@ EOS
 
 ANTIDOTE_LIST_HELP=$(
 cat <<'EOS'
-usage: antidote list [-d|--details] [-bcprsu]
+Usage: antidote list [-d|--details] [-bcprsu]
 
 Lists all currently installed bundles
 
@@ -487,7 +492,7 @@ EOS
 
 ANTIDOTE_PATH_HELP=$(
 cat <<'EOS'
-usage: antidote path <bundle>
+Usage: antidote path <bundle>
 
 Prints the path of a currently cloned bundle.
 
@@ -501,7 +506,7 @@ EOS
 
 ANTIDOTE_PURGE_HELP=$(
 cat <<'EOS'
-usage: antidote purge <bundle>
+Usage: antidote purge <bundle>
 
 Purges a bundle from your computer.
 
@@ -515,7 +520,7 @@ EOS
 
 ANTIDOTE_UPDATE_HELP=$(
 cat <<'EOS'
-usage: antidote update [-b|--bundles] [-s|--self]
+Usage: antidote update [-b|--bundles] [-s|--self]
        antidote update <bundle>
 
 Updates cloned bundle(s) and antidote itself.
