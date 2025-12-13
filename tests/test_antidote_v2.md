@@ -31,7 +31,7 @@ antidote version 2.0.0
 %
 ```
 
-## antidote --help
+## antidote help
 
 Show antidote's functionality:
 
@@ -58,6 +58,133 @@ Commands:
   init      Initialize the shell for dynamic bundles
 % [ "$(antidote2 --help)" = "$(antidote2 -h)" ] || echo "antidote -h is broken"
 % [ "$(antidote2 --help)" = "$(antidote2 help)" ] || echo "antidote help is broken"
+%
+```
+
+Show bundle command help:
+
+```zsh
+% antidote2 bundle --help
+Usage: antidote bundle [<bundles>...]
+
+Clones a bundle and prints its source line.
+
+Flags:
+  -h, --help   Show context-sensitive help.
+
+Args:
+  [<bundles>]  Bundle list.
+% [ "$(antidote2 bundle --help)" = "$(antidote2 bundle -h)" ] || echo "antidote bundle -h is broken"
+% [ "$(antidote2 bundle --help)" = "$(antidote2 help bundle)" ] || echo "antidote help bundle is broken"
+%
+```
+
+Show home command help:
+
+```zsh
+% antidote2 home --help
+Usage: antidote home
+
+Prints where antidote is cloning bundles.
+
+Flags:
+  -h, --help   Show context-sensitive help.
+% [ "$(antidote2 home --help)" = "$(antidote2 home -h)" ] || echo "antidote home -h is broken"
+% [ "$(antidote2 home --help)" = "$(antidote2 help home)" ] || echo "antidote help home is broken"
+%
+```
+
+Show init command help:
+
+```zsh
+% antidote2 init --help
+Usage: antidote init
+
+Initializes the shell so antidote can load bundles dynmically.
+
+Flags:
+  -h, --help   Show context-sensitive help.
+% [ "$(antidote2 init --help)" = "$(antidote2 init -h)" ] || echo "antidote init -h is broken"
+% [ "$(antidote2 init --help)" = "$(antidote2 help init)" ] || echo "antidote help init is broken"
+%
+```
+
+Show list command help:
+
+```zsh
+% antidote2 list --help
+Usage: antidote list [-d|--details] [-bcprsu]
+
+Lists all currently installed bundles
+
+Flags:
+  -h, --help     Show context-sensitive help.
+  -d, --detail   Show full bundle details.
+
+Format flags:
+  -b             Bundle's branch.
+  -c             Bundle's last commit date.
+  -p             Bundle's path.
+  -r             Bundle's short repo name.
+  -s             Bundle's SHA.
+  -u             Bundle's URL.
+% [ "$(antidote2 list --help)" = "$(antidote2 list -h)" ] || echo "antidote list -h is broken"
+% [ "$(antidote2 list --help)" = "$(antidote2 help list)" ] || echo "antidote help list is broken"
+%
+```
+
+Show path command help:
+
+```zsh
+% antidote2 path --help
+Usage: antidote path <bundle>
+
+Prints the path of a currently cloned bundle.
+
+Flags:
+  -h, --help   Show context-sensitive help.
+
+Args:
+  <bundle>     The Bundle path to print.
+% [ "$(antidote2 path --help)" = "$(antidote2 path -h)" ] || echo "antidote path -h is broken"
+% [ "$(antidote2 path --help)" = "$(antidote2 help path)" ] || echo "antidote help path is broken"
+%
+```
+
+Show purge command help:
+
+```zsh
+% antidote2 purge --help
+Usage: antidote purge <bundle>
+
+Purges a bundle from your computer.
+
+Flags:
+  -h, --help   Show context-sensitive help.
+
+Args:
+  <bundle>     The bundle to be purged.
+% [ "$(antidote2 purge --help)" = "$(antidote2 purge -h)" ] || echo "antidote purge -h is broken"
+% [ "$(antidote2 purge --help)" = "$(antidote2 help purge)" ] || echo "antidote help purge is broken"
+%
+```
+
+Show update command help:
+
+```zsh
+% antidote2 update --help
+Usage: antidote update [-b|--bundles] [-s|--self]
+       antidote update <bundle>
+
+Updates cloned bundle(s) and antidote itself.
+
+Flags:
+  -h, --help     Show context-sensitive help.
+  -s, --self     Update antidote.
+  -b, --bundles  Update bundles.
+
+Args:
+  <bundle>     The bundle to be updated.
 %
 ```
 

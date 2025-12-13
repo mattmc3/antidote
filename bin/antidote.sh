@@ -383,10 +383,14 @@ antidote() {
       ;;
   esac
 
-  if is_cmd "antidote_$1"; then
-    cmd="antidote_$1"
+  cmd="$1"
+  if is_cmd "antidote_${cmd}"; then
     shift
-    "$cmd" "$@"
+    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+      antidote_help "$cmd"
+    else
+      "antidote_${cmd}" "$@"
+    fi
   elif [ "$ANTIDOTE_DEBUG" = true ]; then
     if [ "$1" = bundle_info ]; then
       shift
