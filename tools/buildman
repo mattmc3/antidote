@@ -1,36 +1,42 @@
-#!/usr/bin/env zsh
+#!/bin/sh
 
-# https://pandoc.org/demo/pandoc.1.md
-# https://eddieantonio.ca/blog/2015/12/18/authoring-manpages-in-markdown-with-pandoc/
-# https://jeromebelleman.gitlab.io/posts/publishing/manpages/
+# https://docs.asciidoctor.org/asciidoctor/latest/manpage/
+# https://mookid.github.io/manpages-asciidoc/
 
-0=${(%):-%x}
-BASEDIR=${0:a:h:h}
-TMPDIR=$BASEDIR/.tmp/buildman
-[[ -d $TMPDIR ]] && command rm -rf $TMPDIR
-mkdir -p $TMPDIR
+SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
+BASEDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+TMPDIR="$BASEDIR/.tmp/buildman"
 
-sedi() {
-  sed --version &> /dev/null && sed -i -- "$@" || sed -i "" "$@"
-}
+if [ -d "$TMPDIR" ]; then
+  rm -rf "$TMPDIR"
+fi
+mkdir -p "$TMPDIR"
 
-for manpage in $BASEDIR/man/*.md; do
-  case ${manpage:t:r} in
+if ! command -v "asciidoctor" >/dev/null 2>&1; then
+  printf "Missing command %s (required for manpage builds).\n" "asciidoctor" >&2
+  exit 1
+fi
+
+for manpage in "$BASEDIR"/man/*.adoc; do
+  [ -e "$manpage" ] || continue
+  manpage_name="$(basename "$manpage")"
+  manpage_name="${manpage_name%.adoc}"
+
+  case "$manpage_name" in
     footer|example) continue ;;
   esac
-  print "Building ${manpage:t:r} manpage..."
-  [[ -d $BASEDIR/man/man1 ]] || mkdir -p $BASEDIR/man/man1
 
-  mdfile=$TMPDIR/${manpage:t}.md
-  cat ${manpage} > $mdfile
-  print "" >> $mdfile
-  cat $BASEDIR/man/footer.md >> $mdfile
+  printf "Building %s manpage...\n" "$manpage_name"
+  mkdir -p "$BASEDIR/man/man1"
 
-  manfile=$BASEDIR/man/man1/${manpage:t:r}.1
-  pandoc --standalone --to man ${mdfile} -o $manfile
+  manfile="$BASEDIR/man/man1/$manpage_name.1"
+  adocfile="$TMPDIR/$manpage_name.adoc"
 
-  # strip pandoc version so that every manpage build doesn't need to
-  # result in a new commit just b/c pandoc has a minor point release.
-  pandoc_ver=$(pandoc -v | awk 'NR==1{print $2}')
-  sedi "s/Pandoc $pandoc_ver/Pandoc/g" $manfile
+  cp "$manpage" "$adocfile"
+  if [ -f "$BASEDIR/man/footer.adoc" ]; then
+    printf "\n" >> "$adocfile"
+    cat "$BASEDIR/man/footer.adoc" >> "$adocfile"
+  fi
+
+  asciidoctor --quiet -b manpage -d manpage -o "$manfile" "$adocfile"
 done

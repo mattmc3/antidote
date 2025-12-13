@@ -1,0 +1,19 @@
+= antidote-list(1)
+:doctype: manpage
+:manmanual: Antidote Manual
+:mansource: antidote
+
+== Name
+antidote-list - list cloned bundles
+
+== Synopsis
+*antidote list* [-h|--help] [-s|--short] [-d|--dirs] [-u|--url]
+
+== Description
+*antidote-list* lists the cloned bundles in *antidote home*.
+
+== Options
+*-h, --help*:: Show the help documentation.
+*-s, --short*:: Show shortened repos where possible.
+*-d, --dirs*:: Show only bundle directories.
+*-u, --url*:: Show bundle URLs.

@@ -1,0 +1,29 @@
+= antidote-home(1)
+:doctype: manpage
+:manmanual: Antidote Manual
+:mansource: antidote
+
+== Name
+antidote-home - print where antidote is cloning bundles
+
+== Synopsis
+*antidote home*
+
+== Description
+*antidote-home* shows you where antidote stores its cloned repos. It is not the home of the antidote utility itself.
+
+----
+antidote home
+----
+
+You can override antidote's default home directory by setting the `$ANTIDOTE_HOME` variable in your `.zshrc`.
+
+== Options
+*-h, --help*:: Show the help documentation.
+
+== Examples
+You can clear out all your cloned repos like so:
+
+----
+rm -rfi "$(antidote home)"
+----

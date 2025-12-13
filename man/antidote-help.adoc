@@ -1,0 +1,17 @@
+= antidote-help(1)
+:doctype: manpage
+:manmanual: Antidote Manual
+:mansource: antidote
+
+== Name
+antidote-help - show antidote documentation
+
+== Synopsis
+*antidote help* [<command>]
+
+== Description
+*antidote-help* is used to show context-sensitive help for antidote and its commands.
+
+== Options
+*-h, --help*:: Inception-style meta-help recursively.
+*<command>*:: Show help for a specific command.

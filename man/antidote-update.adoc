@@ -1,0 +1,23 @@
+= antidote-update(1)
+:doctype: manpage
+:manmanual: Antidote Manual
+:mansource: antidote
+
+== Name
+antidote-update - update bundles
+
+== Synopsis
+*antidote update* [-h|--help] [-s|--self] [-b|--bundles]
+
+== Description
+*antidote-update* updates antidote and its cloned bundles.
+
+== Options
+*-h, --help*:: Show the help documentation.
+*-s, --self*:: Update antidote.
+*-b, --bundles*:: Update bundles.
+
+== Examples
+----
+antidote update
+----

@@ -1,0 +1,17 @@
+= antidote-path(1)
+:doctype: manpage
+:manmanual: Antidote Manual
+:mansource: antidote
+
+== Name
+antidote-path - print the path of a cloned bundle
+
+== Synopsis
+*antidote path* <bundle>
+
+== Description
+*antidote-path* prints the path of a cloned bundle.
+
+== Options
+*-h, --help*:: Show the help documentation.
+*[<bundle>]*:: The bundle whose cloned path will be printed.
