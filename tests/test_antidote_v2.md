@@ -39,13 +39,13 @@ Show antidote's functionality:
 % antidote2 --help
 antidote - the cure to slow zsh plugin management
 
-usage: antidote [<flags>] <command> [<args> ...]
+Usage: antidote [<flags>] <command> [<args> ...]
 
-flags:
+Flags:
   -h, --help           Show context-sensitive help
   -v, --version        Show application version
 
-commands:
+Commands:
   help      Show documentation
   load      Statically source all bundles from the plugins file
   bundle    Clone bundle(s) and generate the static load script
