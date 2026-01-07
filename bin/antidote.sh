@@ -49,10 +49,10 @@ temp_dir() {
   if [ -n "$TMPDIR" ]; then
     if [ -d "$TMPDIR" ] && [ -w "$TMPDIR" ]; then
       # TMPDIR exists and is writable?
-      tmpd=${TMPDIR%/}
+      tmpd="${TMPDIR%/}"
     elif [ ! -d /tmp ] || [ ! -w /tmp ]; then
       # Else use TMPDIR only if /tmp is unusable
-      tmpd=${TMPDIR%/}
+      tmpd="${TMPDIR%/}"
     fi
   fi
   say "$tmpd"
@@ -291,8 +291,8 @@ bundle_info() {
   local scrubbed last second_last
 
   [ -n "$1" ] || exit 1
-  BUNDLE_ID="$1"
-  scrubbed="${BUNDLE_ID%/}" # strip trailing slash
+  BUNDLE_QUERY="$1"
+  scrubbed="${BUNDLE_QUERY%/}" # strip trailing slash
   scrubbed="${scrubbed%.git}" # strip trailing .git
 
   # Initialize bundle vars.
@@ -303,14 +303,14 @@ bundle_info() {
   BUNDLE_PATH=
 
   # Set the bundle type.
-  case "$BUNDLE_ID" in
+  case "$BUNDLE_QUERY" in
     \$*|~*|/*)
       BUNDLE_TYPE=path
-      BUNDLE_PATH="$BUNDLE_ID"
+      BUNDLE_PATH="$BUNDLE_QUERY"
       ;;
     http://*|https://*|ssh@*|git@*)
       BUNDLE_TYPE=repo
-      BUNDLE_URL="$BUNDLE_ID"
+      BUNDLE_URL="$BUNDLE_QUERY"
       scrubbed="${scrubbed#*:}"
       last="${scrubbed##*/}"
       second_last="${scrubbed%/*}"
@@ -322,8 +322,8 @@ bundle_info() {
       ;;
     */*)
       BUNDLE_TYPE=repo
-      BUNDLE_URL="${ANTIDOTE_GIT_SITE:-https://github.com}/$BUNDLE_ID"
-      BUNDLE_REPO="$BUNDLE_ID"
+      BUNDLE_URL="${ANTIDOTE_GIT_SITE:-https://github.com}/$BUNDLE_QUERY"
+      BUNDLE_REPO="$BUNDLE_QUERY"
       ;;
     *)
       BUNDLE_TYPE=custom
@@ -337,7 +337,7 @@ bundle_info() {
 
 debug_bundle_info() {
   bundle_info "$@"
-  say "BUNDLE_ID=\"${BUNDLE_ID}\""
+  say "BUNDLE_QUERY=\"${BUNDLE_QUERY}\""
   say "BUNDLE_NAME=\"${BUNDLE_NAME}\""
   say "BUNDLE_TYPE=\"${BUNDLE_TYPE}\""
   say "BUNDLE_REPO=\"${BUNDLE_REPO}\""
