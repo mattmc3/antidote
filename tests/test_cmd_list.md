@@ -66,6 +66,20 @@ https://github.com/ohmy/ohmy                                     $ANTIDOTE_HOME/
 %
 ```
 
+### JSONL
+
+`antidote list --jsonl`
+
+```zsh
+% antidote list --jsonl | subenv ANTIDOTE_HOME
+{"url":"https://github.com/foo/bar","short_name":"foo/bar","type":"repo","path":"$ANTIDOTE_HOME/foo/bar"}
+{"url":"https://github.com/foo/baz","short_name":"foo/baz","type":"repo","path":"$ANTIDOTE_HOME/foo/baz"}
+{"url":"git@github.com:foo/qux","short_name":"git@github.com:foo/qux","type":"repo","path":"$ANTIDOTE_HOME/foo/qux"}
+{"url":"https://github.com/getantidote/zsh-defer","short_name":"getantidote/zsh-defer","type":"repo","path":"$ANTIDOTE_HOME/getantidote/zsh-defer"}
+{"url":"https://github.com/ohmy/ohmy","short_name":"ohmy/ohmy","type":"repo","path":"$ANTIDOTE_HOME/ohmy/ohmy"}
+%
+```
+
 ## Teardown
 
 ```zsh
