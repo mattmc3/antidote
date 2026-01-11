@@ -80,6 +80,7 @@ function _antidote {
             '(-s --short)'{-s,--short}'[Show shortened repos where possible]' \
             '(-d --dirs)'{-d,--dirs}'[Show only bundle directories]' \
             '(-u --url)'{-u,--url}'[Show bundle URLs]' \
+            '(-j --jsonl)'{-j,--jsonl}'[Output the bundle list in JSONL format]' \
             && ret=0
           ;;
         (load)

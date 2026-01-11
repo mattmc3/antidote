@@ -17,3 +17,4 @@ antidote-list - list cloned bundles
 *-s, --short*:: Show shortened repos where possible.
 *-d, --dirs*:: Show only bundle directories.
 *-u, --url*:: Show bundle URLs.
+*-j, --jsonl*:: Output the bundle list in JSONL format.
