@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-# ./bin/antidote_dsl_parser.zsh <./tests/tmp_home/.zsh/.zsh_plugins.txt
+# ./bin/antidote_dsl_parser.zsh <./tests/testdata/.zsh_plugins.txt
 
 TAB="$(printf '\t')"
 
@@ -11,7 +11,8 @@ parse_antidote() {
   lineno=1
   while IFS= read -r line; do
     # (z): use shell wordsplitting rules
-    args=(${(z)line})
+    # (Q): remove one level of quotes
+    args=(${(Q)${(z)line}})
     argno=1
     for arg in $args; do
       [[ $arg == \#* ]] && break

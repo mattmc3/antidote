@@ -269,7 +269,7 @@ function antidote {
 ```zsh
 % export ANTIDOTE_HOME="$(antidote2 home)"
 % antidote2 --debug bundle_info foo/bar | subenv ANTIDOTE_HOME
-BUNDLE_QUERY="foo/bar"
+BUNDLE_ID="foo/bar"
 BUNDLE_NAME="bar"
 BUNDLE_TYPE="repo"
 BUNDLE_REPO="foo/bar"
