@@ -11,9 +11,7 @@ is_cmd() { command -v "$1" >/dev/null 2>&1; }
 is_cmd local || alias local=noop
 
 # Globals
-# NL=$'\n'
-# TAB=$'\t'
-# SEP=$'\x1F'
+TAB="$(printf '\t')"
 INDENT=
 
 script_fpath() {
@@ -58,6 +56,30 @@ temp_dir() {
   say "$tmpd"
 }
 
+parse_dsl() {
+  zsh "$PARSER_SCRIPT"
+}
+
+# Usage: bundle_apply <command> < input.tsv
+# For each TSV line, splits fields into "$@" and calls: command "$@"
+bundle_apply() {
+  local line cmd
+  cmd=$1
+  while IFS= read -r line; do
+    # shellcheck disable=SC2086
+    IFS=$TAB set -- $line
+    "$cmd" "$@"
+  done
+}
+
+ensure_cloned() {
+  local arg
+  echo "Ensuring cloned... $*"
+  for arg; do
+    echo "   arg: $arg"
+  done
+}
+
 antidote_help() {
   case "$1" in
     bundle)  say "$ANTIDOTE_BUNDLE_HELP"  ;;
@@ -73,7 +95,20 @@ antidote_help() {
 }
 
 antidote_bundle() {
-  antidote_script "$@"
+  local bundles
+
+  bundles="$({
+    [ $# -eq 0 ] || printf '%b\n' "$*"
+    [ -t 0 ] || cat
+  })"
+
+  printf '%s\n' "$bundles" |
+    parse_dsl |
+    bundle_apply ensure_cloned
+
+  printf '%s\n' "$bundles" |
+    parse_dsl |
+    bundle_apply antidote_script
 }
 
 antidote_home() {
@@ -113,8 +148,94 @@ antidote_init() {
   say "}"
 }
 
+add_field() {
+  case $o_fields in
+    *"$1"*) : ;;
+    *) o_fields="${o_fields}$1" ;;
+  esac
+}
+
 antidote_list() {
-  :
+  local o_jsonl o_fields arg rest ch home gitdir bundledir url repo parts val fields
+  local branch sha commit_date
+
+  o_jsonl=0
+  o_fields=
+
+  while [ $# -gt 0 ]; do
+    arg=$1
+    case $arg in
+      -h|--help)        antidote_help list; return 0 ;;
+      -j|--jsonl)       o_jsonl=1; shift ;;
+      -p|--path)        add_field p; shift ;;
+      -r|--repo)        add_field r; shift ;;
+      -u|--url)         add_field u; shift ;;
+      -b|--branch)      add_field b; shift ;;
+      -s|--sha)         add_field s; shift ;;
+      -c|--commit-date) add_field c; shift ;;
+      -[purbsc]*)
+        rest=${arg#-}
+        while [ -n "$rest" ]; do
+          ch=${rest%"${rest#?}"}; rest=${rest#?}
+          case $ch in
+            p|r|u|b|s|c) add_field "${ch}" ;;
+            *) die "antidote: error: unexpected $arg, try --help" ;;
+          esac
+        done
+        shift
+        ;;
+
+      --) shift; break ;;
+      *)  die "antidote: error: unexpected $arg, try --help" ;;
+    esac
+  done
+
+  [ $# -gt 0 ] && die "antidote: error: unexpected $1, try --help"
+
+  home=$(antidote_home) || return 1
+
+  find "$home" -type d -name .git 2>/dev/null |
+  while IFS= read -r gitdir; do
+    bundledir=${gitdir%/.git}
+
+    url=$(git -C "$bundledir" config remote.origin.url 2>/dev/null) || url=
+
+    repo=${url%.git}
+    repo=${repo#https://github.com/}
+    repo=${repo#git@github.com:}
+    repo=${repo#ssh://git@github.com/}
+    repo=${repo#git://github.com/}
+
+    branch=$(git -C "$bundledir" symbolic-ref --quiet --short HEAD 2>/dev/null) || branch=HEAD
+    sha=$(git -C "$bundledir" rev-parse --verify HEAD 2>/dev/null) || sha=
+    commit_date=$(git -C "$bundledir" log -1 --format=%cI 2>/dev/null) || commit_date=
+
+    if [ "$o_jsonl" -eq 1 ]; then
+      printf '{"url":"%s","repo":"%s","type":"repo","path":"%s","branch":"%s","sha":"%s","commit_date":"%s"}\n' \
+        "$url" "$repo" "$bundledir" "$branch" "$sha" "$commit_date"
+      continue
+    fi
+
+    if [ -n "$o_fields" ]; then
+      parts=
+      fields=$o_fields
+      while [ -n "$fields" ]; do
+        ch=${fields%"${fields#?}"}; fields=${fields#?}
+        case $ch in
+          p) val=$bundledir ;;
+          r) val=$repo ;;
+          u) val=$url ;;
+          b) val=$branch ;;
+          s) val=$sha ;;
+          c) val=$commit_date ;;
+        esac
+        [ -z "$parts" ] && parts=$val || parts="${parts}	${val}"
+      done
+      printf '%s\n' "$parts"
+    else
+      printf '%-64s %s\n' "$url" "$bundledir"
+    fi
+  done | sort
 }
 
 antidote_purge() {
@@ -137,52 +258,47 @@ antidote_update() {
   :
 }
 
+# TODO: Remove this!
+# shellcheck disable=SC2034
 antidote_script() {
-  # The first param is the bundle.
-  if [ -z "$1" ]; then
+  # Ensure arguments provided
+  if [ $# -eq 0 ]; then
     die "antidote: error: bundle argument expected"
   fi
 
-  # Replace ~/ with $HOME/
-  # shellcheck disable=SC2088
-  case "$1" in
-    '~/'*)
-      BUNDLE="$HOME/${1#'~/'}"
-      ;;
-    *)
-      BUNDLE="$1"
-      ;;
-  esac
-  shift
+  local source_cmd skip_defer_load annotation value
+  local lineno bundle kind subpath branch autoload conditional pre post fpath_rule
 
   # Set reasonable defaults
   INDENT=
-  SOURCE_CMD=source
-  O_KIND=zsh
-  O_FPATH_RULE=append
+  source_cmd=source
+  kind=zsh
+  fpath_rule=append
 
   # Parse flags and annotation parameters.
   while [ $# -gt 0 ]; do
     case "$1" in
-      --skip-load-defer)
-        #O_SKIP_LOAD_DEFER=1
+      --skip-defer-load)
+        skip_defer_load=1
         ;;
       *:*)
-        # Extract prefix and suffix
-        _prefix="${1%%:*}"
-        _suffix="${1#*:}"
+        # Extract annotation (prefix) and value (suffix)
+        annotation="${1%%:*}"
+        value="${1#*:}"
 
         # Match against known annotations.
-        case "$_prefix" in
-          kind)         O_KIND="$_suffix" ;;
-          path)         O_PATH="$_suffix" ;;
-          #branch)       O_BRANCH="$_suffix" ;;
-          autoload)     O_AUTOLOAD="$_suffix" ;;
-          conditional)  O_COND="$_suffix" ;;
-          pre)          O_PRE="$_suffix" ;;
-          post)         O_POST="$_suffix" ;;
-          fpath-rule)   O_FPATH_RULE="$_suffix" ;;
-          *)            warn "Unknown annotation: $_prefix" ;;
+        case "$annotation" in
+          __lineno__)   lineno="$value" ;;
+          __bundle__)   bundle="$value" ;;
+          kind)         kind="$value" ;;
+          path)         subpath="$value" ;;
+          branch)       branch="$value" ;;
+          autoload)     autoload="$value" ;;
+          conditional)  conditional="$value" ;;
+          pre)          pre="$value" ;;
+          post)         post="$value" ;;
+          fpath-rule)   fpath_rule="$value" ;;
+          *)            warn "Unknown annotation: $annotation" ;;
         esac
         ;;
       *)
@@ -192,29 +308,34 @@ antidote_script() {
     shift
   done
 
-  # Validate O_KIND
-  case "$O_KIND" in
+  # Replace ~/ with $HOME/
+  # shellcheck disable=SC2088
+  case "$bundle" in
+    '~/'*)
+      bundle="$HOME/${bundle#'~/'}"
+      ;;
+  esac
+
+  # Validate kind
+  case "$kind" in
     autoload|clone|defer|fpath|path|zsh) ;;
-    *) die "antidote: error: unexpected kind value: $O_KIND" ;;
+    *) die "antidote: error: unexpected kind value: $kind" ;;
   esac
 
-  # Validate O_FPATH_RULE
-  case "$O_FPATH_RULE" in
+  # Validate fpath-rule
+  case "$fpath_rule" in
     append|prepend) ;;
-    *) die "antidote: error: unexpected fpath-rule value: $O_FPATH_RULE" ;;
+    *) die "antidote: error: unexpected fpath-rule value: $fpath_rule" ;;
   esac
 
-  # Set vars
-  ZSH_DEFER_BUNDLE="${ZSH_DEFER_BUNDLE:-romkatv/zsh-defer}"
-
-  BUNDLE_HOME=$BUNDLE
+  BUNDLE_HOME="$bundle"
   BUNDLE_PATH="${BUNDLE_HOME}"
-  if [ -n "$O_PATH" ]; then
-    BUNDLE_PATH="${BUNDLE_HOME}/${O_PATH}"
+  if [ -n "$subpath" ]; then
+    BUNDLE_PATH="${BUNDLE_HOME}/${subpath}"
   fi
 
   # Extract bundle name (last path component)
-  BUNDLE_NAME="${BUNDLE##*/}"
+  BUNDLE_NAME="${bundle##*/}"
   BUNDLE_INIT="${BUNDLE_PATH}/${BUNDLE_NAME}.plugin.zsh"
 
   FPATH_SCRIPT="$(script_fpath "$BUNDLE_PATH")"
@@ -229,39 +350,39 @@ antidote_script() {
   [ -n "$O_PRE" ] && emit "$O_PRE"
 
   # handle autoloading before sourcing
-  if [ -n "$O_AUTOLOAD" ]; then
-    _fpath_line="$(script_fpath "$BUNDLE_PATH/$O_AUTOLOAD")"
+  if [ -n "$autoload" ]; then
+    _fpath_line="$(script_fpath "$BUNDLE_PATH/$autoload")"
     emit "$_fpath_line"
-    emit "builtin autoload -Uz \"${BUNDLE_PATH}/${O_AUTOLOAD}\"/*(N.:t)"
+    emit "builtin autoload -Uz \"${BUNDLE_PATH}/${autoload}\"/*(N.:t)"
   fi
 
-  if [ "$O_KIND" = fpath ]; then
+  if [ "$kind" = fpath ]; then
     emit "$FPATH_SCRIPT"
-  elif [ "$O_KIND" = path ]; then
+  elif [ "$kind" = path ]; then
     emit "export PATH=\"$BUNDLE_PATH:\$PATH\""
-  elif [ "$O_KIND" = autoload ]; then
+  elif [ "$kind" = autoload ]; then
     emit "$FPATH_SCRIPT"
     emit "builtin autoload -Uz \"${BUNDLE_PATH}\"/*(N.:t)"
-  elif [ "$O_KIND" = zsh ]; then
+  elif [ "$kind" = zsh ]; then
     emit "$FPATH_SCRIPT"
     if [ -f "$BUNDLE_PATH" ]; then
       # Bundle path is a file
-      emit "${SOURCE_CMD} \"${BUNDLE_PATH}\""
+      emit "${source_cmd} \"${BUNDLE_PATH}\""
     elif [ -f "$BUNDLE_INIT" ]; then
       # Use the bundle's .plugin.zsh file
-      emit "${SOURCE_CMD} \"${BUNDLE_INIT}\""
+      emit "${source_cmd} \"${BUNDLE_INIT}\""
     else
       # Fallback: source the directory (will fail, but matches old behavior)
-      emit "${SOURCE_CMD} \"${BUNDLE_PATH}\""
+      emit "${source_cmd} \"${BUNDLE_PATH}\""
     fi
   fi
 
   # Output variables
   # [ -n "$BUNDLE" ] && say "BUNDLE: $BUNDLE"
-  # [ -n "$O_KIND" ] && say "O_KIND: $O_KIND"
-  # [ -n "$O_PATH" ] && say "O_PATH: $O_PATH"
+  # [ -n "$kind" ] && say "kind: $kind"
+  # [ -n "$path" ] && say "path: $path"
   # [ -n "$O_BRANCH" ] && say "O_BRANCH: $O_BRANCH"
-  # [ -n "$O_AUTOLOAD" ] && say "O_AUTOLOAD: $O_AUTOLOAD"
+  # [ -n "$autoload" ] && say "autoload: $autoload"
   # [ -n "$O_COND" ] && say "O_COND: $O_COND"
   # [ -n "$O_PRE" ] && say "O_PRE: $O_PRE"
   # [ -n "$O_POST" ] && say "O_POST: $O_POST"
@@ -283,7 +404,7 @@ antidote_version() {
   local ver gitsha
   ver="$ANTIDOTE_VERSION"
   if [ "$ANTIDOTE_DEBUG" != true ]; then
-    gitsha="$(gitcmd -C "$ANTIDOTE_PROJDIR" rev-parse --short HEAD 2>/dev/null)"
+    gitsha="$(git_ -C "$ANTIDOTE_PROJDIR" rev-parse --short HEAD 2>/dev/null)"
     [ -n "$gitsha" ] && ver="$ver ($gitsha)"
   fi
   say "antidote version $ver"
@@ -353,9 +474,9 @@ debug_bundle_info() {
   say "BUNDLE_PATH=\"${BUNDLE_PATH}\""
 }
 
-gitcmd() {
+git_() {
   local result err
-  result="$("${ANTIDOTE_GITCMD}" "$@" 2>&1)"
+  result="$("${ANTIDOTE_GIT_CMD}" "$@" 2>&1)"
   err=$?
   if [ "$err" -ne 0 ]; then
     if [ -n "$result" ]; then
@@ -412,6 +533,7 @@ antidote() {
 # Set antidote variables.
 ANTIDOTE_VERSION=2.0.0
 ANTIDOTE_SCRIPT="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+PARSER_SCRIPT="$(dirname "$ANTIDOTE_SCRIPT")"/antidote_dsl_parser.zsh
 ANTIDOTE_PROJDIR="${ANTIDOTE_SCRIPT%/*/*}"
 
 # shellcheck disable=SC3028
@@ -420,7 +542,7 @@ ANTIDOTE_PROJDIR="${ANTIDOTE_SCRIPT%/*/*}"
 : "${ANTIDOTE_DEFER_REPO:=https://github.com/romkatv/zsh-defer}"
 : "${ANTIDOTE_DEBUG:=false}"
 : "${ANTIDOTE_COMPATIBILITY_MODE:=}"
-: "${ANTIDOTE_GITCMD:=git}"
+: "${ANTIDOTE_GIT_CMD:=git}"
 
 ANTIDOTE_HELP=$(
 cat <<'EOS'
@@ -484,21 +606,19 @@ EOS
 
 ANTIDOTE_LIST_HELP=$(
 cat <<'EOS'
-Usage: antidote list [-d|--details] [-bcprsu]
+Usage: antidote list [-h|--help] [-j|--jsonl] [-prubsc]
 
 Lists all currently installed bundles
 
 Flags:
-  -h, --help     Show context-sensitive help.
-  -d, --detail   Show full bundle details.
-
-Format flags:
-  -b             Bundle's branch.
-  -c             Bundle's last commit date.
-  -p             Bundle's path.
-  -r             Bundle's short repo name.
-  -s             Bundle's SHA.
-  -u             Bundle's URL.
+  -h, --help         Show context-sensitive help.
+  -j, --jsonl        Print the list in JSONL format.
+  -p, --path         Show bundle path.
+  -r, --repo         Show shortened repo name.
+  -u, --url          Show bundle URL.
+  -b, --branch       Show the current git branch (or HEAD if detached).
+  -s, --sha          Show the current git SHA.
+  -c, --commit-date  Show the last commit date (ISO 8601).
 EOS
 )
 

@@ -113,21 +113,19 @@ Show list command help:
 
 ```zsh
 % antidote2 list --help
-Usage: antidote list [-d|--details] [-bcprsu]
+Usage: antidote list [-h|--help] [-j|--jsonl] [-prubsc]
 
 Lists all currently installed bundles
 
 Flags:
-  -h, --help     Show context-sensitive help.
-  -d, --detail   Show full bundle details.
-
-Format flags:
-  -b             Bundle's branch.
-  -c             Bundle's last commit date.
-  -p             Bundle's path.
-  -r             Bundle's short repo name.
-  -s             Bundle's SHA.
-  -u             Bundle's URL.
+  -h, --help         Show context-sensitive help.
+  -j, --jsonl        Print the list in JSONL format.
+  -p, --path         Show bundle path.
+  -r, --repo         Show shortened repo name.
+  -u, --url          Show bundle URL.
+  -b, --branch       Show the current git branch (or HEAD if detached).
+  -s, --sha          Show the current git SHA.
+  -c, --commit-date  Show the last commit date (ISO 8601).
 % [ "$(antidote2 list --help)" = "$(antidote2 list -h)" ] || echo "antidote list -h is broken"
 % [ "$(antidote2 list --help)" = "$(antidote2 help list)" ] || echo "antidote help list is broken"
 %
