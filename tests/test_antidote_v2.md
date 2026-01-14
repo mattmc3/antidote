@@ -125,7 +125,7 @@ Flags:
   -u, --url          Show bundle URL.
   -b, --branch       Show the current git branch (or HEAD if detached).
   -s, --sha          Show the current git SHA.
-  -c, --commit-date  Show the last commit date (ISO 8601).
+  -c, --commit-date  Show the last commit date.
 % [ "$(antidote2 list --help)" = "$(antidote2 list -h)" ] || echo "antidote list -h is broken"
 % [ "$(antidote2 list --help)" = "$(antidote2 help list)" ] || echo "antidote help list is broken"
 %
