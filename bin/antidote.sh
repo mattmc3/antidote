@@ -60,6 +60,35 @@ parse_dsl() {
   zsh "$PARSER_SCRIPT"
 }
 
+git_() {
+  local result err
+  result="$("${ANTIDOTE_GIT_CMD}" "$@" 2>&1)"
+  err=$?
+  if [ "$err" -ne 0 ]; then
+    if [ -n "$result" ]; then
+      warn "antidote: unexpected git error on command 'git $*'."
+      if [ -n "$result" ]; then
+        warn "antidote: error details:"
+        warn "$result"
+      fi
+      return $err
+    fi
+  fi
+  say "$result"
+}
+
+# git helpers.
+git_basedir()  { git_ -C "$1" rev-parse --show-toplevel; }
+git_url()      { git_ -C "$1" config remote.origin.url; }
+git_branch()   { git_ -C "$1" rev-parse --abbrev-ref HEAD; }
+git_sha()      { git_ -C "$1" rev-parse HEAD; }
+git_repodate() { git_ -C "$1" log -1 --format=%cI; } # or --format=%cd --date=short;
+git_clone() {
+  local src dest
+  src="$1"; dest="$2"; shift 2
+  git_ clone --quiet --recurse-submodules --shallow-submodules "$@" "$src" "$dest"
+}
+
 # Usage: bundle_apply <command> < input.tsv
 # For each TSV line, splits fields into "$@" and calls: command "$@"
 bundle_apply() {
@@ -156,7 +185,7 @@ add_field() {
 }
 
 antidote_list() {
-  local o_jsonl o_fields arg rest ch home gitdir bundledir url repo parts val fields
+  local o_jsonl o_fields arg rest ch gitdir bundledir url repo parts val fields
   local branch sha commit_date
 
   o_jsonl=0
@@ -192,23 +221,20 @@ antidote_list() {
 
   [ $# -gt 0 ] && die "antidote: error: unexpected $1, try --help"
 
-  home=$(antidote_home) || return 1
-
-  find "$home" -type d -name .git 2>/dev/null |
+  find "$(antidote_home)" -type d -name .git 2>/dev/null |
   while IFS= read -r gitdir; do
-    bundledir=${gitdir%/.git}
+    bundledir="${gitdir%/.git}"
 
-    url=$(git -C "$bundledir" config remote.origin.url 2>/dev/null) || url=
+    # url="$(git_url "$bundledir")" || url=
+    # branch="$(git_branch "$bundledir")" || branch=
+    # sha="$(git_sha "$bundledir")" || sha=
+    # commit_date="$(git_repodate "$bundledir")" || commit_date=
 
-    repo=${url%.git}
-    repo=${repo#https://github.com/}
-    repo=${repo#git@github.com:}
-    repo=${repo#ssh://git@github.com/}
-    repo=${repo#git://github.com/}
-
-    branch=$(git -C "$bundledir" symbolic-ref --quiet --short HEAD 2>/dev/null) || branch=HEAD
-    sha=$(git -C "$bundledir" rev-parse --verify HEAD 2>/dev/null) || sha=
-    commit_date=$(git -C "$bundledir" log -1 --format=%cI 2>/dev/null) || commit_date=
+    repo="${url%.git}"
+    repo="${url#https://github.com/}"
+    repo="${repo#git@github.com:}"
+    repo="${repo#ssh://git@github.com/}"
+    repo="${repo#git://github.com/}"
 
     if [ "$o_jsonl" -eq 1 ]; then
       printf '{"url":"%s","repo":"%s","type":"repo","path":"%s","branch":"%s","sha":"%s","commit_date":"%s"}\n' \
@@ -218,9 +244,9 @@ antidote_list() {
 
     if [ -n "$o_fields" ]; then
       parts=
-      fields=$o_fields
+      fields="$o_fields"
       while [ -n "$fields" ]; do
-        ch=${fields%"${fields#?}"}; fields=${fields#?}
+        ch=${fields%"${fields#?}"}; fields="${fields#?}"
         case $ch in
           p) val=$bundledir ;;
           r) val=$repo ;;
@@ -229,15 +255,16 @@ antidote_list() {
           s) val=$sha ;;
           c) val=$commit_date ;;
         esac
-        [ -z "$parts" ] && parts=$val || parts="${parts}	${val}"
+        [ -z "$parts" ] && parts="$val" || parts="${parts}${TAB}${val}"
       done
       printf '%s\n' "$parts"
     else
       printf '%-64s %s\n' "$url" "$bundledir"
     fi
-  done | sort
+  done
 }
 
+# TODO
 antidote_purge() {
   :
 }
@@ -254,6 +281,7 @@ antidote_path() {
   fi
 }
 
+# TODO
 antidote_update() {
   :
 }
@@ -474,21 +502,6 @@ debug_bundle_info() {
   say "BUNDLE_PATH=\"${BUNDLE_PATH}\""
 }
 
-git_() {
-  local result err
-  result="$("${ANTIDOTE_GIT_CMD}" "$@" 2>&1)"
-  err=$?
-  if [ "$err" -ne 0 ]; then
-    if [ -n "$result" ]; then
-      warn "antidote: unexpected git error on command 'git $*'."
-      warn "antidote: error details:"
-      warn "$result"
-      return $err
-    fi
-  fi
-  say "$result"
-}
-
 antidote() {
   local cmd
   : "${ANTIDOTE_HOME:="$(antidote_home)"}"
@@ -618,7 +631,7 @@ Flags:
   -u, --url          Show bundle URL.
   -b, --branch       Show the current git branch (or HEAD if detached).
   -s, --sha          Show the current git SHA.
-  -c, --commit-date  Show the last commit date (ISO 8601).
+  -c, --commit-date  Show the last commit date.
 EOS
 )
 
