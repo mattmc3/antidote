@@ -1,0 +1,33 @@
+# comments
+user/repo
+
+# blank lines
+
+# regular repos
+https://github.com/user/repo
+http://github.com/user/repo.git
+https://github.com/user/repo
+git@github.com:user/repo
+
+# annotations
+bar/baz path:plugins/qux
+bar/baz path:themes/qux.zsh-theme
+
+# branch
+foobar/foobar branch:baz
+
+# defer
+https://github.com/foo/qux kind:defer
+https://github.com/foo/baz kind:defer
+
+        # initial space does not matter
+        foobar/barfoo     comment:" this : is : a :comment" "[]:brackets"
+
+# non repos
+foo
+~/.zplugins/bar
+$ZDOTDIR/plugins/bar
+
+# dupes
+user/repo
+https://github.com/user/repo
