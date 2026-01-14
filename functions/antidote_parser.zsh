@@ -7,6 +7,7 @@
 setopt WARN_CREATE_GLOBAL WARN_NESTED_VAR
 
 : "${ANTIDOTE_COMPATIBILITY_MODE:=false}"
+: "${ANTIDOTE_GIT_SITE:=https://github.com}"
 
 # Checks a string for truthiness (eg: "1", "y", "yes", "t", "true", "o", and "on")
 function is_true {
@@ -28,53 +29,48 @@ function json_escape {
   local str=$1
   str=${str//\\/\\\\}
   str=${str//\"/\\\"}
-  str=${str//$'\n'/\\n}
-  str=${str//$'\r'/\\r}
-  str=${str//$'\t'/\\t}
-  str=${str//$'\f'/\\f}
-  str=${str//$'\b'/\\b}
   printf '%s\n' "$str"
 }
 
 # Add more properties to the bundle dict
 function enhance_bundle {
   local -A bundle=("$@")
-  local scrubbed last second_last
+  local scrubbed bundle_id
 
-  scrubbed="${bundle[bundle]%/}" # strip trailing slash
+  bundle_id="${bundle[name]}"
+  scrubbed="${bundle_id%/}" # strip trailing slash
   scrubbed="${scrubbed%.git}" # strip trailing .git
 
   # Set properties based on the type of bundle.
-  case "${bundle[bundle]}" in
-    \$*|~*|/*)
-      bundle[__type__]=path
-      bundle[__path__]="${bundle[bundle]}"
+  case "$bundle_id" in
+    *://*/*/*|ssh@*:*/*|git@*:*/*)
+      case "$bundle_id" in
+        *://*/*/*/*|*@*:*/*/*) bundle[__type__]="?" ;;
+        *) bundle[__type__]=url ;;
+      esac
       ;;
-    http://*|https://*|ssh@*|git@*)
-      bundle[__type__]=repo
-      bundle[__url__]="${bundle[bundle]}"
-      scrubbed="${scrubbed#*:}"
-      last="${scrubbed##*/}"
-      second_last="${scrubbed%/*}"
-      second_last="${second_last##*/}"
-      bundle[__repo__]="${second_last}/${last}"
-      ;;
-    */*/*|*:*)
-      bundle[__type__]="?"
-      ;;
-    */*)
-      bundle[__type__]=repo
-      bundle[__url__]="${ANTIDOTE_GIT_SITE:-https://github.com}/${bundle[bundle]}"
-      bundle[__repo__]="${bundle[bundle]}"
-      ;;
-    *)
-      bundle[__type__]="custom"
-      ;;
+    *@*|*:*|*/*/*) bundle[__type__]="?" ;;
+    '~'*|'$'*|'.'*) bundle[__type__]=path ;;
+    */*) bundle[__type__]=repo ;;
+    *) bundle[__type__]="?" ;;
   esac
 
-  if [[ "${bundle[__type__]}" == repo ]]; then
-    bundle[__path__]="\$ANTIDOTE_HOME/${bundle[__repo__]}"
-  fi
+  case "${bundle[__type__]}" in
+    url)
+      bundle[__url__]="$bundle_id"
+      scrubbed="${scrubbed#*:}"
+      bundle[__repo__]="${scrubbed:h:t}/${scrubbed:t}"
+      bundle[__path__]="\$ANTIDOTE_HOME/${bundle[__repo__]}"
+      ;;
+    repo)
+      bundle[__url__]="${ANTIDOTE_GIT_SITE}/${bundle_id}"
+      bundle[__repo__]="${bundle_id}"
+      bundle[__path__]="\$ANTIDOTE_HOME/${bundle[__repo__]}"
+      ;;
+    path)
+      bundle[__path__]="$bundle_id"
+      ;;
+  esac
 
   if is_true "$ANTIDOTE_COMPATIBILITY_MODE" && [[ -n "${bundle[__url__]}" && -n "${bundle[__path__]}" ]]; then
     bundle[__path__]="\$ANTIDOTE_HOME/$(sanitize_url "${bundle[__url__]}")"
@@ -83,7 +79,7 @@ function enhance_bundle {
 }
 
 function antidote_parser {
-  local outfmt enhance line lineno arg argno annotation value
+  local outfmt line lineno arg argno annotation value
   local key val c
   local -a bundle_dsl parsed_bundles args
   local -A bundle
@@ -114,7 +110,7 @@ function antidote_parser {
       [[ $arg == \#* ]] && break
       if (( argno == 1 )); then
         bundle[__line__]=$lineno
-        bundle[bundle]=$arg
+        bundle[name]=$arg
       else
         if [[ $arg != *:* ]]; then
           print -ru2 "antidote: Unexpected bundle annotation on line $lineno: '$arg'."
@@ -135,9 +131,8 @@ function antidote_parser {
         printf '%s' "{"
         c=1
         for key in "${(@ok)bundle}"; do
-          val="${bundle[$key]}"
           (( c > 1 )) && printf ','
-          printf '"%s":"%s"' "$(json_escape "$key")" "$(json_escape "$val")"
+          printf '"%s":"%s"' "$(json_escape "$key")" "$(json_escape "${bundle[$key]}")"
           (( c++ ))
         done
         printf '%s\n' "}"
