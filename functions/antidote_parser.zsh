@@ -87,7 +87,7 @@ function enhance_bundle {
 
 function antidote_parser {
   local outfmt line lineno arg argno annotation value
-  local key val c
+  local key c
   local -a bundle_dsl parsed_bundles args
   local -A bundle
 
@@ -106,6 +106,10 @@ function antidote_parser {
     [[ -t 0 ]] || cat
   })"
   lineno=1
+
+  # Normalize line endings
+  bundle_dsl=${bundle_dsl//$'\r\n'/$'\n'}
+  bundle_dsl=${bundle_dsl//$'\r'/$'\n'}
 
   while IFS= read -r line; do
     # (z): use shell wordsplitting rules
@@ -136,7 +140,7 @@ function antidote_parser {
       if (( ${#o_enhance} )); then
         bundle=("${(@f)$(enhance_bundle "${(@kv)bundle}")}")
       fi
-      parsed_bundles+=("$(declare -p bundle)")
+      [[ "$outfmt" != jsonl ]] && parsed_bundles+=("$(declare -p bundle)")
       if (( ${#o_jsonl} )); then
         printf '%s' "{"
         c=1
