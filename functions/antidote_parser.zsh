@@ -37,25 +37,32 @@ function enhance_bundle {
   local -A bundle=("$@")
   local scrubbed bundle_id
 
-  bundle_id="${bundle[name]}"
+  bundle_id="$bundle[name]"
   scrubbed="${bundle_id%/}" # strip trailing slash
   scrubbed="${scrubbed%.git}" # strip trailing .git
 
-  # Set properties based on the type of bundle.
-  case "$bundle_id" in
-    *://*/*/*|ssh@*:*/*|git@*:*/*)
-      case "$bundle_id" in
-        *://*/*/*/*|*@*:*/*/*) bundle[__type__]="?" ;;
-        *) bundle[__type__]=url ;;
-      esac
-      ;;
-    *@*|*:*|*/*/*) bundle[__type__]="?" ;;
-    '~'*|'$'*|'.'*) bundle[__type__]=path ;;
-    */*) bundle[__type__]=repo ;;
-    *) bundle[__type__]="?" ;;
-  esac
+  # Enhance the bundle with metadata fields. Metadata fields begin with an underscore
+  # since those will never be part of the DSL. Let's start with _type, which tells us
+  # whether the bundle is a URL, a user/repo, or a path
+  if [[ "$bundle_id" == *://*/*/* || "$bundle_id" == (ssh|git)@*:*/* ]]; then
+    if [[ "$bundle_id" == *://*/*/*/* || "$bundle_id" == *@*:*/*/* ]]; then
+      bundle[__type__]="?"
+    else
+      bundle[__type__]="url"
+    fi
+  elif [[ "$bundle_id" == *('@'|':')* ]] ; then
+    bundle[__type__]="?"  # bad URLs
+  elif [[ "$bundle_id" == ('~'|'$'|'.')* ]]; then
+    bundle[__type__]="path"
+  elif [[ "$bundle_id" == */* && "$bundle_id" != */*/* ]]; then
+    bundle[__type__]="repo"
+  elif [[ "$bundle_id" == */* ]]; then
+    bundle[__type__]="path"
+  else
+    bundle[__type__]="?"
+  fi
 
-  case "${bundle[__type__]}" in
+  case "$bundle[__type__]" in
     url)
       bundle[__url__]="$bundle_id"
       scrubbed="${scrubbed#*:}"
@@ -107,6 +114,7 @@ function antidote_parser {
     argno=1
     bundle=()
     for arg in $args; do
+      # as soon as we hit a comment marker at the start, we're done.
       [[ $arg == \#* ]] && break
       if (( argno == 1 )); then
         bundle[__line__]=$lineno
@@ -122,6 +130,8 @@ function antidote_parser {
       fi
       (( argno++ ))
     done
+
+    # If -x enhance bundle, and if -j use JSONL for output
     if [[ $#bundle -gt 1 ]]; then
       if (( ${#o_enhance} )); then
         bundle=("${(@f)$(enhance_bundle "${(@kv)bundle}")}")
@@ -141,7 +151,7 @@ function antidote_parser {
     (( lineno++ ))
   done <<<"$bundle_dsl"
 
-  if [[ "$outfmt" == zsh ]]; then
+  if [[ ${#parsed_bundles} -gt 0 && "$outfmt" == (zsh|) ]]; then
     printf '%s\n' $parsed_bundles
   fi
 }
