@@ -1,0 +1,7 @@
+#!/bin/zsh
+[[
+  "$COLORTERM" == truecolor ||
+  "$COLORTERM" == 24bit ||
+  "$TERM" == *256color* ||
+  "$TERM" == *rxvt*
+]]

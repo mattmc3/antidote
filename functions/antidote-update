@@ -22,7 +22,7 @@
 
   # colors
   local green blue normal
-  if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
+  if __antidote_supports_color; then
     if (( $+commands[tput] )); then
       green=$(tput setaf 2)
       blue=$(tput setaf 4)
