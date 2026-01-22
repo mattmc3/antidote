@@ -14,7 +14,7 @@ Show antidote's version:
 
 ```zsh
 % antidote --version
-antidote version 1.10.0 (abcd123)
+antidote version 1.10.1 (abcd123)
 %
 ```
 
@@ -304,7 +304,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 1.10.0 (abcd123)
+antidote version 1.10.1 (abcd123)
 %
 ```
 
