@@ -9,6 +9,9 @@
   emulate -L zsh; setopt local_options $_adote_funcopts
 
   local o_help o_self o_bundles
+  local tmpfile tmpdir
+  local green blue normal
+
   zparseopts $_adote_zparopt_flags -- \
     h=o_help    -help=h    \
     s=o_self    -self=s    \
@@ -21,7 +24,6 @@
   fi
 
   # colors
-  local green blue normal
   if __antidote_supports_color; then
     if (( $+commands[tput] )); then
       green=$(tput setaf 2)
@@ -45,20 +47,18 @@
     local loadable_check_path="$(antidote-home)/.antidote.load"
     [[ -r "$loadable_check_path" ]] && __antidote_del -- "$loadable_check_path"
 
-    # Setup temporary directory and tracking
-    local tmpfile
-    typeset -g __antidote_update_tmpdir=$(__antidote_mktemp -d -s update)
-    local tmpdir=$__antidote_update_tmpdir
-
     # Cleanup function to ensure we don't leave temp files behind
     __antidote_update_cleanup() {
       [[ -d "$__antidote_update_tmpdir" ]] && __antidote_del -rf -- "$__antidote_update_tmpdir"
       unset __antidote_update_tmpdir
     }
 
+    # Setup temporary directory and tracking
     # Set trap to ensure cleanup on exit, interrupt, etc.
     # (EXIT is special, 2=INT, 15=TERM, 1=HUP)
+    typeset -g __antidote_update_tmpdir=$(__antidote_mktemp -d -s update)
     trap __antidote_update_cleanup EXIT 2 15 1
+    tmpdir=$__antidote_update_tmpdir
 
     # update all bundles
     for bundledir in $(antidote-list --dirs); do
@@ -121,8 +121,8 @@
         # Colorize the SHA
         ${__adote_awkcmd:-awk} '
           BEGIN {
-              YELLOW="\033[33m"
-              NORMAL="\033[0m"
+            YELLOW="\033[33m"
+            NORMAL="\033[0m"
           }
           NF >= 1 {
             printf "%s%s%s %s\n", YELLOW, $1, NORMAL, substr($0, length($1) + 2)
