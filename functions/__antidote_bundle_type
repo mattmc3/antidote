@@ -18,9 +18,9 @@
   # Try to expand path bundles with '$' and '~' prefixes so that we get a more
   # granular result than 'path'.
   if [[ $bundle == '~/'* ]]; then
-    bundle="${HOME}/${bundle#\~/*}"
+    bundle=${~bundle}
   elif [[ $bundle == '$'* ]]; then
-    bundle="${(e)bundle}"
+    bundle=${(e)bundle}
   fi
 
   # Determine the bundle type.
