@@ -16,7 +16,7 @@
   local bundle_type="$(__antidote_bundle_type $bundle)"
 
   # handle repo bundle paths
-  if [[ "$bundle_type" == (repo|url|sshurl) ]] && [[ ! -e "$bundle_path" ]]; then
+  if [[ "$bundle_type" == (repo|url|sshurl) ]] && [[ ! -e "$bundle" ]]; then
     if zstyle -t ':antidote:bundle' use-friendly-names; then
       # user/repo format
       # ex: $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
