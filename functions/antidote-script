@@ -74,7 +74,7 @@
 
   # replace ~/ with $HOME/
   if [[ "$bundle" == '~/'* ]]; then
-    bundle=$HOME/${bundle#'~/'*}
+    bundle=${~bundle}
   fi
 
   # set the path to the bundle (repo or local)
