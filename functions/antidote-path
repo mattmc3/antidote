@@ -24,8 +24,8 @@
   local bundle bundledir
   local -a results=()
   for bundle in $bundles; do
-    if [[ $bundle == '$'* ]] && [[ $bundle != *'('* ]] && [[ $bundle != *';'* ]]; then
-      bundle=$(eval print $bundle)
+    if [[ $bundle == '$'* ]]; then
+      bundle="${(e)bundle}"
     fi
     bundledir=$(__antidote_bundle_dir $bundle)
     if [[ ! -d $bundledir ]]; then

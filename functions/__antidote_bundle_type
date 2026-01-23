@@ -19,8 +19,8 @@
   # granular result than 'path'.
   if [[ $bundle == '~/'* ]]; then
     bundle="${HOME}/${bundle#\~/*}"
-  elif [[ $bundle == '$'* ]] && [[ $bundle != *'('* ]] && [[ $bundle != *';'* ]]; then
-    bundle=$(eval print $bundle)
+  elif [[ $bundle == '$'* ]]; then
+    bundle="${(e)bundle}"
   fi
 
   # Determine the bundle type.
