@@ -255,6 +255,19 @@ maketmp() {
   fi
 }
 
+collect_input() {
+  local -a input=()
+  if (( $# > 0 )); then
+    input=("${(s.\n.)${@}}")
+  elif [[ ! -t 0 ]]; then
+    local data
+    while IFS= read -r data || [[ -n "$data" ]]; do
+      input+=("$data")
+    done
+  fi
+  printf '%s\n' "${input[@]}"
+}
+
 bundle_dir() {
   # If the bundle is a repo/URL, then by default we use the legacy antibody format:
   # `$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions`
@@ -333,6 +346,27 @@ antidote_init() {
   say "      ;;"
   say "  esac"
   say "}"
+}
+
+antidote_path() {
+  local bundle bundledir
+  local -a results=()
+  local -a bundles=("${(@f)$(collect_input "$@")}")
+  if (( $#bundles == 0 )); then
+    die "antidote: error: required argument 'bundle' not provided, try --help"
+  fi
+  for bundle in $bundles; do
+    if [[ $bundle == '$'* ]]; then
+      bundle="${(e)bundle}"
+    fi
+    bundledir=$(bundle_dir $bundle)
+    if [[ ! -d $bundledir ]]; then
+      die "antidote: error: $bundle does not exist in cloned paths"
+    else
+      results+=("$bundledir")
+    fi
+  done
+  say $results
 }
 
 antidote() {
