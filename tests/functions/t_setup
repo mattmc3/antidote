@@ -31,6 +31,7 @@
   export HOME=$T_TEMPDIR
   export ZDOTDIR=$HOME/.zsh
   typeset -g ANTIDOTE_HOME=$HOME/.cache/antidote
+  export ANTIDOTE_TESTING=true
 
   # put tmp_home into position
   for p in $testdir/tmp_home/*; do

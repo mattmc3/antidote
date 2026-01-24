@@ -2,41 +2,154 @@
 
 ### Setup antidote.
 #function __antidote_setup {
-  0=${(%):-%x}
-  fpath=( "${0:A:h}" $fpath )
-  local fn
-  for fn in ${0:A:h}/*; do
-    [[ ${fn:t} != '__antidote_setup' ]] || continue
-    if typeset -f ${fn:t} > /dev/null; then
-      unfunction -- ${fn:t}
-    fi
+0=${(%):-%x}
+typeset -gH ANTIDOTE_ZSH="${0:a:h}/antidote.zsh"
 
-    # autoload extensionless function files
-    [[ -z "${fn:e}" ]] && autoload -Uz "${fn}"
-  done
-
-  # man pages
-  if [[ "$MANPATH" != *"${0:A:h:h}/man"* ]]; then
-    export MANPATH="${0:A:h:h}/man:$MANPATH"
+fpath=( "${0:A:h}" $fpath )
+local fn
+for fn in ${0:A:h}/*; do
+  [[ ${fn:t} != '__antidote_setup' ]] || continue
+  if typeset -f ${fn:t} > /dev/null; then
+    unfunction -- ${fn:t}
   fi
 
-  builtin autoload -Uz is-at-least
-  if is-at-least 5.8; then
-    # -D : Delete flags from the param array once they are detected
-    # -M : Map a flag to alternative names (useful for defining -s(hort) and --long options)
-    # -F : Fail if a flad is provided that was not defined in the zparseops spec
-    # the -F option was added in 5.8
-    typeset -gHa _adote_zparopt_flags=( -D -M -F )
-  else
-    typeset -gHa _adote_zparopt_flags=( -D -M )
-  fi
+  # autoload extensionless function files
+  [[ -z "${fn:e}" ]] && autoload -Uz "${fn}"
+done
 
-  typeset -gHa _adote_funcopts=( extended_glob no_monitor pipefail )
-  if zstyle -t ':antidote:tests' set-warn-options; then
-    typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
-  fi
+# man pages
+if [[ "$MANPATH" != *"${0:A:h:h}/man"* ]]; then
+  export MANPATH="${0:A:h:h}/man:$MANPATH"
+fi
 
-  gawk --version &>/dev/null && typeset -gH __adote_awkcmd=gawk || typeset -gH __adote_awkcmd=awk
-  typeset -gHi __adote_ksh_arrays
-  typeset -gHi __adote_sh_glob
+builtin autoload -Uz is-at-least
+if is-at-least 5.8; then
+  # -D : Delete flags from the param array once they are detected
+  # -M : Map a flag to alternative names (useful for defining -s(hort) and --long options)
+  # -F : Fail if a flad is provided that was not defined in the zparseops spec
+  # the -F option was added in 5.8
+  typeset -gHa _adote_zparopt_flags=( -D -M -F )
+else
+  typeset -gHa _adote_zparopt_flags=( -D -M )
+fi
+
+typeset -gHa _adote_funcopts=( extended_glob no_monitor pipefail )
+if zstyle -t ':antidote:tests' set-warn-options; then
+  typeset -gHa _adote_funcopts=( $_adote_funcopts warn_create_global warn_nested_var )
+fi
+
+gawk --version &>/dev/null && typeset -gH __adote_awkcmd=gawk || typeset -gH __adote_awkcmd=awk
+typeset -gHi __adote_ksh_arrays
+typeset -gHi __adote_sh_glob
 #}
+
+function __run_antidote_zsh {
+  emulate -L zsh; setopt local_options
+  ANTIDOTE_OSTYPE="${OSTYPE}" \
+  LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}" \
+  XDG_CACHE_HOME="${XDG_CACHE_HOME}" \
+  ANTIDOTE_COMPATIBILITY_MODE="${ANTIDOTE_COMPATIBILITY_MODE}" \
+  ANTIDOTE_HOME="${ANTIDOTE_HOME}" \
+  ANTIDOTE_TMPDIR="${TMPDIR}" \
+  zsh "$ANTIDOTE_ZSH" "$@"
+}
+
+function __antidote_version {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --version
+}
+
+function __antidote_usage {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --internal run usage
+}
+
+function __antidote_supports_color {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --internal run supports_color
+}
+
+function __antidote_tourl {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --internal run tourl "$@"
+}
+
+function __antidote_bundle_name {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --internal run bundle_name "$@"
+}
+
+function __antidote_bundle_type {
+  emulate -L zsh; setopt local_options
+  # Try to expand path bundles with '$' and '~' prefixes so that we get a more
+  # granular result than 'path'.
+  local bundle=$1
+  if [[ $bundle == '~/'* ]]; then
+    bundle=${~bundle}
+  elif [[ $bundle == '$'* ]]; then
+    bundle=${(e)bundle}
+  fi
+  __run_antidote_zsh --internal run bundle_type "$bundle"
+}
+
+function __antidote_initfiles {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --internal run initfiles "$@"
+}
+
+function __antidote_get_cachedir {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --internal run get_cachedir "$@"
+}
+
+function __antidote_del {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --internal run del "$@"
+}
+
+function __antidote_mktemp {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --internal run maketmp "$@"
+}
+
+function __antidote_print_path {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+  local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
+  if zstyle -t ':antidote:compatibility-mode' 'antibody'; then
+    print -r -- "$1"
+  else
+    print -r -- "${1/#$HOME/\$HOME}"
+  fi
+}
+
+function __antidote_bundle_dir {
+  emulate -L zsh; setopt local_options
+  if zstyle -t ':antidote:bundle' use-friendly-names; then
+    ANTIDOTE_COMPATIBILITY_MODE=false
+  else
+    ANTIDOTE_COMPATIBILITY_MODE=true
+  fi
+  __run_antidote_zsh --internal run bundle_dir "$@"
+}
+
+function antidote-init {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+  local o_help
+  zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
+  if (( $#o_help )); then
+    antidote-help init
+    return
+  fi
+  __run_antidote_zsh init "$@"
+}
+
+function antidote-home {
+  emulate -L zsh; setopt local_options $_adote_funcopts
+  local o_help
+  zparseopts $_adote_zparopt_flags -- h=o_help -help=h || return 1
+  if (( $#o_help )); then
+    antidote-help home
+    return
+  fi
+  __run_antidote_zsh home
+}
