@@ -3,7 +3,7 @@
 ### Setup antidote.
 function __antidote_setup {
   0=${(%):-%x}
-  typeset -gH ANTIDOTE_ZSH="${0:a:h}/antidote.zsh"
+  typeset -gH ANTIDOTE_ZSH="${0:a:h:h}/antidote.zsh"
 
   fpath=( "${0:A:h}" $fpath )
   local fn
