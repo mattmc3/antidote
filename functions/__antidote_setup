@@ -46,10 +46,18 @@ __antidote_setup "$@"
 
 function __run_antidote_zsh {
   emulate -L zsh; setopt local_options
+
+  zstyle -t ':antidote:bundle' use-friendly-names \
+    && ANTIDOTE_COMPATIBILITY_MODE=false \
+    || ANTIDOTE_COMPATIBILITY_MODE=true
+  zstyle -s ':antidote:defer' bundle ANTIDOTE_DEFER_BUNDLE \
+    || ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
+
   ANTIDOTE_OSTYPE="${OSTYPE}" \
   LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}" \
   XDG_CACHE_HOME="${XDG_CACHE_HOME}" \
   ANTIDOTE_COMPATIBILITY_MODE="${ANTIDOTE_COMPATIBILITY_MODE}" \
+  ANTIDOTE_DEFER_BUNDLE="${ANTIDOTE_DEFER_BUNDLE}" \
   ANTIDOTE_HOME="${ANTIDOTE_HOME}" \
   ANTIDOTE_TMPDIR="${TMPDIR}" \
   zsh "$ANTIDOTE_ZSH" "$@"
@@ -125,11 +133,6 @@ function __antidote_print_path {
 
 function __antidote_bundle_dir {
   emulate -L zsh; setopt local_options
-  if zstyle -t ':antidote:bundle' use-friendly-names; then
-    ANTIDOTE_COMPATIBILITY_MODE=false
-  else
-    ANTIDOTE_COMPATIBILITY_MODE=true
-  fi
   __run_antidote_zsh --internal run bundle_dir "$@"
 }
 
@@ -151,6 +154,11 @@ function __antidote_indent {
   emulate -L zsh; setopt local_options $_adote_funcopts
   local -a lines=("${(@f)$(__antidote_collect_input "$@")}")
   printf '  %s\n' $lines
+}
+
+function __antidote_bulk_clone {
+  emulate -L zsh; setopt local_options
+  __run_antidote_zsh --internal run parse "$@" | __run_antidote_zsh --internal run bulk_clone "$@"
 }
 
 function antidote-init {

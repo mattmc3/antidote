@@ -9,6 +9,8 @@ git@github.com:foo/qux.git  # trailing comments
       # leading spaces don't matter
       foobar/barfoo annotation:a:b:c comment:"quz #fake comment"  #real comment
 
+error/mcerror-face "def ghi" blah # xyz
+
 # kind:clone
 getantidote/zsh-defer kind:clone		# more trailing comments
 
@@ -33,6 +35,9 @@ ohmy/ohmy path:plugins/extract
 
 # deferred
 ohmy/ohmy path:plugins/magic-enter kind:defer
+
+# all-the-things
+all/things path:plugins/things kind:defer branch:everything
 
 # theme
 ohmy/ohmy path:custom/themes/pretty.zsh-theme

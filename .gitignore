@@ -10,5 +10,6 @@
 sandbox/
 *.old
 **/realzdotdir/zsh_plugins.zsh
+bar.zsh
 foo*.*
 !footer.*

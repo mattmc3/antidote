@@ -67,26 +67,77 @@ if [[ $ANTIDOTE_TESTING == true ]]; then
   git_shortsha() { say "abcd123" }
 fi
 
+is_repo() {
+  local bundle buntype
+  bundle=$1
+  buntype=$(bundle_type $bundle)
+  [[ $buntype == (repo|url|sshurl) ]]
+}
+
+bulk_clone() {
+  local bundle_str branch zsh_defer=0
+  local -A bundle
+  local -aU script
+
+  while IFS= read -r bundle_str; do
+    [[ -n "$bundle_str" ]] || continue
+    typeset -A bundle=("${(@Q)${(z)bundle_str}}")
+    is_repo $bundle[__bundle__] || continue
+
+    if [[ -n "${bundle[branch]}" ]]; then
+      branch="--branch ${bundle[branch]} "
+    else
+      branch=
+    fi
+
+    if [[ "${bundle[kind]}" == defer && $zsh_defer == 0 ]]; then
+      zsh_defer=1
+      script+=("antidote-script --kind clone ${ANTIDOTE_DEFER_BUNDLE} &")
+    fi
+    script+=("antidote-script --kind clone ${branch}${bundle[__bundle__]} &")
+  done
+
+  # Print script
+  if [[ ${#script} -gt 0 ]]; then
+    printf '%s\n' ${(o)script[@]}
+    printf '%s\n' "wait"
+  fi
+}
+
 parse() {
-  local line lineno arg argno
-  local -a args
+  local line lineno arg partno key
+  local -a args bundle_arr
+  local -A bundle
 
   lineno=1
   while IFS= read -r line; do
     # (z): use shell wordsplitting rules
     # (Q): remove one level of quotes
     args=(${(Q)${(z)line}})
-    argno=1
+    partno=0
     for arg in $args; do
       [[ $arg == \#* ]] && break
-      if (( argno == 1 )); then
-        printf '__lineno__:%s%s__bundle__:%s' "$lineno" "$TAB" "$arg"
+      (( partno++ ))
+      if (( partno == 1 )); then
+        bundle=()
+        bundle[__lineno__]=$lineno
+        bundle[__bundle__]=$arg
       else
-        printf '%s%s' "$TAB" "$arg"
+        if [[ "$arg" == *:* ]]; then
+          key=${arg%%:*}
+          bundle[$key]=${arg#*:}
+        else
+          bundle[__error__]="error: Expecting 'key:value' form for annotation '$arg'."
+        fi
       fi
-      (( argno++ ))
     done
-    [[ $argno -gt 1 ]] && printf '\n'
+    if [[ $partno -gt 0 ]]; then
+      bundle_arr=(__lineno__ $bundle[__lineno__])
+      for key in ${(ko)bundle:#__lineno__}; do
+        bundle_arr+=("${(q)key}" "${(q)bundle[$key]}")
+      done
+      printf '%s\n' "${bundle_arr[*]}"
+    fi
     (( lineno++ ))
   done
 }
@@ -446,6 +497,7 @@ ANTIDOTE_GIT_SITE=${ANTIDOTE_GIT_SITE:-https://github.com}
 if [[ -z "$ANTIDOTE_HOME" ]]; then
   ANTIDOTE_HOME=$(get_cachedir antidote)
 fi
+ANTIDOTE_DEFER_BUNDLE="${ANTIDOTE_DEFER_BUNDLE:-romkatv/zsh-defer}"
 ANTIDOTE_OSTYPE=${ANTIDOTE_OSTYPE:-OSTYPE}
 ANTIDOTE_TESTING=${ANTIDOTE_TESTING:-false}
 ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-TMPDIR}
