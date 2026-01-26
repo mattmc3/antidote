@@ -154,12 +154,10 @@ usage() {
 }
 
 supports_color() {
-  [[
-    "$COLORTERM" == truecolor ||
-    "$COLORTERM" == 24bit ||
-    "$TERM" == *256color* ||
-    "$TERM" == *rxvt*
-  ]]
+  [[ -n "$NO_COLOR" ]] && return 1
+  [[ -n "$CLICOLOR_FORCE" ]] && return 0
+  [[ ! -t 1 ]] && return 1
+  [[ "$COLORTERM" == (truecolor|24bit) || "$TERM" == (*256color*|*rxvt*) ]]
 }
 
 tourl() {
@@ -501,7 +499,7 @@ ANTIDOTE_DEFER_BUNDLE="${ANTIDOTE_DEFER_BUNDLE:-romkatv/zsh-defer}"
 ANTIDOTE_OSTYPE=${ANTIDOTE_OSTYPE:-OSTYPE}
 ANTIDOTE_TESTING=${ANTIDOTE_TESTING:-false}
 ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-TMPDIR}
-ANTIDOTE_VERSION="1.10.1"
+ANTIDOTE_VERSION="1.10.2"
 
 ANTIDOTE_HELP=$(
 cat <<'EOS'
