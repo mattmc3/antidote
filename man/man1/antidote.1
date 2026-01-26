@@ -2,12 +2,12 @@
 .\"     Title: antidote
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-01-22
+.\"      Date: 2026-01-26
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE" "1" "2026-01-22" "antidote" "Antidote Manual"
+.TH "ANTIDOTE" "1" "2026-01-26" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -312,6 +312,27 @@ zstyle \*(Aq:antidote:defer\*(Aq bundle \*(Aqgetantidote/zsh\-defer\*(Aq
 .fam
 .fi
 .if n .RE
+.SH "CONTROLLING OUTPUT"
+.sp
+Output in antidote can be customized as well.
+.sp
+Colorization of certain output is supported in antidote, and color support detection
+is controlled by the \fBCOLORTERM\fP variable, which modern terminals should set. If you
+want to override that behavior, setting the following variables can help control that:
+.sp
+\fBNO_COLOR\fP
+.RS 4
+Set \*(AqNO_COLOR=1\*(Aq to disable color in output.
+.RE
+.sp
+\fBCLICOLOR_FORCE\fP
+.RS 4
+Set \*(AqCLICOLOR_FORCE=1\*(Aq to force color in output. NO_COLOR must be 0 or unset.
+.RE
+.sp
+Additionally, JSON Lines (JSONL) output is supported for certain commands such as
+\*(Aqantidote list\*(Aq. If you need JSONL support, look for this flag:
+\fB\-j, \-\-jsonl\fP:: Output in JSONL.
 .SH "SEE ALSO"
 .sp
 For more information, visit \c

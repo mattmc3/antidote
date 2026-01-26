@@ -172,5 +172,19 @@ By default, antidote uses romkatv/zsh-defer for deferred plugins. If there's a f
 zstyle ':antidote:defer' bundle 'getantidote/zsh-defer'
 ----
 
+== Controlling Output
+Output in antidote can be customized as well.
+
+Colorization of certain output is supported in antidote, and color support detection
+is controlled by the *COLORTERM* variable, which modern terminals should set. If you
+want to override that behavior, setting the following variables can help control that:
+
+*NO_COLOR*:: Set 'NO_COLOR=1' to disable color in output.
+*CLICOLOR_FORCE*:: Set 'CLICOLOR_FORCE=1' to force color in output. NO_COLOR must be 0 or unset.
+
+Additionally, JSON Lines (JSONL) output is supported for certain commands such as
+'antidote list'. If you need JSONL support, look for this flag:
+*-j, --jsonl*:: Output in JSONL.
+
 == See Also
 For more information, visit https://antidote.sh
