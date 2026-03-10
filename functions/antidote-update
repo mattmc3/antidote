@@ -79,14 +79,14 @@
         # Unshallow the repo, because with the SHA locking feature coming in v2, we'll
         # need to have everything.
         if git -C "$1" rev-parse --is-shallow-repository 2>/dev/null | grep -q "true" || [[ -f "$1/.git/shallow" ]]; then
-          git -C "$1" fetch --quiet --unshallow
+          git -C "$1" fetch --quiet --unshallow >&2
         else
-          git -C "$1" fetch --quiet
+          git -C "$1" fetch --quiet >&2
         fi
 
-        git -C "$1" pull --quiet --ff --rebase --autostash
-        git -C "$1" submodule --quiet sync --recursive
-        git -C "$1" submodule --quiet update --init --recursive --depth 1
+        git -C "$1" pull --quiet --ff --rebase --autostash >&2
+        git -C "$1" submodule --quiet sync --recursive >&2
+        git -C "$1" submodule --quiet update --init --recursive --depth 1 >&2
         local newsha=$(git -C "$1" rev-parse --short HEAD)
 
         # Capture all output to temporary file
