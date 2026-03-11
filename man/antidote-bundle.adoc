@@ -37,6 +37,8 @@ Bundles also support annotations. Annotations allow you have finer grained contr
   The pre and post annotations allow you to call a function before or after a plugin's load script. This is helpful when configuring plugins, since the configuration functions will only run for active plugins. Supply the name of a zero argument zsh function to pre or post.
 `autoload`::
   The autoload annotation allows you to autoload a zsh functions directory in addition to however the plugin was loaded as specified by `kind`. Supply a relative path to autoload (eg: `autoload:functions`).
+`pin`::
+  The pin annotation allows you to lock a bundle to a specific git ref such as a tag, branch, or commit SHA (eg: `pin:v1.0.0`). A pinned bundle will be cloned at the specified ref and will be skipped during `antidote update`. This is useful for preventing unwanted upstream changes from affecting your environment.
 
 Cloned repo directory naming can be controlled with the following `zstyle`:
 
@@ -97,6 +99,18 @@ Using the *path:* annotation:
 # load oh-my-zsh
 antidote bundle ohmyzsh/ohmyzsh path:lib
 antidote bundle ohmyzsh/ohmyzsh path:plugins/git
+----
+
+Using the *pin:* annotation:
+
+----
+# pin a plugin to a specific tag
+antidote bundle zsh-users/zsh-autosuggestions pin:v0.7.0
+----
+
+----
+# pin a plugin to a specific commit SHA
+antidote bundle zsh-users/zsh-syntax-highlighting pin:abc1234
 ----
 
 Using the *conditional:* annotation:

@@ -10,7 +10,7 @@ antidote-update - update bundles
 *antidote update* [-h|--help] [-s|--self] [-b|--bundles]
 
 == Description
-*antidote-update* updates antidote and its cloned bundles.
+*antidote-update* updates antidote and its cloned bundles. Bundles that have been pinned with the `pin:` annotation will be skipped.
 
 == Options
 *-h, --help*:: Show the help documentation.

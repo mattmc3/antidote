@@ -62,15 +62,19 @@ git_shortsha() { git -C "$1" rev-parse --short HEAD; }
 
 git_is_shallow()  { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
 git_clone()       { git clone --depth 1 --no-local --quiet --recurse-submodules --shallow-submodules "$@"; }
-git_fetch()       { git -C "$1" fetch --quiet ${2:+"$2"}; }
+git_fetch()       { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
 git_pull() {
   local -a autostash_flag=(--autostash)
   [[ "$ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
   git -C "$1" pull --quiet --ff --rebase $autostash_flag
 }
-git_log_oneline() { git -C "$1" --no-pager log --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
+git_log_oneline()      { git -C "$1" --no-pager log --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
 git_submodule_sync()   { git -C "$1" submodule --quiet sync --recursive; }
 git_submodule_update() { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
+git_checkout_detach()  { git -C "$1" checkout --quiet --detach "$2"; }
+git_config_get()       { git -C "$1" config --get "$2" 2>/dev/null; }
+git_config_set()       { git -C "$1" config "$2" "$3"; }
+git_config_unset()     { git -C "$1" config --unset "$2" 2>/dev/null; }
 
 # True if the bundle is a git repo (not a local path/file).
 is_repo() {
@@ -78,7 +82,7 @@ is_repo() {
 }
 
 bulk_clone() {
-  local bundle_str branch zsh_defer=0
+  local bundle_str branch pin zsh_defer=0
   local -A bundle
   local -aU script
 
@@ -93,11 +97,17 @@ bulk_clone() {
       branch=
     fi
 
+    if [[ -n "${bundle[pin]}" ]]; then
+      pin="--pin ${bundle[pin]} "
+    else
+      pin=
+    fi
+
     if [[ "${bundle[kind]}" == defer && $zsh_defer == 0 ]]; then
       zsh_defer=1
       script+=("zsh_script --kind clone ${ANTIDOTE_DEFER_BUNDLE} &")
     fi
-    script+=("zsh_script --kind clone ${branch}${bundle[__bundle__]} &")
+    script+=("zsh_script --kind clone ${branch}${pin}${bundle[__bundle__]} &")
   done
 
   # Print script
@@ -480,7 +490,47 @@ bundle_dir() {
   fi
 }
 
-### Parse antidote's bundle DSL and emit zsh_script commands.
+### Check for conflicting pin/branch annotations on the same repo.
+#
+# Reads raw bundle text from stdin, parses it via bundle_parser, and fails
+# if the same repo directory appears with different pin or branch values.
+#
+bundle_check_conflicts() {
+  local parsed_line key dir val prev lookup
+  local -a parsed_bundles
+  local -A b seen_repo seen
+
+  parsed_bundles=("${(@f)$(bundle_parser)}")
+  for parsed_line in $parsed_bundles; do
+    b=("${(@Q)${(z)parsed_line}}")
+    dir="${b[__dir__]}"
+    [[ -n "$dir" ]] || continue
+
+    for key in pin branch; do
+      val="${b[$key]}"
+      lookup="${dir}:${key}"
+      prev="${seen[$lookup]}"
+
+      if [[ -n "${seen_repo[$dir]}" ]]; then
+        # One entry has the annotation and the other doesn't
+        if [[ -n "$val" && -z "$prev" ]] || [[ -z "$val" && -n "$prev" ]]; then
+          warn "antidote: error: inconsistent $key for '${b[__bundle__]}': some entries have ${key}:${val:-$prev}, others do not"
+          return 1
+        fi
+        # Both have it but they disagree
+        if [[ -n "$val" ]] && [[ "$prev" != "$val" ]]; then
+          warn "antidote: error: conflicting $key for '${b[__bundle__]}': ${key}:${val} vs ${key}:${prev}"
+          return 1
+        fi
+      fi
+
+      [[ -n "$val" ]] && seen[$lookup]="$val"
+    done
+
+    seen_repo[$dir]=1
+  done
+}
+
 bundle_scripter() {
   local bundle_str collected_input lineno skip_load_defer
   local key val _parsed
@@ -561,8 +611,8 @@ bundle_scripter() {
 zsh_script() {
   local MATCH MBEGIN MEND REPLY
   local -a match mbegin mend
-  local -a o_help o_kind o_path o_branch o_cond o_autoload o_pre o_post o_fpath_rule o_skip_load_defer
-  local re bundle bname bundle_path btype dopts zsh_defer zsh_defer_bundle giturl
+  local -a o_help o_kind o_path o_branch o_pin o_cond o_autoload o_pre o_post o_fpath_rule o_skip_load_defer
+  local re bundle bname bundle_path btype dopts zsh_defer zsh_defer_bundle giturl current_pin
   local source_cmd print_bundle_path initfile print_initfile fpath_script _initfiles_out
   local -a supported_kind_vals supported_fpath_rules script initfiles
 
@@ -573,6 +623,7 @@ zsh_script() {
     a:=o_autoload  -autoload:=a       \
     b:=o_branch    -branch:=b         \
     k:=o_kind      -kind:=k           \
+                   -pin:=o_pin        \
     p:=o_path      -path:=p           \
                    -pre:=o_pre        \
                    -post:=o_post      \
@@ -592,6 +643,7 @@ zsh_script() {
   [[ $o_path[-1] =~ $re ]] && o_path[-1]=$match
   [[ $o_cond[-1] =~ $re ]] && o_cond[-1]=$match
   [[ $o_branch[-1] =~ $re ]] && o_branch[-1]=$match
+  [[ $o_pin[-1] =~ $re ]] && o_pin[-1]=$match
   [[ $o_pre[-1] =~ $re ]] && o_pre[-1]=$match
   [[ $o_post[-1] =~ $re ]] && o_post[-1]=$match
   [[ $o_fpath_rule[-1] =~ $re ]] && o_fpath_rule[-1]=$match
@@ -628,8 +680,40 @@ zsh_script() {
   if [[ "$btype" == (repo|url|ssh_url) ]] && [[ ! -e "$bundle_path" ]]; then
     giturl=$(tourl $bundle)
     warn "# antidote cloning $bname..."
-    git_clone $o_branch $giturl $bundle_path
-    [[ $? -eq 0 ]] || return 1
+    if (( $#o_pin )); then
+      # Pin: clone at the pinned ref (works for tags/branches, stays shallow)
+      if ! git_clone --branch $o_pin[-1] $giturl $bundle_path; then
+        warn "antidote: error: pin ref '$o_pin[-1]' not found for $bname"
+        return 1
+      fi
+      # Detach HEAD so update won't accidentally advance past the pin
+      git_checkout_detach "$bundle_path" $o_pin[-1]
+      # Store pin in repo-local git config so antidote update knows to skip it
+      git_config_set "$bundle_path" antidote.pin $o_pin[-1]
+    else
+      git_clone $o_branch $giturl $bundle_path || return 1
+    fi
+  fi
+
+  # Sync pin state for existing repos
+  if [[ "$btype" == (repo|url|ssh_url) ]] && [[ -e "$bundle_path" ]]; then
+    if (( $#o_pin )); then
+      current_pin=$(git_config_get "$bundle_path" antidote.pin)
+      if [[ "$current_pin" != "$o_pin[-1]" ]]; then
+        # Pin changed or newly added — fetch the ref and checkout
+        # Try fetching the specific ref first (works for tags/branches)
+        git_fetch "$bundle_path" origin tag $o_pin[-1] 2>/dev/null \
+          || git_fetch "$bundle_path" origin $o_pin[-1] 2>/dev/null \
+          || git_fetch "$bundle_path" --unshallow origin 2>/dev/null
+        if ! git_checkout_detach "$bundle_path" $o_pin[-1]; then
+          warn "antidote: error: pin ref '$o_pin[-1]' not found for $bname"
+          return 1
+        fi
+        git_config_set "$bundle_path" antidote.pin $o_pin[-1]
+      fi
+    else
+      git_config_unset "$bundle_path" antidote.pin
+    fi
   fi
 
   # if we only needed to clone the bundle, compile and we're done
@@ -771,6 +855,9 @@ antidote_bundle() {
   # or as <redirected or piped| input
   bundles=("${(@f)$(collect_input "$@")}")
   (( $#bundles )) || return 1
+
+  # validate bundles for conflicting pin/branch before doing any work
+  printf '%s\n' $bundles | bundle_check_conflicts || return 1
 
   # output static file compilation
   zcompile_script=(
@@ -945,7 +1032,7 @@ antidote_purge() {
 #
 antidote_update() {
   local o_help o_self o_bundles
-  local tmpfile tmpdir bundledir url repo filename repo_id antidote_dir
+  local tmpfile tmpdir bundledir url repo filename repo_id antidote_dir pin_ref
   local green blue yellow normal
   local line loadable_check_path
 
@@ -996,6 +1083,14 @@ antidote_update() {
     for bundledir in $(antidote_list --dirs); do
       url=$(git_url "$bundledir")
       repo="${url:h:t}/${${url:t}%.git}"
+
+      # Skip pinned bundles
+      pin_ref=$(git_config_get "$bundledir" antidote.pin)
+      if [[ -n "$pin_ref" ]]; then
+        say "antidote: skipping update for pinned bundle: $repo (at $pin_ref)"
+        continue
+      fi
+
       say "antidote: checking for updates: $url"
 
       () {

