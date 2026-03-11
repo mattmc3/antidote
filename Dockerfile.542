@@ -17,7 +17,7 @@ RUN wget -qO- https://just.systems/install.sh | bash -s -- --to /usr/local/bin
 # Ubuntu minimal containers stub out /usr/bin/man; unminimize restores the real man
 RUN yes | unminimize 2>/dev/null || true
 
-# Build and install Zsh 5.4.2 from source (same as CI workflow)
+# Build and install Zsh 5.4.2 from source
 # config.guess/config.sub in the 5.4.2 tarball are from 2009 and don't know
 # about aarch64, so we update them from automake before running configure.
 RUN wget -q https://sourceforge.net/projects/zsh/files/zsh/5.4.2/zsh-5.4.2.tar.xz \
@@ -31,7 +31,7 @@ RUN wget -q https://sourceforge.net/projects/zsh/files/zsh/5.4.2/zsh-5.4.2.tar.x
     && cd .. \
     && rm -rf zsh-5.4.2 zsh-5.4.2.tar.xz
 
-# Install clitest (same repo as CI workflow)
+# Install clitest
 RUN git clone --depth=1 https://github.com/aureliojargas/clitest /opt/clitest
 
 ENV PATH="/opt/clitest:$PATH"

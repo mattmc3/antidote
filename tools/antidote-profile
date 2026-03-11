@@ -48,5 +48,5 @@ print "==> zprof: antidote update (subprocess)"
 rm -rf "${_profile_dir}"
 
 print ""
-print "==> zprof: profile-real (parent shell)"
+print "==> zprof: antidote-profile (parent shell)"
 zprof

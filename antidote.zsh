@@ -25,7 +25,7 @@ if [[ ":${ZSH_EVAL_CONTEXT}:" == *:file:* ]]; then
   return 0
 fi
 
-# Internal profiling support - must be loaded before any function definitions
+# Internal profiling support
 [[ -n "$ANTIDOTE_PROFILE" ]] && zmodload zsh/zprof
 
 # Load config: source config file then apply any serialized zstyles
@@ -1274,7 +1274,7 @@ EOS
 antidote "$@"
 ERR=$?
 
-# Internal profiling support - dump results to file
+# Internal profiling support
 if [[ -n "$ANTIDOTE_PROFILE" ]]; then
   zprof >> "${ANTIDOTE_PROFILE_OUT:-/tmp/antidote-profile.zprof}"
 fi

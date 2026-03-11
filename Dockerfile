@@ -9,7 +9,7 @@ RUN apk add --no-cache \
     mandoc \
     less
 
-# Install clitest (same repo as CI workflow)
+# Install clitest
 RUN git clone --depth=1 https://github.com/aureliojargas/clitest /opt/clitest
 
 ENV PATH="/opt/clitest:$PATH"
