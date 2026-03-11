@@ -1,10 +1,11 @@
-# antidote-script tests
+# antidote zsh_script tests
 
 ## Setup
 
 ```zsh
 % source ./tests/__init__.zsh
 % t_setup
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
 %
 ```
 
@@ -13,32 +14,32 @@
 ### Fails
 
 ```zsh
-% antidote-script  #=> --exit 1
-% antidote-script
+% antidote __private__ zsh_script  #=> --exit 1
+% antidote __private__ zsh_script
 antidote: error: bundle argument expected
 %
 ```
 
 ### Arg style
 
-`antidote-script` accepts '--arg val', '--arg:val', '--arg=val' syntax
+`zsh_script` accepts '--arg val', '--arg:val', '--arg=val' syntax
 
 ```zsh
-% antidote-script --kind zsh foo/bar  #=> --exit 0
-% antidote-script --kind:zsh foo/bar  #=> --exit 0
-% antidote-script --kind=zsh foo/bar  #=> --exit 0
-% antidote-script --kind+zsh foo/bar  #=> --exit 1
+% antidote __private__ zsh_script --kind zsh foo/bar  #=> --exit 0
+% antidote __private__ zsh_script --kind:zsh foo/bar  #=> --exit 0
+% antidote __private__ zsh_script --kind=zsh foo/bar  #=> --exit 0
+% antidote __private__ zsh_script --kind+zsh foo/bar  #=> --exit 1
 %
 ```
 
 ### Scripting types
 
-`antidote-script` works with local files and directories, as well as remote repos.
+`zsh_script` works with local files and directories, as well as remote repos.
 
 Script a file:
 
 ```zsh
-% antidote-script $ZDOTDIR/aliases.zsh | subenv ZDOTDIR
+% antidote __private__ zsh_script $ZDOTDIR/aliases.zsh | subenv ZDOTDIR
 source "$ZDOTDIR/aliases.zsh"
 %
 ```
@@ -46,7 +47,7 @@ source "$ZDOTDIR/aliases.zsh"
 Script a lib directory:
 
 ```zsh
-% antidote-script $ZDOTDIR/custom/lib | subenv ZDOTDIR
+% antidote __private__ zsh_script $ZDOTDIR/custom/lib | subenv ZDOTDIR
 fpath+=( "$ZDOTDIR/custom/lib" )
 source "$ZDOTDIR/custom/lib/lib1.zsh"
 source "$ZDOTDIR/custom/lib/lib2.zsh"
@@ -56,22 +57,22 @@ source "$ZDOTDIR/custom/lib/lib2.zsh"
 Script a plugin directory:
 
 ```zsh
-% antidote-script $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
+% antidote __private__ zsh_script $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
 fpath+=( "$ZDOTDIR/custom/plugins/myplugin" )
 source "$ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh"
 %
 ```
 
-Script repos in antibody style:
+Script repos in escaped path-style:
 
 ```zsh
-% zstyle ':antidote:bundle' use-friendly-names off
+% zstyle ':antidote:bundle' path-style escaped
 % ANTIDOTE_HOME=$HOME/.cache/antibody
-% antidote-script foo/bar                        | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
-% antidote-script https://github.com/foo/bar     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
-% antidote-script https://github.com/foo/bar.git | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
-% antidote-script git@github.com:foo/qux.git     | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-fooqux.zsh
-% zstyle ':antidote:bundle' use-friendly-names on
+% antidote __private__ zsh_script foo/bar                            2>/dev/null | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% antidote __private__ zsh_script https://fakegitsite.com/foo/bar                | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% antidote __private__ zsh_script https://fakegitsite.com/foo/bar.git            | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-foobar.zsh
+% antidote __private__ zsh_script git@fakegitsite.com:foo/qux.git    2>/dev/null | subenv ANTIDOTE_HOME  #=> --file ./testdata/antibody/script-fooqux.zsh
+% zstyle -d ':antidote:bundle' path-style
 % ANTIDOTE_HOME=$HOME/.cache/antidote
 %
 ```
@@ -83,47 +84,47 @@ Script repos in antibody style:
 Nothing happens when the plugin already exists.
 
 ```zsh
-% antidote-script --kind clone foo/bar
+% antidote __private__ zsh_script --kind clone foo/bar
 %
 ```
 
 Clone a missing plugin.
 
 ```zsh
-% antidote-script --kind clone bar/foo
-# antidote cloning bar/foo...
+% antidote __private__ zsh_script --kind clone themes/ohmytheme
+# antidote cloning themes/ohmytheme...
 %
 ```
 
 ### kind:zsh
 
 ```zsh
-% antidote-script --kind zsh foo/bar | subenv ANTIDOTE_HOME
-fpath+=( "$ANTIDOTE_HOME/foo/bar" )
-source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
+% antidote __private__ zsh_script --kind zsh foo/bar | subenv ANTIDOTE_HOME
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
+source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 %
 ```
 
 ### kind:path
 
 ```zsh
-% antidote-script --kind path foo/bar | subenv ANTIDOTE_HOME
-export PATH="$ANTIDOTE_HOME/foo/bar:$PATH"
+% antidote __private__ zsh_script --kind path foo/bar | subenv ANTIDOTE_HOME
+export PATH="$ANTIDOTE_HOME/fakegitsite.com/foo/bar:$PATH"
 %
 ```
 
 ### kind:fpath
 
 ```zsh
-% antidote-script --kind fpath foo/bar | subenv ANTIDOTE_HOME
-fpath+=( "$ANTIDOTE_HOME/foo/bar" )
+% antidote __private__ zsh_script --kind fpath foo/bar | subenv ANTIDOTE_HOME
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
 %
 ```
 
 ### kind:autoload
 
 ```zsh
-% antidote-script --kind autoload $ZDOTDIR/functions | subenv ZDOTDIR
+% antidote __private__ zsh_script --kind autoload $ZDOTDIR/functions | subenv ZDOTDIR
 fpath+=( "$ZDOTDIR/functions" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
 %
@@ -132,22 +133,22 @@ builtin autoload -Uz $fpath[-1]/*(N.:t)
 ### kind:defer
 
 ```zsh
-% antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
+% antidote __private__ zsh_script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( "$ANTIDOTE_HOME/getantidote/zsh-defer" )
-  source "$ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh"
+  fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer" )
+  source "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( "$ANTIDOTE_HOME/foo/bar" )
-zsh-defer source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
+zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 %
 ```
 
 Test skipping defer loading
 
 ```zsh
-% antidote-script --kind defer --skip-load-defer foo/bar | subenv ANTIDOTE_HOME
-fpath+=( "$ANTIDOTE_HOME/foo/bar" )
-zsh-defer source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
+% antidote __private__ zsh_script --kind defer --skip-load-defer foo/bar | subenv ANTIDOTE_HOME
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
+zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 %
 ```
 
@@ -156,70 +157,71 @@ Test defer zstyle settings
 ```zsh
 % zstyle ':antidote:bundle:*' defer-options '-a'
 % zstyle ':antidote:bundle:foo/bar' defer-options '-p'
-% antidote-script --kind defer foo/bar | subenv ANTIDOTE_HOME
+% antidote __private__ zsh_script --kind defer foo/bar | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( "$ANTIDOTE_HOME/getantidote/zsh-defer" )
-  source "$ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh"
+  fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer" )
+  source "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( "$ANTIDOTE_HOME/foo/bar" )
-zsh-defer -p source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
+zsh-defer -p source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 %
 % # Uses different defer options due to zstyle matching
-% antidote-script --kind defer bar/baz 2>/dev/null | subenv ANTIDOTE_HOME
+% antidote __private__ zsh_script --kind defer bar/baz | subenv ANTIDOTE_HOME
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( "$ANTIDOTE_HOME/getantidote/zsh-defer" )
-  source "$ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh"
+  fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer" )
+  source "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( "$ANTIDOTE_HOME/bar/baz" )
-zsh-defer -a source "$ANTIDOTE_HOME/bar/baz/baz.plugin.zsh"
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/bar/baz" )
+zsh-defer -a source "$ANTIDOTE_HOME/fakegitsite.com/bar/baz/baz.plugin.zsh"
 % # cleanup
 % t_reset
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
 %
 ```
 
 ### path:plugin-dir
 
 ```zsh
-% antidote-script --path plugins/extract ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/extract" )
-source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/extract/extract.plugin.zsh"
+% antidote __private__ zsh_script --path plugins/extract ohmy/ohmy | subenv ANTIDOTE_HOME
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/extract" )
+source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/extract/extract.plugin.zsh"
 %
 ```
 
 ### path:file
 
 ```zsh
-% antidote-script --path lib/lib1.zsh ohmy/ohmy | subenv ANTIDOTE_HOME
-source "$ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh"
+% antidote __private__ zsh_script --path lib/lib1.zsh ohmy/ohmy | subenv ANTIDOTE_HOME
+source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/lib/lib1.zsh"
 %
 ```
 
 ### path:lib-dir
 
 ```zsh
-% antidote-script --path lib ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/lib" )
-source "$ANTIDOTE_HOME/ohmy/ohmy/lib/lib1.zsh"
-source "$ANTIDOTE_HOME/ohmy/ohmy/lib/lib2.zsh"
-source "$ANTIDOTE_HOME/ohmy/ohmy/lib/lib3.zsh"
+% antidote __private__ zsh_script --path lib ohmy/ohmy | subenv ANTIDOTE_HOME
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/lib" )
+source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/lib/lib1.zsh"
+source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/lib/lib2.zsh"
+source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/lib/lib3.zsh"
 %
 ```
 
 ### path:theme
 
 ```zsh
-% antidote-script --path themes/pretty.zsh-theme ohmy/ohmy | subenv ANTIDOTE_HOME
-source "$ANTIDOTE_HOME/ohmy/ohmy/themes/pretty.zsh-theme"
+% antidote __private__ zsh_script --path themes/pretty.zsh-theme ohmy/ohmy | subenv ANTIDOTE_HOME
+source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/themes/pretty.zsh-theme"
 %
 ```
 
 ### conditional:testfunc
 
 ```zsh
-% antidote-script --conditional is-macos --path plugins/macos ohmy/ohmy | subenv ANTIDOTE_HOME
+% antidote __private__ zsh_script --conditional is-macos --path plugins/macos ohmy/ohmy | subenv ANTIDOTE_HOME
 if is-macos; then
-  fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos" )
-  source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh"
+  fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos" )
+  source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos/macos.plugin.zsh"
 fi
 %
 ```
@@ -227,11 +229,11 @@ fi
 ### autoload:funcdir
 
 ```zsh
-% antidote-script --path plugins/macos --autoload functions ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/functions" )
+% antidote __private__ zsh_script --path plugins/macos --autoload functions ohmy/ohmy | subenv ANTIDOTE_HOME
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos/functions" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
-fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos" )
-source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh"
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos" )
+source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos/macos.plugin.zsh"
 %
 ```
 
@@ -239,15 +241,15 @@ source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/macos/macos.plugin.zsh"
 
 ```zsh
 % # append
-% antidote-script --fpath-rule append --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath+=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/docker" )
-source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
+% antidote __private__ zsh_script --fpath-rule append --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/docker" )
+source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
 % # prepend
-% antidote-script --fpath-rule prepend --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
-fpath=( "$ANTIDOTE_HOME/ohmy/ohmy/plugins/docker" $fpath )
-source "$ANTIDOTE_HOME/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
+% antidote __private__ zsh_script --fpath-rule prepend --path plugins/docker ohmy/ohmy | subenv ANTIDOTE_HOME
+fpath=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/docker" $fpath )
+source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
 % # whoops
-% antidote-script --fpath-rule foobar --path plugins/docker ohmy/ohmy 2>&1
+% antidote __private__ zsh_script --fpath-rule foobar --path plugins/docker ohmy/ohmy 2>&1
 antidote: error: unexpected fpath rule: 'foobar'
 %
 ```
@@ -256,14 +258,14 @@ antidote: error: unexpected fpath rule: 'foobar'
 
 ```zsh
 % # pre
-% antidote-script --pre run_before foo/bar | subenv ANTIDOTE_HOME
+% antidote __private__ zsh_script --pre run_before foo/bar | subenv ANTIDOTE_HOME
 run_before
-fpath+=( "$ANTIDOTE_HOME/foo/bar" )
-source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
+source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 % # post
-% antidote-script --post run_after foo/bar | subenv ANTIDOTE_HOME
-fpath+=( "$ANTIDOTE_HOME/foo/bar" )
-source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
+% antidote __private__ zsh_script --post run_after foo/bar | subenv ANTIDOTE_HOME
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
+source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 run_after
 %
 ```
@@ -271,27 +273,25 @@ run_after
 If a plugin is deferred, so is its post event
 
 ```zsh
-% antidote-script --pre pre-event --post post-event --kind defer foo/bar | subenv ANTIDOTE_HOME
+% antidote __private__ zsh_script --pre pre-event --post post-event --kind defer foo/bar | subenv ANTIDOTE_HOME
 pre-event
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( "$ANTIDOTE_HOME/getantidote/zsh-defer" )
-  source "$ANTIDOTE_HOME/getantidote/zsh-defer/zsh-defer.plugin.zsh"
+  fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer" )
+  source "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( "$ANTIDOTE_HOME/foo/bar" )
-zsh-defer source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
+zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 zsh-defer post-event
 %
 ```
 
 ## Private functions
 
-### \_\_antidote_initfiles
+### initfiles
 
 setup
 
 ```zsh
-% # load __antidote_initfiles from private funcs in antidote-script
-% antidote-script -h &>/dev/null
 % PLUGINDIR=$T_TEMPDIR/initfiles/myplugin
 % mkdir -p $PLUGINDIR
 % touch $PLUGINDIR/myplugin.plugin.zsh
@@ -312,7 +312,7 @@ setup
 myplugin.plugin.zsh
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
+% antidote __private__ initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/myplugin.plugin.zsh
 % rm $PLUGINDIR/myplugin.plugin.zsh
 %
@@ -321,7 +321,7 @@ $PLUGINDIR/myplugin.plugin.zsh
 whatever.plugin.zsh
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
+% antidote __private__ initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/whatever.plugin.zsh
 % rm $PLUGINDIR/whatever.plugin.zsh
 %
@@ -330,7 +330,7 @@ $PLUGINDIR/whatever.plugin.zsh
 file.zsh
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
+% antidote __private__ initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/file.zsh
 % rm $PLUGINDIR/file.zsh
 %
@@ -339,7 +339,7 @@ $PLUGINDIR/file.zsh
 file.sh
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
+% antidote __private__ initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/file.sh
 % rm $PLUGINDIR/file.sh
 %
@@ -348,7 +348,7 @@ $PLUGINDIR/file.sh
 mytheme.zsh-theme
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR | subenv PLUGINDIR
+% antidote __private__ initfiles $PLUGINDIR | subenv PLUGINDIR
 $PLUGINDIR/mytheme.zsh-theme
 % rm $PLUGINDIR/mytheme.zsh-theme
 %
@@ -357,7 +357,7 @@ $PLUGINDIR/mytheme.zsh-theme
 lib
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR/lib | subenv PLUGINDIR
+% antidote __private__ initfiles $PLUGINDIR/lib | subenv PLUGINDIR
 $PLUGINDIR/lib/lib1.zsh
 $PLUGINDIR/lib/lib2.zsh
 $PLUGINDIR/lib/lib3.zsh
@@ -367,7 +367,7 @@ $PLUGINDIR/lib/lib3.zsh
 FAIL: no files left that match
 
 ```zsh
-% __antidote_initfiles $PLUGINDIR  #=> --exit 1
+% antidote __private__ initfiles $PLUGINDIR  #=> --exit 1
 %
 ```
 
@@ -376,7 +376,7 @@ FAIL: Empty
 ```zsh
 % PLUGINDIR=$T_TEMPDIR/initfiles/foo
 % mkdir -p $PLUGINDIR
-% __antidote_initfiles $PLUGINDIR  #=> --exit 1
+% antidote __private__ initfiles $PLUGINDIR  #=> --exit 1
 %
 ```
 

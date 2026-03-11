@@ -5,6 +5,7 @@
 ```zsh
 % source ./tests/__init__.zsh
 % t_setup
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
 %
 ```
 
@@ -12,7 +13,7 @@ By default, fpath is appended to:
 
 ```zsh
 % antidote bundle foo/bar kind:fpath
-fpath+=( "$HOME/.cache/antidote/foo/bar" )
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
 %
 ```
 
@@ -20,15 +21,15 @@ fpath can be told to explicitly append, but it's unnecessary
 
 ```zsh
 % antidote bundle foo/bar kind:zsh fpath-rule:append
-fpath+=( "$HOME/.cache/antidote/foo/bar" )
-source "$HOME/.cache/antidote/foo/bar/bar.plugin.zsh"
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
 %
 
 fpath can be prepended with fpath-rule:prepend
 
 ```zsh
 % antidote bundle foo/bar kind:fpath fpath-rule:prepend
-fpath=( "$HOME/.cache/antidote/foo/bar" $fpath )
+fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )
 %
 
 fpath rules can only be append/prepend
@@ -44,10 +45,10 @@ fpath rules are also used for `kind:autoload`
 
 ```zsh
 % antidote bundle foo/baz path:baz kind:autoload fpath-rule:append
-fpath+=( "$HOME/.cache/antidote/foo/baz/baz" )
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
 % antidote bundle foo/baz path:baz kind:autoload fpath-rule:prepend
-fpath=( "$HOME/.cache/antidote/foo/baz/baz" $fpath )
+fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
 builtin autoload -Uz $fpath[1]/*(N.:t)
 %
 ```
@@ -57,16 +58,16 @@ fpath rules are also used for `autoload:funcdir`
 ```zsh
 % # Append
 % antidote bundle foo/baz autoload:baz fpath-rule:append
-fpath+=( "$HOME/.cache/antidote/foo/baz/baz" )
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
-fpath+=( "$HOME/.cache/antidote/foo/baz" )
-source "$HOME/.cache/antidote/foo/baz/baz.plugin.zsh"
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz" )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"
 % # Prepend
 % antidote bundle foo/baz autoload:baz fpath-rule:prepend
-fpath=( "$HOME/.cache/antidote/foo/baz/baz" $fpath )
+fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
 builtin autoload -Uz $fpath[1]/*(N.:t)
-fpath=( "$HOME/.cache/antidote/foo/baz" $fpath )
-source "$HOME/.cache/antidote/foo/baz/baz.plugin.zsh"
+fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz" $fpath )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"
 %
 ```
 
@@ -77,12 +78,12 @@ fpath rules can be set globally with a zstyle:
 ```zsh
 % zstyle ':antidote:fpath' rule 'prepend'
 % antidote bundle foo/bar
-fpath=( "$HOME/.cache/antidote/foo/bar" $fpath )
-source "$HOME/.cache/antidote/foo/bar/bar.plugin.zsh"
+fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
 % antidote bundle foo/bar kind:fpath
-fpath=( "$HOME/.cache/antidote/foo/bar" $fpath )
+fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )
 % antidote bundle foo/baz path:baz kind:autoload
-fpath=( "$HOME/.cache/antidote/foo/baz/baz" $fpath )
+fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
 builtin autoload -Uz $fpath[1]/*(N.:t)
 %
 ```
@@ -93,12 +94,12 @@ still respected:
 ```zsh
 % zstyle ':antidote:fpath' rule 'prepend'
 % antidote bundle foo/bar fpath-rule:append
-fpath+=( "$HOME/.cache/antidote/foo/bar" )
-source "$HOME/.cache/antidote/foo/bar/bar.plugin.zsh"
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
 % antidote bundle foo/bar kind:fpath fpath-rule:append
-fpath+=( "$HOME/.cache/antidote/foo/bar" )
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
 % antidote bundle foo/baz path:baz kind:autoload fpath-rule:append
-fpath+=( "$HOME/.cache/antidote/foo/baz/baz" )
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
 %
 ```

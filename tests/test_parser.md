@@ -1,95 +1,87 @@
-# antidote bundle parser tests
+# antidote bundle_parser tests
 
 ## Setup
 
 ```zsh
 % source ./tests/__init__.zsh
 % t_setup
-% zstyle ':antidote:gitremote' url 'https://fakegitsite.com/'
 %
 ```
 
 ## Test bundle parser associative arrays
 
-The bundle parser takes the antidote bundle format and returns an associative array
-from the results of `declare -p parsed_bundle`
+The bundle parser takes the antidote bundle format and returns a flat key-value
+string that can be read into an associative array.
 
 Test empty:
 
 ```zsh
-% __antidote_parser
-% __antidote_parser '# This is a full line comment'
+% echo | antidote __private__ bundle_parser
+% echo '# This is a full line comment' | antidote __private__ bundle_parser
 %
 ```
 
 Test assoc array for repo
 
 ```zsh
-% __antidote_parser 'foo/bar' | print_aarr
-$assoc_arr  : bundle
-_repo       : foo/bar
-_repodir    : foo/bar
-_type       : repo
-_url        : https://fakegitsite.com/foo/bar
-name        : foo/bar
+% echo 'foo/bar' | antidote __private__ bundle_parser | print_aarr
+__bundle__  : foo/bar
+__dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+__short__   : foo/bar
+__type__    : repo
+__url__     : https://fakegitsite.com/foo/bar
 %
 ```
 
-Test assoc array for repo in compatibility mode
+Test assoc array for repo in escaped path
 
 ```zsh
-% zstyle ':antidote:bundle' use-friendly-names off
-% __antidote_parser 'foo/bar' | print_aarr
-$assoc_arr  : bundle
-_repo       : foo/bar
-_repodir    : https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
-_type       : repo
-_url        : https://fakegitsite.com/foo/bar
-name        : foo/bar
-% zstyle ':antidote:bundle' use-friendly-names on
+% zstyle ':antidote:bundle' path-style escaped
+% echo 'foo/bar' | antidote __private__ bundle_parser | print_aarr
+__bundle__  : foo/bar
+__dir__     : $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
+__short__   : foo/bar
+__type__    : repo
+__url__     : https://fakegitsite.com/foo/bar
+% zstyle -d ':antidote:bundle' path-style
 %
 ```
 
 Test assoc array for path
 
 ```zsh
-% __antidote_parser '$ZSH_CUSTOM/foo' 'mybundle' | print_aarr
-$assoc_arr  : mybundle
-_type       : path
-name        : $ZSH_CUSTOM/foo
+% echo '$ZSH_CUSTOM/foo' | antidote __private__ bundle_parser | print_aarr
+__bundle__  : $ZSH_CUSTOM/foo
+__type__    : path
 %
 ```
 
 Test assoc array for jibberish
 
 ```zsh
-% __antidote_parser 'a b c d:e:f' | print_aarr
-$assoc_arr  : bundle
-_type       : ?
-b           :
-c           :
+% echo 'a b c d:e:f' | antidote __private__ bundle_parser | print_aarr
+__bundle__  : a
+__error__   : error: Expecting 'key:value' form for annotation 'c'.
+__type__    : word
 d           : e:f
-name        : a
-% __antidote_parser 'foo bar:baz' | print_aarr
-$assoc_arr  : bundle
-_type       : ?
+% echo 'foo bar:baz' | antidote __private__ bundle_parser | print_aarr
+__bundle__  : foo
+__type__    : word
 bar         : baz
-name        : foo
 %
 ```
 
 Test assoc array for everything
 
 ```zsh
-% __antidote_parser 'foo/bar branch:baz kind:zsh path:plugins/baz pre:precmd post:"post cmd"' | print_aarr
-$assoc_arr  : bundle
-_repo       : foo/bar
-_repodir    : foo/bar
-_type       : repo
-_url        : https://fakegitsite.com/foo/bar
+% echo 'foo/bar branch:baz kind:zsh path:plugins/baz pre:precmd post:"post cmd"' | antidote __private__ bundle_parser | print_aarr
+__bundle__  : foo/bar
+__dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+__short__   : foo/bar
+__type__    : repo
+__url__     : https://fakegitsite.com/foo/bar
 branch      : baz
 kind        : zsh
-name        : foo/bar
 path        : plugins/baz
 post        : post cmd
 pre         : precmd
@@ -98,47 +90,105 @@ pre         : precmd
 
 ## Test specific keys have known values
 
-Test name:
+Test __bundle__:
 
 ```zsh
-% __antidote_parser 'foo/bar' | aarr_val name
+% echo 'foo/bar' | antidote __private__ bundle_parser | bundle_val __bundle__
 foo/bar
 %
 ```
 
-Test \_type:
+Test __type__:
 
 ```zsh
-% __antidote_parser 'foo/bar' | aarr_val _type
+% echo 'foo/bar' | antidote __private__ bundle_parser | bundle_val __type__
 repo
-% __antidote_parser 'https://github.com/foo/bar' | aarr_val _type
+% echo 'https://github.com/foo/bar' | antidote __private__ bundle_parser | bundle_val __type__
 url
-% __antidote_parser 'git@bitbucket.org:foo/bar' | aarr_val _type
-url
-% __antidote_parser '$foo/bar' | aarr_val _type
+% echo 'git@bitbucket.org:foo/bar' | antidote __private__ bundle_parser | bundle_val __type__
+ssh_url
+% echo '$foo/bar' | antidote __private__ bundle_parser | bundle_val __type__
 path
-% __antidote_parser '$foo/bar/baz.zsh' | aarr_val _type
+% echo '$foo/bar/baz.zsh' | antidote __private__ bundle_parser | bundle_val __type__
 path
-% __antidote_parser '~foo/bar' | aarr_val _type
+% echo '~foo/bar' | antidote __private__ bundle_parser | bundle_val __type__
 path
-% __antidote_parser '~/foo' | aarr_val _type
+% echo '~/foo' | antidote __private__ bundle_parser | bundle_val __type__
 path
-% __antidote_parser './foo.zsh' | aarr_val _type
+% echo './foo.zsh' | antidote __private__ bundle_parser | bundle_val __type__
 path
-% __antidote_parser '../foo.zsh' | aarr_val _type
+% echo '../foo.zsh' | antidote __private__ bundle_parser | bundle_val __type__
 path
-% __antidote_parser 'foo/bar/' | aarr_val _type
-path
-% __antidote_parser 'foo:bar' | aarr_val _type
+% echo 'foo/bar/' | antidote __private__ bundle_parser | bundle_val __type__
+relpath
+% echo 'foo:bar' | antidote __private__ bundle_parser | bundle_val __type__
 ?
-% __antidote_parser 'bad@gitsite.com/foo/bar' | aarr_val _type
+% echo 'bad@gitsite.com/foo/bar' | antidote __private__ bundle_parser | bundle_val __type__
 ?
-% __antidote_parser 'http:/badsite.com/foo/bar' | aarr_val _type
+% echo 'http:/badsite.com/foo/bar' | antidote __private__ bundle_parser | bundle_val __type__
 ?
-% __antidote_parser 'https://badsite.com/foo/bar/baz' | aarr_val _type
+% echo 'https://badsite.com/foo/bar/baz' | antidote __private__ bundle_parser | bundle_val __type__
+malformed_url
+% echo 'https://badsite.com/foo' | antidote __private__ bundle_parser | bundle_val __type__
+malformed_url
+%
+```
+
+Test __url__:
+
+```zsh
+% echo 'foo/bar' | antidote __private__ bundle_parser | bundle_val __url__
+https://fakegitsite.com/foo/bar
+% echo 'https://github.com/foo/bar' | antidote __private__ bundle_parser | bundle_val __url__
+https://github.com/foo/bar
+% echo 'git@bitbucket.org:foo/bar' | antidote __private__ bundle_parser | bundle_val __url__
+git@bitbucket.org:foo/bar
+% echo '$foo/bar' | antidote __private__ bundle_parser | bundle_val __url__
+
+% echo 'bad@gitsite.com/foo/bar' | antidote __private__ bundle_parser | bundle_val __url__
+
+% echo 'http:/badsite.com/foo/bar' | antidote __private__ bundle_parser | bundle_val __type__
 ?
-% __antidote_parser 'https://badsite.com/foo' | aarr_val _type
-?
+% echo 'https://badsite.com/foo/bar/baz' | antidote __private__ bundle_parser | bundle_val __url__
+https://badsite.com/foo/bar/baz
+% echo 'https://badsite.com/foo' | antidote __private__ bundle_parser | bundle_val __url__
+https://badsite.com/foo
+%
+```
+
+## Test __bundle__ for various bundle types
+
+```zsh
+% echo 'foo/bar' | antidote __private__ bundle_parser | bundle_val __bundle__
+foo/bar
+% echo 'https://github.com/foo/bar' | antidote __private__ bundle_parser | bundle_val __bundle__
+https://github.com/foo/bar
+% echo 'git@bitbucket.org:foo/bar' | antidote __private__ bundle_parser | bundle_val __bundle__
+git@bitbucket.org:foo/bar
+% echo '$foo/bar' | antidote __private__ bundle_parser | bundle_val __bundle__
+$foo/bar
+% echo '$foo/bar/baz.zsh' | antidote __private__ bundle_parser | bundle_val __bundle__
+$foo/bar/baz.zsh
+% echo '~foo/bar' | antidote __private__ bundle_parser | bundle_val __bundle__
+~foo/bar
+% echo '~/foo' | antidote __private__ bundle_parser | bundle_val __bundle__
+~/foo
+% echo './foo.zsh' | antidote __private__ bundle_parser | bundle_val __bundle__
+./foo.zsh
+% echo '../foo.zsh' | antidote __private__ bundle_parser | bundle_val __bundle__
+../foo.zsh
+% echo 'foo/bar/' | antidote __private__ bundle_parser | bundle_val __bundle__
+foo/bar/
+% echo 'foo:bar' | antidote __private__ bundle_parser | bundle_val __bundle__
+foo:bar
+% echo 'bad@gitsite.com/foo/bar' | antidote __private__ bundle_parser | bundle_val __bundle__
+bad@gitsite.com/foo/bar
+% echo 'http:/badsite.com/foo/bar' | antidote __private__ bundle_parser | bundle_val __bundle__
+http:/badsite.com/foo/bar
+% echo 'https://badsite.com/foo/bar/baz' | antidote __private__ bundle_parser | bundle_val __bundle__
+https://badsite.com/foo/bar/baz
+% echo 'https://badsite.com/foo' | antidote __private__ bundle_parser | bundle_val __bundle__
+https://badsite.com/foo
 %
 ```
 

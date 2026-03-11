@@ -16,10 +16,10 @@
 function antidote {
   case "$1" in
     bundle)
-      source <( antidote-main $@ ) || antidote-main $@
+      source <( antidote-dispatch $@ ) || antidote-dispatch $@
       ;;
     *)
-      antidote-main $@
+      antidote-dispatch $@
       ;;
   esac
 }
@@ -31,9 +31,11 @@ Load plugins dynamically
 ```zsh
 % source <(antidote init)
 % antidote bundle foo/bar
-sourcing foo/bar...
+# antidote cloning foo/bar...
+sourcing bar.plugin.zsh from foo/bar...
 % antidote bundle foo/baz autoload:functions
-sourcing foo/baz...
+# antidote cloning foo/baz...
+sourcing baz.plugin.zsh from foo/baz...
 % antidote bundle $ZDOTDIR/custom/lib
 sourcing custom lib1.zsh...
 sourcing custom lib2.zsh...

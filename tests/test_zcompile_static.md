@@ -5,6 +5,7 @@
 ```zsh
 % source ./tests/__init__.zsh
 % t_setup
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
 %
 ```
 
@@ -20,6 +21,7 @@ Ensure a compiled file exists:
 % cat $ZDOTDIR/.zplugins_fake_zcompile_static.zsh | subenv  #=> --file testdata/.zplugins_fake_zcompile_static.zsh
 % test -e $ZDOTDIR/.zplugins_fake_zcompile_static.zsh.zwc  #=> --exit 0
 % t_reset
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
 %
 ```
 

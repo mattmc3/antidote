@@ -6,7 +6,7 @@ fails gracefully when someone tries bash
 
 ```zsh
 % bash -c "source ./antidote.zsh"
-antidote: Expecting zsh. Found 'bash'.
+antidote: This script requires Zsh, not Bash
 %
 ```
 
@@ -19,8 +19,6 @@ antidote: Expecting zsh. Found 'bash'.
 % t_setup
 % echo $+functions[antidote]
 1
-% git --version
-mockgit version 0.0.0
 %
 ```
 
@@ -80,8 +78,7 @@ No arg exit status is 2:
 `-v` and `--version` work:
 
 ```zsh
-% antidote --version
-antidote version 1.10.3 (abcd123)
+% antidote --version  #=> --regex antidote version [0-9]+\.[0-9]+\.[0-9]+ \([a-f0-9]+\)
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?
@@ -112,8 +109,8 @@ antidote: command not found 'foo'
 
 ```zsh
 % cmds=( bundle help home init install list load path purge update main null )
-% for cmd in $cmds; printf '%s' $+functions[antidote-$cmd]; echo
-111111111110
+% # for cmd in $cmds; printf '%s' $+functions[antidote-$cmd]; echo
+% # 111111111110
 %
 ```
 

@@ -1,6 +1,6 @@
 # repo plugins
 foo/bar
-git@github.com:foo/qux.git  # trailing comments
+git@fakegitsite.com:foo/qux.git  # trailing comments
 
 # kind:clone
 getantidote/zsh-defer kind:clone		# more trailing comments

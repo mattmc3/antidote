@@ -1,0 +1,6 @@
+bar/baz kind:clone
+foo/bar kind:clone
+foo/baz kind:clone
+git@fakegitsite.com:foo/qux kind:clone
+getantidote/zsh-defer kind:clone
+ohmy/ohmy kind:clone

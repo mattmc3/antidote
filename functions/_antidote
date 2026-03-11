@@ -103,7 +103,7 @@ function _antidote {
         (update)
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
-            '(-s --selp)'{-s,--self}'[Update antidote]' \
+            '(-s --self)'{-s,--self}'[Update antidote]' \
             '(-b --bundles)'{-b,--bundles}'[Update bundles]' \
             && ret=0
           ;;

@@ -2,12 +2,12 @@
 .\"     Title: antidote-bundle
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-01-26
+.\"      Date: 2026-03-11
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE\-BUNDLE" "1" "2026-01-26" "antidote" "Antidote Manual"
+.TH "ANTIDOTE\-BUNDLE" "1" "2026-03-11" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -143,12 +143,14 @@ The pre and post annotations allow you to call a function before or after a plug
 The autoload annotation allows you to autoload a zsh functions directory in addition to however the plugin was loaded as specified by \f(CRkind\fP. Supply a relative path to autoload (eg: \f(CRautoload:functions\fP).
 .RE
 .sp
-Cloned repo directory names can be overridden with the following \f(CRzstyle\fP:
+Cloned repo directory naming can be controlled with the following \f(CRzstyle\fP:
 .sp
 .if n .RS 4
 .nf
 .fam C
-zstyle \*(Aq:antidote:bundle\*(Aq use\-friendly\-names \*(Aqyes\*(Aq
+zstyle \*(Aq:antidote:bundle\*(Aq path\-style full\&     # github.com/owner/repo (default)
+zstyle \*(Aq:antidote:bundle\*(Aq path\-style short\&    # owner/repo
+zstyle \*(Aq:antidote:bundle\*(Aq path\-style escaped\&  # https\-COLON\-\-SLASH\-\-SLASH\-github.com\-SLASH\-owner\-SLASH\-repo
 .fam
 .fi
 .if n .RE

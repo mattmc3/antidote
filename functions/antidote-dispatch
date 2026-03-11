@@ -1,0 +1,158 @@
+#!/bin/zsh
+
+### The antidote dispatcher.
+# This allows the `antidote` function to be overridden via `antidote init`.
+# The init command switches antidote from static mode to dynamic mode, but this
+# core dispatcher remains.
+#function antidote-dispatch {
+  0=${(%):-%x}
+
+  [[ -o KSH_ARRAYS ]] && __adote_ksh_arrays=1 && unsetopt KSH_ARRAYS
+  [[ -o SH_GLOB    ]] && __adote_sh_glob=1    && unsetopt SH_GLOB
+
+  # Route __private__ directly to antidote-zsh subprocess
+  if [[ "$1" == "__private__" ]]; then
+    antidote-zsh "$@"
+    return $?
+  fi
+
+  local o_help o_version
+  zparseopts ${_adote_zparopt_flags} -- \
+    h=o_help    -help=h    \
+    v=o_version -version=v ||
+    return 1
+
+  local ret=0
+
+  if (( ${#o_version} )); then
+    antidote-zsh --version
+
+  elif (( ${#o_help} )); then
+    antidote-zsh __private__ usage
+
+  elif [[ ${#} -eq 0 ]]; then
+    antidote-zsh __private__ usage
+    ret=2
+
+  elif [[ "${1}" = help ]]; then
+    local manpage
+    if [[ "$2" == -h || "$2" == --help ]]; then
+      manpage=antidote-help
+    elif [[ -z "$2" || "$2" == antidote ]]; then
+      manpage=antidote
+    else
+      manpage="antidote-${2}"
+    fi
+    if (( $+commands[man] )) && [[ -n "$manpage" ]]; then
+      if ! man "$manpage" 2>/dev/null; then
+        printf '%s\n' "No manual entry for $manpage"
+        antidote-zsh __private__ usage
+        ret=1
+      fi
+    else
+      antidote-zsh __private__ usage
+    fi
+
+  elif [[ "$1" == load ]]; then
+    shift
+    if [[ "$1" == -h || "$1" == --help ]]; then
+      antidote help load
+    else
+      typeset -g REPLY=
+      () {
+        emulate -L zsh; setopt local_options $_adote_funcopts
+
+        local bundlefile="$1"
+        if [[ -z "$bundlefile" ]]; then
+          zstyle -s ':antidote:bundle' file 'bundlefile' ||
+            bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+        fi
+
+        local staticfile="$2"
+        if [[ -z "$staticfile" ]]; then
+          zstyle -s ':antidote:static' file 'staticfile'
+          if [[ -z "$staticfile" ]]; then
+            if [[ -z "$bundlefile:t:r" ]]; then
+              staticfile=${bundlefile}.zsh
+            else
+              staticfile=${bundlefile:r}.zsh
+            fi
+          fi
+        fi
+
+        if [[ ! -e "$bundlefile" ]]; then
+          print -ru2 -- "antidote: bundle file not found '$bundlefile'."
+          return 1
+        elif [[ "$bundlefile" == "$staticfile" ]]; then
+          print -ru2 -- "antidote: bundle file and static file are the same '$bundlefile'."
+          return 1
+        fi
+
+        local force_bundle=0
+        if ! zstyle -t ':antidote:load:checkfile' disabled; then
+          local loadable_check_path="$(antidote home)/.antidote.load"
+          if [[ ! -e $loadable_check_path ]]; then
+            force_bundle=1
+            [[ -d $loadable_check_path:h ]] || mkdir -p $loadable_check_path:h
+            touch $loadable_check_path
+          fi
+        fi
+
+        if [[ ! $staticfile -nt $bundlefile ]] || [[ $force_bundle -eq 1 ]]; then
+          mkdir -p "${staticfile:A:h}"
+          antidote bundle <"$bundlefile" >|"$staticfile"
+          if [[ -r "${staticfile}.zwc" ]] && ! zstyle -t ':antidote:static' zcompile; then
+            antidote-zsh __private__ del -f -- "${staticfile}.zwc"
+          fi
+        fi
+
+        typeset -g REPLY=$staticfile
+      } "$@" || ret=$?
+      [[ -f "$REPLY" ]] && source "$REPLY" || ret=${ret:-2}
+      unset REPLY
+    fi
+    ret=${ret:-$?}
+
+  elif [[ "$1" == update ]]; then
+    shift
+    if [[ "$1" == -h || "$1" == --help ]]; then
+      antidote help update
+    else
+      antidote-zsh __private__ antidote_update "$@"
+      # re-setup antidote after self-update
+      local o_self o_bundles
+      zparseopts ${_adote_zparopt_flags} -- \
+        s=o_self    -self=s    \
+        b=o_bundles -bundles=b 2>/dev/null
+      if (( $#o_self )) || ! (( $#o_bundles )); then
+        (( $+functions[antidote-setup] )) && unfunction antidote-setup
+        builtin autoload -Uz ${0:A:h}/antidote-setup
+        antidote-setup
+      fi
+    fi
+    ret=$?
+
+  elif (( $+functions[antidote-${1}] )); then
+    local cmd=${1}; shift
+    antidote-${cmd} "$@"
+    ret=$?
+
+  else
+    local cmd=${1}; shift
+    local o_help=()
+    zparseopts ${_adote_zparopt_flags} -- h=o_help -help=h 2>/dev/null
+    if (( $#o_help )); then
+      antidote help "$cmd"
+    elif [[ "$cmd" == path ]]; then
+      set -- "${(@e)@}"  # Expand variables in paths
+      antidote-zsh "$cmd" "$@"
+    else
+      antidote-zsh "$cmd" "$@"
+    fi
+    ret=$?
+  fi
+
+  (( __adote_ksh_arrays )) && __adote_ksh_arrays=0 && setopt KSH_ARRAYS
+  (( __adote_sh_glob ))    && __adote_sh_glob=0    && setopt SH_GLOB
+  return $ret
+#}

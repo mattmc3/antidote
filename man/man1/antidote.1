@@ -2,12 +2,12 @@
 .\"     Title: antidote
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-01-26
+.\"      Date: 2026-03-11
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE" "1" "2026-01-26" "antidote" "Antidote Manual"
+.TH "ANTIDOTE" "1" "2026-03-11" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -211,12 +211,14 @@ ANTIDOTE_HOME=/path/to/my/repos
 .fi
 .if n .RE
 .sp
-The bundle directory in ANTIDOTE_HOME can be changed to use friendly names with the following \f(CRzstyle\fP:
+The bundle directory naming style in ANTIDOTE_HOME can be controlled with the following \f(CRzstyle\fP:
 .sp
 .if n .RS 4
 .nf
 .fam C
-zstyle \*(Aq:antidote:bundle\*(Aq use\-friendly\-names on
+zstyle \*(Aq:antidote:bundle\*(Aq path\-style full\&     # github.com/owner/repo (default)
+zstyle \*(Aq:antidote:bundle\*(Aq path\-style short\&    # owner/repo
+zstyle \*(Aq:antidote:bundle\*(Aq path\-style escaped\&  # https\-COLON\-\-SLASH\-\-SLASH\-github.com\-SLASH\-owner\-SLASH\-repo
 .fam
 .fi
 .if n .RE

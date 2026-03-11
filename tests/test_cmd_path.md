@@ -8,6 +8,13 @@
 %
 ```
 
+Clone the standard test bundles:
+
+```zsh
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
+%
+```
+
 ## Path Command
 
 `antidote-path` prints path to bundle.
@@ -15,7 +22,7 @@
 ```zsh
 % antidote path foo/bar &>/dev/null  #=> --exit 0
 % antidote path foo/bar | subenv ANTIDOTE_HOME
-$ANTIDOTE_HOME/foo/bar
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar
 %
 ```
 
@@ -34,11 +41,12 @@ antidote: error: bar/foo does not exist in cloned paths
 
 ```zsh
 % antidote list -s | antidote path | sort | subenv ANTIDOTE_HOME
-$ANTIDOTE_HOME/foo/bar
-$ANTIDOTE_HOME/foo/baz
-$ANTIDOTE_HOME/foo/qux
-$ANTIDOTE_HOME/getantidote/zsh-defer
-$ANTIDOTE_HOME/ohmy/ohmy
+$ANTIDOTE_HOME/fakegitsite.com/bar/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+$ANTIDOTE_HOME/fakegitsite.com/foo/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/qux
+$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
+$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
 %
 ```
 

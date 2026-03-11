@@ -7,6 +7,7 @@ Tests to handle special Zsh options. [#154](https://github.com/mattmc3/antidote/
 ```zsh
 % source ./tests/__init__.zsh
 % t_setup
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
 % setopt KSH_ARRAYS SH_GLOB
 %
 ```

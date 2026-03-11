@@ -13,8 +13,11 @@
 Show antidote's version:
 
 ```zsh
+% antidote --version  #=> --regex antidote version [0-9]+\.[0-9]+\.[0-9]+ \([a-f0-9]+\)
+% zstyle ':antidote:test:version' show-sha off
 % antidote --version
-antidote version 1.10.3 (abcd123)
+antidote version 1.10.3
+% zstyle -d ':antidote:test:version' show-sha
 %
 ```
 
@@ -48,62 +51,67 @@ commands:
 
 ## Bundling
 
-Bundle a repo at https://github.com/foobar/foo
+Bundle a repo at foo/bar
 
 ```zsh
-% antidote bundle foobar/foo
-# antidote cloning foobar/foo...
-fpath+=( "$HOME/.cache/antidote/foobar/foo" )
-source "$HOME/.cache/antidote/foobar/foo/foo.plugin.zsh"
-%
-```
-
-Bundle a repo at https://gitlab.com/foobar/bar
-
-```zsh
-% antidote bundle https://gitlab.com/foobar/bar
-# antidote cloning foobar/bar...
-fpath+=( "$HOME/.cache/antidote/foobar/bar" )
-source "$HOME/.cache/antidote/foobar/bar/bar.plugin.zsh"
-%
-```
-
-Bundle a repo at git@bitbucket.org:foobar/baz
-
-```zsh
-% antidote bundle git@bitbucket.org:foobar/baz
-# antidote cloning foobar/baz...
-fpath+=( "$HOME/.cache/antidote/foobar/baz" )
-source "$HOME/.cache/antidote/foobar/baz/baz.plugin.zsh"
-%
-```
-
-Bundle the foo/bar repo using old antibody style directories:
-
-```zsh
-% zstyle ':antidote:bundle' use-friendly-names off
 % antidote bundle foo/bar
 # antidote cloning foo/bar...
-fpath+=( "$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar" )
-source "$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar/bar.plugin.zsh"
-% zstyle ':antidote:bundle' use-friendly-names on
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
+%
+```
+
+Bundle a repo at https://fakegitsite.com/foo/bar
+
+```zsh
+% antidote bundle https://fakegitsite.com/foo/bar
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
+%
+```
+
+Bundle a repo at git@fakegitsite.com:foo/qux
+
+```zsh
+% antidote bundle git@fakegitsite.com:foo/qux
+# antidote cloning foo/qux...
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/qux" )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/qux/qux.plugin.zsh"
+%
+```
+
+Bundle the foo/bar repo using escaped path-style directories:
+
+```zsh
+% zstyle ':antidote:bundle' path-style escaped
+% antidote bundle foo/bar | subenv HOME
+# antidote cloning foo/bar...
+fpath+=( "$HOME/.cache/antidote/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar" )
+source "$HOME/.cache/antidote/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar/bar.plugin.zsh"
+% zstyle -d ':antidote:bundle' path-style
+%
+```
+
+Bundle a specific branch of a repo with `branch:<branch>`.
+
+Clean up
+
+```zsh
+% t_reset
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
 %
 ```
 
 Bundle a specific branch of a repo with `branch:<branch>`.
 
 ```zsh
-% antidote bundle foobar/foo branch:dev
-# antidote cloning foobar/foo...
-fpath+=( "$HOME/.cache/antidote/foobar/foo" )
-source "$HOME/.cache/antidote/foobar/foo/foo.plugin.zsh"
-%
-```
-
-Clean up
-
-```zsh
-% t_reset
+% antidote purge foo/bar &>/dev/null
+% antidote bundle foo/bar branch:dev
+# antidote cloning foo/bar...
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
+% git -C $(antidote path foo/bar) branch --show-current
+dev
 %
 ```
 
@@ -113,8 +121,8 @@ Bundles support a `kind:` annotation. The default is `kind:zsh`.
 
 ```zsh
 % antidote bundle foo/bar kind:zsh
-fpath+=( "$HOME/.cache/antidote/foo/bar" )
-source "$HOME/.cache/antidote/foo/bar/bar.plugin.zsh"
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
 %
 ```
 
@@ -122,7 +130,7 @@ Bundle foo/bar with `kind:path` to add it to your `$PATH`.
 
 ```zsh
 % antidote bundle foo/bar kind:path
-export PATH="$HOME/.cache/antidote/foo/bar:$PATH"
+export PATH="$HOME/.cache/antidote/fakegitsite.com/foo/bar:$PATH"
 %
 ```
 
@@ -130,7 +138,7 @@ Bundle foo/bar with `kind:fpath` to add it to your `$fpath`.
 
 ```zsh
 % antidote bundle foo/bar kind:fpath
-fpath+=( "$HOME/.cache/antidote/foo/bar" )
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
 %
 ```
 
@@ -145,7 +153,7 @@ Autoload a path within foo/bar with the `kind:autoload` annotation.
 
 ```zsh
 % antidote bundle foo/baz kind:autoload path:functions
-fpath+=( "$HOME/.cache/antidote/foo/baz/functions" )
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/functions" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
 %
 ```
@@ -155,11 +163,11 @@ Defer loading the foo/bar bundle with the `kind:defer` annotation.
 ```zsh
 % antidote bundle foo/baz kind:defer
 if ! (( $+functions[zsh-defer] )); then
-  fpath+=( "$HOME/.cache/antidote/getantidote/zsh-defer" )
-  source "$HOME/.cache/antidote/getantidote/zsh-defer/zsh-defer.plugin.zsh"
+  fpath+=( "$HOME/.cache/antidote/fakegitsite.com/getantidote/zsh-defer" )
+  source "$HOME/.cache/antidote/fakegitsite.com/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
-fpath+=( "$HOME/.cache/antidote/foo/baz" )
-zsh-defer source "$HOME/.cache/antidote/foo/baz/baz.plugin.zsh"
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz" )
+zsh-defer source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"
 %
 ```
 
@@ -169,8 +177,8 @@ Use the `path:<path>` annotation to load subplugins.
 
 ```zsh
 % antidote bundle ohmy/ohmy path:plugins/docker
-fpath+=( "$HOME/.cache/antidote/ohmy/ohmy/plugins/docker" )
-source "$HOME/.cache/antidote/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/plugins/docker" )
+source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
 %
 ```
 
@@ -178,10 +186,10 @@ Use `path:<lib>` to load a whole directory full of files.
 
 ```zsh
 % antidote bundle ohmy/ohmy path:lib
-fpath+=( "$HOME/.cache/antidote/ohmy/ohmy/lib" )
-source "$HOME/.cache/antidote/ohmy/ohmy/lib/lib1.zsh"
-source "$HOME/.cache/antidote/ohmy/ohmy/lib/lib2.zsh"
-source "$HOME/.cache/antidote/ohmy/ohmy/lib/lib3.zsh"
+fpath+=( "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/lib" )
+source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/lib/lib1.zsh"
+source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/lib/lib2.zsh"
+source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/lib/lib3.zsh"
 %
 ```
 
@@ -189,7 +197,7 @@ Use `path:<file>` to load a specific file.
 
 ```zsh
 % antidote bundle ohmy/ohmy path:custom/themes/pretty.zsh-theme
-source "$HOME/.cache/antidote/ohmy/ohmy/custom/themes/pretty.zsh-theme"
+source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/custom/themes/pretty.zsh-theme"
 %
 ```
 
@@ -201,8 +209,8 @@ Use a existing boolean function to wrap a bundle in `if` logic:
 % is-macos() { [[ "$OSTYPE" == "darwin"* ]]; }
 % antidote bundle foo/bar conditional:is-macos
 if is-macos; then
-  fpath+=( "$HOME/.cache/antidote/foo/bar" )
-  source "$HOME/.cache/antidote/foo/bar/bar.plugin.zsh"
+  fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
+  source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
 fi
 %
 ```
@@ -218,10 +226,10 @@ dynamically bundle.
 function antidote {
   case "$1" in
     bundle)
-      source <( antidote-main $@ ) || antidote-main $@
+      source <( antidote-dispatch $@ ) || antidote-dispatch $@
       ;;
     *)
-      antidote-main $@
+      antidote-dispatch $@
       ;;
   esac
 }
@@ -244,11 +252,12 @@ List directories:
 
 ```zsh
 % antidote list --dirs | subenv HOME
-$HOME/.cache/antidote/foo/bar
-$HOME/.cache/antidote/foo/baz
-$HOME/.cache/antidote/foo/qux
-$HOME/.cache/antidote/getantidote/zsh-defer
-$HOME/.cache/antidote/ohmy/ohmy
+$HOME/.cache/antidote/fakegitsite.com/bar/baz
+$HOME/.cache/antidote/fakegitsite.com/foo/bar
+$HOME/.cache/antidote/fakegitsite.com/foo/baz
+$HOME/.cache/antidote/fakegitsite.com/foo/qux
+$HOME/.cache/antidote/fakegitsite.com/getantidote/zsh-defer
+$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy
 %
 ```
 
@@ -256,11 +265,12 @@ List repo URLs:
 
 ```zsh
 % antidote list --url
-git@github.com:foo/qux
-https://github.com/foo/bar
-https://github.com/foo/baz
-https://github.com/getantidote/zsh-defer
-https://github.com/ohmy/ohmy
+git@fakegitsite.com:foo/qux
+https://fakegitsite.com/bar/baz
+https://fakegitsite.com/foo/bar
+https://fakegitsite.com/foo/baz
+https://fakegitsite.com/getantidote/zsh-defer
+https://fakegitsite.com/ohmy/ohmy
 %
 ```
 
@@ -268,10 +278,11 @@ List short repos:
 
 ```zsh
 % antidote list --short
+bar/baz
 foo/bar
 foo/baz
 getantidote/zsh-defer
-git@github.com:foo/qux
+git@fakegitsite.com:foo/qux
 ohmy/ohmy
 %
 ```
@@ -283,20 +294,23 @@ Show the path to a bundle:
 ```zsh
 % ZSH=$(antidote path ohmy/ohmy)
 % echo $ZSH | subenv HOME
-$HOME/.cache/antidote/ohmy/ohmy
+$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy
 %
 ```
 
 ## Update bundles
 
 ```zsh
+% zstyle ':antidote:test:version' show-sha off
+% zstyle ':antidote:test:git' autostash off
 % antidote update
 Updating bundles...
-antidote: checking for updates: https://github.com/foo/bar
-antidote: checking for updates: https://github.com/foo/baz
-antidote: checking for updates: git@github.com:foo/qux
-antidote: checking for updates: https://github.com/getantidote/zsh-defer
-antidote: checking for updates: https://github.com/ohmy/ohmy
+antidote: checking for updates: https://fakegitsite.com/bar/baz
+antidote: checking for updates: https://fakegitsite.com/foo/bar
+antidote: checking for updates: https://fakegitsite.com/foo/baz
+antidote: checking for updates: git@fakegitsite.com:foo/qux
+antidote: checking for updates: https://fakegitsite.com/getantidote/zsh-defer
+antidote: checking for updates: https://fakegitsite.com/ohmy/ohmy
 Waiting for bundle updates to complete...
 
 Bundle updates complete.
@@ -304,7 +318,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 1.10.3 (abcd123)
+antidote version 1.10.3
 %
 ```
 

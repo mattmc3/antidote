@@ -8,6 +8,13 @@
 %
 ```
 
+Clone the standard test bundles:
+
+```zsh
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
+%
+```
+
 ## List Command
 
 ### Short
@@ -16,10 +23,11 @@
 
 ```zsh
 % antidote list --short | subenv ANTIDOTE_HOME
+bar/baz
 foo/bar
 foo/baz
 getantidote/zsh-defer
-git@github.com:foo/qux
+git@fakegitsite.com:foo/qux
 ohmy/ohmy
 %
 ```
@@ -30,11 +38,12 @@ ohmy/ohmy
 
 ```zsh
 % antidote list --dirs | subenv ANTIDOTE_HOME
-$ANTIDOTE_HOME/foo/bar
-$ANTIDOTE_HOME/foo/baz
-$ANTIDOTE_HOME/foo/qux
-$ANTIDOTE_HOME/getantidote/zsh-defer
-$ANTIDOTE_HOME/ohmy/ohmy
+$ANTIDOTE_HOME/fakegitsite.com/bar/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+$ANTIDOTE_HOME/fakegitsite.com/foo/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/qux
+$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
+$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
 %
 ```
 
@@ -44,11 +53,12 @@ $ANTIDOTE_HOME/ohmy/ohmy
 
 ```zsh
 % antidote list --url
-git@github.com:foo/qux
-https://github.com/foo/bar
-https://github.com/foo/baz
-https://github.com/getantidote/zsh-defer
-https://github.com/ohmy/ohmy
+git@fakegitsite.com:foo/qux
+https://fakegitsite.com/bar/baz
+https://fakegitsite.com/foo/bar
+https://fakegitsite.com/foo/baz
+https://fakegitsite.com/getantidote/zsh-defer
+https://fakegitsite.com/ohmy/ohmy
 %
 ```
 
@@ -58,11 +68,12 @@ https://github.com/ohmy/ohmy
 
 ```zsh
 % antidote list | subenv ANTIDOTE_HOME
-git@github.com:foo/qux                                           $ANTIDOTE_HOME/foo/qux
-https://github.com/foo/bar                                       $ANTIDOTE_HOME/foo/bar
-https://github.com/foo/baz                                       $ANTIDOTE_HOME/foo/baz
-https://github.com/getantidote/zsh-defer                         $ANTIDOTE_HOME/getantidote/zsh-defer
-https://github.com/ohmy/ohmy                                     $ANTIDOTE_HOME/ohmy/ohmy
+git@fakegitsite.com:foo/qux                                      $ANTIDOTE_HOME/fakegitsite.com/foo/qux
+https://fakegitsite.com/bar/baz                                  $ANTIDOTE_HOME/fakegitsite.com/bar/baz
+https://fakegitsite.com/foo/bar                                  $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+https://fakegitsite.com/foo/baz                                  $ANTIDOTE_HOME/fakegitsite.com/foo/baz
+https://fakegitsite.com/getantidote/zsh-defer                    $ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
+https://fakegitsite.com/ohmy/ohmy                                $ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
 %
 ```
 
@@ -72,11 +83,12 @@ https://github.com/ohmy/ohmy                                     $ANTIDOTE_HOME/
 
 ```zsh
 % antidote list --jsonl | subenv ANTIDOTE_HOME
-{"url":"https://github.com/foo/bar","short_name":"foo/bar","type":"repo","path":"$ANTIDOTE_HOME/foo/bar"}
-{"url":"https://github.com/foo/baz","short_name":"foo/baz","type":"repo","path":"$ANTIDOTE_HOME/foo/baz"}
-{"url":"git@github.com:foo/qux","short_name":"git@github.com:foo/qux","type":"repo","path":"$ANTIDOTE_HOME/foo/qux"}
-{"url":"https://github.com/getantidote/zsh-defer","short_name":"getantidote/zsh-defer","type":"repo","path":"$ANTIDOTE_HOME/getantidote/zsh-defer"}
-{"url":"https://github.com/ohmy/ohmy","short_name":"ohmy/ohmy","type":"repo","path":"$ANTIDOTE_HOME/ohmy/ohmy"}
+{"url":"https://fakegitsite.com/bar/baz","short_name":"bar/baz","type":"repo","path":"$ANTIDOTE_HOME/fakegitsite.com/bar/baz"}
+{"url":"https://fakegitsite.com/foo/bar","short_name":"foo/bar","type":"repo","path":"$ANTIDOTE_HOME/fakegitsite.com/foo/bar"}
+{"url":"https://fakegitsite.com/foo/baz","short_name":"foo/baz","type":"repo","path":"$ANTIDOTE_HOME/fakegitsite.com/foo/baz"}
+{"url":"git@fakegitsite.com:foo/qux","short_name":"git@fakegitsite.com:foo/qux","type":"repo","path":"$ANTIDOTE_HOME/fakegitsite.com/foo/qux"}
+{"url":"https://fakegitsite.com/getantidote/zsh-defer","short_name":"getantidote/zsh-defer","type":"repo","path":"$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer"}
+{"url":"https://fakegitsite.com/ohmy/ohmy","short_name":"ohmy/ohmy","type":"repo","path":"$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy"}
 %
 ```
 

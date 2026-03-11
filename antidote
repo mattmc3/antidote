@@ -9,9 +9,9 @@
 #
 function antidote {
   0=${(%):-%x}
-  if ! typeset -f antidote-main > /dev/null; then
+  if ! typeset -f antidote-dispatch > /dev/null; then
     source ${0:A:h}/antidote.zsh
   fi
-  antidote-main "$@"
+  antidote-dispatch "$@"
 }
 antidote "$@"

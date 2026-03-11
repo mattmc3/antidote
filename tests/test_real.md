@@ -67,7 +67,7 @@ Test that `antidote purge --all` aborts when told "no".
 
 ```zsh
 % function test_exists { [[ -e "$1" ]] }
-% zstyle ':antidote:purge:all' answer 'n'
+% zstyle ':antidote:test:purge' answer 'n'
 % antidote purge --all                        #=> --exit 1
 % antidote list | subenv ANTIDOTE_HOME        #=> --file testdata/real/repo-list.txt
 % antidote list | wc -l | awk '{print $1}'
@@ -81,7 +81,7 @@ Test that `antidote purge --all` does the work when told "yes".
 
 ```zsh
 % function test_exists { [[ -e "$1" ]] }
-% zstyle ':antidote:purge:all' answer 'y'
+% zstyle ':antidote:test:purge' answer 'y'
 % antidote purge --all | tail -n 1           #=> --exit 0
 Antidote purge complete. Be sure to start a new Zsh session.
 % antidote list | wc -l | awk '{print $1}'
@@ -94,7 +94,7 @@ Antidote purge complete. Be sure to start a new Zsh session.
 ### Teardown
 
 ```zsh
-% zstyle -d ':antidote:purge:all' answer
+% zstyle -d ':antidote:test:purge' answer
 % t_teardown
 %
 ```
