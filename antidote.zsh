@@ -36,9 +36,9 @@ fi
 [[ -n "$ANTIDOTE_ZSTYLES" ]] && eval "$ANTIDOTE_ZSTYLES"
 
 # Helpers
-die()    { warn "$@"; exit "${ERR:-1}"; }
-say()    { printf '%s\n' "$@"; }
-warn()   { say "$@" >&2; }
+die()  { warn "$@"; exit "${ERR:-1}"; }
+say()  { printf '%s\n' "$@"; }
+warn() { say "$@" >&2; }
 
 # git helpers.
 git() {
@@ -58,6 +58,7 @@ git() {
   fi
 }
 git_url()      { git -C "$1" config remote.origin.url; }
+git_sha()      { git -C "$1" rev-parse HEAD; }
 git_shortsha() { git -C "$1" rev-parse --short HEAD; }
 
 git_is_shallow()  { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
@@ -410,7 +411,7 @@ bundle_zcompile() {
 
   local -a bundles
   if [[ -z "$1" ]]; then
-    bundles=($(antidote_list --dirs))
+    bundles=($(antidote_list))
   elif [[ -f "$1" ]]; then
     zrecompile -pq "$1"
     return
@@ -1080,7 +1081,7 @@ antidote_update() {
     trap '[[ -d "$tmpdir" ]] && del -rf -- "$tmpdir"' EXIT 2 15 1
 
     # update all bundles
-    for bundledir in $(antidote_list --dirs); do
+    for bundledir in $(antidote_list); do
       url=$(git_url "$bundledir")
       repo="${url:h:t}/${${url:t}%.git}"
 
@@ -1211,23 +1212,24 @@ antidote_init() {
 
 ### List cloned bundles.
 #
-# usage: antidote list [-h|--help] [-s|--short] [-d|--dirs] [-u|--url] [-j|--jsonl]
+# usage: antidote list [-u|--url] [-h|--help] [-s|--short-name] [--sha] [--short-sha] [-j|--jsonl]
 #
 antidote_list() {
-  local o_help o_jsonl o_dirs o_url o_short
+  local o_help o_jsonl o_url o_short_name o_sha o_short_sha
   zparseopts ${ZPARSEOPTS} -- \
-    h=o_help  -help=h   \
-    j=o_jsonl -jsonl=j  \
-    d=o_dirs  -dirs=d   \
-    u=o_url   -url=u    \
-    s=o_short -short=s  ||
+    h=o_help       -help=h    \
+    u=o_url        -url=u     \
+    j=o_jsonl      -jsonl=j   \
+    s=o_short_name -short-name=s \
+                   -sha=o_sha    \
+                   -short-sha=o_short_sha ||
     return 1
 
   if (( $# )); then
     die "antidote: error: unexpected $1, try --help"
   fi
 
-  local bundledir url short
+  local bundledir url short_name sha
   local -a output=() parts=()
   local -a bundles=()
 
@@ -1239,23 +1241,25 @@ antidote_list() {
   esac
 
   for bundledir in $bundles; do
-    parts=()
     bundledir=${bundledir:h}
     url=$(git_url "$bundledir") || continue
-    short=${url%.git}
-    short=${short#https://${ANTIDOTE_GIT_SITE}/}
+    short_name=${url%.git}
+    short_name=${short_name#https://${ANTIDOTE_GIT_SITE}/}
+    parts=($bundledir)
 
     if (( $#o_jsonl )); then
-      printf '{"url":"%s","short_name":"%s","type":"repo","path":"%s"}\n' \
-        "$url" "$short" "$bundledir"
+      sha=$(git_sha "$bundledir")
+      printf '{"url":"%s","short_name":"%s","type":"repo","path":"%s","sha":"%s"}\n' \
+        "$url" "$short_name" "$bundledir" "$sha"
       continue
-    elif (( $#o_dirs || $#o_url || $#o_short )); then
-      (( $#o_dirs  )) && parts+=($bundledir)
-      (( $#o_short )) && parts+=($short)
-      (( $#o_url   )) && parts+=($url)
+    elif (( $#o_url || $#o_short_name || $#o_sha || $#o_short_sha )); then
+      (( $#o_short_name )) && parts+=($short_name)
+      (( $#o_url        )) && parts+=($url)
+      (( $#o_sha        )) && parts+=($(git_sha "$bundledir"))
+      (( $#o_short_sha  )) && parts+=($(git_shortsha "$bundledir"))
       output+=("$(printf '%s\n' ${(pj:\t:)parts})")
     else
-      output+=("$(printf '%-64s %s\n' $url $bundledir)")
+      output+=("$(printf '%s\n' $bundledir)")
     fi
   done
   (( $#output )) && printf '%s\n' ${(o)output}

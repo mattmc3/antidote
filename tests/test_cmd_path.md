@@ -40,7 +40,7 @@ antidote: error: bar/foo does not exist in cloned paths
 `antidote-path` accepts piped input
 
 ```zsh
-% antidote list -s | antidote path | sort | subenv ANTIDOTE_HOME
+% antidote list -s | awk -F'\t' '{print $2}' | antidote path | sort | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/fakegitsite.com/bar/baz
 $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 $ANTIDOTE_HOME/fakegitsite.com/foo/baz

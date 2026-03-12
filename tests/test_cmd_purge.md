@@ -58,11 +58,11 @@ Test that `antidote purge --all` aborts when told "no".
 % zstyle ':antidote:test:purge' answer 'n'
 % antidote purge --all  #=> --exit 1
 % antidote list | subenv ANTIDOTE_HOME
-git@fakegitsite.com:foo/qux                                      $ANTIDOTE_HOME/fakegitsite.com/foo/qux
-https://fakegitsite.com/bar/baz                                  $ANTIDOTE_HOME/fakegitsite.com/bar/baz
-https://fakegitsite.com/foo/baz                                  $ANTIDOTE_HOME/fakegitsite.com/foo/baz
-https://fakegitsite.com/getantidote/zsh-defer                    $ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
-https://fakegitsite.com/ohmy/ohmy                                $ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
+$ANTIDOTE_HOME/fakegitsite.com/bar/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/qux
+$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
+$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
 %
 ```
 

@@ -251,7 +251,7 @@ $HOME/.cache/antidote
 List directories:
 
 ```zsh
-% antidote list --dirs | subenv HOME
+% antidote list | subenv HOME
 $HOME/.cache/antidote/fakegitsite.com/bar/baz
 $HOME/.cache/antidote/fakegitsite.com/foo/bar
 $HOME/.cache/antidote/fakegitsite.com/foo/baz
@@ -264,11 +264,11 @@ $HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy
 List repo URLs:
 
 ```zsh
-% antidote list --url
-git@fakegitsite.com:foo/qux
+% antidote list --url | awk -F'\t' '{print $2}'
 https://fakegitsite.com/bar/baz
 https://fakegitsite.com/foo/bar
 https://fakegitsite.com/foo/baz
+git@fakegitsite.com:foo/qux
 https://fakegitsite.com/getantidote/zsh-defer
 https://fakegitsite.com/ohmy/ohmy
 %
@@ -277,7 +277,7 @@ https://fakegitsite.com/ohmy/ohmy
 List short repos:
 
 ```zsh
-% antidote list --short
+% antidote list --short-name | awk -F'\t' '{print $2}' | sort
 bar/baz
 foo/bar
 foo/baz

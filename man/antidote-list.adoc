@@ -7,14 +7,17 @@
 antidote-list - list cloned bundles
 
 == Synopsis
-*antidote list* [-h|--help] [-s|--short] [-d|--dirs] [-u|--url]
+*antidote list* [-h|--help]
+*antidote list* [-j|--jsonl]
+*antidote list* [-s|--short-name] [--sha] [--short-sha] [-u|--url]
 
 == Description
 *antidote-list* lists the cloned bundles in *antidote home*.
 
 == Options
 *-h, --help*:: Show the help documentation.
-*-s, --short*:: Show shortened repos where possible.
-*-d, --dirs*:: Show only bundle directories.
-*-u, --url*:: Show bundle URLs.
 *-j, --jsonl*:: Output the bundle list in JSONL format.
+*-s, --short-name*:: Show shortened repo names where possible.
+*-u, --url*:: Show bundle URLs.
+*--sha*:: Show the full commit SHA for each bundle.
+*--short-sha*:: Show the short commit SHA for each bundle.
