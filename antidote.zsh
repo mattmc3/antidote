@@ -1029,10 +1029,10 @@ antidote_purge() {
 
 ### Update antidote's cloned bundles.
 #
-# usage: antidote update [-h|--help] [-s|--self] [-b|--bundles]
+# usage: antidote update [-h|--help] [-s|--self] [-b|--bundles] [-n|--dry-run]
 #
 antidote_update() {
-  local o_help o_self o_bundles
+  local o_help o_self o_bundles o_dry_run
   local tmpfile tmpdir bundledir url repo filename repo_id antidote_dir pin_ref
   local green blue yellow normal
   local line loadable_check_path
@@ -1040,7 +1040,8 @@ antidote_update() {
   zparseopts ${ZPARSEOPTS} -- \
     h=o_help    -help=h    \
     s=o_self    -self=s    \
-    b=o_bundles -bundles=b ||
+    b=o_bundles -bundles=b \
+    n=o_dry_run -dry-run=n ||
     return 1
 
   if (( $#o_help )); then
@@ -1064,14 +1065,18 @@ antidote_update() {
   fi
 
   if (( $#o_bundles )) || ! (( $#o_self )); then
-    say "Updating bundles..."
+    if (( $#o_dry_run )); then
+      say "Checking for bundle updates (dry run)..."
+    else
+      say "Updating bundles..."
 
-    # remove zcompiled files
-    del -rf -- $ANTIDOTE_HOME/**/*.zwc(N)
+      # remove zcompiled files
+      del -rf -- $ANTIDOTE_HOME/**/*.zwc(N)
 
-    # remove check file
-    loadable_check_path="${ANTIDOTE_HOME}/.antidote.load"
-    [[ -r "$loadable_check_path" ]] && del -- "$loadable_check_path"
+      # remove check file
+      loadable_check_path="${ANTIDOTE_HOME}/.antidote.load"
+      [[ -r "$loadable_check_path" ]] && del -- "$loadable_check_path"
+    fi
 
     # Setup temporary directory
     tmpdir=$(maketmp -d -s update)
@@ -1113,21 +1118,32 @@ antidote_update() {
           git_fetch "$1"
         fi
 
-        git_pull "$1"
-        git_submodule_sync "$1"
-        git_submodule_update "$1"
-        newsha=$(git_shortsha "$1")
+        if (( $#o_dry_run )); then
+          # Compare local HEAD against fetched remote HEAD
+          newsha=$(git -C "$1" rev-parse --short FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+        else
+          git_pull "$1"
+          git_submodule_sync "$1"
+          git_submodule_update "$1"
+          newsha=$(git_shortsha "$1")
+        fi
 
         # Capture all output to temporary file
         {
           if [[ $oldsha != $newsha ]]; then
-            say "${green}antidote: updated: $2 ${oldsha} -> ${newsha}${normal}"
+            if (( $#o_dry_run )); then
+              say "${yellow}antidote: update available: $2 ${oldsha} -> ${newsha}${normal}"
+            else
+              say "${green}antidote: updated: $2 ${oldsha} -> ${newsha}${normal}"
+            fi
             git_log_oneline "$1" "$oldsha" "$newsha"
           fi
 
           # recompile bundles
-          if zstyle -t ":antidote:bundle:$repo" zcompile; then
-            bundle_zcompile $bundledir
+          if ! (( $#o_dry_run )); then
+            if zstyle -t ":antidote:bundle:$repo" zcompile; then
+              bundle_zcompile $bundledir
+            fi
           fi
         } > "$tmpfile" 2>&1
       } "$bundledir" "$url" &
@@ -1160,22 +1176,30 @@ antidote_update() {
 
     # cleanup temp dir
     [[ -d "$tmpdir" ]] && del -rf -- "$tmpdir"
-    say "${green}Bundle updates complete.${normal}"
+    if (( $#o_dry_run )); then
+      say "${green}Dry run complete. No changes were made.${normal}"
+    else
+      say "${green}Bundle updates complete.${normal}"
+    fi
     say ""
   fi
 
   # self-update
   if (( $#o_self )) || ! (( $#o_bundles )); then
-    say "Updating antidote..."
-    antidote_dir="${ANTIDOTE_ZSH:A:h}"
-    if [[ -d "${antidote_dir}/.git" ]]; then
-      git_pull "$antidote_dir" 2>/dev/null
-      say "antidote self-update complete."
-      say ""
-      version
+    if (( $#o_dry_run )); then
+      say "antidote: skipping self-update (dry run)"
     else
-      say "Self updating is disabled in this build."
-      say "Use your OS package manager to update antidote itself."
+      say "Updating antidote..."
+      antidote_dir="${ANTIDOTE_ZSH:A:h}"
+      if [[ -d "${antidote_dir}/.git" ]]; then
+        git_pull "$antidote_dir" 2>/dev/null
+        say "antidote self-update complete."
+        say ""
+        version
+      else
+        say "Self updating is disabled in this build."
+        say "Use your OS package manager to update antidote itself."
+      fi
     fi
   fi
 }
@@ -1320,7 +1344,7 @@ antidote() {
 # Initialize antidote global variables from zstyles and environment.
 () {
   typeset -g ANTIDOTE_ZSH="$1"
-  typeset -g ANTIDOTE_VERSION="1.10.3"
+  typeset -g ANTIDOTE_VERSION="2.0.0"
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_PATH_STYLE
