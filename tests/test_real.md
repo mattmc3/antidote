@@ -32,7 +32,7 @@ Clone and generate bundle script
 Check to see that everything cloned
 
 ```zsh
-% antidote list | subenv ANTIDOTE_HOME  #=> --file testdata/real/repo-list.txt
+% antidote list --url | subenv ANTIDOTE_HOME  #=> --file testdata/real/repo-list.txt
 %
 ```
 
@@ -69,7 +69,7 @@ Test that `antidote purge --all` aborts when told "no".
 % function test_exists { [[ -e "$1" ]] }
 % zstyle ':antidote:test:purge' answer 'n'
 % antidote purge --all                        #=> --exit 1
-% antidote list | subenv ANTIDOTE_HOME        #=> --file testdata/real/repo-list.txt
+% antidote list --url | subenv ANTIDOTE_HOME  #=> --file testdata/real/repo-list.txt
 % antidote list | wc -l | awk '{print $1}'
 15
 % test_exists $ZDOTDIR/.zsh_plugins.zsh(.N)   #=> --exit 0
@@ -131,12 +131,12 @@ source "$ANTIDOTE_HOME/zsh-users/zsh-history-substring-search/zsh-history-substr
 Check to see that everything cloned
 
 ```zsh
-% antidote list | subenv ANTIDOTE_HOME
-https://github.com/rupa/z                                        $ANTIDOTE_HOME/rupa/z
-https://github.com/zsh-users/zsh-autosuggestions                 $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
-https://github.com/zsh-users/zsh-completions                     $ANTIDOTE_HOME/zsh-users/zsh-completions
-https://github.com/zsh-users/zsh-history-substring-search        $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search
-https://github.com/zsh-users/zsh-syntax-highlighting             $ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting
+% antidote list --url | sed 's/\t/    /g' | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/rupa/z    https://github.com/rupa/z
+$ANTIDOTE_HOME/zsh-users/zsh-autosuggestions    https://github.com/zsh-users/zsh-autosuggestions
+$ANTIDOTE_HOME/zsh-users/zsh-completions    https://github.com/zsh-users/zsh-completions
+$ANTIDOTE_HOME/zsh-users/zsh-history-substring-search    https://github.com/zsh-users/zsh-history-substring-search
+$ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting    https://github.com/zsh-users/zsh-syntax-highlighting
 %
 ```
 
