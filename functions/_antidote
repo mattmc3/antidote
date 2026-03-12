@@ -107,6 +107,7 @@ function _antidote {
             '(- *)'{-h,--help}'[Show usage information]' \
             '(-s --self)'{-s,--self}'[Update antidote]' \
             '(-b --bundles)'{-b,--bundles}'[Update bundles]' \
+            '(-n --dry-run)'{-n,--dry-run}'[Check for updates without making changes]' \
             && ret=0
           ;;
         (*)
