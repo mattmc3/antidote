@@ -16,7 +16,7 @@ function _antidote_subcommands {
 }
 
 function _antidote_installed_bundles {
-  local -a bundles=("${(@f)$(antidote list -s)}")
+  local -a bundles=("${(@f)$(antidote list --short-name | awk -F'\t' '{print $2}')}")
   _describe 'installed bundles' bundles
 }
 
@@ -62,7 +62,7 @@ function _antidote {
             '(- *)'{-h,--help}'[Show usage information]' \
             && ret=0
           ;;
-        (install|script)
+        (install)
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
             '(-k --kind)'{-k,--kind}'[The kind of bundle]:kinds:_antidote_bundle_kinds' \
@@ -70,6 +70,7 @@ function _antidote {
             '(-a --autoload)'{-a,--autoload}'[A relative subpath within the bundle where autoload function files are located]' \
             '(-c --conditional)'{-c,--conditional}'[A conditional function used to check whether to load the bundle]' \
             '(-b --branch)'{-b,--branch}'[The git branch to use]' \
+            '(--pin)--pin[Pin the bundle to a specific git ref (tag, SHA, branch)]' \
             '(--pre)--pre[A function to be called prior to loading the bundle]' \
             '(--post)--post[A function to be called after loading the bundle]' \
             && ret=0
@@ -77,9 +78,10 @@ function _antidote {
         (list)
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
-            '(-s --short)'{-s,--short}'[Show shortened repos where possible]' \
-            '(-d --dirs)'{-d,--dirs}'[Show only bundle directories]' \
+            '(-s --short-name)'{-s,--short-name}'[Show shortened repo names where possible]' \
             '(-u --url)'{-u,--url}'[Show bundle URLs]' \
+            '(--sha)--sha[Show the full commit SHA for each bundle]' \
+            '(--short-sha)--short-sha[Show the short commit SHA for each bundle]' \
             '(-j --jsonl)'{-j,--jsonl}'[Output the bundle list in JSONL format]' \
             && ret=0
           ;;
