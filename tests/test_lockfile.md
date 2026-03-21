@@ -77,13 +77,29 @@ bde701cd12dbdf921e3f44cc23864a08c5ba0dd2
 %
 ```
 
+## Lockfile syncs existing repo to locked SHA
+
+If the lockfile changes (e.g., user checks out an older lockfile), re-running
+`antidote bundle` should sync the existing repo to the locked SHA.
+
+```zsh
+% bundledir=$ANTIDOTE_HOME/fakegitsite.com/foo/baz
+% command git -C $bundledir rev-parse HEAD
+bde701cd12dbdf921e3f44cc23864a08c5ba0dd2
+% print "zstyle ':antidote:bundle:fakegitsite.com/foo/baz' lock-commit '98cdde20c338bdb4df6efefd7f812d38ecc62b70'" >| $ZDOTDIR/.zsh_plugins.lock
+% echo "foo/baz" | antidote bundle &>/dev/null
+% command git -C $bundledir rev-parse HEAD
+98cdde20c338bdb4df6efefd7f812d38ecc62b70
+%
+```
+
 ## Pin overrides lockfile
 
-Write a lockfile pointing to v1.1.0, but pin to v1.0.0. Pin wins.
+Write a lockfile pointing to v1.1.0 SHA, but pin to v1.0.0 SHA. Pin wins.
 
 ```zsh
 % print "zstyle ':antidote:bundle:fakegitsite.com/pintest/pinme' lock-commit 'c87216c18d3f0301fa1ed669b6c1ad76056271ca'" >| $ZDOTDIR/.zsh_plugins.lock
-% echo "pintest/pinme pin:v1.0.0" | antidote bundle &>/dev/null
+% echo "pintest/pinme pin:64642c5691051ba0d82f5bda60b745f6fd042325" | antidote bundle &>/dev/null
 % bundledir=$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme
 % command git -C $bundledir rev-parse HEAD
 64642c5691051ba0d82f5bda60b745f6fd042325
