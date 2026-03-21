@@ -20,8 +20,8 @@ lockfile exists
 ## Lockfile contains expected zstyle with path relative to ANTIDOTE_HOME
 
 ```zsh
-% grep "foo/bar" $ZDOTDIR/.zsh_plugins.lock
-zstyle ':antidote:bundle:fakegitsite.com/foo/bar' lock-commit '400b29a76d68fd7c40bc7c0460424ab089b1e68a'
+% grep "foo:bar" $ZDOTDIR/.zsh_plugins.lock
+zstyle ':antidote:bundle:fakegitsite.com:foo:bar' lock-commit '400b29a76d68fd7c40bc7c0460424ab089b1e68a'
 %
 ```
 
@@ -37,7 +37,7 @@ zstyle ':antidote:bundle:fakegitsite.com/foo/bar' lock-commit '400b29a76d68fd7c4
 
 ```zsh
 % source $ZDOTDIR/.zsh_plugins.lock
-% zstyle -s ':antidote:bundle:fakegitsite.com/foo/bar' lock-commit REPLY && echo $REPLY
+% zstyle -s ':antidote:bundle:fakegitsite.com:foo:bar' lock-commit REPLY && echo $REPLY
 400b29a76d68fd7c40bc7c0460424ab089b1e68a
 %
 ```
@@ -57,7 +57,7 @@ After purging a bundle and re-bundling, the lockfile should not contain the purg
 ```zsh
 % antidote purge foo/bar &>/dev/null
 % echo "foo/baz" | antidote bundle &>/dev/null
-% grep "foo/bar" $ZDOTDIR/.zsh_plugins.lock | wc -l | tr -d ' '
+% grep "foo:bar" $ZDOTDIR/.zsh_plugins.lock | wc -l | tr -d ' '
 0
 %
 ```
@@ -69,7 +69,7 @@ then re-bundle. The clone should checkout the locked SHA, not HEAD.
 
 ```zsh
 % antidote purge foo/baz &>/dev/null
-% print "zstyle ':antidote:bundle:fakegitsite.com/foo/baz' lock-commit 'bde701cd12dbdf921e3f44cc23864a08c5ba0dd2'" >| $ZDOTDIR/.zsh_plugins.lock
+% print "zstyle ':antidote:bundle:fakegitsite.com:foo:baz' lock-commit 'bde701cd12dbdf921e3f44cc23864a08c5ba0dd2'" >| $ZDOTDIR/.zsh_plugins.lock
 % echo "foo/baz" | antidote bundle &>/dev/null
 % bundledir=$ANTIDOTE_HOME/fakegitsite.com/foo/baz
 % command git -C $bundledir rev-parse HEAD
@@ -86,7 +86,7 @@ If the lockfile changes (e.g., user checks out an older lockfile), re-running
 % bundledir=$ANTIDOTE_HOME/fakegitsite.com/foo/baz
 % command git -C $bundledir rev-parse HEAD
 bde701cd12dbdf921e3f44cc23864a08c5ba0dd2
-% print "zstyle ':antidote:bundle:fakegitsite.com/foo/baz' lock-commit '98cdde20c338bdb4df6efefd7f812d38ecc62b70'" >| $ZDOTDIR/.zsh_plugins.lock
+% print "zstyle ':antidote:bundle:fakegitsite.com:foo:baz' lock-commit '98cdde20c338bdb4df6efefd7f812d38ecc62b70'" >| $ZDOTDIR/.zsh_plugins.lock
 % echo "foo/baz" | antidote bundle &>/dev/null
 % command git -C $bundledir rev-parse HEAD
 98cdde20c338bdb4df6efefd7f812d38ecc62b70
@@ -98,7 +98,7 @@ bde701cd12dbdf921e3f44cc23864a08c5ba0dd2
 Write a lockfile pointing to v1.1.0 SHA, but pin to v1.0.0 SHA. Pin wins.
 
 ```zsh
-% print "zstyle ':antidote:bundle:fakegitsite.com/pintest/pinme' lock-commit 'c87216c18d3f0301fa1ed669b6c1ad76056271ca'" >| $ZDOTDIR/.zsh_plugins.lock
+% print "zstyle ':antidote:bundle:fakegitsite.com:pintest:pinme' lock-commit 'c87216c18d3f0301fa1ed669b6c1ad76056271ca'" >| $ZDOTDIR/.zsh_plugins.lock
 % echo "pintest/pinme pin:64642c5691051ba0d82f5bda60b745f6fd042325" | antidote bundle &>/dev/null
 % bundledir=$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme
 % command git -C $bundledir rev-parse HEAD

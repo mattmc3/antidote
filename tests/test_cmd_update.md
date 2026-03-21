@@ -73,8 +73,8 @@ updated to latest
 ## Update writes lockfile
 
 ```zsh
-% grep "foo/baz" $ZDOTDIR/.zsh_plugins.lock
-zstyle ':antidote:bundle:fakegitsite.com/foo/baz' lock-commit '98cdde20c338bdb4df6efefd7f812d38ecc62b70'
+% grep "foo:baz" $ZDOTDIR/.zsh_plugins.lock
+zstyle ':antidote:bundle:fakegitsite.com:foo:baz' lock-commit '98cdde20c338bdb4df6efefd7f812d38ecc62b70'
 %
 ```
 
@@ -83,8 +83,8 @@ zstyle ':antidote:bundle:fakegitsite.com/foo/baz' lock-commit '98cdde20c338bdb4d
 ```zsh
 % command git -C $bundledir reset --quiet --hard HEAD~1
 % antidote update --bundles --dry-run &>/dev/null
-% grep "foo/baz" $ZDOTDIR/.zsh_plugins.lock
-zstyle ':antidote:bundle:fakegitsite.com/foo/baz' lock-commit '98cdde20c338bdb4df6efefd7f812d38ecc62b70'
+% grep "foo:baz" $ZDOTDIR/.zsh_plugins.lock
+zstyle ':antidote:bundle:fakegitsite.com:foo:baz' lock-commit '98cdde20c338bdb4df6efefd7f812d38ecc62b70'
 %
 ```
 

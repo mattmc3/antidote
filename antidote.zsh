@@ -447,7 +447,7 @@ bundle_id() {
     url=${url#git@}
     url=${url:s/\:/\/}
   fi
-  say $url
+  say ${url//\//:}
 }
 
 bundle_dir() {
