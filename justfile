@@ -54,11 +54,11 @@ test-all env="latest":
         exit 1
     fi
 
-# run only test_real.md (env: "latest", "542", or "local")
+# run only test_real*.md (env: "latest", "542", or "local")
 test-real env="latest":
     #!/usr/bin/env zsh
     if [[ "{{env}}" == "local" ]]; then
-        ./tools/run-clitests tests/test_real.md
+        ./tools/run-clitests tests/test_real*.md
     elif [[ "{{env}}" == "542" ]]; then
         podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
           /usr/local/bin/zsh -c 'cd /workspace && just test-real local'

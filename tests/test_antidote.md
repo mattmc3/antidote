@@ -223,6 +223,7 @@ dynamically bundle.
 ```zsh
 % antidote init
 #!/usr/bin/env zsh
+zstyle ':antidote:lockfile' disabled yes
 function antidote {
   case "$1" in
     bundle)

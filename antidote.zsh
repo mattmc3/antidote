@@ -1290,6 +1290,7 @@ antidote_home() { say "$ANTIDOTE_HOME" }
 #
 antidote_init() {
   say "#!/usr/bin/env zsh"
+  say "zstyle ':antidote:lockfile' disabled yes"
   say "function antidote {"
   say "  case \"\$1\" in"
   say "    bundle)"
