@@ -63,8 +63,6 @@ git() {
 git_url()      { git -C "$1" config remote.origin.url; }
 git_sha()      { git -C "$1" rev-parse HEAD; }
 git_shortsha() { git -C "$1" rev-parse --short HEAD; }
-git_branch()   { git -C "$1" branch --show-current 2>/dev/null; }
-
 git_is_shallow()  { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
 git_clone()       { git clone --depth 1 --no-local --quiet --recurse-submodules --shallow-submodules "$@"; }
 git_fetch()       { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
@@ -1353,8 +1351,8 @@ antidote_snapshot() {
 
 ### Write a snapshot of all cloned bundles to a timestamped file.
 snapshot_save() {
-  local bundledir url sha branch short_name line snapshot_file
-  local -a bundles lines
+  local bundledir url sha short_name snapshot_file
+  local -a bundles bundle_lines
 
   [[ "$ANTIDOTE_DYNAMIC" == true ]] && return 0
 
@@ -1362,19 +1360,13 @@ snapshot_save() {
 
   snapshot_file=${1:-$ANTIDOTE_SNAPSHOT_DIR/snapshot-$(date -u '+%Y%m%d-%H%M%S').txt}
 
-  lines=(
-    "# antidote snapshot"
-    "# version: $ANTIDOTE_VERSION"
-    "# date: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-  )
-
   case $ANTIDOTE_PATH_STYLE in
     escaped) bundles=($ANTIDOTE_HOME/*/.git(/N))     ;;
     short)   bundles=($ANTIDOTE_HOME/*/*/.git(/N))   ;;
     *)       bundles=($ANTIDOTE_HOME/*/*/*/.git(/N)) ;;
   esac
 
-  for bundledir in ${(o)bundles}; do
+  for bundledir in $bundles; do
     bundledir=${bundledir:h}
     url=$(git_url "$bundledir") || continue
     sha=$(git_sha "$bundledir")
@@ -1383,18 +1375,15 @@ snapshot_save() {
     short_name=${url%.git}
     short_name=${short_name#https://${ANTIDOTE_GIT_SITE}/}
 
-    line="$short_name kind:clone pin:$sha"
-
-    # Include branch if on a named branch
-    branch=$(git_branch "$bundledir")
-    if [[ -n "$branch" ]]; then
-      line="$short_name kind:clone branch:$branch pin:$sha"
-    fi
-
-    lines+=("$line")
+    bundle_lines+=("$short_name kind:clone pin:$sha")
   done
 
-  printf '%s\n' $lines >| "$snapshot_file"
+  {
+    print "# antidote snapshot"
+    print "# version: $ANTIDOTE_VERSION"
+    print "# date: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    printf '%s\n' ${(o)bundle_lines}
+  } >| "$snapshot_file"
   say "Snapshot saved: $snapshot_file"
 
   # Prune old snapshots
