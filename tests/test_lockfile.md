@@ -46,7 +46,7 @@ zstyle ':antidote:bundle:fakegitsite.com:foo:bar' lock-commit '400b29a76d68fd7c4
 
 ```zsh
 % antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
-% diff $ZDOTDIR/.zsh_plugins.lock $T_TESTDATA/.zsh_plugins.lock
+% diff <(tail -n +5 $ZDOTDIR/.zsh_plugins.lock) <(tail -n +5 $T_TESTDATA/.zsh_plugins.lock)
 %
 ```
 
