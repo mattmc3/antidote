@@ -1290,14 +1290,13 @@ antidote_home() { say "$ANTIDOTE_HOME" }
 #
 antidote_init() {
   say "#!/usr/bin/env zsh"
-  say "zstyle ':antidote:lockfile' disabled yes"
   say "function antidote {"
   say "  case \"\$1\" in"
   say "    bundle)"
-  say "      source <( antidote-dispatch \$@ ) || antidote-dispatch \$@"
+  say "      source <( ANTIDOTE_DYNAMIC=true antidote-dispatch \$@ ) || ANTIDOTE_DYNAMIC=true antidote-dispatch \$@"
   say "      ;;"
   say "    *)"
-  say "      antidote-dispatch \$@"
+  say "      ANTIDOTE_DYNAMIC=true antidote-dispatch \$@"
   say "      ;;"
   say "  esac"
   say "}"
@@ -1435,6 +1434,7 @@ antidote() {
   zstyle -T ':antidote:test:git'     autostash && ANTIDOTE_GIT_AUTOSTASH=true
   zstyle -T ':antidote:test:version' show-sha  && ANTIDOTE_VERSION_SHOW_SHA=true
   zstyle -t ':antidote:lockfile'     disabled  && ANTIDOTE_LOCKFILE_DISABLED=true
+  [[ "$ANTIDOTE_DYNAMIC" == true ]]            && ANTIDOTE_LOCKFILE_DISABLED=true
 
   # Legacy use of friendly names overrides all
   if zstyle -t ':antidote:bundle' use-friendly-names; then
