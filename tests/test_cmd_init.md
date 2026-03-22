@@ -45,8 +45,6 @@ sourcing custom lib2.zsh...
 2
 % echo $+functions[baz]
 1
-% [[ ! -f $ZDOTDIR/.zsh_plugins.lock ]] && echo "no lockfile"
-no lockfile
 %
 ```
 

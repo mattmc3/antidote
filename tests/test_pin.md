@@ -105,7 +105,6 @@ Tags should work with `branch:` the same as branch names.
 
 ```zsh
 % rm -rf $ANTIDOTE_HOME/fakegitsite.com/pintest/pinme
-% rm -f $ZDOTDIR/.zsh_plugins.lock
 % antidote bundle 'pintest/pinme branch:v1.0.0' >/dev/null
 # antidote cloning pintest/pinme...
 % bundledir=$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme

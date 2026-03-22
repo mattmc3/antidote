@@ -46,6 +46,7 @@ commands:
   home      Print where antidote is cloning bundles
   list      List cloned bundles
   path      Print the path of a cloned bundle
+  snapshot  Save, restore, or list bundle snapshots
   init      Initialize the shell for dynamic bundles
 %
 ```
