@@ -841,7 +841,8 @@ zsh_script() {
   # wrap conditional
   if [[ -n "$o_cond[-1]" ]]; then
     print "if $o_cond[-1]; then"
-    printf "  %s\n" $script
+    # (F)join + (@f)split flattens multiline elements so each line gets indented
+    printf "  %s\n" "${(@f)${(F)script}}"
     print "fi"
   else
     printf "%s\n" $script

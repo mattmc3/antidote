@@ -67,6 +67,14 @@ sourcing custom/themes/pretty.zsh-theme from ohmy/ohmy...
 %
 ```
 
+### Missing bundlefile
+
+```zsh
+% antidote load /no/such/file.txt 2>&1
+antidote: bundle file not found '/no/such/file.txt'.
+%
+```
+
 ## Teardown
 
 ```zsh

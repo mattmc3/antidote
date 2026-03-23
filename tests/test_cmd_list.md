@@ -90,6 +90,31 @@ $ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy    ohmy/ohmy    1cc5b7ebe76328350234e84
 %
 ```
 
+### Short SHA only
+
+`antidote list --short-sha` (without --short-name)
+
+```zsh
+% antidote list --short-sha | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/fakegitsite.com/bar/baz	1aa9550
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar	400b29a
+$ANTIDOTE_HOME/fakegitsite.com/foo/baz	98cdde2
+$ANTIDOTE_HOME/fakegitsite.com/foo/qux	89661d7
+$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer	57ddc6f
+$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy	1cc5b7e
+%
+```
+
+### Pinned (no pinned bundles)
+
+`antidote list --pinned` when nothing is pinned shows "unpinned" for all:
+
+```zsh
+% antidote list --short-name --pinned | command awk -F'\t' '{print $3}' | sort -u
+unpinned
+%
+```
+
 ### JSONL
 
 `antidote list --jsonl`

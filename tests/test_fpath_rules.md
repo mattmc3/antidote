@@ -24,6 +24,7 @@ fpath can be told to explicitly append, but it's unnecessary
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
 %
+```
 
 fpath can be prepended with fpath-rule:prepend
 
@@ -31,6 +32,7 @@ fpath can be prepended with fpath-rule:prepend
 % antidote bundle foo/bar kind:fpath fpath-rule:prepend
 fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )
 %
+```
 
 fpath rules can only be append/prepend
 
@@ -40,6 +42,7 @@ fpath rules can only be append/prepend
 % antidote bundle foo/bar kind:fpath fpath-rule:foo 2>&1
 antidote: error: unexpected fpath rule: 'foo'
 %
+```
 
 fpath rules are also used for `kind:autoload`
 

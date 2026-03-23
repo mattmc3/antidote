@@ -285,6 +285,36 @@ zsh-defer post-event
 %
 ```
 
+### conditional + defer
+
+Conditional wraps the entire deferred block:
+
+```zsh
+% antidote __private__ zsh_script --conditional is-macos --kind defer foo/bar | subenv ANTIDOTE_HOME
+if is-macos; then
+  if ! (( $+functions[zsh-defer] )); then
+    fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer" )
+    source "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer/zsh-defer.plugin.zsh"
+  fi
+  fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
+  zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
+fi
+%
+```
+
+### conditional + pre/post
+
+```zsh
+% antidote __private__ zsh_script --conditional is-macos --pre setup --post cleanup foo/bar | subenv ANTIDOTE_HOME
+if is-macos; then
+  setup
+  fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
+  source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
+  cleanup
+fi
+%
+```
+
 ## Private functions
 
 ### initfiles

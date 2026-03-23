@@ -51,6 +51,25 @@ Bundle 'foo/bar' was commented out in '$ZDOTDIR/.zsh_plugins.txt'.
 %
 ```
 
+Purging a local path is not allowed.
+
+```zsh
+% antidote purge $ANTIDOTE_HOME 2>&1 | subenv ANTIDOTE_HOME
+antidote: error: '$ANTIDOTE_HOME' is not a repo and cannot be removed by antidote.
+%
+```
+
+Purging a bundle when no bundlefile exists still succeeds (but doesn't
+mention commenting out).
+
+```zsh
+% zstyle ':antidote:bundle' file /no/such/.zsh_plugins.txt
+% antidote purge foo/baz
+Removed 'foo/baz'.
+% zstyle -d ':antidote:bundle' file
+%
+```
+
 Test that `antidote purge --all` aborts when told "no".
 
 ```zsh
@@ -59,7 +78,6 @@ Test that `antidote purge --all` aborts when told "no".
 % antidote purge --all  #=> --exit 1
 % antidote list | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/fakegitsite.com/bar/baz
-$ANTIDOTE_HOME/fakegitsite.com/foo/baz
 $ANTIDOTE_HOME/fakegitsite.com/foo/qux
 $ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
 $ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
