@@ -128,10 +128,10 @@ bundle_parser() {
   input=$(cat)
   input=${input//$'\r\n'/$'\n'}
   input=${input//$'\r'/$'\n'}
-  lines=("${(f)input}")
+  lines=("${(@f)input}")
 
   lineno=1
-  for line in $lines; do
+  for line in "${lines[@]}"; do
     # (z): use shell wordsplitting rules
     # (Q): remove one level of quotes
     args=(${(Q)${(z)line}})
