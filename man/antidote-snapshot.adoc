@@ -45,7 +45,7 @@ zstyle ':antidote:snapshot' max 25
 Disable auto-snapshots on `antidote update` (explicit `antidote snapshot save` still works):
 
 ----
-zstyle ':antidote:autosnapshot' enabled no
+zstyle ':antidote:snapshot:automatic' enabled no
 ----
 
 == Examples
