@@ -132,6 +132,15 @@
     fi
     ret=$?
 
+  elif [[ "$1" == snapshot ]]; then
+    shift
+    if [[ "$1" == -h || "$1" == --help ]]; then
+      antidote help snapshot
+    else
+      antidote-zsh snapshot "$@"
+    fi
+    ret=$?
+
   elif (( $+functions[antidote-${1}] )); then
     local cmd=${1}; shift
     antidote-${cmd} "$@"
