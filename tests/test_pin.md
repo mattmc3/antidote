@@ -99,6 +99,53 @@ c87216c18d3f0301fa1ed669b6c1ad76056271ca
 %
 ```
 
+### Sequential pin updates with kind:clone
+
+Walk through all three pintest/pinme SHAs in sequence, verifying the repo
+checks out the correct commit each time.
+
+```zsh
+% rm -rf $ANTIDOTE_HOME/fakegitsite.com/pintest/pinme
+%
+```
+
+Pin to v1.1.0 (oldest commit):
+
+```zsh
+% antidote bundle 'pintest/pinme kind:clone pin:c87216c18d3f0301fa1ed669b6c1ad76056271ca' 2>&1
+# antidote cloning pintest/pinme...
+% git -C $bundledir rev-parse HEAD
+c87216c18d3f0301fa1ed669b6c1ad76056271ca
+%
+```
+
+Change pin to v1.0.0 (middle commit):
+
+```zsh
+% antidote bundle 'pintest/pinme kind:clone pin:64642c5691051ba0d82f5bda60b745f6fd042325'
+% git -C $bundledir rev-parse HEAD
+64642c5691051ba0d82f5bda60b745f6fd042325
+%
+```
+
+Change pin to v1.2.0 (latest commit):
+
+```zsh
+% antidote bundle 'pintest/pinme kind:clone pin:d54e0cad999d196822584f2cca72f7c7bd908ea9'
+% git -C $bundledir rev-parse HEAD
+d54e0cad999d196822584f2cca72f7c7bd908ea9
+%
+```
+
+Go back to v1.1.0 to confirm we can move backwards:
+
+```zsh
+% antidote bundle 'pintest/pinme kind:clone pin:c87216c18d3f0301fa1ed669b6c1ad76056271ca'
+% git -C $bundledir rev-parse HEAD
+c87216c18d3f0301fa1ed669b6c1ad76056271ca
+%
+```
+
 ### Branch annotation with a tag
 
 Tags should work with `branch:` the same as branch names.
