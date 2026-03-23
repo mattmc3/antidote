@@ -86,6 +86,30 @@ HEAD
 %
 ```
 
+### List shows pinned bundles
+
+```zsh
+% antidote list --short-name --pinned | subenv ANTIDOTE_HOME | grep pintest
+$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme	pintest/pinme	64642c5691051ba0d82f5bda60b745f6fd042325
+%
+```
+
+JSONL includes pin field:
+
+```zsh
+% antidote list --jsonl --pinned | subenv ANTIDOTE_HOME | grep pintest
+{"url":"https://fakegitsite.com/pintest/pinme","short_name":"pintest/pinme","type":"repo","path":"$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme","sha":"64642c5691051ba0d82f5bda60b745f6fd042325","pin":"64642c5691051ba0d82f5bda60b745f6fd042325"}
+%
+```
+
+Unpinned bundles show "unpinned":
+
+```zsh
+% antidote list --short-name --pinned | subenv ANTIDOTE_HOME | grep foo/bar
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar	foo/bar	unpinned
+%
+```
+
 ### Changing pin SHA on existing bundle
 
 Changing the pin to a different SHA should checkout the new commit.

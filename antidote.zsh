@@ -1254,12 +1254,13 @@ antidote_init() {
 # usage: antidote list [-u|--url] [-h|--help] [-s|--short-name] [--sha] [--short-sha] [-j|--jsonl]
 #
 antidote_list() {
-  local o_help o_jsonl o_url o_short_name o_sha o_short_sha
+  local o_help o_jsonl o_url o_short_name o_sha o_short_sha o_pinned
   zparseopts ${ZPARSEOPTS} -- \
-    h=o_help       -help=h    \
-    u=o_url        -url=u     \
-    j=o_jsonl      -jsonl=j   \
+    h=o_help       -help=h      \
+    u=o_url        -url=u       \
+    j=o_jsonl      -jsonl=j     \
     s=o_short_name -short-name=s \
+    p=o_pinned     -pinned=p    \
                    -sha=o_sha    \
                    -short-sha=o_short_sha ||
     return 1
@@ -1268,7 +1269,7 @@ antidote_list() {
     die "antidote: error: unexpected $1, try --help"
   fi
 
-  local bundledir url short_name sha
+  local bundledir url short_name sha pin_ref
   local -a output=() parts=()
   local -a bundles=()
 
@@ -1288,14 +1289,24 @@ antidote_list() {
 
     if (( $#o_jsonl )); then
       sha=$(git_sha "$bundledir")
-      printf '{"url":"%s","short_name":"%s","type":"repo","path":"%s","sha":"%s"}\n' \
-        "$url" "$short_name" "$bundledir" "$sha"
+      if (( $#o_pinned )); then
+        pin_ref=$(git_config_get "$bundledir" antidote.pin)
+        printf '{"url":"%s","short_name":"%s","type":"repo","path":"%s","sha":"%s","pin":"%s"}\n' \
+          "$url" "$short_name" "$bundledir" "$sha" "${pin_ref:-}"
+      else
+        printf '{"url":"%s","short_name":"%s","type":"repo","path":"%s","sha":"%s"}\n' \
+          "$url" "$short_name" "$bundledir" "$sha"
+      fi
       continue
-    elif (( $#o_url || $#o_short_name || $#o_sha || $#o_short_sha )); then
+    elif (( $#o_url || $#o_short_name || $#o_sha || $#o_short_sha || $#o_pinned )); then
       (( $#o_short_name )) && parts+=($short_name)
       (( $#o_url        )) && parts+=($url)
       (( $#o_sha        )) && parts+=($(git_sha "$bundledir"))
       (( $#o_short_sha  )) && parts+=($(git_shortsha "$bundledir"))
+      if (( $#o_pinned )); then
+        pin_ref=$(git_config_get "$bundledir" antidote.pin)
+        parts+=(${pin_ref:-unpinned})
+      fi
       output+=("$(printf '%s\n' ${(pj:\t:)parts})")
     else
       output+=("$(printf '%s\n' $bundledir)")

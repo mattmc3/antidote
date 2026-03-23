@@ -9,7 +9,7 @@ antidote-list - list cloned bundles
 == Synopsis
 *antidote list* [-h|--help]
 *antidote list* [-j|--jsonl]
-*antidote list* [-s|--short-name] [--sha] [--short-sha] [-u|--url]
+*antidote list* [-s|--short-name] [--sha] [--short-sha] [-u|--url] [-p|--pinned]
 
 == Description
 *antidote-list* lists the cloned bundles in *antidote home*.
@@ -21,3 +21,4 @@ antidote-list - list cloned bundles
 *-u, --url*:: Show bundle URLs.
 *--sha*:: Show the full commit SHA for each bundle.
 *--short-sha*:: Show the short commit SHA for each bundle.
+*-p, --pinned*:: Show pin status for each bundle.

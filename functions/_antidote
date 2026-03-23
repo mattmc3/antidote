@@ -83,6 +83,7 @@ function _antidote {
             '(--sha)--sha[Show the full commit SHA for each bundle]' \
             '(--short-sha)--short-sha[Show the short commit SHA for each bundle]' \
             '(-j --jsonl)'{-j,--jsonl}'[Output the bundle list in JSONL format]' \
+            '(-p --pinned)'{-p,--pinned}'[Show pin status for each bundle]' \
             && ret=0
           ;;
         (load)
