@@ -69,14 +69,40 @@ c87216c18d3f0301fa1ed669b6c1ad76056271ca
 %
 ```
 
-### Removing pin clears git config
+### Removing pin clears git config and returns to a branch
 
 When a bundle is re-bundled without `pin:`, the git config should be cleared
-so that `antidote update` will no longer skip it.
+and the repo should return to a branch so `antidote update` can pull.
+
+Currently pinned to v1.1.0:
+
+```zsh
+% git -C $bundledir config --get antidote.pin
+c87216c18d3f0301fa1ed669b6c1ad76056271ca
+% git -C $bundledir rev-parse HEAD
+c87216c18d3f0301fa1ed669b6c1ad76056271ca
+%
+```
+
+Remove the pin:
 
 ```zsh
 % antidote bundle 'pintest/pinme' >/dev/null
 % git -C $bundledir config --get antidote.pin  #=> --exit 1
+% git -C $bundledir rev-parse --abbrev-ref HEAD
+main
+%
+```
+
+Update pulls to the latest (v1.2.0) — the bad commit we were previously avoiding:
+
+```zsh
+% zstyle ':antidote:test:version' show-sha off
+% zstyle ':antidote:test:git' autostash off
+% antidote update --bundles 2>&1 | grep pintest | grep -c "skipping"
+0
+% git -C $bundledir rev-parse HEAD
+d54e0cad999d196822584f2cca72f7c7bd908ea9
 %
 ```
 

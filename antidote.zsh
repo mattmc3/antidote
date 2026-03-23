@@ -724,7 +724,16 @@ zsh_script() {
         [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
       fi
     else
-      git_config_unset "$bundle_path" antidote.pin
+      # Pin removed — clear config and return to a branch so update can pull
+      if [[ -n "$(git_config_get "$bundle_path" antidote.pin)" ]]; then
+        git_config_unset "$bundle_path" antidote.pin
+        local unpin_branch="${o_branch[-1]}"
+        if [[ -z "$unpin_branch" ]]; then
+          unpin_branch=$(git -C "$bundle_path" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)
+          unpin_branch=${unpin_branch#origin/}
+        fi
+        [[ -n "$unpin_branch" ]] && git -C "$bundle_path" checkout --quiet "$unpin_branch" 2>/dev/null
+      fi
     fi
   fi
 
