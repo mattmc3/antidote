@@ -2,12 +2,12 @@
 .\"     Title: antidote-bundle
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-03-11
+.\"      Date: 2026-03-22
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE\-BUNDLE" "1" "2026-03-11" "antidote" "Antidote Manual"
+.TH "ANTIDOTE\-BUNDLE" "1" "2026-03-22" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -143,6 +143,11 @@ The pre and post annotations allow you to call a function before or after a plug
 The autoload annotation allows you to autoload a zsh functions directory in addition to however the plugin was loaded as specified by \f(CRkind\fP. Supply a relative path to autoload (eg: \f(CRautoload:functions\fP).
 .RE
 .sp
+\f(CRpin\fP
+.RS 4
+The pin annotation allows you to lock a bundle to a specific git ref such as a tag, branch, or commit SHA (eg: \f(CRpin:v1.0.0\fP). A pinned bundle will be cloned at the specified ref and will be skipped during \f(CRantidote update\fP. This is useful for preventing unwanted upstream changes from affecting your environment.
+.RE
+.sp
 Cloned repo directory naming can be controlled with the following \f(CRzstyle\fP:
 .sp
 .if n .RS 4
@@ -242,6 +247,26 @@ Using the \fBpath:\fP annotation:
 # load oh\-my\-zsh
 antidote bundle ohmyzsh/ohmyzsh path:lib
 antidote bundle ohmyzsh/ohmyzsh path:plugins/git
+.fam
+.fi
+.if n .RE
+.sp
+Using the \fBpin:\fP annotation:
+.sp
+.if n .RS 4
+.nf
+.fam C
+# pin a plugin to a specific tag
+antidote bundle zsh\-users/zsh\-autosuggestions pin:v0.7.0
+.fam
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# pin a plugin to a specific commit SHA
+antidote bundle zsh\-users/zsh\-syntax\-highlighting pin:abc1234
 .fam
 .fi
 .if n .RE

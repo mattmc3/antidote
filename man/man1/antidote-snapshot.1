@@ -1,0 +1,160 @@
+'\" t
+.\"     Title: antidote-snapshot
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.26
+.\"      Date: 2026-03-22
+.\"    Manual: Antidote Manual
+.\"    Source: antidote
+.\"  Language: English
+.\"
+.TH "ANTIDOTE\-SNAPSHOT" "1" "2026-03-22" "antidote" "Antidote Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+antidote-snapshot \- save, restore, or list bundle snapshots
+.SH "SYNOPSIS"
+.sp
+\fBantidote snapshot\fP save [<file>]
+.sp
+\fBantidote snapshot\fP restore [<file>]
+.sp
+\fBantidote snapshot\fP list
+.SH "DESCRIPTION"
+.sp
+\fBantidote\-snapshot\fP manages point\-in\-time snapshots of your cloned bundles. A snapshot is a bundle file where every repository is annotated with \f(CRkind:clone pin:<SHA>\fP, capturing the exact commit of each cloned bundle.
+.sp
+Snapshots are saved automatically during \f(CRantidote update\fP in static mode. They are not created in dynamic mode.
+.sp
+By default, snapshots are stored in \f(CR$XDG_DATA_HOME/antidote/snapshots\fP (or \f(CR~/Library/Application Support/antidote/snapshots\fP on macOS). A rolling history is maintained, with older snapshots pruned beyond the configured maximum.
+.SH "SUBCOMMANDS"
+.sp
+\fBsave\fP
+.RS 4
+Save a snapshot of all currently cloned bundles. Optionally specify a file path; otherwise a timestamped file is created in the snapshot directory.
+.RE
+.sp
+\fBrestore\fP
+.RS 4
+Restore bundles from a snapshot file. If no file is given, the most recent snapshot is used.
+.RE
+.sp
+\fBlist\fP
+.RS 4
+List all available snapshot files.
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-h, \-\-help\fP
+.RS 4
+Show the help documentation.
+.RE
+.SH "CONFIGURATION"
+.sp
+The snapshot directory can be customized:
+.sp
+.if n .RS 4
+.nf
+.fam C
+zstyle \*(Aq:antidote:snapshot\*(Aq dir ~/.antidote\-snapshots
+.fam
+.fi
+.if n .RE
+.sp
+The maximum number of snapshots to keep (default 50):
+.sp
+.if n .RS 4
+.nf
+.fam C
+zstyle \*(Aq:antidote:snapshot\*(Aq max 25
+.fam
+.fi
+.if n .RE
+.SH "EXAMPLES"
+.sp
+Save a snapshot:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote snapshot save
+.fam
+.fi
+.if n .RE
+.sp
+List snapshots:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote snapshot list
+.fam
+.fi
+.if n .RE
+.sp
+Restore from the most recent snapshot:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote snapshot restore
+.fam
+.fi
+.if n .RE
+.sp
+Restore from a specific snapshot:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote snapshot restore ~/.local/share/antidote/snapshots/snapshot\-20260101\-120000.txt
+.fam
+.fi
+.if n .RE
+.SH "BUGS"
+.sp
+See GitHub Issues: \c
+.URL "https://github.com/mattmc3/antidote/issues" "" ""
+.SH "AUTHORS"
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Copyright (c) 2021\-2026 Matt McElheny
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+antidote contributors: \c
+.URL "https://github.com/mattmc3/antidote/graphs/contributors" "" ""
+.RE
+.SH "LICENSE"
+.sp
+MIT

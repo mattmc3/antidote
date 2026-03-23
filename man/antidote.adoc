@@ -30,6 +30,7 @@ It is written natively in Zsh, is well tested, and picks up where Antigen and An
 *home*:: Print where antidote is cloning bundles
 *list*:: List cloned bundles
 *path*:: Print the path of a cloned bundle
+*snapshot*:: Save, restore, or list bundle snapshots
 *init*:: Initialize the shell for dynamic bundles
 
 == Examples
