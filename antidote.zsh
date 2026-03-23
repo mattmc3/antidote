@@ -1406,13 +1406,30 @@ snapshot_restore() {
   local snapshot_file="$1"
 
   if [[ -z "$snapshot_file" ]]; then
-    # Use most recent snapshot
     local -a snapshots
-    snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(N))
+    snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
     if (( $#snapshots == 0 )); then
       die "antidote: snapshot: no snapshots found"
     fi
-    snapshot_file=${${(o)snapshots}[-1]}
+
+    if (( $+commands[fzf] )); then
+      local -a labels
+      local snap date_line
+      for snap in $snapshots; do
+        date_line=${${(f)"$(<$snap)"}[3]#\# date: }
+        labels+=("$date_line	$snap")
+      done
+      snapshot_file=$(
+        printf '%s\n' $labels |
+        fzf --no-sort --with-nth=1 --delimiter=$'\t' \
+          --prompt="Select snapshot to restore: " \
+          --preview="tail -n +4 {2}" \
+          --preview-window=right:60% |
+        cut -f2
+      ) || return 0
+    else
+      die "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
+    fi
   fi
 
   if [[ ! -r "$snapshot_file" ]]; then
