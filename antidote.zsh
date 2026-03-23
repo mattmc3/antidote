@@ -1339,7 +1339,7 @@ antidote_snapshot() {
     return
   fi
 
-  subcmd=${1:-save}; shift 2>/dev/null
+  subcmd=${1:-list}; shift 2>/dev/null
 
   case "$subcmd" in
     save)    snapshot_save "$@"    ;;
@@ -1420,7 +1420,7 @@ snapshot_restore() {
   fi
 
   say "Restoring from snapshot: $snapshot_file"
-  antidote_bundle <"$snapshot_file"
+  antidote_bundle <"$snapshot_file" &>/dev/null
 }
 
 ### List available snapshots.
@@ -1431,7 +1431,7 @@ snapshot_list() {
     say "No snapshots found."
     return
   fi
-  printf '%s\n' ${(o)snapshots}
+  printf '%s\n' ${(O)snapshots}
 }
 
 antidote() {
