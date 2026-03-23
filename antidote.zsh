@@ -717,7 +717,7 @@ zsh_script() {
   if [[ "$btype" == (repo|url|ssh_url) ]] && [[ -e "$bundle_path" ]]; then
     if (( $#o_pin )); then
       current_pin=$(git_config_get "$bundle_path" antidote.pin)
-      if [[ "$current_pin" != "$o_pin[-1]" ]]; then
+      if [[ "$current_pin" != "$o_pin[-1]" ]] || [[ "$(git_sha "$bundle_path")" != "$o_pin[-1]" ]]; then
         # Pin changed or newly added — fetch the commit and checkout
         git_fetch "$bundle_path" --depth 1 origin $o_pin[-1] 2>/dev/null
         if ! git_checkout_detach "$bundle_path" $o_pin[-1]; then
@@ -1194,7 +1194,7 @@ antidote_update() {
       say "${green}Dry run complete. No changes were made.${normal}"
     else
       say "${green}Bundle updates complete.${normal}"
-      snapshot_save >/dev/null
+      [[ "$ANTIDOTE_AUTOSNAPSHOT" == true ]] && snapshot_save >/dev/null
     fi
     say ""
   fi
@@ -1509,9 +1509,10 @@ antidote() {
 
   typeset -g ANTIDOTE_HOME=${ANTIDOTE_HOME:-$(get_cachedir antidote)}
 
-  typeset -g ANTIDOTE_SNAPSHOT_DIR ANTIDOTE_SNAPSHOT_MAX
+  typeset -g ANTIDOTE_SNAPSHOT_DIR ANTIDOTE_SNAPSHOT_MAX ANTIDOTE_AUTOSNAPSHOT=false
   zstyle -s ':antidote:snapshot' dir       ANTIDOTE_SNAPSHOT_DIR || ANTIDOTE_SNAPSHOT_DIR=$(get_datadir antidote)/snapshots
-  zstyle -s ':antidote:snapshot' max       ANTIDOTE_SNAPSHOT_MAX || ANTIDOTE_SNAPSHOT_MAX=50
+  zstyle -s ':antidote:snapshot' max       ANTIDOTE_SNAPSHOT_MAX || ANTIDOTE_SNAPSHOT_MAX=100
+  zstyle -T ':antidote:autosnapshot' enabled && ANTIDOTE_AUTOSNAPSHOT=true
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
 } "${0:A}"
 

@@ -103,6 +103,21 @@ no new snapshot
 %
 ```
 
+## Autosnapshot disabled
+
+Disabling autosnapshot prevents auto-snapshot on update, but explicit save still works:
+
+```zsh
+% zstyle ':antidote:autosnapshot' enabled no
+% zstyle ':antidote:snapshot' dir $HOME/.antidote-disabled-test
+% source $T_PRJDIR/antidote.zsh
+% antidote snapshot save | grep -c "Snapshot saved:"
+1
+% zstyle -d ':antidote:autosnapshot' enabled
+% zstyle -d ':antidote:snapshot' dir
+%
+```
+
 ## Custom snapshot directory
 
 ```zsh
@@ -132,6 +147,96 @@ Save snapshots over the max and verify pruning keeps only the max:
 % ls $HOME/.antidote-prune-test/snapshot-*.txt | wc -l | tr -d ' '
 3
 % zstyle -d ':antidote:snapshot' max
+% zstyle -d ':antidote:snapshot' dir
+%
+```
+
+## Help flag
+
+```zsh
+% antidote snapshot --help 2>&1 | grep -c "snapshot"  #=> --exit 0
+%
+```
+
+## Unknown subcommand
+
+```zsh
+% antidote snapshot foo 2>&1
+antidote: snapshot: unknown subcommand 'foo'
+%
+```
+
+## Restore error: no file specified (without fzf)
+
+```zsh
+% zstyle ':antidote:snapshot' dir $HOME/.antidote-empty-snaps
+% source $T_PRJDIR/antidote.zsh
+% mkdir -p $HOME/.antidote-empty-snaps
+% antidote snapshot save >/dev/null
+% path=(${path:#*fzf*})
+% unhash -f fzf 2>/dev/null; true
+% antidote snapshot restore 2>&1
+antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)
+% zstyle -d ':antidote:snapshot' dir
+%
+```
+
+## Restore error: no snapshots found
+
+```zsh
+% zstyle ':antidote:snapshot' dir $HOME/.antidote-no-snaps
+% source $T_PRJDIR/antidote.zsh
+% mkdir -p $HOME/.antidote-no-snaps
+% antidote snapshot restore 2>&1
+antidote: snapshot: no snapshots found
+% zstyle -d ':antidote:snapshot' dir
+%
+```
+
+## Restore error: file not found
+
+```zsh
+% antidote snapshot restore /nonexistent/snapshot.txt 2>&1
+antidote: snapshot: file not found '/nonexistent/snapshot.txt'
+%
+```
+
+## List order (newest first)
+
+```zsh
+% zstyle ':antidote:snapshot' dir $HOME/.antidote-order-test
+% source $T_PRJDIR/antidote.zsh
+% antidote snapshot save >/dev/null && sleep 1
+% antidote snapshot save >/dev/null && sleep 1
+% antidote snapshot save >/dev/null
+% first=$(antidote snapshot list | head -1)
+% last=$(antidote snapshot list | tail -1)
+% [[ "$first" > "$last" ]] && echo "newest first"
+newest first
+% zstyle -d ':antidote:snapshot' dir
+%
+```
+
+## Restore verifies repo SHAs
+
+Roll back foo/baz, save a snapshot, then restore and verify the SHA matches:
+
+```zsh
+% zstyle ':antidote:snapshot' dir $HOME/.antidote-restore-test
+% source $T_PRJDIR/antidote.zsh
+% bundledir=$ANTIDOTE_HOME/fakegitsite.com/foo/baz
+% command git -C $bundledir fetch --quiet --unshallow 2>/dev/null; true
+% expected_sha=$(command git -C $bundledir rev-parse HEAD)
+% antidote snapshot save >/dev/null
+% command git -C $bundledir reset --quiet --hard HEAD~1
+% rolled_sha=$(command git -C $bundledir rev-parse HEAD)
+% [[ "$expected_sha" != "$rolled_sha" ]] && echo "rolled back"
+rolled back
+% snap=$(ls $HOME/.antidote-restore-test/snapshot-*.txt | tail -1)
+% antidote snapshot restore $snap &>/dev/null
+% actual_sha=$(command git -C $bundledir rev-parse HEAD)
+% [[ "$actual_sha" == "$expected_sha" ]] && echo "restored"
+restored
 % zstyle -d ':antidote:snapshot' dir
 %
 ```

@@ -36,10 +36,16 @@ The snapshot directory can be customized:
 zstyle ':antidote:snapshot' dir ~/.antidote-snapshots
 ----
 
-The maximum number of snapshots to keep (default 50):
+The maximum number of snapshots to keep (default 100):
 
 ----
 zstyle ':antidote:snapshot' max 25
+----
+
+Disable auto-snapshots on `antidote update` (explicit `antidote snapshot save` still works):
+
+----
+zstyle ':antidote:autosnapshot' enabled no
 ----
 
 == Examples
