@@ -309,52 +309,36 @@ initfiles() {
   (( $#initfiles )) || return 1
 }
 
-get_cachedir() {
-  local result
+get_dir() {
+  local kind="$1" suffix="$2" result
   if [[ "${ANTIDOTE_OSTYPE}" == darwin* ]]; then
-    result=$HOME/Library/Caches
+    case $kind in
+      cache) result=$HOME/Library/Caches ;;
+      data)  result="$HOME/Library/Application Support" ;;
+    esac
   elif [[ "${ANTIDOTE_OSTYPE}" == (cygwin|msys)* ]]; then
     result=$ANTIDOTE_LOCALAPPDATA
     if (( $+commands[cygpath] )); then
       result=$(cygpath "$result")
     fi
   else
-    result=${XDG_CACHE_HOME:-$HOME/.cache}
+    case $kind in
+      cache) result=${XDG_CACHE_HOME:-$HOME/.cache} ;;
+      data)  result=${XDG_DATA_HOME:-$HOME/.local/share} ;;
+    esac
   fi
 
-  if [[ -n "$1" ]]; then
+  if [[ -n "$suffix" ]]; then
     if [[ $result == *\\* ]] && [[ $result != */* ]]; then
-      result+="\\$1"
+      result+="\\$suffix"
     else
-      result+="/$1"
+      result+="/$suffix"
     fi
   fi
   say $result
 }
-
-# Print the OS specific data dir.
-get_datadir() {
-  local result
-  if [[ "${ANTIDOTE_OSTYPE}" == darwin* ]]; then
-    result="$HOME/Library/Application Support"
-  elif [[ "${ANTIDOTE_OSTYPE}" == (cygwin|msys)* ]]; then
-    result=$ANTIDOTE_LOCALAPPDATA
-    if (( $+commands[cygpath] )); then
-      result=$(cygpath "$result")
-    fi
-  else
-    result=${XDG_DATA_HOME:-$HOME/.local/share}
-  fi
-
-  if [[ -n "$1" ]]; then
-    if [[ $result == *\\* ]] && [[ $result != */* ]]; then
-      result+="\\$1"
-    else
-      result+="/$1"
-    fi
-  fi
-  say $result
-}
+get_cachedir() { get_dir cache "$@"; }
+get_datadir()  { get_dir data "$@"; }
 
 # Print the OS specific temp dir.
 temp_dir() {
