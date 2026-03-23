@@ -17,7 +17,7 @@ Notable changes to this project will be documented in this file.
   ```
 - If `fzf` is installed, `antidote snapshot restore` gives you an interactive picker with a preview of each snapshot
 - Snapshot storage location and rolling history limit are configurable via `zstyle`
-- New `pin:` annotation lets you lock a bundle to a specific git ref (commit SHA recommended)
+- New `pin:` annotation lets you lock a bundle to a specific commit SHA
   - Example: `zsh-users/zsh-autosuggestions pin:3b1f2a4`
 - Pinned bundles are skipped during `antidote update` and are recorded as commit SHAs in the lockfile
 - `antidote update --dry-run` / `-n`: check for available updates without touching anything
