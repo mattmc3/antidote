@@ -11,30 +11,25 @@
 
 ## Pin annotation
 
+The pintest/pinme fixture has three commits:
+- v1.0.0 (`64642c5...`) — initial good version
+- v1.1.0 (`c87216c...`) — minor update, also good
+- v1.2.0 (`d54e0ca...`) — bad supply chain commit (HEAD)
+
+Pinning lets users lock to a known-good commit and avoid the bad HEAD.
+
 ### Clone with pin (SHA)
 
-Cloning a bundle with `pin:` should clone at the pinned commit SHA.
+Pin to v1.0.0 to avoid the bad HEAD. Verify detached HEAD state and git config.
 
 ```zsh
 % antidote bundle 'pintest/pinme pin:64642c5691051ba0d82f5bda60b745f6fd042325' >/dev/null
 # antidote cloning pintest/pinme...
-%
-```
-
-Verify the repo is in detached HEAD state at the pinned SHA.
-
-```zsh
 % bundledir=$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme
 % git -C $bundledir rev-parse HEAD
 64642c5691051ba0d82f5bda60b745f6fd042325
 % git -C $bundledir rev-parse --abbrev-ref HEAD
 HEAD
-%
-```
-
-Verify git config has the pin stored.
-
-```zsh
 % git -C $bundledir config --get antidote.pin
 64642c5691051ba0d82f5bda60b745f6fd042325
 %
@@ -61,6 +56,19 @@ antidote: skipping update for pinned bundle: pintest/pinme (at 64642c5...)
 %
 ```
 
+### Advance pin to v1.1.0
+
+Change the pin to the v1.1.0 commit — a newer known-good version.
+
+```zsh
+% antidote bundle 'pintest/pinme pin:c87216c18d3f0301fa1ed669b6c1ad76056271ca' >/dev/null
+% git -C $bundledir config --get antidote.pin
+c87216c18d3f0301fa1ed669b6c1ad76056271ca
+% git -C $bundledir rev-parse HEAD
+c87216c18d3f0301fa1ed669b6c1ad76056271ca
+%
+```
+
 ### Removing pin clears git config
 
 When a bundle is re-bundled without `pin:`, the git config should be cleared
@@ -72,10 +80,9 @@ so that `antidote update` will no longer skip it.
 %
 ```
 
-### Adding pin to an already-cloned unpinned bundle
+### Re-add pin to v1.0.0
 
-The bundle was unpinned above. Re-bundling with a pin should checkout the pinned
-commit and set the git config.
+Re-bundling with a pin should checkout the pinned commit and set the git config.
 
 ```zsh
 % antidote bundle 'pintest/pinme pin:64642c5691051ba0d82f5bda60b745f6fd042325' >/dev/null
@@ -86,6 +93,35 @@ HEAD
 %
 ```
 
+### Short SHA is rejected
+
+Pin requires a full 40-character commit SHA. Short SHAs are rejected with a
+clear error because the git protocol cannot resolve them on remotes.
+
+```zsh
+% antidote bundle 'pintest/pinme pin:64642c5' 2>&1 | tail -1
+antidote: error: pin requires a full 40-character commit SHA, got '64642c5'
+%
+```
+
+### Fresh clone pinned to v1.1.0
+
+Purge and re-clone pinned to the v1.1.0 known-good commit.
+
+```zsh
+% zstyle ':antidote:test:purge' answer 'y'
+% antidote purge pintest/pinme >/dev/null
+% [[ ! -d $bundledir ]] && echo "purged"
+purged
+% antidote bundle 'pintest/pinme pin:c87216c18d3f0301fa1ed669b6c1ad76056271ca' >/dev/null
+# antidote cloning pintest/pinme...
+% git -C $bundledir rev-parse HEAD
+c87216c18d3f0301fa1ed669b6c1ad76056271ca
+% git -C $bundledir config --get antidote.pin
+c87216c18d3f0301fa1ed669b6c1ad76056271ca
+%
+```
+
 ### List shows pinned bundles
 
 ```zsh
@@ -93,8 +129,8 @@ HEAD
 Repo:   pintest/pinme
 Path:   $HOME/.cache/antidote/fakegitsite.com/pintest/pinme
 URL:    https://fakegitsite.com/pintest/pinme
-SHA:    64642c5691051ba0d82f5bda60b745f6fd042325
-Pinned: 64642c5691051ba0d82f5bda60b745f6fd042325
+SHA:    c87216c18d3f0301fa1ed669b6c1ad76056271ca
+Pinned: c87216c18d3f0301fa1ed669b6c1ad76056271ca
 %
 ```
 
@@ -102,7 +138,7 @@ JSONL includes pin field for pinned bundles:
 
 ```zsh
 % antidote list --jsonl | subenv ANTIDOTE_HOME | grep pintest
-{"url":"https://fakegitsite.com/pintest/pinme","repo":"pintest/pinme","path":"$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme","sha":"64642c5691051ba0d82f5bda60b745f6fd042325","pin":"64642c5691051ba0d82f5bda60b745f6fd042325"}
+{"url":"https://fakegitsite.com/pintest/pinme","repo":"pintest/pinme","path":"$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme","sha":"c87216c18d3f0301fa1ed669b6c1ad76056271ca","pin":"c87216c18d3f0301fa1ed669b6c1ad76056271ca"}
 %
 ```
 
@@ -111,19 +147,6 @@ Unpinned bundles don't show Pinned in long output:
 ```zsh
 % antidote list --long | grep -A4 'Repo:.*foo/bar' | grep -c 'Pinned:'
 0
-%
-```
-
-### Changing pin SHA on existing bundle
-
-Changing the pin to a different SHA should checkout the new commit.
-
-```zsh
-% antidote bundle 'pintest/pinme pin:c87216c18d3f0301fa1ed669b6c1ad76056271ca' >/dev/null
-% git -C $bundledir config --get antidote.pin
-c87216c18d3f0301fa1ed669b6c1ad76056271ca
-% git -C $bundledir rev-parse HEAD
-c87216c18d3f0301fa1ed669b6c1ad76056271ca
 %
 ```
 
@@ -137,26 +160,26 @@ checks out the correct commit each time.
 %
 ```
 
-Pin to v1.1.0 (oldest commit):
+Pin to v1.0.0 (initial good commit):
 
 ```zsh
-% antidote bundle 'pintest/pinme kind:clone pin:c87216c18d3f0301fa1ed669b6c1ad76056271ca' 2>&1
+% antidote bundle 'pintest/pinme kind:clone pin:64642c5691051ba0d82f5bda60b745f6fd042325' 2>&1
 # antidote cloning pintest/pinme...
-% git -C $bundledir rev-parse HEAD
-c87216c18d3f0301fa1ed669b6c1ad76056271ca
-%
-```
-
-Change pin to v1.0.0 (middle commit):
-
-```zsh
-% antidote bundle 'pintest/pinme kind:clone pin:64642c5691051ba0d82f5bda60b745f6fd042325'
 % git -C $bundledir rev-parse HEAD
 64642c5691051ba0d82f5bda60b745f6fd042325
 %
 ```
 
-Change pin to v1.2.0 (latest commit):
+Advance to v1.1.0 (newer good commit):
+
+```zsh
+% antidote bundle 'pintest/pinme kind:clone pin:c87216c18d3f0301fa1ed669b6c1ad76056271ca'
+% git -C $bundledir rev-parse HEAD
+c87216c18d3f0301fa1ed669b6c1ad76056271ca
+%
+```
+
+Advance to v1.2.0 (the bad commit — for testing, not recommended):
 
 ```zsh
 % antidote bundle 'pintest/pinme kind:clone pin:d54e0cad999d196822584f2cca72f7c7bd908ea9'
@@ -165,12 +188,12 @@ d54e0cad999d196822584f2cca72f7c7bd908ea9
 %
 ```
 
-Go back to v1.1.0 to confirm we can move backwards:
+Roll back to v1.0.0 to confirm we can move backwards:
 
 ```zsh
-% antidote bundle 'pintest/pinme kind:clone pin:c87216c18d3f0301fa1ed669b6c1ad76056271ca'
+% antidote bundle 'pintest/pinme kind:clone pin:64642c5691051ba0d82f5bda60b745f6fd042325'
 % git -C $bundledir rev-parse HEAD
-c87216c18d3f0301fa1ed669b6c1ad76056271ca
+64642c5691051ba0d82f5bda60b745f6fd042325
 %
 ```
 
@@ -199,11 +222,11 @@ cleaned up
 %
 ```
 
-### Pin with invalid short ref fails and cleans up
+### Pin with short or non-SHA value is rejected
 
 ```zsh
 % antidote __private__ zsh_script --kind clone --pin v99.0.0 pintest/pinme 2>&1 | tail -1
-antidote: error: pin commit 'v99.0.0' not found for pintest/pinme
+antidote: error: pin requires a full 40-character commit SHA, got 'v99.0.0'
 % [[ ! -d $ANTIDOTE_HOME/fakegitsite.com/pintest/pinme ]] && echo "cleaned up"
 cleaned up
 %

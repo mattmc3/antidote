@@ -74,6 +74,16 @@ git_log_oneline()      { git -C "$1" --no-pager log --oneline --ancestry-path --
 git_submodule_sync()   { git -C "$1" submodule --quiet sync --recursive; }
 git_submodule_update() { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
 git_checkout_detach()  { git -C "$1" checkout --quiet --detach "$2"; }
+git_checkout_pin() {
+  local dir="$1" sha="$2" bname="$3"
+  if ! git_checkout_detach "$dir" "$sha" 2>/dev/null; then
+    if ! git_fetch "$dir" --depth 1 origin "$sha" 2>/dev/null \
+      || ! git_checkout_detach "$dir" "$sha"; then
+      warn "antidote: error: pin commit '$sha' not found for $bname"
+      return 1
+    fi
+  fi
+}
 git_config_get()       { git -C "$1" config --get "$2" 2>/dev/null; }
 git_config_set()       { git -C "$1" config "$2" "$3"; }
 git_config_unset()     { git -C "$1" config --unset "$2" 2>/dev/null; }
@@ -693,22 +703,27 @@ zsh_script() {
   # set the path to the bundle (repo or local)
   [[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(bundle_dir $bundle)
 
-  # handle cloning repo bundles
+  # Validate pin early — requires full 40-character hex SHA
   btype=$(bundle_type $bundle)
+  if (( $#o_pin )) && [[ "$btype" == (repo|url|ssh_url) ]]; then
+    local pin_sha="$o_pin[-1]"
+    if (( $#pin_sha != 40 )) || [[ "$pin_sha" != [0-9a-f](#c40) ]]; then
+      warn "antidote: error: pin requires a full 40-character commit SHA, got '$pin_sha'"
+      return 1
+    fi
+  fi
+
+  # handle cloning repo bundles
   if [[ "$btype" == (repo|url|ssh_url) ]] && [[ ! -e "$bundle_path" ]]; then
     giturl=$(tourl $bundle)
     warn "# antidote cloning $bname..."
     if (( $#o_pin )); then
-      # Pin is for SHAs only — use branch: for tags/branches
       git_clone $giturl $bundle_path || return 1
-      if ! git_fetch "$bundle_path" --depth 1 origin "$o_pin[-1]" 2>/dev/null \
-        || ! git_checkout_detach "$bundle_path" "$o_pin[-1]"; then
-        warn "antidote: error: pin commit '$o_pin[-1]' not found for $bname"
+      if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
         del "$bundle_path"
         return 1
       fi
-      # Store pin in repo-local git config so antidote update knows to skip it
-      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $o_pin[-1]
+      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
     else
       git_clone $o_branch $giturl $bundle_path || return 1
     fi
@@ -718,14 +733,11 @@ zsh_script() {
   if [[ "$btype" == (repo|url|ssh_url) ]] && [[ -e "$bundle_path" ]]; then
     if (( $#o_pin )); then
       current_pin=$(git_config_get "$bundle_path" antidote.pin)
-      if [[ "$current_pin" != "$o_pin[-1]" ]] || [[ "$(git_sha "$bundle_path")" != "$o_pin[-1]" ]]; then
-        # Pin changed or newly added — fetch the commit and checkout
-        git_fetch "$bundle_path" --depth 1 origin $o_pin[-1] 2>/dev/null
-        if ! git_checkout_detach "$bundle_path" $o_pin[-1]; then
-          warn "antidote: error: pin commit '$o_pin[-1]' not found for $bname"
+      if [[ "$current_pin" != "$pin_sha" ]] || [[ "$(git_sha "$bundle_path")" != "$pin_sha" ]]; then
+        if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
           return 1
         fi
-        [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $o_pin[-1]
+        [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
       fi
     else
       git_config_unset "$bundle_path" antidote.pin
