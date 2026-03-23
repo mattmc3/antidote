@@ -1419,14 +1419,15 @@ snapshot_restore() {
         date_line=${${(f)"$(<$snap)"}[3]#\# date: }
         labels+=("$date_line	$snap")
       done
-      snapshot_file=$(
+      local selection
+      selection=$(
         printf '%s\n' $labels |
         fzf --no-sort --with-nth=1 --delimiter=$'\t' \
           --prompt="Select snapshot to restore: " \
           --preview="tail -n +4 {2}" \
-          --preview-window=right:60% |
-        cut -f2
+          --preview-window=right:60%
       ) || return 0
+      snapshot_file=${selection#*	}
     else
       die "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
     fi
