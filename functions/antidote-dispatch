@@ -16,6 +16,12 @@
     return $?
   fi
 
+  __antidote_dispatch_usage() {
+    antidote-zsh __private__ usage
+    print -r -- "  help      Show documentation"
+    print -r -- "  load      Statically source all bundles from the plugins file"
+  }
+
   local o_help o_version
   zparseopts ${_adote_zparopt_flags} -- \
     h=o_help    -help=h    \
@@ -28,10 +34,10 @@
     antidote-zsh --version
 
   elif (( ${#o_help} )); then
-    antidote-zsh __private__ usage
+    __antidote_dispatch_usage
 
   elif [[ ${#} -eq 0 ]]; then
-    antidote-zsh __private__ usage
+    __antidote_dispatch_usage
     ret=2
 
   elif [[ "${1}" = help ]]; then
@@ -46,11 +52,11 @@
     if (( $+commands[man] )) && [[ -n "$manpage" ]]; then
       if ! man "$manpage" 2>/dev/null; then
         printf '%s\n' "No manual entry for $manpage"
-        antidote-zsh __private__ usage
+        __antidote_dispatch_usage
         ret=1
       fi
     else
-      antidote-zsh __private__ usage
+      __antidote_dispatch_usage
     fi
 
   elif [[ "$1" == load ]]; then

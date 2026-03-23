@@ -15,7 +15,6 @@ fi
 builtin autoload -Uz is-at-least
 ZPARSEOPTS=( -D -M )
 is-at-least 5.8 && ZPARSEOPTS+=( -F )
-TAB="$(printf '\t')"
 
 # When sourced, behave differently
 if [[ ":${ZSH_EVAL_CONTEXT}:" == *:file:* ]]; then
@@ -626,14 +625,12 @@ bundle_scripter() {
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 #
 zsh_script() {
-  local MATCH MBEGIN MEND REPLY
+  local MATCH MBEGIN MEND
   local -a match mbegin mend
   local -a o_help o_kind o_path o_branch o_pin o_cond o_autoload o_pre o_post o_fpath_rule o_skip_load_defer
   local repat bundle bname bundle_path btype dopts zsh_defer zsh_defer_bundle giturl current_pin
   local source_cmd print_bundle_path initfile print_initfile fpath_script _initfiles_out
   local -a supported_kind_vals supported_fpath_rules script initfiles
-
-  REPLY=
 
   zparseopts ${ZPARSEOPTS} -- \
     h=o_help       -help=h            \
@@ -1475,8 +1472,9 @@ antidote() {
     return 0
   fi
 
-  if [[ ${#} -eq 0 ]]; then
-    return 2
+  if (( ${#o_help} )) || [[ ${#} -eq 0 ]]; then
+    usage
+    return
   fi
 
   local cmd=$1; shift
@@ -1546,8 +1544,6 @@ flags:
   -v, --version        Show application version
 
 commands:
-  help      Show documentation
-  load      Statically source all bundles from the plugins file
   bundle    Clone bundle(s) and generate the static load script
   install   Clone a new bundle and add it to your plugins file
   update    Update antidote and its cloned bundles
