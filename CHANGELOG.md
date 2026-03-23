@@ -25,7 +25,7 @@ Notable changes to this project will be documented in this file.
 - `antidote list --long` / `-l`: show verbose key-value info per bundle (repo, path, URL, SHA, pin status)
 - `antidote list --dirs` / `-d`: show bundle directory paths
 - `antidote list --jsonl` / `-j`: machine-readable JSONL output (includes pin status when pinned)
-- antidote now reads `~/.config/antidote/config.zsh` on startup (respects `$XDG_CONFIG_HOME`)
+- antidote can now read an optional config `~/.config/antidote/config.zsh` on startup (respects `$XDG_CONFIG_HOME`)
 - A template config file is included showing all available zstyles (see `templates/config.zsh`)
 - New `path-style` zstyle controls how bundle directories are named on disk:
   - `full` (default): `$ANTIDOTE_HOME/github.com/owner/repo`
@@ -48,7 +48,7 @@ Notable changes to this project will be documented in this file.
 
 - The codebase has been consolidated from many small functions into a single self-contained `antidote.zsh`
 - Internal dispatching has been rewritten and streamlined
-- `antidote list` flags have been redesigned: `--short`, `--short-name`, `--url`, `--sha`, `--short-sha`, and `--pinned` are replaced by `--long`, `--dirs`, and `--jsonl`
+- `antidote list` flags have been redesigned and many removed and replaced by `--long`, `--dirs`, and `--jsonl`
 
 ### Removed
 
