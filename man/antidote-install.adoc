@@ -7,7 +7,7 @@
 antidote-install - install a bundle
 
 == Synopsis
-*antidote install* [-h|--help] [-k|--kind <kind>] [-p|--path <path>] [-a|--autoload <path>] [-c|--conditional <func>] [--pre <func>] [--post <func>] [-b|--branch <branch>] <bundle> [<bundlefile>]
+*antidote install* [-h|--help] [-k|--kind <kind>] [-p|--path <path>] [-a|--autoload <path>] [-c|--conditional <func>] [--pre <func>] [--post <func>] [--pin <sha>] [-b|--branch <branch>] <bundle> [<bundlefile>]
 
 == Description
 *antidote-install* clones a new bundle and adds it to your plugins file.
@@ -27,6 +27,7 @@ zstyle ':antidote:bundle' file /path/to/my/bundle_file.txt
 *-c, --conditional <func>*:: A conditional function used to check whether to load the bundle.
 *--pre <func>*:: A function to be called prior to loading the bundle.
 *--post <func>*:: A function to be called after loading the bundle.
+*--pin <sha>*:: Pin the bundle to a specific commit SHA. Pinned bundles are skipped during `antidote update`.
 *<bundle>*:: Bundle to be installed.
 *[<bundlefile>]*:: Bundle file to write to if not using the default. Defaults to `${ZDOTDIR:-$HOME}/.zsh_plugins.txt` or the `zstyle` setting.
 

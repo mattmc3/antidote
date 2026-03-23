@@ -49,7 +49,7 @@ themes/purify
 %
 ```
 
-Install a complicated bundle
+Install with `--kind` and `--conditional`:
 
 ```zsh
 % antidote install --kind fpath --conditional is-macos themes/ohmytheme | subenv ZDOTDIR
@@ -58,6 +58,18 @@ Adding bundle to '$ZDOTDIR/.zsh_plugins.txt':
 themes/ohmytheme kind:fpath conditional:is-macos
 % tail -n 1 $ZDOTDIR/.zsh_plugins.txt
 themes/ohmytheme kind:fpath conditional:is-macos
+%
+```
+
+Install with all annotation flags (`--path`, `--autoload`, `--pre`, `--post`, `--pin`):
+
+```zsh
+% antidote install --path lib --autoload functions --pre setup_func --post teardown_func --pin 367eaa595eb776634c100cec24f241cc2256e79e test/install | subenv ZDOTDIR
+# antidote cloning test/install...
+Adding bundle to '$ZDOTDIR/.zsh_plugins.txt':
+test/install path:lib autoload:functions pre:setup_func post:teardown_func pin:367eaa595eb776634c100cec24f241cc2256e79e
+% tail -n 1 $ZDOTDIR/.zsh_plugins.txt
+test/install path:lib autoload:functions pre:setup_func post:teardown_func pin:367eaa595eb776634c100cec24f241cc2256e79e
 %
 ```
 

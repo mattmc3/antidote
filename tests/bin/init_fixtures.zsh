@@ -396,6 +396,10 @@ setup_fixture_zsh_users_zsh_autosuggestions() {
   make_fixture "https://fakegitsite.com/zsh-users/zsh-autosuggestions" "plugin.zsh"
 }
 
+setup_fixture_test_install() {
+  make_fixture "https://fakegitsite.com/test/install" "plugin.zsh"
+}
+
 setup_fixture_pintest_pinme() {
   local url dir
   url="https://fakegitsite.com/pintest/pinme"
@@ -441,6 +445,7 @@ setup_fixture_purify
 # setup_fixture_zsh_users_zsh_bench
 setup_fixture_zsh_defer
 setup_fixture_zsh_users_zsh_autosuggestions
+setup_fixture_test_install
 setup_fixture_pintest_pinme
 
 # Generate the fixture_shas.tsv and gitconfig files
