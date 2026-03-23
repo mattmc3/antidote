@@ -249,42 +249,29 @@ $HOME/.cache/antidote
 
 ## List bundles
 
+List URLs (default):
+
+```zsh
+% antidote list | sort
+git@fakegitsite.com:foo/qux
+https://fakegitsite.com/bar/baz
+https://fakegitsite.com/foo/bar
+https://fakegitsite.com/foo/baz
+https://fakegitsite.com/getantidote/zsh-defer
+https://fakegitsite.com/ohmy/ohmy
+%
+```
+
 List directories:
 
 ```zsh
-% antidote list | subenv HOME
+% antidote list --dirs | subenv HOME
 $HOME/.cache/antidote/fakegitsite.com/bar/baz
 $HOME/.cache/antidote/fakegitsite.com/foo/bar
 $HOME/.cache/antidote/fakegitsite.com/foo/baz
 $HOME/.cache/antidote/fakegitsite.com/foo/qux
 $HOME/.cache/antidote/fakegitsite.com/getantidote/zsh-defer
 $HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy
-%
-```
-
-List repo URLs:
-
-```zsh
-% antidote list --url | awk -F'\t' '{print $2}'
-https://fakegitsite.com/bar/baz
-https://fakegitsite.com/foo/bar
-https://fakegitsite.com/foo/baz
-git@fakegitsite.com:foo/qux
-https://fakegitsite.com/getantidote/zsh-defer
-https://fakegitsite.com/ohmy/ohmy
-%
-```
-
-List short repos:
-
-```zsh
-% antidote list --short-name | awk -F'\t' '{print $2}' | sort
-bar/baz
-foo/bar
-foo/baz
-getantidote/zsh-defer
-git@fakegitsite.com:foo/qux
-ohmy/ohmy
 %
 ```
 

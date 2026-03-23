@@ -16,7 +16,7 @@ function _antidote_subcommands {
 }
 
 function _antidote_installed_bundles {
-  local -a bundles=("${(@f)$(antidote list --short-name | awk -F'\t' '{print $2}')}")
+  local -a bundles=("${(@f)$(antidote list | awk -F'/' '{print $(NF-1)"/"$NF}')}")
   _describe 'installed bundles' bundles
 }
 
@@ -78,12 +78,9 @@ function _antidote {
         (list)
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
-            '(-s --short-name)'{-s,--short-name}'[Show shortened repo names where possible]' \
-            '(-u --url)'{-u,--url}'[Show bundle URLs]' \
-            '(--sha)--sha[Show the full commit SHA for each bundle]' \
-            '(--short-sha)--short-sha[Show the short commit SHA for each bundle]' \
+            '(-l --long)'{-l,--long}'[Show detailed information for each bundle]' \
+            '(-d --dirs)'{-d,--dirs}'[Show bundle directory paths]' \
             '(-j --jsonl)'{-j,--jsonl}'[Output the bundle list in JSONL format]' \
-            '(-p --pinned)'{-p,--pinned}'[Show pin status for each bundle]' \
             && ret=0
           ;;
         (load)

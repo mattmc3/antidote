@@ -430,7 +430,7 @@ bundle_zcompile() {
 
   local -a bundles
   if [[ -z "$1" ]]; then
-    bundles=($(antidote_list))
+    bundles=($(antidote_list --dirs))
   elif [[ -f "$1" ]]; then
     zrecompile -pq "$1"
     return
@@ -1086,7 +1086,7 @@ antidote_update() {
     trap '[[ -d "$tmpdir" ]] && del "$tmpdir"' EXIT 2 15 1
 
     # update all bundles
-    for bundledir in $(antidote_list); do
+    for bundledir in $(antidote_list --dirs); do
       url=$(git_url "$bundledir")
       repo=$(short_repo_name "$url")
 
@@ -1237,26 +1237,23 @@ antidote_init() {
 
 ### List cloned bundles.
 #
-# usage: antidote list [-u|--url] [-h|--help] [-s|--short-name] [--sha] [--short-sha] [-j|--jsonl]
+# usage: antidote list [-h|--help] [-l|--long] [-j|--jsonl] [-d|--dirs]
 #
 antidote_list() {
-  local o_help o_jsonl o_url o_short_name o_sha o_short_sha o_pinned
+  local o_help o_jsonl o_long o_dirs
   zparseopts ${ZPARSEOPTS} -- \
-    h=o_help       -help=h      \
-    u=o_url        -url=u       \
-    j=o_jsonl      -jsonl=j     \
-    s=o_short_name -short-name=s \
-    p=o_pinned     -pinned=p    \
-                   -sha=o_sha    \
-                   -short-sha=o_short_sha ||
+    h=o_help  -help=h   \
+    j=o_jsonl -jsonl=j  \
+    l=o_long  -long=l   \
+    d=o_dirs  -dirs=d   ||
     return 1
 
   if (( $# )); then
     die "antidote: error: unexpected $1, try --help"
   fi
 
-  local bundledir url short_name sha pin_ref
-  local -a output=() parts=()
+  local bundledir url repo sha pin_ref
+  local -a output=()
   local -a bundles=()
 
   # each style has a different depth
@@ -1269,33 +1266,36 @@ antidote_list() {
   for bundledir in $bundles; do
     bundledir=${bundledir:h}
     url=$(git_url "$bundledir") || continue
-    short_name=${url%.git}
-    short_name=${short_name#https://${ANTIDOTE_GIT_SITE}/}
-    parts=($bundledir)
+    repo=${url%.git}
+    repo=${repo#https://${ANTIDOTE_GIT_SITE}/}
 
     if (( $#o_jsonl )); then
       sha=$(git_sha "$bundledir")
-      if (( $#o_pinned )); then
-        pin_ref=$(git_config_get "$bundledir" antidote.pin)
-        printf '{"url":"%s","short_name":"%s","type":"repo","path":"%s","sha":"%s","pin":"%s"}\n' \
-          "$url" "$short_name" "$bundledir" "$sha" "${pin_ref:-}"
+      pin_ref=$(git_config_get "$bundledir" antidote.pin)
+      if [[ -n "$pin_ref" ]]; then
+        printf '{"url":"%s","repo":"%s","path":"%s","sha":"%s","pin":"%s"}\n' \
+          "$url" "$repo" "$bundledir" "$sha" "$pin_ref"
       else
-        printf '{"url":"%s","short_name":"%s","type":"repo","path":"%s","sha":"%s"}\n' \
-          "$url" "$short_name" "$bundledir" "$sha"
+        printf '{"url":"%s","repo":"%s","path":"%s","sha":"%s"}\n' \
+          "$url" "$repo" "$bundledir" "$sha"
       fi
       continue
-    elif (( $#o_url || $#o_short_name || $#o_sha || $#o_short_sha || $#o_pinned )); then
-      (( $#o_short_name )) && parts+=($short_name)
-      (( $#o_url        )) && parts+=($url)
-      (( $#o_sha        )) && parts+=($(git_sha "$bundledir"))
-      (( $#o_short_sha  )) && parts+=($(git_shortsha "$bundledir"))
-      if (( $#o_pinned )); then
-        pin_ref=$(git_config_get "$bundledir" antidote.pin)
-        parts+=(${pin_ref:-unpinned})
+    elif (( $#o_long )); then
+      sha=$(git_sha "$bundledir")
+      pin_ref=$(git_config_get "$bundledir" antidote.pin)
+      printf 'Repo:   %s\n' "$repo"
+      printf 'Path:   %s\n' "$(print_path "$bundledir")"
+      printf 'URL:    %s\n' "$url"
+      printf 'SHA:    %s\n' "$sha"
+      if [[ -n "$pin_ref" ]]; then
+        printf 'Pinned: %s\n' "$pin_ref"
       fi
-      output+=("$(printf '%s\n' ${(pj:\t:)parts})")
+      print
+      continue
+    elif (( $#o_dirs )); then
+      output+=("$bundledir")
     else
-      output+=("$(printf '%s\n' $bundledir)")
+      output+=("$url")
     fi
   done
   (( $#output )) && printf '%s\n' ${(o)output}
@@ -1348,7 +1348,7 @@ antidote_snapshot() {
 
 ### Write a snapshot of all cloned bundles to a timestamped file.
 snapshot_save() {
-  local bundledir url sha short_name snapshot_file
+  local bundledir url sha repo snapshot_file
   local -a bundles bundle_lines
 
   [[ "$ANTIDOTE_DYNAMIC" == true ]] && return 0
@@ -1369,10 +1369,10 @@ snapshot_save() {
     sha=$(git_sha "$bundledir")
 
     # Derive short name (user/repo) when possible
-    short_name=${url%.git}
-    short_name=${short_name#https://${ANTIDOTE_GIT_SITE}/}
+    repo=${url%.git}
+    repo=${repo#https://${ANTIDOTE_GIT_SITE}/}
 
-    bundle_lines+=("$short_name kind:clone pin:$sha")
+    bundle_lines+=("$repo kind:clone pin:$sha")
   done
 
   {
@@ -1522,7 +1522,7 @@ antidote() {
   typeset -g ANTIDOTE_SNAPSHOT_DIR ANTIDOTE_SNAPSHOT_MAX ANTIDOTE_AUTOSNAPSHOT=false
   zstyle -s ':antidote:snapshot' dir       ANTIDOTE_SNAPSHOT_DIR || ANTIDOTE_SNAPSHOT_DIR=$(get_datadir antidote)/snapshots
   zstyle -s ':antidote:snapshot' max       ANTIDOTE_SNAPSHOT_MAX || ANTIDOTE_SNAPSHOT_MAX=100
-  zstyle -T ':antidote:autosnapshot' enabled && ANTIDOTE_AUTOSNAPSHOT=true
+  zstyle -T ':antidote:snapshot:automatic' enabled && ANTIDOTE_AUTOSNAPSHOT=true
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
 
   typeset -g C_BLUE C_GREEN C_YELLOW C_NORMAL

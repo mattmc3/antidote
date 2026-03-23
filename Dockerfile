@@ -7,7 +7,8 @@ RUN apk add --no-cache \
     just \
     perl \
     mandoc \
-    less
+    less \
+    jq
 
 # Install clitest
 RUN git clone --depth=1 https://github.com/aureliojargas/clitest /opt/clitest

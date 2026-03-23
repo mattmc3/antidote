@@ -89,24 +89,28 @@ HEAD
 ### List shows pinned bundles
 
 ```zsh
-% antidote list --short-name --pinned | subenv ANTIDOTE_HOME | grep pintest
-$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme	pintest/pinme	64642c5691051ba0d82f5bda60b745f6fd042325
+% antidote list --long | grep -A4 'Repo:.*pintest/pinme'
+Repo:   pintest/pinme
+Path:   $HOME/.cache/antidote/fakegitsite.com/pintest/pinme
+URL:    https://fakegitsite.com/pintest/pinme
+SHA:    64642c5691051ba0d82f5bda60b745f6fd042325
+Pinned: 64642c5691051ba0d82f5bda60b745f6fd042325
 %
 ```
 
-JSONL includes pin field:
+JSONL includes pin field for pinned bundles:
 
 ```zsh
-% antidote list --jsonl --pinned | subenv ANTIDOTE_HOME | grep pintest
-{"url":"https://fakegitsite.com/pintest/pinme","short_name":"pintest/pinme","type":"repo","path":"$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme","sha":"64642c5691051ba0d82f5bda60b745f6fd042325","pin":"64642c5691051ba0d82f5bda60b745f6fd042325"}
+% antidote list --jsonl | subenv ANTIDOTE_HOME | grep pintest
+{"url":"https://fakegitsite.com/pintest/pinme","repo":"pintest/pinme","path":"$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme","sha":"64642c5691051ba0d82f5bda60b745f6fd042325","pin":"64642c5691051ba0d82f5bda60b745f6fd042325"}
 %
 ```
 
-Unpinned bundles show "unpinned":
+Unpinned bundles don't show Pinned in long output:
 
 ```zsh
-% antidote list --short-name --pinned | subenv ANTIDOTE_HOME | grep foo/bar
-$ANTIDOTE_HOME/fakegitsite.com/foo/bar	foo/bar	unpinned
+% antidote list --long | grep -A4 'Repo:.*foo/bar' | grep -c 'Pinned:'
+0
 %
 ```
 

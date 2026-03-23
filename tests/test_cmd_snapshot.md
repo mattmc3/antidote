@@ -108,12 +108,12 @@ no new snapshot
 Disabling autosnapshot prevents auto-snapshot on update, but explicit save still works:
 
 ```zsh
-% zstyle ':antidote:autosnapshot' enabled no
+% zstyle ':antidote:snapshot:automatic' enabled no
 % zstyle ':antidote:snapshot' dir $HOME/.antidote-disabled-test
 % source $T_PRJDIR/antidote.zsh
 % antidote snapshot save | grep -c "Snapshot saved:"
 1
-% zstyle -d ':antidote:autosnapshot' enabled
+% zstyle -d ':antidote:snapshot:automatic' enabled
 % zstyle -d ':antidote:snapshot' dir
 %
 ```
