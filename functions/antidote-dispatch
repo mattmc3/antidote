@@ -66,7 +66,11 @@
     else
       typeset -g REPLY=
       () {
-        emulate -L zsh; setopt local_options $_adote_funcopts
+        emulate -L zsh
+        setopt local_options extended_glob no_monitor pipefail
+        if zstyle -t ':antidote:tests' set-warn-options; then
+          setopt warn_create_global warn_nested_var
+        fi
 
         local bundlefile="$1"
         if [[ -z "$bundlefile" ]]; then
