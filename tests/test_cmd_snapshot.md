@@ -6,7 +6,9 @@
 % source ./tests/__init__.zsh
 % t_setup
 % antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
-% SNAP_DIR=$HOME/.local/share/antidote/snapshots
+% SNAP_DIR=$HOME/.antidote-snapshots
+% zstyle ':antidote:snapshot' dir $SNAP_DIR
+% source $T_PRJDIR/antidote.zsh
 %
 ```
 
