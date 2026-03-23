@@ -57,7 +57,7 @@ source "$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme/pinme.plugin.zsh"
 % zstyle ':antidote:test:version' show-sha off
 % zstyle ':antidote:test:git' autostash off
 % antidote update --bundles 2>&1 | grep pintest
-antidote: skipping update for pinned bundle: pintest/pinme (at 64642c5691051ba0d82f5bda60b745f6fd042325)
+antidote: skipping update for pinned bundle: pintest/pinme (at 64642c5...)
 %
 ```
 

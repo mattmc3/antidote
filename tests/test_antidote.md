@@ -306,12 +306,12 @@ $HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy
 % zstyle ':antidote:test:git' autostash off
 % antidote update
 Updating bundles...
-antidote: checking for updates: https://fakegitsite.com/bar/baz
-antidote: checking for updates: https://fakegitsite.com/foo/bar
-antidote: checking for updates: https://fakegitsite.com/foo/baz
-antidote: checking for updates: git@fakegitsite.com:foo/qux
-antidote: checking for updates: https://fakegitsite.com/getantidote/zsh-defer
-antidote: checking for updates: https://fakegitsite.com/ohmy/ohmy
+antidote: checking for updates: bar/baz
+antidote: checking for updates: foo/bar
+antidote: checking for updates: foo/baz
+antidote: checking for updates: foo/qux
+antidote: checking for updates: getantidote/zsh-defer
+antidote: checking for updates: ohmy/ohmy
 Waiting for bundle updates to complete...
 
 Bundle updates complete.

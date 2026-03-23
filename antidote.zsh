@@ -1086,16 +1086,20 @@ antidote_update() {
     # update all bundles
     for bundledir in $(antidote_list); do
       url=$(git_url "$bundledir")
-      repo="${url:h:t}/${${url:t}%.git}"
+      if [[ "$url" == git@*:*/* ]]; then
+        repo="${${url#*:}%.git}"
+      else
+        repo="${url:h:t}/${${url:t}%.git}"
+      fi
 
       # Skip pinned bundles
       pin_ref=$(git_config_get "$bundledir" antidote.pin)
       if [[ -n "$pin_ref" ]]; then
-        say "antidote: skipping update for pinned bundle: $repo (at $pin_ref)"
+        say "${C_BLUE}antidote:${C_NORMAL} skipping update for pinned bundle: $repo (at ${C_GREEN}${pin_ref[1,7]}...${C_NORMAL})"
         continue
       fi
 
-      say "antidote: checking for updates: $url"
+      say "${C_BLUE}antidote:${C_NORMAL} checking for updates: $repo"
 
       () {
         local repo_id tmpfile oldsha newsha
@@ -1130,9 +1134,9 @@ antidote_update() {
         {
           if [[ $oldsha != $newsha ]]; then
             if (( $#o_dry_run )); then
-              say "${C_YELLOW}antidote: update available: $2 ${oldsha} -> ${newsha}${C_NORMAL}"
+              say "${C_YELLOW}antidote:${C_NORMAL} update available: $2 ${C_GREEN}${oldsha}${C_NORMAL} -> ${C_GREEN}${newsha}${C_NORMAL}"
             else
-              say "${C_GREEN}antidote: updated: $2 ${oldsha} -> ${newsha}${C_NORMAL}"
+              say "${C_GREEN}antidote:${C_NORMAL} updated: $2 ${C_GREEN}${oldsha}${C_NORMAL} -> ${C_GREEN}${newsha}${C_NORMAL}"
             fi
             git_log_oneline "$1" "$oldsha" "$newsha"
           fi
@@ -1144,7 +1148,7 @@ antidote_update() {
             fi
           fi
         } > "$tmpfile" 2>&1
-      } "$bundledir" "$url" &
+      } "$bundledir" "$repo" &
     done
 
     say "Waiting for bundle updates to complete..."
@@ -1524,17 +1528,10 @@ antidote() {
 
   typeset -g C_BLUE C_GREEN C_YELLOW C_NORMAL
   if supports_color; then
-    if (( $+commands[tput] )); then
-      C_BLUE=$(tput setaf 4)
-      C_GREEN=$(tput setaf 2)
-      C_YELLOW=$(tput setaf 3)
-      C_NORMAL=$(tput sgr0)
-    else
-      C_BLUE=$'\E[34m'
-      C_GREEN=$'\E[32m'
-      C_YELLOW=$'\E[33m'
-      C_NORMAL=$'\E[0m'
-    fi
+    C_BLUE=$'\E[34m'
+    C_GREEN=$'\E[32m'
+    C_YELLOW=$'\E[33m'
+    C_NORMAL=$'\E[0m'
   fi
 } "${0:A}"
 
