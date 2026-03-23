@@ -2,12 +2,12 @@
 .\"     Title: antidote-list
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-03-22
+.\"      Date: 2026-03-23
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE\-LIST" "1" "2026-03-22" "antidote" "Antidote Manual"
+.TH "ANTIDOTE\-LIST" "1" "2026-03-23" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -32,11 +32,14 @@ antidote-list \- list cloned bundles
 .SH "SYNOPSIS"
 .sp
 \fBantidote list\fP [\-h|\-\-help]
-\fBantidote list\fP [\-j|\-\-jsonl]
-\fBantidote list\fP [\-s|\-\-short\-name] [\-\-sha] [\-\-short\-sha] [\-u|\-\-url]
+\fBantidote list\fP [\-l|\-\-long] [\-d|\-\-dirs] [\-j|\-\-jsonl]
 .SH "DESCRIPTION"
 .sp
 \fBantidote\-list\fP lists the cloned bundles in \fBantidote home\fP.
+.sp
+By default, bundle URLs are shown one per line. Use \fB\-\-long\fP for a
+verbose key\-value view of each bundle, \fB\-\-dirs\fP to show directory paths,
+or \fB\-\-jsonl\fP for machine\-readable output.
 .SH "OPTIONS"
 .sp
 \fB\-h, \-\-help\fP
@@ -44,29 +47,19 @@ antidote-list \- list cloned bundles
 Show the help documentation.
 .RE
 .sp
+\fB\-l, \-\-long\fP
+.RS 4
+Show detailed information for each bundle (repo, path, URL, SHA, pin status).
+.RE
+.sp
+\fB\-d, \-\-dirs\fP
+.RS 4
+Show bundle directory paths.
+.RE
+.sp
 \fB\-j, \-\-jsonl\fP
 .RS 4
 Output the bundle list in JSONL format.
-.RE
-.sp
-\fB\-s, \-\-short\-name\fP
-.RS 4
-Show shortened repo names where possible.
-.RE
-.sp
-\fB\-u, \-\-url\fP
-.RS 4
-Show bundle URLs.
-.RE
-.sp
-\fB\-\-sha\fP
-.RS 4
-Show the full commit SHA for each bundle.
-.RE
-.sp
-\fB\-\-short\-sha\fP
-.RS 4
-Show the short commit SHA for each bundle.
 .RE
 .SH "BUGS"
 .sp
