@@ -1048,7 +1048,6 @@ antidote_purge() {
 antidote_update() {
   local o_help o_self o_bundles o_dry_run
   local tmpfile tmpdir bundledir url repo filename repo_id antidote_dir pin_ref
-  local green blue yellow normal
   local line loadable_check_path
 
   zparseopts ${ZPARSEOPTS} -- \
@@ -1061,21 +1060,6 @@ antidote_update() {
   if (( $#o_help )); then
     usage
     return
-  fi
-
-  # colors
-  if supports_color; then
-    if (( $+commands[tput] )); then
-      green=$(tput setaf 2)
-      blue=$(tput setaf 4)
-      yellow=$(tput setaf 3)
-      normal=$(tput sgr0)
-    else
-      green=$'\E[32m'
-      blue=$'\E[34m'
-      yellow=$'\E[33m'
-      normal=$'\E[0m'
-    fi
   fi
 
   if (( $#o_bundles )) || ! (( $#o_self )); then
@@ -1146,9 +1130,9 @@ antidote_update() {
         {
           if [[ $oldsha != $newsha ]]; then
             if (( $#o_dry_run )); then
-              say "${yellow}antidote: update available: $2 ${oldsha} -> ${newsha}${normal}"
+              say "${C_YELLOW}antidote: update available: $2 ${oldsha} -> ${newsha}${C_NORMAL}"
             else
-              say "${green}antidote: updated: $2 ${oldsha} -> ${newsha}${normal}"
+              say "${C_GREEN}antidote: updated: $2 ${oldsha} -> ${newsha}${C_NORMAL}"
             fi
             git_log_oneline "$1" "$oldsha" "$newsha"
           fi
@@ -1174,12 +1158,12 @@ antidote_update() {
         repo_id=${filename%.output}
         repo_id=${repo_id//-SLASH-/\/}
 
-        say "${blue}Bundle ${repo_id} update check complete.${normal}"
+        say "${C_BLUE}Bundle ${repo_id} update check complete.${C_NORMAL}"
 
         # Colorize the SHA in each line
         while IFS= read -r line; do
           if [[ -n "$line" ]] && [[ "$line" == [[:alnum:]]* ]]; then
-            say "${yellow}${line%% *}${normal} ${line#* }"
+            say "${C_YELLOW}${line%% *}${C_NORMAL} ${line#* }"
           else
             say "$line"
           fi
@@ -1191,9 +1175,9 @@ antidote_update() {
     # cleanup temp dir
     [[ -d "$tmpdir" ]] && del "$tmpdir"
     if (( $#o_dry_run )); then
-      say "${green}Dry run complete. No changes were made.${normal}"
+      say "${C_GREEN}Dry run complete. No changes were made.${C_NORMAL}"
     else
-      say "${green}Bundle updates complete.${normal}"
+      say "${C_GREEN}Bundle updates complete.${C_NORMAL}"
       [[ "$ANTIDOTE_AUTOSNAPSHOT" == true ]] && snapshot_save >/dev/null
     fi
     say ""
@@ -1449,7 +1433,19 @@ snapshot_restore() {
   fi
 
   say "Restoring from snapshot: $snapshot_file"
-  ANTIDOTE_EPHEMERAL_PIN=true antidote_bundle <"$snapshot_file" &>/dev/null
+
+  local line bundle pin
+  while IFS= read -r line; do
+    [[ "$line" == \#* || -z "$line" ]] && continue
+    bundle=${line%% *}
+    pin=${line##*pin:}
+    pin=${pin%% *}
+    say "${C_BLUE}antidote:${C_NORMAL} restoring $bundle (${C_GREEN}${pin[1,7]}...${C_NORMAL})"
+    ANTIDOTE_EPHEMERAL_PIN=true antidote_bundle "$line" &>/dev/null &
+  done <"$snapshot_file"
+  wait
+
+  say "${C_GREEN}Restore complete.${C_NORMAL}"
 }
 
 ### List available snapshots.
@@ -1525,6 +1521,21 @@ antidote() {
   zstyle -s ':antidote:snapshot' max       ANTIDOTE_SNAPSHOT_MAX || ANTIDOTE_SNAPSHOT_MAX=100
   zstyle -T ':antidote:autosnapshot' enabled && ANTIDOTE_AUTOSNAPSHOT=true
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
+
+  typeset -g C_BLUE C_GREEN C_YELLOW C_NORMAL
+  if supports_color; then
+    if (( $+commands[tput] )); then
+      C_BLUE=$(tput setaf 4)
+      C_GREEN=$(tput setaf 2)
+      C_YELLOW=$(tput setaf 3)
+      C_NORMAL=$(tput sgr0)
+    else
+      C_BLUE=$'\E[34m'
+      C_GREEN=$'\E[32m'
+      C_YELLOW=$'\E[33m'
+      C_NORMAL=$'\E[0m'
+    fi
+  fi
 } "${0:A}"
 
 ANTIDOTE_HELP=$(
