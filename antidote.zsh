@@ -264,9 +264,13 @@ bundle_type() {
 short_repo_name() {
   local bundle=$1
   bundle=${bundle%.git}
-  bundle=${bundle:gs/\:/\/}
-  local parts=(${(ps./.)bundle})
-  say ${parts[-2]}/${parts[-1]}
+  if [[ "$bundle" == git@*:*/* ]]; then
+    say "$bundle"
+  else
+    bundle=${bundle:gs/\:/\/}
+    local parts=(${(ps./.)bundle})
+    say ${parts[-2]}/${parts[-1]}
+  fi
 }
 
 bundle_name() {
@@ -1084,11 +1088,7 @@ antidote_update() {
     # update all bundles
     for bundledir in $(antidote_list); do
       url=$(git_url "$bundledir")
-      if [[ "$url" == git@*:*/* ]]; then
-        repo="${${url#*:}%.git}"
-      else
-        repo="${url:h:t}/${${url:t}%.git}"
-      fi
+      repo=$(short_repo_name "$url")
 
       # Skip pinned bundles
       pin_ref=$(git_config_get "$bundledir" antidote.pin)

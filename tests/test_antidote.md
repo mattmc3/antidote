@@ -75,7 +75,7 @@ Bundle a repo at git@fakegitsite.com:foo/qux
 
 ```zsh
 % antidote bundle git@fakegitsite.com:foo/qux
-# antidote cloning foo/qux...
+# antidote cloning git@fakegitsite.com:foo/qux...
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/qux" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/qux/qux.plugin.zsh"
 %
@@ -309,7 +309,7 @@ Updating bundles...
 antidote: checking for updates: bar/baz
 antidote: checking for updates: foo/bar
 antidote: checking for updates: foo/baz
-antidote: checking for updates: foo/qux
+antidote: checking for updates: git@fakegitsite.com:foo/qux
 antidote: checking for updates: getantidote/zsh-defer
 antidote: checking for updates: ohmy/ohmy
 Waiting for bundle updates to complete...

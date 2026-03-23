@@ -84,7 +84,7 @@ $HOME/.zsh/custom/lib/lib1.zsh
 % bundle_name $HOME/.zsh/plugins/myplugin
 $HOME/.zsh/plugins/myplugin
 % bundle_name 'git@fakegitsite.com:foo/bar.git'
-foo/bar
+git@fakegitsite.com:foo/bar
 % bundle_name 'https://fakegitsite.com/foo/bar'
 foo/bar
 % bundle_name 'https:/bad.com/foo/bar.git'
@@ -236,9 +236,9 @@ foo/bar
 % short_repo_name https://github.com/foo/bar.git
 foo/bar
 % short_repo_name git@github.com:foo/bar.git
-foo/bar
+git@github.com:foo/bar
 % short_repo_name git@github.com:foo/bar
-foo/bar
+git@github.com:foo/bar
 % short_repo_name https://gitlab.com/deep/nested/repo
 nested/repo
 %

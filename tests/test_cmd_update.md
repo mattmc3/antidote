@@ -19,7 +19,7 @@ Updating bundles...
 antidote: checking for updates: bar/baz
 antidote: checking for updates: foo/bar
 antidote: checking for updates: foo/baz
-antidote: checking for updates: foo/qux
+antidote: checking for updates: git@fakegitsite.com:foo/qux
 antidote: checking for updates: getantidote/zsh-defer
 antidote: checking for updates: ohmy/ohmy
 Waiting for bundle updates to complete...
