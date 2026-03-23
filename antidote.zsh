@@ -707,7 +707,7 @@ zsh_script() {
         return 1
       fi
       # Store pin in repo-local git config so antidote update knows to skip it
-      git_config_set "$bundle_path" antidote.pin $o_pin[-1]
+      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $o_pin[-1]
     else
       git_clone $o_branch $giturl $bundle_path || return 1
     fi
@@ -724,7 +724,7 @@ zsh_script() {
           warn "antidote: error: pin commit '$o_pin[-1]' not found for $bname"
           return 1
         fi
-        git_config_set "$bundle_path" antidote.pin $o_pin[-1]
+        [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $o_pin[-1]
       fi
     else
       git_config_unset "$bundle_path" antidote.pin
@@ -1438,7 +1438,7 @@ snapshot_restore() {
   fi
 
   say "Restoring from snapshot: $snapshot_file"
-  antidote_bundle <"$snapshot_file" &>/dev/null
+  ANTIDOTE_EPHEMERAL_PIN=true antidote_bundle <"$snapshot_file" &>/dev/null
 }
 
 ### List available snapshots.
