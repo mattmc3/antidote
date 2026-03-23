@@ -43,3 +43,11 @@
 # =============================================================================
 
 # zstyle ':antidote:fpath' rule 'append'   # 'append' or 'prepend' fpath entries
+
+# =============================================================================
+# Snapshot settings
+# =============================================================================
+
+# zstyle ':antidote:snapshot'           dir     '${XDG_DATA_HOME:-$HOME/.local/share}/antidote/snapshots'  # snapshot storage location
+# zstyle ':antidote:snapshot'           max     100       # max number of snapshots to keep
+# zstyle ':antidote:snapshot:automatic' enabled 'yes'     # auto-snapshot on update ('yes' or 'no')
