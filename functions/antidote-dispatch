@@ -141,10 +141,10 @@
     fi
     ret=$?
 
-  elif (( $+functions[antidote-${1}] )); then
-    local cmd=${1}; shift
-    antidote-${cmd} "$@"
-    ret=$?
+  # elif (( $+functions[antidote-${1}] )); then
+  #   local cmd=${1}; shift
+  #   antidote-${cmd} "$@"
+  #   ret=$?
 
   else
     local cmd=${1}; shift
