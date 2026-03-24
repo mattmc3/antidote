@@ -175,7 +175,7 @@ antidote: snapshot: unknown subcommand 'foo'
 % antidote snapshot save >/dev/null
 % path=(${path:#*fzf*})
 % unhash -f fzf 2>/dev/null; true
-% antidote snapshot restore 2>&1
+% antidote snapshot restore 2>&1 | head -1
 antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)
 % zstyle -d ':antidote:snapshot' dir
 %
@@ -187,7 +187,7 @@ antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to 
 % zstyle ':antidote:snapshot' dir $HOME/.antidote-no-snaps
 % source $T_PRJDIR/antidote.zsh
 % mkdir -p $HOME/.antidote-no-snaps
-% antidote snapshot restore 2>&1
+% antidote snapshot restore 2>&1 | head -1
 antidote: snapshot: no snapshots found
 % zstyle -d ':antidote:snapshot' dir
 %
@@ -198,6 +198,57 @@ antidote: snapshot: no snapshots found
 ```zsh
 % antidote snapshot restore /nonexistent/snapshot.txt 2>&1
 antidote: snapshot: file not found '/nonexistent/snapshot.txt'
+%
+```
+
+## Remove with file argument
+
+```zsh
+% zstyle ':antidote:snapshot' dir $HOME/.antidote-remove-test
+% source $T_PRJDIR/antidote.zsh
+% antidote snapshot save >/dev/null && sleep 1
+% antidote snapshot save >/dev/null
+% ls $HOME/.antidote-remove-test/snapshot-*.txt | wc -l | tr -d ' '
+2
+% snap=$(ls $HOME/.antidote-remove-test/snapshot-*.txt | head -1)
+% antidote snapshot remove $snap | grep -c "Removed:"
+1
+% ls $HOME/.antidote-remove-test/snapshot-*.txt | wc -l | tr -d ' '
+1
+% zstyle -d ':antidote:snapshot' dir
+%
+```
+
+## Remove error: file not found
+
+```zsh
+% antidote snapshot remove /nonexistent/snapshot.txt 2>&1
+antidote: snapshot: file not found '/nonexistent/snapshot.txt'
+%
+```
+
+## Remove error: no file specified (without fzf)
+
+```zsh
+% zstyle ':antidote:snapshot' dir $HOME/.antidote-remove-nofzf
+% source $T_PRJDIR/antidote.zsh
+% antidote snapshot save >/dev/null
+% path=(${path:#*fzf*})
+% unhash -f fzf 2>/dev/null; true
+% antidote snapshot remove 2>&1 | head -1
+antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)
+% zstyle -d ':antidote:snapshot' dir
+%
+```
+
+## Remove error: no snapshots found
+
+```zsh
+% zstyle ':antidote:snapshot' dir $HOME/.antidote-remove-empty
+% source $T_PRJDIR/antidote.zsh
+% mkdir -p $HOME/.antidote-remove-empty
+% antidote snapshot remove 2>&1 | head -1
+antidote: snapshot: no snapshots found
 %
 ```
 

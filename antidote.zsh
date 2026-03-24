@@ -1338,7 +1338,7 @@ antidote_snapshot() {
   zparseopts ${ZPARSEOPTS} -- h=o_help -help=h || return 1
 
   if (( $#o_help )); then
-    say "usage: antidote snapshot [save|restore|list] [<file>]"
+    say "usage: antidote snapshot [save|restore|remove|list] [<file>]"
     return
   fi
 
@@ -1347,6 +1347,7 @@ antidote_snapshot() {
   case "$subcmd" in
     save)    snapshot_save "$@"    ;;
     restore) snapshot_restore "$@" ;;
+    remove)  snapshot_remove "$@"  ;;
     list)    snapshot_list         ;;
     *)       die "antidote: snapshot: unknown subcommand '$subcmd'" ;;
   esac
@@ -1404,14 +1405,26 @@ snapshot_prune() {
   fi
 }
 
-### Restore bundles from a snapshot file.
-snapshot_restore() {
-  local snapshot_file="$1"
-  local snap date_line epoch selection line bundle pin
-  local -a snapshots labels
+### Interactive fzf snapshot picker. Prints selected file path(s) to stdout.
+# Usage: snapshot_pick "prompt" [--multi]
+snapshot_pick() {
+  setopt localoptions pipefail
+  local prompt="$1" snap date_line epoch
+  local -a snapshots labels fzf_opts
+
+  snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
+  if (( $#snapshots == 0 )); then
+    warn "antidote: snapshot: no snapshots found"
+    return 1
+  fi
+
+  if (( ! $+commands[fzf] )); then
+    warn "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
+    return 1
+  fi
 
   local preview_cmd='tail -n +4 {2}'
-  if supports_color; then
+  if [[ "$ANTIDOTE_COLOR" == true ]]; then
     preview_cmd='
   tail -n +4 {2} |
   awk "{
@@ -1437,31 +1450,32 @@ snapshot_restore() {
 '
   fi
 
-  if [[ -z "$snapshot_file" ]]; then
-    snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
-    if (( $#snapshots == 0 )); then
-      die "antidote: snapshot: no snapshots found"
+  for snap in $snapshots; do
+    date_line=${${(f)"$(<$snap)"}[3]#\# date: }
+    if TZ=UTC strftime -r -s epoch '%Y-%m-%dT%H:%M:%SZ' "$date_line" 2>/dev/null; then
+      date_line=$(strftime "$ANTIDOTE_SNAPSHOT_DATEFMT" $epoch)
     fi
+    labels+=("$date_line	$snap")
+  done
 
-    if (( $+commands[fzf] )); then
-      for snap in $snapshots; do
-        date_line=${${(f)"$(<$snap)"}[3]#\# date: }
-        if TZ=UTC strftime -r -s epoch '%Y-%m-%dT%H:%M:%SZ' "$date_line" 2>/dev/null; then
-          date_line=$(strftime "$ANTIDOTE_SNAPSHOT_DATEFMT" $epoch)
-        fi
-        labels+=("$date_line	$snap")
-      done
-      selection=$(
-        printf '%s\n' $labels |
-        fzf --no-sort ${C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t' \
-          --prompt="Select snapshot to restore: " \
-          --preview="$preview_cmd" \
-          --preview-window=right:75%
-      ) || { warn "antidote: snapshot: no snapshot selected"; return 1; }
-      snapshot_file=${selection#*	}
-    else
-      die "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
-    fi
+  fzf_opts=(--no-sort ${C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t'
+    --prompt="$prompt" --preview="$preview_cmd" --preview-window=right:75%)
+  if [[ "$2" == --multi ]]; then
+    fzf_opts+=(--multi --marker='* ' --color='marker:red')
+  fi
+
+  printf '%s\n' $labels | fzf $fzf_opts | cut -f2 \
+    || { warn "antidote: snapshot: no snapshot selected"; return 1; }
+}
+
+### Restore bundles from a snapshot file.
+snapshot_restore() {
+  local snapshot_file="$1"
+  local line bundle pin
+
+  if [[ -z "$snapshot_file" ]]; then
+    snapshot_file=$(snapshot_pick "Select snapshot to restore: ") \
+      || return 1
   fi
 
   if [[ ! -r "$snapshot_file" ]]; then
@@ -1491,6 +1505,46 @@ snapshot_list() {
     return
   fi
   printf '%s\n' ${(O)snapshots}
+}
+
+### Remove snapshots.
+snapshot_remove() {
+  local snap REPLY
+  local -a selected
+
+  if [[ -n "$1" ]]; then
+    for snap in "$@"; do
+      if [[ ! -r "$snap" ]]; then
+        warn "antidote: snapshot: file not found '$snap'"
+        continue
+      fi
+      del "$snap"
+      say "Removed: $snap"
+    done
+    return
+  fi
+
+  selected=("${(@f)$(snapshot_pick "Select snapshot(s) to remove: " --multi)}") \
+    || return 1
+
+  say "Snapshots to remove:"
+  for snap in $selected; do
+    say "  $snap"
+  done
+
+  zstyle -s ':antidote:test:snapshot:remove' answer 'REPLY' || {
+    read -q "REPLY?Are you sure you want to remove ${#selected} snapshot(s) [Y/n]? "
+    print
+  }
+  if [[ ${REPLY:u} != "Y" ]]; then
+    say "Cancelled."
+    return 1
+  fi
+
+  for snap in $selected; do
+    del "$snap"
+    say "Removed: $snap"
+  done
 }
 
 antidote() {
@@ -1558,8 +1612,9 @@ antidote() {
   zstyle -T ':antidote:snapshot:automatic' enabled && ANTIDOTE_AUTOSNAPSHOT=true
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
 
-  typeset -g C_BLUE C_GREEN C_YELLOW C_NORMAL
+  typeset -g ANTIDOTE_COLOR C_BLUE C_GREEN C_YELLOW C_NORMAL
   if supports_color; then
+    ANTIDOTE_COLOR=true
     C_BLUE=$'\E[34m'
     C_GREEN=$'\E[32m'
     C_YELLOW=$'\E[33m'

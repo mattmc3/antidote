@@ -4,12 +4,14 @@
 :mansource: antidote
 
 == Name
-antidote-snapshot - save, restore, or list bundle snapshots
+antidote-snapshot - save, restore, remove, or list bundle snapshots
 
 == Synopsis
 *antidote snapshot* save [<file>]
 
 *antidote snapshot* restore [<file>]
+
+*antidote snapshot* remove [<file>...]
 
 *antidote snapshot* list
 
@@ -23,6 +25,7 @@ By default, snapshots are stored in `$XDG_DATA_HOME/antidote/snapshots` (or `~/L
 == Subcommands
 *save*:: Save a snapshot of all currently cloned bundles. Optionally specify a file path; otherwise a timestamped file is created in the snapshot directory.
 *restore*:: Restore bundles from a snapshot file. If no file is given, the most recent snapshot is used.
+*remove*:: Remove snapshot files. If no file is given and `fzf` is available, an interactive multi-select picker is shown.
 *list*:: List all available snapshot files.
 
 == Options

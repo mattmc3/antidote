@@ -105,10 +105,11 @@ function _antidote {
             local -a snapshot_cmds=(
               'save:Save a snapshot of all cloned bundles'
               'restore:Restore bundles from a snapshot'
+              'remove:Remove snapshots'
               'list:List available snapshots'
             )
             _describe 'snapshot command' snapshot_cmds && ret=0
-          elif (( CURRENT == 3 )) && [[ "$words[2]" == restore ]]; then
+          elif (( CURRENT == 3 )) && [[ "$words[2]" == (restore|remove) ]]; then
             local -a snaps=("${(@f)$(antidote snapshot list 2>/dev/null)}")
             if (( $#snaps )); then
               compadd -V unsorted -a snaps && ret=0
