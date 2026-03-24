@@ -1,5 +1,5 @@
 # antidote snapshot
-# version: 2.0.1
+# version: 2.0.2
 # date: 2024-01-01T00:00:00Z
 dracula/zsh kind:clone pin:75ea3f5e1055291caf56b4aea6a5d58d00541c41
 mattmc3/antidote kind:clone pin:de71516a7bdca8fbf17eda1d08129772ff6e8622

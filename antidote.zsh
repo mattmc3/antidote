@@ -1563,7 +1563,7 @@ antidote() {
 # Initialize antidote global variables from zstyles and environment.
 () {
   typeset -g ANTIDOTE_ZSH="$1"
-  typeset -g ANTIDOTE_VERSION="2.0.1"
+  typeset -g ANTIDOTE_VERSION="2.0.2"
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_PATH_STYLE
