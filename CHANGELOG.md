@@ -2,13 +2,14 @@
 
 Notable changes to this project will be documented in this file.
 
-## [v2.0.0] - Unreleased
+## [v2.0.0]
 
 ### Added
 
 - New `antidote snapshot` command lets you save, restore, and list point-in-time snapshots of your plugin state
   - `antidote snapshot save` writes a snapshot file capturing the exact commit SHA of every cloned bundle
   - `antidote snapshot restore` restores your bundles to a previous state (uses the most recent snapshot if no file is given)
+  - `antidote snapshot remove` removes snapshot files (interactive multi-select with `fzf` if available)
   - `antidote snapshot list` shows all available snapshots
 - Snapshots are saved automatically during `antidote update` (static mode only)
 - To disable automatic snapshotting during updates, set this zstyle in your config (eg: ~/.config/antidote/config.zsh):
@@ -17,8 +18,8 @@ Notable changes to this project will be documented in this file.
   ```
 - If `fzf` is installed, `antidote snapshot restore` gives you an interactive picker with a preview of each snapshot
 - Snapshot storage location and rolling history limit are configurable via `zstyle`
-- New `pin:` annotation lets you lock a bundle to a specific commit SHA
-  - Example: `zsh-users/zsh-autosuggestions pin:3b1f2a4`
+- New `pin:` annotation lets you lock a bundle to a specific commit SHA (full 40-character SHA required)
+  - Example: `zsh-users/zsh-autosuggestions pin:85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5`
 - Pinned bundles are skipped during `antidote update` and are recorded as commit SHAs in the lockfile
 - `antidote update --dry-run` / `-n`: check for available updates without touching anything
 - `antidote list` now shows URLs by default
@@ -57,4 +58,4 @@ Notable changes to this project will be documented in this file.
 
 ### Notes
 
-- Pin any repos you want to keep on a certain release. They will be skipped when running `antidote update`. Use `antidote list --detail` to see current SHAs, then add `pin:{{SHA}}` annotations to your .zsh_plugins.txt.
+- Pin any repos you want to keep on a certain release. They will be skipped when running `antidote update`. Use `antidote list --long` to see current SHAs, then add `pin:<SHA>` annotations to your .zsh_plugins.txt.
