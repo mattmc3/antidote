@@ -2,6 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.1]
+
+- Fix for gist cloning [#243](https://github.com/mattmc3/antidote/issues/243)
+
 ## [v2.0.0]
 
 ### Added
