@@ -28,12 +28,14 @@
 .  LINKSTYLE blue R < >
 .\}
 .SH "NAME"
-antidote-snapshot \- save, restore, or list bundle snapshots
+antidote-snapshot \- save, restore, remove, or list bundle snapshots
 .SH "SYNOPSIS"
 .sp
 \fBantidote snapshot\fP save [<file>]
 .sp
 \fBantidote snapshot\fP restore [<file>]
+.sp
+\fBantidote snapshot\fP remove [<file>.\|.\|.]
 .sp
 \fBantidote snapshot\fP list
 .SH "DESCRIPTION"
@@ -53,6 +55,11 @@ Save a snapshot of all currently cloned bundles. Optionally specify a file path;
 \fBrestore\fP
 .RS 4
 Restore bundles from a snapshot file. If no file is given, the most recent snapshot is used.
+.RE
+.sp
+\fBremove\fP
+.RS 4
+Remove snapshot files. If no file is given and \f(CRfzf\fP is available, an interactive multi\-select picker is shown.
 .RE
 .sp
 \fBlist\fP

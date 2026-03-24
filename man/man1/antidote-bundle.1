@@ -145,7 +145,7 @@ The autoload annotation allows you to autoload a zsh functions directory in addi
 .sp
 \f(CRpin\fP
 .RS 4
-The pin annotation allows you to lock a bundle to a specific git ref such as a tag, branch, or commit SHA (eg: \f(CRpin:v1.0.0\fP). A pinned bundle will be cloned at the specified ref and will be skipped during \f(CRantidote update\fP. This is useful for preventing unwanted upstream changes from affecting your environment.
+The pin annotation allows you to lock a bundle to a specific commit SHA (eg: \f(CRpin:abc1234\fP). A pinned bundle will be cloned at the specified commit and will be skipped during \f(CRantidote update\fP. This is useful for preventing unwanted upstream changes from affecting your environment. Use \f(CRbranch:\fP for tags or branches.
 .RE
 .sp
 Cloned repo directory naming can be controlled with the following \f(CRzstyle\fP:
@@ -256,8 +256,8 @@ Using the \fBpin:\fP annotation:
 .if n .RS 4
 .nf
 .fam C
-# pin a plugin to a specific tag
-antidote bundle zsh\-users/zsh\-autosuggestions pin:v0.7.0
+# pin a plugin to a specific commit SHA
+antidote bundle zsh\-users/zsh\-autosuggestions pin:abc1234
 .fam
 .fi
 .if n .RE
