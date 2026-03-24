@@ -20,7 +20,7 @@ Notable changes to this project will be documented in this file.
 - Snapshot storage location and rolling history limit are configurable via `zstyle`
 - New `pin:` annotation lets you lock a bundle to a specific commit SHA (full 40-character SHA required)
   - Example: `zsh-users/zsh-autosuggestions pin:85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5`
-- Pinned bundles are skipped during `antidote update` and are recorded as commit SHAs in the lockfile
+- Pinned bundles are skipped during `antidote update`
 - `antidote update --dry-run` / `-n`: check for available updates without touching anything
 - `antidote list` now shows URLs by default
 - `antidote list --long` / `-l`: show verbose key-value info per bundle (repo, path, URL, SHA, pin status)
