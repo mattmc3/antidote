@@ -29,6 +29,7 @@ setopt extended_glob
 
 # Internal profiling support
 [[ -n "$ANTIDOTE_PROFILE" ]] && zmodload zsh/zprof
+zmodload zsh/datetime
 
 # Load config: source config file then apply any serialized zstyles
 () {
@@ -1406,29 +1407,57 @@ snapshot_prune() {
 ### Restore bundles from a snapshot file.
 snapshot_restore() {
   local snapshot_file="$1"
+  local snap date_line epoch selection line bundle pin
+  local -a snapshots labels
+
+  local preview_cmd='tail -n +4 {2}'
+  if supports_color; then
+    preview_cmd='
+  tail -n +4 {2} |
+  awk "{
+    colors[0] = \"\033[34m\"; # blue
+    colors[1] = \"\033[32m\"; # green
+    colors[2] = \"\033[33m\"; # yellow
+
+    # first field = repo (no key)
+    printf \"%s%s\033[0m \", colors[0], \$1;
+
+    # remaining fields = key:value
+    for (i=2; i<=NF; i++) {
+      split(\$i, kv, \":\");
+      key = kv[1];
+      val = kv[2];
+
+      color = colors[(i-1)%3];
+      printf \"%s:%s%s\033[0m \", key, color, val;
+    }
+
+    printf \"\n\";
+  }"
+'
+  fi
 
   if [[ -z "$snapshot_file" ]]; then
-    local -a snapshots
     snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
     if (( $#snapshots == 0 )); then
       die "antidote: snapshot: no snapshots found"
     fi
 
     if (( $+commands[fzf] )); then
-      local -a labels
-      local snap date_line
       for snap in $snapshots; do
         date_line=${${(f)"$(<$snap)"}[3]#\# date: }
+        if TZ=UTC strftime -r -s epoch '%Y-%m-%dT%H:%M:%SZ' "$date_line" 2>/dev/null; then
+          date_line=$(strftime "$ANTIDOTE_SNAPSHOT_DATEFMT" $epoch)
+        fi
         labels+=("$date_line	$snap")
       done
-      local selection
       selection=$(
         printf '%s\n' $labels |
-        fzf --no-sort --with-nth=1 --delimiter=$'\t' \
+        fzf --no-sort ${C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t' \
           --prompt="Select snapshot to restore: " \
-          --preview="tail -n +4 {2}" \
-          --preview-window=right:60%
-      ) || return 0
+          --preview="$preview_cmd" \
+          --preview-window=right:75%
+      ) || { warn "antidote: snapshot: no snapshot selected"; return 1; }
       snapshot_file=${selection#*	}
     else
       die "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
@@ -1440,8 +1469,6 @@ snapshot_restore() {
   fi
 
   say "Restoring from snapshot: $snapshot_file"
-
-  local line bundle pin
   while IFS= read -r line; do
     [[ "$line" == \#* || -z "$line" ]] && continue
     bundle=${line%% *}
@@ -1524,9 +1551,10 @@ antidote() {
 
   typeset -g ANTIDOTE_HOME=${ANTIDOTE_HOME:-$(get_cachedir antidote)}
 
-  typeset -g ANTIDOTE_SNAPSHOT_DIR ANTIDOTE_SNAPSHOT_MAX ANTIDOTE_AUTOSNAPSHOT=false
-  zstyle -s ':antidote:snapshot' dir       ANTIDOTE_SNAPSHOT_DIR || ANTIDOTE_SNAPSHOT_DIR=$(get_datadir antidote)/snapshots
-  zstyle -s ':antidote:snapshot' max       ANTIDOTE_SNAPSHOT_MAX || ANTIDOTE_SNAPSHOT_MAX=100
+  typeset -g ANTIDOTE_SNAPSHOT_DIR ANTIDOTE_SNAPSHOT_MAX ANTIDOTE_SNAPSHOT_DATEFMT ANTIDOTE_AUTOSNAPSHOT=false
+  zstyle -s ':antidote:snapshot' dir        ANTIDOTE_SNAPSHOT_DIR     || ANTIDOTE_SNAPSHOT_DIR=$(get_datadir antidote)/snapshots
+  zstyle -s ':antidote:snapshot' max        ANTIDOTE_SNAPSHOT_MAX     || ANTIDOTE_SNAPSHOT_MAX=100
+  zstyle -s ':antidote:snapshot' dateformat ANTIDOTE_SNAPSHOT_DATEFMT || ANTIDOTE_SNAPSHOT_DATEFMT='%Y-%m-%d %H:%M:%S %Z'
   zstyle -T ':antidote:snapshot:automatic' enabled && ANTIDOTE_AUTOSNAPSHOT=true
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
 

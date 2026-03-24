@@ -32,7 +32,7 @@ The snapshot file has comment headers:
 # antidote snapshot
 % sed -n '2p' $snapshot_file | grep -c "# version: 2.0.0"
 1
-% sed -n '3p' $snapshot_file | grep -cE "# date: [0-9]{4}-[0-9]{2}-[0-9]{2}T"
+% sed -n '3p' "$snapshot_file" | grep -cE '# date: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z'
 1
 %
 ```
