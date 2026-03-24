@@ -1355,14 +1355,15 @@ antidote_snapshot() {
 
 ### Write a snapshot of all cloned bundles to a timestamped file.
 snapshot_save() {
-  local bundledir url sha repo snapshot_file
+  local bundledir url sha repo snapshot_file epoch
   local -a bundles bundle_lines
 
   [[ "$ANTIDOTE_DYNAMIC" == true ]] && return 0
 
   [[ -d "$ANTIDOTE_SNAPSHOT_DIR" ]] || mkdir -p "$ANTIDOTE_SNAPSHOT_DIR"
 
-  snapshot_file=${1:-$ANTIDOTE_SNAPSHOT_DIR/snapshot-$(date -u '+%Y%m%d-%H%M%S').txt}
+  epoch=$EPOCHSECONDS
+  snapshot_file=${1:-$ANTIDOTE_SNAPSHOT_DIR/snapshot-$(TZ=UTC strftime '%Y%m%d-%H%M%SZ' $epoch).txt}
 
   case $ANTIDOTE_PATH_STYLE in
     escaped) bundles=($ANTIDOTE_HOME/*/.git(/N))     ;;
@@ -1385,7 +1386,7 @@ snapshot_save() {
   {
     print "# antidote snapshot"
     print "# version: $ANTIDOTE_VERSION"
-    print "# date: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    print "# date: $(TZ=UTC strftime '%Y-%m-%dT%H:%M:%SZ' $epoch)"
     printf '%s\n' ${(o)bundle_lines}
   } >| "$snapshot_file"
   say "Snapshot saved: $snapshot_file"
@@ -1409,7 +1410,7 @@ snapshot_prune() {
 # Usage: snapshot_pick "prompt" [--multi]
 snapshot_pick() {
   setopt localoptions pipefail
-  local prompt="$1" snap date_line epoch
+  local prompt="$1" snap date_line epoch preview_cmd
   local -a snapshots labels fzf_opts
 
   snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
@@ -1423,9 +1424,10 @@ snapshot_pick() {
     return 1
   fi
 
-  local preview_cmd='tail -n +4 {2}'
+  preview_cmd='echo {2}; echo; tail -n +4 {2}'
   if [[ "$ANTIDOTE_COLOR" == true ]]; then
     preview_cmd='
+  printf "\033[1;4m%s\033[0m\n\n" {2}
   tail -n +4 {2} |
   awk "{
     colors[0] = \"\033[34m\"; # blue
