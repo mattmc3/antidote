@@ -128,10 +128,10 @@ relpath
 ?
 % echo 'http:/badsite.com/foo/bar' | bundle_parser | bundle_val __type__
 ?
-% echo 'https://badsite.com/foo/bar/baz' | bundle_parser | bundle_val __type__
-malformed_url
-% echo 'https://badsite.com/foo' | bundle_parser | bundle_val __type__
-malformed_url
+% echo 'https://gitlab.com/group/subgroup/repo' | bundle_parser | bundle_val __type__
+url
+% echo 'https://gist.github.com/abc123def456' | bundle_parser | bundle_val __type__
+url
 %
 ```
 
@@ -150,10 +150,10 @@ git@bitbucket.org:foo/bar
 
 % echo 'http:/badsite.com/foo/bar' | bundle_parser | bundle_val __type__
 ?
-% echo 'https://badsite.com/foo/bar/baz' | bundle_parser | bundle_val __url__
-https://badsite.com/foo/bar/baz
-% echo 'https://badsite.com/foo' | bundle_parser | bundle_val __url__
-https://badsite.com/foo
+% echo 'https://gitlab.com/group/subgroup/repo' | bundle_parser | bundle_val __url__
+https://gitlab.com/group/subgroup/repo
+% echo 'https://gist.github.com/abc123def456' | bundle_parser | bundle_val __url__
+https://gist.github.com/abc123def456
 %
 ```
 
@@ -184,12 +184,12 @@ foo/bar/
 foo:bar
 % echo 'bad@gitsite.com/foo/bar' | bundle_parser | bundle_val __bundle__
 bad@gitsite.com/foo/bar
-% echo 'http:/badsite.com/foo/bar' | bundle_parser | bundle_val __bundle__
-http:/badsite.com/foo/bar
-% echo 'https://badsite.com/foo/bar/baz' | bundle_parser | bundle_val __bundle__
-https://badsite.com/foo/bar/baz
-% echo 'https://badsite.com/foo' | bundle_parser | bundle_val __bundle__
-https://badsite.com/foo
+% echo 'http:/typo.com/foo/bar' | bundle_parser | bundle_val __bundle__
+http:/typo.com/foo/bar
+% echo 'https://gitlab.com/group/subgroup/repo' | bundle_parser | bundle_val __bundle__
+https://gitlab.com/group/subgroup/repo
+% echo 'https://gist.github.com/abc123def456' | bundle_parser | bundle_val __bundle__
+https://gist.github.com/abc123def456
 %
 ```
 

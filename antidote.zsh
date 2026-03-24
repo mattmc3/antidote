@@ -94,6 +94,19 @@ is_repo() {
   [[ $(bundle_type "$1") == (repo|url|ssh_url) ]]
 }
 
+# Find all cloned bundles under ANTIDOTE_HOME.
+find_bundles() {
+  case $ANTIDOTE_PATH_STYLE in
+    escaped)
+      print -l $ANTIDOTE_HOME/*(N/)
+      ;;
+    *)
+      command find "$ANTIDOTE_HOME" -type d -name .git -prune -print 2>/dev/null | \
+        sed 's|/.git$||' | sort
+      ;;
+  esac
+}
+
 bulk_clone() {
   local bundle_str branch pin zsh_defer=0
   local -A bundle
@@ -168,7 +181,7 @@ bundle_parser() {
       bname="$bundle[__bundle__]"
       btype=$(bundle_type "$bname")
       bundle[__type__]="$btype"
-      if [[ "$btype" == (repo|url|ssh_url|malformed_url) ]]; then
+      if [[ "$btype" == (repo|url|ssh_url) ]]; then
         bundle[__url__]=$(tourl "$bname")
         bundle[__short__]=$(short_repo_name "$bname")
         bundle[__dir__]=$(bundle_dir "$bname")
@@ -219,8 +232,7 @@ tourl() {
 
 bundle_type() {
   local bundle=$1
-  local result url_path ssh_path
-  local -a path_parts
+  local result
 
   # Try to expand path bundles with '$' and '~' prefixes so that we get a more
   # granular result than 'path'.
@@ -237,30 +249,9 @@ bundle_type() {
     result=empty
   else
     case "$bundle" in
-      (/|~|'$'|'.')*)  result=path   ;;
-      *://*)
-        # Validate URL format: https://website.com/user/repo[.git]
-        url_path="${bundle#*://}"      # Remove protocol
-        url_path="${url_path#*/}"      # Remove domain
-        url_path="${url_path%.git}"    # Remove optional .git
-        path_parts=(${(ps:/:)url_path})
-        if [[ ${#path_parts} -eq 2 ]]; then
-          result=url
-        else
-          result=malformed_url
-        fi
-        ;;
-      *@*:*/*)
-        # Validate SSH URL format: git@website.com:user/repo[.git]
-        ssh_path="${bundle#*:}"        # Get everything after the colon
-        ssh_path="${ssh_path%.git}"    # Remove optional .git
-        path_parts=(${(ps:/:)ssh_path})
-        if [[ ${#path_parts} -eq 2 ]]; then
-          result=ssh_url
-        else
-          result=malformed_url
-        fi
-        ;;
+      (/|~|'$'|'.')*)  result=path     ;;
+      *://*)           result=url      ;;
+      *@*:*/*)         result=ssh_url  ;;
       *(:|@)*)         result='?'      ;;
       */*/*)           result=relpath  ;;
       */)              result=relpath  ;;
@@ -1262,15 +1253,9 @@ antidote_list() {
   local -a output=()
   local -a bundles=()
 
-  # each style has a different depth
-  case $ANTIDOTE_PATH_STYLE in
-      escaped) bundles=($ANTIDOTE_HOME/*/.git(/N))     ;;
-      short)   bundles=($ANTIDOTE_HOME/*/*/.git(/N))   ;;
-      *)       bundles=($ANTIDOTE_HOME/*/*/*/.git(/N)) ;;
-  esac
+  bundles=("${(@f)$(find_bundles)}")
 
-  for bundledir in $bundles; do
-    bundledir=${bundledir:h}
+  for bundledir in ${bundles[@]}; do
     url=$(git_url "$bundledir") || continue
     repo=${url%.git}
     repo=${repo#https://${ANTIDOTE_GIT_SITE}/}
@@ -1365,14 +1350,9 @@ snapshot_save() {
   epoch=$EPOCHSECONDS
   snapshot_file=${1:-$ANTIDOTE_SNAPSHOT_DIR/snapshot-$(TZ=UTC strftime '%Y%m%d-%H%M%SZ' $epoch).txt}
 
-  case $ANTIDOTE_PATH_STYLE in
-    escaped) bundles=($ANTIDOTE_HOME/*/.git(/N))     ;;
-    short)   bundles=($ANTIDOTE_HOME/*/*/.git(/N))   ;;
-    *)       bundles=($ANTIDOTE_HOME/*/*/*/.git(/N)) ;;
-  esac
+  bundles=("${(@f)$(find_bundles)}")
 
-  for bundledir in $bundles; do
-    bundledir=${bundledir:h}
+  for bundledir in ${bundles[@]}; do
     url=$(git_url "$bundledir") || continue
     sha=$(git_sha "$bundledir")
 

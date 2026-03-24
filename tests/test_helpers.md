@@ -35,7 +35,17 @@ dir
 ssh_url
 % bundle_type 'https://fakegitsite.com/foo/bar'
 url
-% bundle_type 'https:/bad.com/foo/bar.git'
+% bundle_type 'https://gist.github.com/abc123def456'
+url
+% bundle_type 'https://gist.github.com/abc123def456.git'
+url
+% bundle_type 'https://gitlab.com/group/subgroup/repo'
+url
+% bundle_type 'https://github.com'
+url
+% bundle_type 'https://github.com.git'
+url
+% bundle_type 'https:/typo.com/foo/bar.git'
 ?
 % bundle_type ''
 empty
@@ -87,6 +97,10 @@ $HOME/.zsh/plugins/myplugin
 git@fakegitsite.com:foo/bar
 % bundle_name 'https://fakegitsite.com/foo/bar'
 foo/bar
+% bundle_name 'https://gist.github.com/abc123def456.git'
+gist.github.com/abc123def456
+% bundle_name 'https://gitlab.com/group/subgroup/repo'
+subgroup/repo
 % bundle_name 'https:/bad.com/foo/bar.git'
 https:/bad.com/foo/bar.git
 % bundle_name ''
@@ -133,6 +147,9 @@ $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
 % # repo ssh
 % bundle_dir git@fakegitsite.com:foo/bar.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/git-AT-fakegitsite.com-COLON-foo-SLASH-bar
+% # gist url
+% bundle_dir https://gist.github.com/abc123def456.git | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-gist.github.com-SLASH-abc123def456
 % # local dir
 % bundle_dir ~/foo/bar | subenv HOME
 $HOME/foo/bar
@@ -156,6 +173,9 @@ $ANTIDOTE_HOME/bar/baz
 % # ssh repo - friendly name
 % bundle_dir git@fakegitsite.com:foo/qux.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/foo/qux
+% # gist url - friendly name
+% bundle_dir https://gist.github.com/abc123def456.git | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/gist.github.com/abc123def456
 % zstyle -d ':antidote:bundle' path-style
 %
 ```
@@ -170,6 +190,12 @@ $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 $ANTIDOTE_HOME/fakegitsite.com/bar/baz
 % bundle_dir git@fakegitsite.com:foo/qux.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/fakegitsite.com/foo/qux
+% # gist url
+% bundle_dir https://gist.github.com/abc123def456.git | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/gist.github.com/abc123def456
+% # gitlab nested group url
+% bundle_dir https://gitlab.com/group/subgroup/repo | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/gitlab.com/group/subgroup/repo
 % zstyle -d ':antidote:bundle' path-style
 %
 ```
