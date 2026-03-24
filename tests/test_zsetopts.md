@@ -11,7 +11,7 @@
 Set up a plugin that changes Zsh options
 
 ```zsh
-% plugin_file=$ANTIDOTE_HOME/lampoon/xmas/xmas.plugin.zsh
+% plugin_file=$ANTIDOTE_HOME/fakegitsite.com/lampoon/xmas/xmas.plugin.zsh
 % mkdir -p $plugin_file:h && touch $plugin_file
 % echo "unsetopt noaliases" >>$plugin_file
 % echo "setopt autocd" >>$plugin_file

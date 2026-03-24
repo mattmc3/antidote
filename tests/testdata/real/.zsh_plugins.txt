@@ -32,7 +32,7 @@ ohmyzsh/ohmyzsh path:plugins/docker fpath-rule:append
 ohmyzsh/ohmyzsh path:plugins/macos conditional:is-macos
 
 # branches
-mattmc3/antidote branch:pz
+mattmc3/antidote branch:v1
 
 # subpath plugins
 ohmyzsh/ohmyzsh path:lib/clipboard.zsh

@@ -32,7 +32,7 @@ Clone and generate bundle script
 Check to see that everything cloned
 
 ```zsh
-% antidote list | subenv ANTIDOTE_HOME  #=> --file testdata/real/repo-list.txt
+% antidote list | sort  #=> --file testdata/real/repo-list.txt
 %
 ```
 
@@ -59,7 +59,7 @@ Check to see that branch:br annotations properly changed the cloned branch
 ```zsh
 % branched_plugin="$ANTIDOTE_HOME/mattmc3/antidote"
 % git -C $branched_plugin branch --show-current 2>/dev/null
-pz
+v1
 %
 ```
 
@@ -67,9 +67,9 @@ Test that `antidote purge --all` aborts when told "no".
 
 ```zsh
 % function test_exists { [[ -e "$1" ]] }
-% zstyle ':antidote:purge:all' answer 'n'
+% zstyle ':antidote:test:purge' answer 'n'
 % antidote purge --all                        #=> --exit 1
-% antidote list | subenv ANTIDOTE_HOME        #=> --file testdata/real/repo-list.txt
+% antidote list | sort  #=> --file testdata/real/repo-list.txt
 % antidote list | wc -l | awk '{print $1}'
 15
 % test_exists $ZDOTDIR/.zsh_plugins.zsh(.N)   #=> --exit 0
@@ -81,7 +81,7 @@ Test that `antidote purge --all` does the work when told "yes".
 
 ```zsh
 % function test_exists { [[ -e "$1" ]] }
-% zstyle ':antidote:purge:all' answer 'y'
+% zstyle ':antidote:test:purge' answer 'y'
 % antidote purge --all | tail -n 1           #=> --exit 0
 Antidote purge complete. Be sure to start a new Zsh session.
 % antidote list | wc -l | awk '{print $1}'
@@ -94,7 +94,7 @@ Antidote purge complete. Be sure to start a new Zsh session.
 ### Teardown
 
 ```zsh
-% zstyle -d ':antidote:purge:all' answer
+% zstyle -d ':antidote:test:purge' answer
 % t_teardown
 %
 ```
@@ -131,12 +131,12 @@ source "$ANTIDOTE_HOME/zsh-users/zsh-history-substring-search/zsh-history-substr
 Check to see that everything cloned
 
 ```zsh
-% antidote list | subenv ANTIDOTE_HOME
-https://github.com/rupa/z                                        $ANTIDOTE_HOME/rupa/z
-https://github.com/zsh-users/zsh-autosuggestions                 $ANTIDOTE_HOME/zsh-users/zsh-autosuggestions
-https://github.com/zsh-users/zsh-completions                     $ANTIDOTE_HOME/zsh-users/zsh-completions
-https://github.com/zsh-users/zsh-history-substring-search        $ANTIDOTE_HOME/zsh-users/zsh-history-substring-search
-https://github.com/zsh-users/zsh-syntax-highlighting             $ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting
+% antidote list | sort
+https://github.com/rupa/z
+https://github.com/zsh-users/zsh-autosuggestions
+https://github.com/zsh-users/zsh-completions
+https://github.com/zsh-users/zsh-history-substring-search
+https://github.com/zsh-users/zsh-syntax-highlighting
 %
 ```
 

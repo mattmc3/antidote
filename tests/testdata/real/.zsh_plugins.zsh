@@ -19,7 +19,7 @@ if is-macos; then
   source "$ANTIDOTE_HOME/ohmyzsh/ohmyzsh/plugins/macos/macos.plugin.zsh"
 fi
 fpath+=( "$ANTIDOTE_HOME/mattmc3/antidote" )
-source "$ANTIDOTE_HOME/mattmc3/antidote/pz.plugin.zsh"
+source "$ANTIDOTE_HOME/mattmc3/antidote/antidote.zsh"
 source "$ANTIDOTE_HOME/ohmyzsh/ohmyzsh/lib/clipboard.zsh"
 fpath+=( "$ANTIDOTE_HOME/ohmyzsh/ohmyzsh/plugins/extract" )
 source "$ANTIDOTE_HOME/ohmyzsh/ohmyzsh/plugins/extract/extract.plugin.zsh"

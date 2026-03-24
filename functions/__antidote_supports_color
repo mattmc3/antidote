@@ -1,5 +1,0 @@
-#!/bin/zsh
-[[ -n $NO_COLOR ]] && return 1
-[[ -n $CLICOLOR_FORCE ]] && return 0
-[[ ! -t 1 ]] && return 1
-[[ $COLORTERM == (truecolor|24bit) || $TERM == (*256color*|*rxvt*) ]]

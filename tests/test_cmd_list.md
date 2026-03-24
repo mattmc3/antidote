@@ -8,19 +8,35 @@
 %
 ```
 
-## List Command
-
-### Short
-
-`antidote list --short`
+Clone the standard test bundles:
 
 ```zsh
-% antidote list --short | subenv ANTIDOTE_HOME
-foo/bar
-foo/baz
-getantidote/zsh-defer
-git@github.com:foo/qux
-ohmy/ohmy
+% antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
+%
+```
+
+## List Command
+
+### Default (URLs)
+
+`antidote list` shows URLs by default:
+
+```zsh
+% antidote list | sort
+git@fakegitsite.com:foo/qux
+https://fakegitsite.com/bar/baz
+https://fakegitsite.com/foo/bar
+https://fakegitsite.com/foo/baz
+https://fakegitsite.com/getantidote/zsh-defer
+https://fakegitsite.com/ohmy/ohmy
+%
+```
+
+URL count matches expected bundles:
+
+```zsh
+% antidote list | wc -l | awk '{print $1}'
+6
 %
 ```
 
@@ -30,39 +46,70 @@ ohmy/ohmy
 
 ```zsh
 % antidote list --dirs | subenv ANTIDOTE_HOME
-$ANTIDOTE_HOME/foo/bar
-$ANTIDOTE_HOME/foo/baz
-$ANTIDOTE_HOME/foo/qux
-$ANTIDOTE_HOME/getantidote/zsh-defer
-$ANTIDOTE_HOME/ohmy/ohmy
+$ANTIDOTE_HOME/fakegitsite.com/bar/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+$ANTIDOTE_HOME/fakegitsite.com/foo/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/qux
+$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
+$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
 %
 ```
 
-### URLs
-
-`antidote list --url`
+`antidote list -d` (short flag):
 
 ```zsh
-% antidote list --url
-git@github.com:foo/qux
-https://github.com/foo/bar
-https://github.com/foo/baz
-https://github.com/getantidote/zsh-defer
-https://github.com/ohmy/ohmy
+% antidote list -d | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/fakegitsite.com/bar/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+$ANTIDOTE_HOME/fakegitsite.com/foo/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/qux
+$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
+$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
 %
 ```
 
-### Full
+### Long
 
-`antidote list`
+`antidote list --long` shows key-value info per bundle:
 
 ```zsh
-% antidote list | subenv ANTIDOTE_HOME
-git@github.com:foo/qux                                           $ANTIDOTE_HOME/foo/qux
-https://github.com/foo/bar                                       $ANTIDOTE_HOME/foo/bar
-https://github.com/foo/baz                                       $ANTIDOTE_HOME/foo/baz
-https://github.com/getantidote/zsh-defer                         $ANTIDOTE_HOME/getantidote/zsh-defer
-https://github.com/ohmy/ohmy                                     $ANTIDOTE_HOME/ohmy/ohmy
+% antidote list --long | head -5
+Repo:   bar/baz
+Path:   $HOME/.cache/antidote/fakegitsite.com/bar/baz
+URL:    https://fakegitsite.com/bar/baz
+SHA:    1aa9550512f5606c5c23b11f5a9ad660d6c10fb4
+
+%
+```
+
+`antidote list -l` (short flag):
+
+```zsh
+% antidote list -l | head -5
+Repo:   bar/baz
+Path:   $HOME/.cache/antidote/fakegitsite.com/bar/baz
+URL:    https://fakegitsite.com/bar/baz
+SHA:    1aa9550512f5606c5c23b11f5a9ad660d6c10fb4
+
+%
+```
+
+SSH bundles show the full SSH URL:
+
+```zsh
+% antidote list --long | grep -A3 'Repo:.*foo/qux'
+Repo:   git@fakegitsite.com:foo/qux
+Path:   $HOME/.cache/antidote/fakegitsite.com/foo/qux
+URL:    git@fakegitsite.com:foo/qux
+SHA:    89661d7f95e6d805d4da6e1dc9bbaba9b126322a
+%
+```
+
+Unpinned bundles don't show a Pinned line:
+
+```zsh
+% antidote list --long | grep -c 'Pinned:'
+0
 %
 ```
 
@@ -72,11 +119,67 @@ https://github.com/ohmy/ohmy                                     $ANTIDOTE_HOME/
 
 ```zsh
 % antidote list --jsonl | subenv ANTIDOTE_HOME
-{"url":"https://github.com/foo/bar","short_name":"foo/bar","type":"repo","path":"$ANTIDOTE_HOME/foo/bar"}
-{"url":"https://github.com/foo/baz","short_name":"foo/baz","type":"repo","path":"$ANTIDOTE_HOME/foo/baz"}
-{"url":"git@github.com:foo/qux","short_name":"git@github.com:foo/qux","type":"repo","path":"$ANTIDOTE_HOME/foo/qux"}
-{"url":"https://github.com/getantidote/zsh-defer","short_name":"getantidote/zsh-defer","type":"repo","path":"$ANTIDOTE_HOME/getantidote/zsh-defer"}
-{"url":"https://github.com/ohmy/ohmy","short_name":"ohmy/ohmy","type":"repo","path":"$ANTIDOTE_HOME/ohmy/ohmy"}
+{"url":"https://fakegitsite.com/bar/baz","repo":"bar/baz","path":"$ANTIDOTE_HOME/fakegitsite.com/bar/baz","sha":"1aa9550512f5606c5c23b11f5a9ad660d6c10fb4"}
+{"url":"https://fakegitsite.com/foo/bar","repo":"foo/bar","path":"$ANTIDOTE_HOME/fakegitsite.com/foo/bar","sha":"400b29a76d68fd7c40bc7c0460424ab089b1e68a"}
+{"url":"https://fakegitsite.com/foo/baz","repo":"foo/baz","path":"$ANTIDOTE_HOME/fakegitsite.com/foo/baz","sha":"98cdde20c338bdb4df6efefd7f812d38ecc62b70"}
+{"url":"git@fakegitsite.com:foo/qux","repo":"git@fakegitsite.com:foo/qux","path":"$ANTIDOTE_HOME/fakegitsite.com/foo/qux","sha":"89661d7f95e6d805d4da6e1dc9bbaba9b126322a"}
+{"url":"https://fakegitsite.com/getantidote/zsh-defer","repo":"getantidote/zsh-defer","path":"$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer","sha":"57ddc6fc6fba9862b899c483b6746b43c07dfb0d"}
+{"url":"https://fakegitsite.com/ohmy/ohmy","repo":"ohmy/ohmy","path":"$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy","sha":"1cc5b7ebe76328350234e841e72729f40057e2b6"}
+%
+```
+
+`antidote list -j` (short flag):
+
+```zsh
+% antidote list -j | wc -l | awk '{print $1}'
+6
+%
+```
+
+Unpinned JSONL entries don't include a pin field:
+
+```zsh
+% antidote list --jsonl | grep -c '"pin"'
+0
+%
+```
+
+Use `jq` to extract repo and URL pairs:
+
+```zsh
+% antidote list --jsonl | jq -r '[.repo, .url] | @tsv' | sort
+bar/baz	https://fakegitsite.com/bar/baz
+foo/bar	https://fakegitsite.com/foo/bar
+foo/baz	https://fakegitsite.com/foo/baz
+getantidote/zsh-defer	https://fakegitsite.com/getantidote/zsh-defer
+git@fakegitsite.com:foo/qux	git@fakegitsite.com:foo/qux
+ohmy/ohmy	https://fakegitsite.com/ohmy/ohmy
+%
+```
+
+Use `jq` to extract repo and directory pairs:
+
+```zsh
+% antidote list --jsonl | jq -r '[.repo, .path] | @tsv' | sort | subenv ANTIDOTE_HOME
+bar/baz	$ANTIDOTE_HOME/fakegitsite.com/bar/baz
+foo/bar	$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+foo/baz	$ANTIDOTE_HOME/fakegitsite.com/foo/baz
+getantidote/zsh-defer	$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
+git@fakegitsite.com:foo/qux	$ANTIDOTE_HOME/fakegitsite.com/foo/qux
+ohmy/ohmy	$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
+%
+```
+
+Use `jq` to extract repo and SHA pairs:
+
+```zsh
+% antidote list --jsonl | jq -r '[.repo, .sha[0:7]] | @tsv' | sort
+bar/baz	1aa9550
+foo/bar	400b29a
+foo/baz	98cdde2
+getantidote/zsh-defer	57ddc6f
+git@fakegitsite.com:foo/qux	89661d7
+ohmy/ohmy	1cc5b7e
 %
 ```
 

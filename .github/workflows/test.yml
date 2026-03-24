@@ -19,5 +19,6 @@ jobs:
           path: bin/clitest
       - run: sudo apt install zsh
         if: ${{ runner.os == 'Linux' }}
-      - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH make test
+      - uses: extractions/setup-just@v2
+      - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH just test-all local
         shell: zsh {0}

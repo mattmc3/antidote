@@ -4,9 +4,14 @@
   setopt local_options extended_glob glob_dots
 
   0=${(%):-%x}
-  typeset -g T_PRJDIR="${0:A:h:h:h}"
-  typeset -g T_TESTDATA=$T_PRJDIR/tests/testdata
+  export T_PRJDIR="${0:A:h:h:h}"
+  export T_TESTDATA=$T_PRJDIR/tests/testdata
   local testdir="$T_PRJDIR/tests"
+
+  # make sure fixtures exist (only regenerate if needed)
+  if [[ ! -d $testdir/fixtures/bare ]]; then
+    zsh $testdir/bin/init_fixtures.zsh &>/dev/null
+  fi
 
   # save path/fpath
   typeset -ga T_PREV_PATH=( $path )
@@ -14,14 +19,13 @@
 
   # save zstyles, and clear them all for the test session
   typeset -ga T_PREV_ZSTYLES=( ${(@f)"$(zstyle -L ':antidote:*')"} )
-  source <(zstyle -L ':antidote:*' | awk '{print "zstyle -d",$2}')
+  source <(zstyle -L ':antidote:*' | awk '!/:antidote:test:/{print "zstyle -d",$2}')
 
   # setup test functions
   fpath+=( $testdir/functions )
   autoload -Uz $testdir/functions/*
 
-  # mock git
-  function git { mockgit "$@" }
+  # gitconfig insteadOf rules handle URL rewriting for fake URLs
 
   # works with BSD and GNU gmktemp
   T_TEMPDIR=${$(mktemp -d -t t_antidote.XXXXXXXX):A}
@@ -30,31 +34,23 @@
 
   export HOME=$T_TEMPDIR
   export ZDOTDIR=$HOME/.zsh
-  typeset -g ANTIDOTE_HOME=$HOME/.cache/antidote
+  export ANTIDOTE_HOME=$HOME/.cache/antidote
+  export ANTIDOTE_CONFIG=$HOME/.config/antidote/test_config.zsh
 
-  # put tmp_home into position
-  for p in $testdir/tmp_home/*; do
-    cp -rf $p $T_TEMPDIR
-  done
+  # copy tmp_home contents
+  cp -rf $testdir/tmp_home/* $T_TEMPDIR
 
   # put testdata into position
   cp -rf -- $T_PRJDIR/tests $T_TEMPDIR/tests
-
-  # rename .mockgit to .git
-  local mockdir
-  for mockdir in $T_TEMPDIR/**/.mock*; do
-    mv $mockdir ${mockdir:s/.mock/.}
-  done
 
   # our mock plugins use this
   typeset -ga plugins=()
   typeset -ga libs=()
 
-  # setup antidote
-  zstyle ':antidote:tests' set-warn-options 'on'
-  zstyle ':antidote:tests' cloning 'off'
-  zstyle ':antidote:bundle' use-friendly-names on
-  zstyle ':antidote:defer' bundle 'getantidote/zsh-defer'
+  # use fixture gitconfig so fetch/pull resolve fake URLs to bare fixtures
+  # sed rewrites stored paths to match current checkout location (handles Docker/CI)
+  local fixture_dir="$testdir/fixtures"
+  sed "s|/[^ \"]*/tests/fixtures/|${fixture_dir}/|g" "$fixture_dir/gitconfig" > "$HOME/.gitconfig"
 
   # start from tmp home
   pushd

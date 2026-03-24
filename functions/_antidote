@@ -3,7 +3,7 @@
 function _antidote_subcommands {
   local usage=$(
     antidote --help |
-    ${__adote_awkcmd:-awk} '
+    command awk '
       BEGIN{OFS=":"; p=0}
       /^commands:$/ {p=1; next}
       !p{next}
@@ -16,7 +16,7 @@ function _antidote_subcommands {
 }
 
 function _antidote_installed_bundles {
-  local -a bundles=("${(@f)$(antidote list -s)}")
+  local -a bundles=("${(@f)$(antidote list | awk -F'/' '{print $(NF-1)"/"$NF}')}")
   _describe 'installed bundles' bundles
 }
 
@@ -62,7 +62,7 @@ function _antidote {
             '(- *)'{-h,--help}'[Show usage information]' \
             && ret=0
           ;;
-        (install|script)
+        (install)
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
             '(-k --kind)'{-k,--kind}'[The kind of bundle]:kinds:_antidote_bundle_kinds' \
@@ -70,6 +70,7 @@ function _antidote {
             '(-a --autoload)'{-a,--autoload}'[A relative subpath within the bundle where autoload function files are located]' \
             '(-c --conditional)'{-c,--conditional}'[A conditional function used to check whether to load the bundle]' \
             '(-b --branch)'{-b,--branch}'[The git branch to use]' \
+            '(--pin)--pin[Pin the bundle to a specific commit SHA]' \
             '(--pre)--pre[A function to be called prior to loading the bundle]' \
             '(--post)--post[A function to be called after loading the bundle]' \
             && ret=0
@@ -77,9 +78,8 @@ function _antidote {
         (list)
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
-            '(-s --short)'{-s,--short}'[Show shortened repos where possible]' \
-            '(-d --dirs)'{-d,--dirs}'[Show only bundle directories]' \
-            '(-u --url)'{-u,--url}'[Show bundle URLs]' \
+            '(-l --long)'{-l,--long}'[Show detailed information for each bundle]' \
+            '(-d --dirs)'{-d,--dirs}'[Show bundle directory paths]' \
             '(-j --jsonl)'{-j,--jsonl}'[Output the bundle list in JSONL format]' \
             && ret=0
           ;;
@@ -100,11 +100,28 @@ function _antidote {
             "*::antidote bundles:_antidote_installed_bundles" \
             && ret=0
           ;;
+        (snapshot)
+          if (( CURRENT == 2 )); then
+            local -a snapshot_cmds=(
+              'save:Save a snapshot of all cloned bundles'
+              'restore:Restore bundles from a snapshot'
+              'remove:Remove snapshots'
+              'list:List available snapshots'
+            )
+            _describe 'snapshot command' snapshot_cmds && ret=0
+          elif (( CURRENT == 3 )) && [[ "$words[2]" == (restore|remove) ]]; then
+            local -a snaps=("${(@f)$(antidote snapshot list 2>/dev/null)}")
+            if (( $#snaps )); then
+              compadd -V unsorted -a snaps && ret=0
+            fi
+          fi
+          ;;
         (update)
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
-            '(-s --selp)'{-s,--self}'[Update antidote]' \
+            '(-s --self)'{-s,--self}'[Update antidote]' \
             '(-b --bundles)'{-b,--bundles}'[Update bundles]' \
+            '(-n --dry-run)'{-n,--dry-run}'[Check for updates without making changes]' \
             && ret=0
           ;;
         (*)

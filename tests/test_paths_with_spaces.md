@@ -3,10 +3,8 @@
 ## Setup
 
 ```zsh
-% TESTDATA=$PWD/tests/testdata
 % source ./tests/__init__.zsh
 % t_setup
-% antidote-bundle -h &>/dev/null
 % ANTIDOTE_HOME="$HOME/.cache/antidote with spaces"
 % mkdir -p -- "$ANTIDOTE_HOME"
 %
@@ -15,19 +13,19 @@
 The bundle parser needs to properly handle quoted annotations.
 
 ```zsh
-% __antidote_parser 'foo/bar' | print_aarr
-$assoc_arr  : bundle
-_repo       : foo/bar
-_repodir    : foo/bar
-_type       : repo
-_url        : https://github.com/foo/bar
-name        : foo/bar
-% __antidote_parse_bundles 'foo/bar'
-antidote-script foo/bar
+% echo 'foo/bar path:"plugins/foo bar/baz"' | antidote __private__ bundle_parser | print_aarr
+__bundle__  : foo/bar
+__dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+__short__   : foo/bar
+__type__    : repo
+__url__     : https://fakegitsite.com/foo/bar
+path        : plugins/foo bar/baz
+% echo 'foo/bar' | antidote __private__ bundle_scripter
+zsh_script foo/bar
 % antidote bundle 'foo/bar'
 # antidote cloning foo/bar...
-fpath+=( "$HOME/.cache/antidote with spaces/foo/bar" )
-source "$HOME/.cache/antidote with spaces/foo/bar/bar.plugin.zsh"
+fpath+=( "$HOME/.cache/antidote with spaces/fakegitsite.com/foo/bar" )
+source "$HOME/.cache/antidote with spaces/fakegitsite.com/foo/bar/bar.plugin.zsh"
 %
 ```
 

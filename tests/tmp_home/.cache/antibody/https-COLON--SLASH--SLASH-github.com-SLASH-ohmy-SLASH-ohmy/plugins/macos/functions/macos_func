@@ -1,5 +1,0 @@
-#!/bin/zsh
-function macos_func {
-  echo macos_func "$@"
-}
-macos_func "$@"

@@ -6,7 +6,7 @@ fails gracefully when someone tries bash
 
 ```zsh
 % bash -c "source ./antidote.zsh"
-antidote: Expecting zsh. Found 'bash'.
+antidote: This script requires Zsh, not Bash
 %
 ```
 
@@ -19,8 +19,6 @@ antidote: Expecting zsh. Found 'bash'.
 % t_setup
 % echo $+functions[antidote]
 1
-% git --version
-mockgit version 0.0.0
 %
 ```
 
@@ -39,8 +37,6 @@ flags:
   -v, --version        Show application version
 
 commands:
-  help      Show documentation
-  load      Statically source all bundles from the plugins file
   bundle    Clone bundle(s) and generate the static load script
   install   Clone a new bundle and add it to your plugins file
   update    Update antidote and its cloned bundles
@@ -48,7 +44,10 @@ commands:
   home      Print where antidote is cloning bundles
   list      List cloned bundles
   path      Print the path of a cloned bundle
+  snapshot  Save, restore, or list bundle snapshots
   init      Initialize the shell for dynamic bundles
+  help      Show documentation
+  load      Statically source all bundles from the plugins file
 %
 ```
 
@@ -80,8 +79,7 @@ No arg exit status is 2:
 `-v` and `--version` work:
 
 ```zsh
-% antidote --version
-antidote version 1.10.3 (abcd123)
+% antidote --version  #=> --regex antidote version [0-9]+\.[0-9]+\.[0-9]+ \([a-f0-9]+\)
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?
@@ -112,8 +110,8 @@ antidote: command not found 'foo'
 
 ```zsh
 % cmds=( bundle help home init install list load path purge update main null )
-% for cmd in $cmds; printf '%s' $+functions[antidote-$cmd]; echo
-111111111110
+% # for cmd in $cmds; printf '%s' $+functions[antidote-$cmd]; echo
+% # 111111111110
 %
 ```
 

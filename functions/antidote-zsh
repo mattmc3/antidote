@@ -1,0 +1,12 @@
+#!/bin/zsh
+
+### Run antidote.zsh in a subprocess.
+#function antidote-zsh {
+  emulate -L zsh; setopt local_options
+
+  ANTIDOTE_ZSTYLES="$(zstyle -L ':antidote:*')" \
+  ANTIDOTE_HOME="${ANTIDOTE_HOME}" \
+  ANTIDOTE_TMPDIR="${TMPDIR}" \
+  ANTIDOTE_DYNAMIC="${ANTIDOTE_DYNAMIC}" \
+  zsh "$ANTIDOTE_ZSH" "$@"
+#}

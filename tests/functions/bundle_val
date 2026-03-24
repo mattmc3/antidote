@@ -1,0 +1,13 @@
+#!/bin/zsh
+#function bundle_val() {
+  emulate -L zsh; setopt local_options
+
+  local input
+  local -A bundle
+
+  while IFS= read -r input; do
+    [[ -z "$input" ]] && continue
+    bundle=("${(@Q)${(z)input}}")
+    print -- "${bundle[$1]}"
+  done
+#}

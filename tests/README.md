@@ -40,8 +40,6 @@ flags:
   -v, --version        Show application version
 
 commands:
-  help      Show documentation
-  load      Statically source all bundles from the plugins file
   bundle    Clone bundle(s) and generate the static load script
   install   Clone a new bundle and add it to your plugins file
   update    Update antidote and its cloned bundles
@@ -49,7 +47,10 @@ commands:
   home      Print where antidote is cloning bundles
   list      List cloned bundles
   path      Print the path of a cloned bundle
+  snapshot  Save, restore, or list bundle snapshots
   init      Initialize the shell for dynamic bundles
+  help      Show documentation
+  load      Statically source all bundles from the plugins file
 %
 ```
 
@@ -58,8 +59,9 @@ commands:
 The `-v/--version` flag displays the current version:
 
 ```zsh
+% zstyle ':antidote:test:version' show-sha off
 % antidote --version
-antidote version 1.10.3 (abcd123)
+antidote version 2.0.0
 %
 ```
 

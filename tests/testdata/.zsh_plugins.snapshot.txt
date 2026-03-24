@@ -1,0 +1,6 @@
+bar/baz kind:clone pin:1aa9550512f5606c5c23b11f5a9ad660d6c10fb4
+foo/bar kind:clone pin:400b29a76d68fd7c40bc7c0460424ab089b1e68a
+foo/baz kind:clone pin:98cdde20c338bdb4df6efefd7f812d38ecc62b70
+getantidote/zsh-defer kind:clone pin:57ddc6fc6fba9862b899c483b6746b43c07dfb0d
+git@fakegitsite.com:foo/qux kind:clone pin:89661d7f95e6d805d4da6e1dc9bbaba9b126322a
+ohmy/ohmy kind:clone pin:1cc5b7ebe76328350234e841e72729f40057e2b6

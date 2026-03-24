@@ -1,0 +1,52 @@
+#!/usr/bin/env zsh
+# Profile antidote operations using zsh/zprof.
+# Usage: ./tools/antidote-profile
+
+zmodload zsh/zprof
+
+0=${(%):-%x}
+typeset T_PRJDIR="${0:A:h:h}"
+cd "$T_PRJDIR"
+
+fpath+=( $T_PRJDIR/tests/functions )
+autoload -Uz $T_PRJDIR/tests/functions/*
+
+source ./tests/__init__.zsh
+
+# Control timing output format
+TIMEFMT='%J  real=%*E  user=%*U  sys=%*S'
+
+# Enable in-subprocess zprof instrumentation
+export ANTIDOTE_PROFILE=1
+typeset _profile_dir=$(mktemp -d /tmp/antidote-profile.XXXXXXXX)
+
+print "==> t_setup_real"
+time t_setup_real
+
+print ""
+print "==> antidote bundle"
+export ANTIDOTE_PROFILE_OUT=${_profile_dir}/bundle.zprof
+time antidote bundle <$ZDOTDIR/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh
+
+print ""
+print "==> antidote update --bundles"
+export ANTIDOTE_PROFILE_OUT=${_profile_dir}/update.zprof
+time antidote update --bundles
+
+print ""
+print "==> t_teardown"
+t_teardown
+
+print ""
+print "==> zprof: antidote bundle (subprocess)"
+[[ -f ${_profile_dir}/bundle.zprof ]] && cat ${_profile_dir}/bundle.zprof || print "(no output)"
+
+print ""
+print "==> zprof: antidote update (subprocess)"
+[[ -f ${_profile_dir}/update.zprof ]] && cat ${_profile_dir}/update.zprof || print "(no output)"
+
+rm -rf "${_profile_dir}"
+
+print ""
+print "==> zprof: antidote-profile (parent shell)"
+zprof

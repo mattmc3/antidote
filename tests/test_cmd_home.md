@@ -41,21 +41,22 @@ $HOME/.cache/antidote
 `antidote home` is `~/Library/Caches/antidote` on macOS
 
 ```zsh
-% OLD_OSTYPE=$OSTYPE; OSTYPE=darwin21.3.0
+% zstyle ':antidote:test:env' OSTYPE darwin21.3.0
 % antidote home | subenv HOME
 $HOME/Library/Caches/antidote
-% OSTYPE=$OLD_OSTYPE
+% zstyle -d ':antidote:test:env' OSTYPE
 %
 ```
 
 `antidote home` is `$LOCALAPPDATA/antidote` on msys
 
 ```zsh
-% OLD_OSTYPE=$OSTYPE; OSTYPE=msys
-% LOCALAPPDATA=$HOME/AppData
+% zstyle ':antidote:test:env' OSTYPE msys
+% zstyle ':antidote:test:env' LOCALAPPDATA $HOME/AppData
 % antidote home | subenv HOME
 $HOME/AppData/antidote
-% OSTYPE=$OLD_OSTYPE
+% zstyle -d ':antidote:test:env' OSTYPE
+% zstyle -d ':antidote:test:env' LOCALAPPDATA
 %
 ```
 
@@ -63,13 +64,15 @@ $HOME/AppData/antidote
 
 ```zsh
 % # Setup
-% OLD_OSTYPE=$OSTYPE; OSTYPE=foobar
-% OLD_XDG_CACHE_HOME=$XDG_CACHE_HOME; XDG_CACHE_HOME=$HOME/.xdg-cache
+% zstyle ':antidote:test:env' OSTYPE foobar
+% OLD_XDG_CACHE_HOME=$XDG_CACHE_HOME
+% export XDG_CACHE_HOME=$HOME/.xdg-cache
 % # Run test
 % antidote home | subenv XDG_CACHE_HOME
 $XDG_CACHE_HOME/antidote
 % # Teardown
-% OSTYPE=$OLD_OSTYPE; XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME
+% zstyle -d ':antidote:test:env' OSTYPE
+% XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME
 %
 ```
 
@@ -77,13 +80,15 @@ $XDG_CACHE_HOME/antidote
 
 ```zsh
 % # Setup
-% OLD_OSTYPE=$OSTYPE; OSTYPE=foobar
-% OLD_XDG_CACHE_HOME=$XDG_CACHE_HOME; XDG_CACHE_HOME=
+% zstyle ':antidote:test:env' OSTYPE foobar
+% OLD_XDG_CACHE_HOME=$XDG_CACHE_HOME
+% export XDG_CACHE_HOME=
 % # Run test
 % antidote home | subenv HOME
 $HOME/.cache/antidote
 % # Teardown
-% OSTYPE=$OLD_OSTYPE; XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME
+% zstyle -d ':antidote:test:env' OSTYPE
+% XDG_CACHE_HOME=$OLD_XDG_CACHE_HOME
 %
 ```
 
