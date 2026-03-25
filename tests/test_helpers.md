@@ -35,9 +35,9 @@ dir
 ssh_url
 % bundle_type 'https://fakegitsite.com/foo/bar'
 url
-% bundle_type 'https://gist.github.com/abc123def456'
+% bundle_type 'https://gist.github.com/someuser/abc123def456'
 url
-% bundle_type 'https://gist.github.com/abc123def456.git'
+% bundle_type 'https://gist.github.com/someuser/abc123def456.git'
 url
 % bundle_type 'https://gitlab.com/group/subgroup/repo'
 url
@@ -97,8 +97,8 @@ $HOME/.zsh/plugins/myplugin
 git@fakegitsite.com:foo/bar
 % bundle_name 'https://fakegitsite.com/foo/bar'
 foo/bar
-% bundle_name 'https://gist.github.com/abc123def456.git'
-gist.github.com/abc123def456
+% bundle_name 'https://gist.github.com/someuser/abc123def456.git'
+someuser/abc123def456
 % bundle_name 'https://gitlab.com/group/subgroup/repo'
 subgroup/repo
 % bundle_name 'https:/bad.com/foo/bar.git'
@@ -130,6 +130,31 @@ foo bar baz
 %
 ```
 
+## Bundle dir by style
+
+```zsh
+% function __bundle_dir_by_style() { antidote __private__ __bundle_dir_by_style "$@"; }
+% # escaped
+% __bundle_dir_by_style "https://fakegitsite.com/foo/bar" escaped | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
+% # full
+% __bundle_dir_by_style "https://fakegitsite.com/foo/bar" full | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+% # short
+% __bundle_dir_by_style "https://fakegitsite.com/foo/bar" short | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/foo/bar
+% # ssh escaped
+% __bundle_dir_by_style "git@fakegitsite.com:foo/bar" escaped | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/git-AT-fakegitsite.com-COLON-foo-SLASH-bar
+% # ssh full
+% __bundle_dir_by_style "git@fakegitsite.com:foo/bar" full | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+% # ssh short
+% __bundle_dir_by_style "git@fakegitsite.com:foo/bar" short | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/foo/bar
+%
+```
+
 ## Bundle dir
 
 ```zsh
@@ -148,8 +173,8 @@ $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
 % bundle_dir git@fakegitsite.com:foo/bar.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/git-AT-fakegitsite.com-COLON-foo-SLASH-bar
 % # gist url
-% bundle_dir https://gist.github.com/abc123def456.git | subenv ANTIDOTE_HOME
-$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-gist.github.com-SLASH-abc123def456
+% bundle_dir https://gist.github.com/someuser/abc123def456.git | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-gist.github.com-SLASH-someuser-SLASH-abc123def456
 % # local dir
 % bundle_dir ~/foo/bar | subenv HOME
 $HOME/foo/bar
@@ -170,12 +195,15 @@ $ANTIDOTE_HOME/foo/bar
 % # repo url - friendly name
 % bundle_dir https://fakegitsite.com/bar/baz | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/bar/baz
+% # nested group path preserves all path segments after domain
+% bundle_dir https://fakegitsite.com/foo/bar/baz/qux | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/foo/bar/baz/qux
 % # ssh repo - friendly name
 % bundle_dir git@fakegitsite.com:foo/qux.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/foo/qux
 % # gist url - friendly name
-% bundle_dir https://gist.github.com/abc123def456.git | subenv ANTIDOTE_HOME
-$ANTIDOTE_HOME/gist.github.com/abc123def456
+% bundle_dir https://gist.github.com/someuser/abc123def456.git | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/someuser/abc123def456
 % zstyle -d ':antidote:bundle' path-style
 %
 ```
@@ -191,8 +219,8 @@ $ANTIDOTE_HOME/fakegitsite.com/bar/baz
 % bundle_dir git@fakegitsite.com:foo/qux.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/fakegitsite.com/foo/qux
 % # gist url
-% bundle_dir https://gist.github.com/abc123def456.git | subenv ANTIDOTE_HOME
-$ANTIDOTE_HOME/gist.github.com/abc123def456
+% bundle_dir https://gist.github.com/someuser/abc123def456.git | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/gist.github.com/someuser/abc123def456
 % # gitlab nested group url
 % bundle_dir https://gitlab.com/group/subgroup/repo | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/gitlab.com/group/subgroup/repo
@@ -211,6 +239,9 @@ $ANTIDOTE_HOME/foo/bar
 % # repo url - friendly name
 % bundle_dir https://fakegitsite.com/bar/baz | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/bar/baz
+% # nested group path preserves all path segments after domain
+% bundle_dir https://fakegitsite.com/foo/bar/baz/qux | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/foo/bar/baz/qux
 % # ssh repo - friendly name
 % bundle_dir git@fakegitsite.com:foo/qux.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/foo/qux

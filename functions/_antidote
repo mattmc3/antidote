@@ -16,7 +16,7 @@ function _antidote_subcommands {
 }
 
 function _antidote_installed_bundles {
-  local -a bundles=("${(@f)$(antidote list | awk -F'/' '{print $(NF-1)"/"$NF}')}")
+  local -a bundles=("${(@f)$(antidote list --url | awk -F'/' '{print $(NF-1)"/"$NF}')}")
   _describe 'installed bundles' bundles
 }
 
@@ -80,6 +80,7 @@ function _antidote {
             '(- *)'{-h,--help}'[Show usage information]' \
             '(-l --long)'{-l,--long}'[Show detailed information for each bundle]' \
             '(-d --dirs)'{-d,--dirs}'[Show bundle directory paths]' \
+            '(-u --url)'{-u,--url}'[Show bundle URLs only]' \
             '(-j --jsonl)'{-j,--jsonl}'[Output the bundle list in JSONL format]' \
             && ret=0
           ;;

@@ -17,12 +17,35 @@ Clone the standard test bundles:
 
 ## List Command
 
-### Default (URLs)
+### Default (Path + URL)
 
-`antidote list` shows URLs by default:
+`antidote list` shows path and URL by default (path first):
 
 ```zsh
-% antidote list | sort
+% antidote list | sort | subenv ANTIDOTE_HOME | sed $'s/\t/    /g'
+$ANTIDOTE_HOME/fakegitsite.com/bar/baz    https://fakegitsite.com/bar/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar    https://fakegitsite.com/foo/bar
+$ANTIDOTE_HOME/fakegitsite.com/foo/baz    https://fakegitsite.com/foo/baz
+$ANTIDOTE_HOME/fakegitsite.com/foo/qux    git@fakegitsite.com:foo/qux
+$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer    https://fakegitsite.com/getantidote/zsh-defer
+$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy    https://fakegitsite.com/ohmy/ohmy
+%
+```
+
+Entry count matches expected bundles:
+
+```zsh
+% antidote list | wc -l | awk '{print $1}'
+6
+%
+```
+
+### URLs
+
+`antidote list --url`
+
+```zsh
+% antidote list --url | sort
 git@fakegitsite.com:foo/qux
 https://fakegitsite.com/bar/baz
 https://fakegitsite.com/foo/bar
@@ -32,10 +55,10 @@ https://fakegitsite.com/ohmy/ohmy
 %
 ```
 
-URL count matches expected bundles:
+`antidote list -u` (short flag):
 
 ```zsh
-% antidote list | wc -l | awk '{print $1}'
+% antidote list -u | wc -l | awk '{print $1}'
 6
 %
 ```
@@ -147,39 +170,39 @@ Unpinned JSONL entries don't include a pin field:
 Use `jq` to extract repo and URL pairs:
 
 ```zsh
-% antidote list --jsonl | jq -r '[.repo, .url] | @tsv' | sort
-bar/baz	https://fakegitsite.com/bar/baz
-foo/bar	https://fakegitsite.com/foo/bar
-foo/baz	https://fakegitsite.com/foo/baz
-getantidote/zsh-defer	https://fakegitsite.com/getantidote/zsh-defer
-git@fakegitsite.com:foo/qux	git@fakegitsite.com:foo/qux
-ohmy/ohmy	https://fakegitsite.com/ohmy/ohmy
+% antidote list --jsonl | jq -r '[.repo, .url] | @tsv' | sort | sed $'s/\t/    /g'
+bar/baz    https://fakegitsite.com/bar/baz
+foo/bar    https://fakegitsite.com/foo/bar
+foo/baz    https://fakegitsite.com/foo/baz
+getantidote/zsh-defer    https://fakegitsite.com/getantidote/zsh-defer
+git@fakegitsite.com:foo/qux    git@fakegitsite.com:foo/qux
+ohmy/ohmy    https://fakegitsite.com/ohmy/ohmy
 %
 ```
 
 Use `jq` to extract repo and directory pairs:
 
 ```zsh
-% antidote list --jsonl | jq -r '[.repo, .path] | @tsv' | sort | subenv ANTIDOTE_HOME
-bar/baz	$ANTIDOTE_HOME/fakegitsite.com/bar/baz
-foo/bar	$ANTIDOTE_HOME/fakegitsite.com/foo/bar
-foo/baz	$ANTIDOTE_HOME/fakegitsite.com/foo/baz
-getantidote/zsh-defer	$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
-git@fakegitsite.com:foo/qux	$ANTIDOTE_HOME/fakegitsite.com/foo/qux
-ohmy/ohmy	$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
+% antidote list --jsonl | jq -r '[.repo, .path] | @tsv' | sort | subenv ANTIDOTE_HOME | sed $'s/\t/    /g'
+bar/baz    $ANTIDOTE_HOME/fakegitsite.com/bar/baz
+foo/bar    $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+foo/baz    $ANTIDOTE_HOME/fakegitsite.com/foo/baz
+getantidote/zsh-defer    $ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer
+git@fakegitsite.com:foo/qux    $ANTIDOTE_HOME/fakegitsite.com/foo/qux
+ohmy/ohmy    $ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy
 %
 ```
 
 Use `jq` to extract repo and SHA pairs:
 
 ```zsh
-% antidote list --jsonl | jq -r '[.repo, .sha[0:7]] | @tsv' | sort
-bar/baz	1aa9550
-foo/bar	400b29a
-foo/baz	98cdde2
-getantidote/zsh-defer	57ddc6f
-git@fakegitsite.com:foo/qux	89661d7
-ohmy/ohmy	1cc5b7e
+% antidote list --jsonl | jq -r '[.repo, .sha[0:7]] | @tsv' | sort | sed $'s/\t/    /g'
+bar/baz    1aa9550
+foo/bar    400b29a
+foo/baz    98cdde2
+getantidote/zsh-defer    57ddc6f
+git@fakegitsite.com:foo/qux    89661d7
+ohmy/ohmy    1cc5b7e
 %
 ```
 

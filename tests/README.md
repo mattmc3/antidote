@@ -61,7 +61,7 @@ The `-v/--version` flag displays the current version:
 ```zsh
 % zstyle ':antidote:test:version' show-sha off
 % antidote --version
-antidote version 2.0.2
+antidote version 2.0.3
 %
 ```
 

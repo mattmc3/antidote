@@ -2,6 +2,18 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.3]
+
+- Reuse existing clones when `path-style` changes, avoiding duplicate clones ([#245](https://github.com/mattmc3/antidote/issues/245))
+- Remove legacy duplicate clones during bundling when multiple path-style directories exist
+- Fix `find_bundles` failing when cloned bundles don't match the current `path-style`
+- Fix `antidote bundle` emitting output before ensuring a successful clone operation
+- `antidote list` now shows path and URL by default, and now has a `-u/--url` flag
+
+## [v2.0.2]
+
+- Minor fix for bump2version covering more files in the test suite
+
 ## [v2.0.1]
 
 - Fix for gist cloning [#243](https://github.com/mattmc3/antidote/issues/243)

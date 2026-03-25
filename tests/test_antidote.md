@@ -16,7 +16,7 @@ Show antidote's version:
 % antidote --version  #=> --regex antidote version [0-9]+\.[0-9]+\.[0-9]+ \([a-f0-9]+\)
 % zstyle ':antidote:test:version' show-sha off
 % antidote --version
-antidote version 2.0.2
+antidote version 2.0.3
 % zstyle -d ':antidote:test:version' show-sha
 %
 ```
@@ -78,6 +78,7 @@ Bundle a repo at git@fakegitsite.com:foo/qux
 # antidote cloning git@fakegitsite.com:foo/qux...
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/qux" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/qux/qux.plugin.zsh"
+% command rm -rf $ANTIDOTE_HOME/*
 %
 ```
 
@@ -249,16 +250,16 @@ $HOME/.cache/antidote
 
 ## List bundles
 
-List URLs (default):
+List path and URL (default):
 
 ```zsh
-% antidote list | sort
-git@fakegitsite.com:foo/qux
-https://fakegitsite.com/bar/baz
-https://fakegitsite.com/foo/bar
-https://fakegitsite.com/foo/baz
-https://fakegitsite.com/getantidote/zsh-defer
-https://fakegitsite.com/ohmy/ohmy
+% antidote list | sort | subenv HOME | sed $'s/\t/    /g'
+$HOME/.cache/antidote/fakegitsite.com/bar/baz    https://fakegitsite.com/bar/baz
+$HOME/.cache/antidote/fakegitsite.com/foo/bar    https://fakegitsite.com/foo/bar
+$HOME/.cache/antidote/fakegitsite.com/foo/baz    https://fakegitsite.com/foo/baz
+$HOME/.cache/antidote/fakegitsite.com/foo/qux    git@fakegitsite.com:foo/qux
+$HOME/.cache/antidote/fakegitsite.com/getantidote/zsh-defer    https://fakegitsite.com/getantidote/zsh-defer
+$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy    https://fakegitsite.com/ohmy/ohmy
 %
 ```
 
@@ -306,7 +307,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 2.0.2
+antidote version 2.0.3
 %
 ```
 
