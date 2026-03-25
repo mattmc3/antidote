@@ -8,17 +8,19 @@ antidote-list - list cloned bundles
 
 == Synopsis
 *antidote list* [-h|--help]
-*antidote list* [-l|--long] [-d|--dirs] [-j|--jsonl]
+*antidote list* [-l|--long] [-d|--dirs] [-u|--url] [-j|--jsonl]
 
 == Description
 *antidote-list* lists the cloned bundles in *antidote home*.
 
-By default, bundle URLs are shown one per line. Use *--long* for a
-verbose key-value view of each bundle, *--dirs* to show directory paths,
-or *--jsonl* for machine-readable output.
+By default, bundle path and URL pairs are shown one per line with path first.
+Use *--long* for a verbose key-value view of each bundle, *--dirs* to show
+directory paths, *--url* to show URLs only, or *--jsonl* for machine-readable
+output.
 
 == Options
 *-h, --help*:: Show the help documentation.
 *-l, --long*:: Show detailed information for each bundle (repo, path, URL, SHA, pin status).
 *-d, --dirs*:: Show bundle directory paths.
+*-u, --url*:: Show bundle URLs only.
 *-j, --jsonl*:: Output the bundle list in JSONL format.

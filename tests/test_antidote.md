@@ -249,16 +249,16 @@ $HOME/.cache/antidote
 
 ## List bundles
 
-List URLs (default):
+List path and URL (default):
 
 ```zsh
-% antidote list | sort
-git@fakegitsite.com:foo/qux
-https://fakegitsite.com/bar/baz
-https://fakegitsite.com/foo/bar
-https://fakegitsite.com/foo/baz
-https://fakegitsite.com/getantidote/zsh-defer
-https://fakegitsite.com/ohmy/ohmy
+% antidote list | sort | subenv HOME | sed $'s/\t/    /g'
+$HOME/.cache/antidote/fakegitsite.com/bar/baz    https://fakegitsite.com/bar/baz
+$HOME/.cache/antidote/fakegitsite.com/foo/bar    https://fakegitsite.com/foo/bar
+$HOME/.cache/antidote/fakegitsite.com/foo/baz    https://fakegitsite.com/foo/baz
+$HOME/.cache/antidote/fakegitsite.com/foo/qux    git@fakegitsite.com:foo/qux
+$HOME/.cache/antidote/fakegitsite.com/getantidote/zsh-defer    https://fakegitsite.com/getantidote/zsh-defer
+$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy    https://fakegitsite.com/ohmy/ohmy
 %
 ```
 

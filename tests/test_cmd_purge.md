@@ -76,7 +76,7 @@ Test that `antidote purge --all` aborts when told "no".
 % function test_exists { [[ -e "$1" ]] }
 % zstyle ':antidote:test:purge' answer 'n'
 % antidote purge --all  #=> --exit 1
-% antidote list | sort
+% antidote list --url | sort
 git@fakegitsite.com:foo/qux
 https://fakegitsite.com/bar/baz
 https://fakegitsite.com/getantidote/zsh-defer

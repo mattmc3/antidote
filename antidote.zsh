@@ -10,19 +10,20 @@ elif [ -z "$ZSH_VERSION" ]; then
   return 1 2>/dev/null || exit 1
 fi
 
-# Initial vars
-0=${(%):-%N}
-builtin autoload -Uz is-at-least
-ZPARSEOPTS=( -D -M )
-is-at-least 5.8 && ZPARSEOPTS+=( -F )
-
 # When sourced, behave differently
+0=${(%):-%N}
 if [[ ":${ZSH_EVAL_CONTEXT}:" == *:file:* ]]; then
   typeset -f antidote-setup &>/dev/null && unfunction antidote-setup
   builtin autoload -Uz ${0:A:h}/functions/antidote-setup
   antidote-setup
   return 0
 fi
+
+# Initial vars
+builtin autoload -Uz is-at-least
+ZPARSEOPTS=( -D -M )
+is-at-least 5.8 && ZPARSEOPTS+=( -F )
+typeset -gr TAB=$'\t'
 
 # Zsh options needed by antidote
 setopt extended_glob
@@ -1227,15 +1228,16 @@ antidote_init() {
 
 ### List cloned bundles.
 #
-# usage: antidote list [-h|--help] [-l|--long] [-j|--jsonl] [-d|--dirs]
+# usage: antidote list [-h|--help] [-l|--long] [-j|--jsonl] [-d|--dirs] [-u|--url]
 #
 antidote_list() {
-  local o_help o_jsonl o_long o_dirs
+  local o_help o_jsonl o_long o_dirs o_url
   zparseopts ${ZPARSEOPTS} -- \
     h=o_help  -help=h   \
     j=o_jsonl -jsonl=j  \
     l=o_long  -long=l   \
-    d=o_dirs  -dirs=d   ||
+    d=o_dirs  -dirs=d   \
+    u=o_url   -url=u    ||
     return 1
 
   if (( $# )); then
@@ -1278,8 +1280,10 @@ antidote_list() {
       continue
     elif (( $#o_dirs )); then
       output+=("$bundledir")
-    else
+    elif (( $#o_url )); then
       output+=("$url")
+    else
+      output+=("${bundledir}${TAB}${url}")
     fi
   done
   (( $#output )) && printf '%s\n' ${(o)output}
@@ -1294,6 +1298,8 @@ antidote_path() {
     die "antidote: error: required argument 'bundle' not provided, try --help"
   fi
   for bundle in $bundles; do
+    # Allow piping from `antidote list` default output: <path><TAB><url>
+    bundle=${bundle%%${TAB}*}
     if [[ $bundle == '$'* ]]; then
       bundle="${(e)bundle}"
     fi
