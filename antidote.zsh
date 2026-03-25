@@ -469,22 +469,15 @@ bundle_dir() {
         url=${url:gs/\//-SLASH-}
         say $ANTIDOTE_HOME/$url
         ;;
-      short)
-        bundle=${bundle%.git}
-        bundle=${bundle:gs/\:/\/}
-        local parts=( ${(ps./.)bundle} )
-        if [[ $#parts -gt 1 ]]; then
-          say $ANTIDOTE_HOME/${parts[-2]}/${parts[-1]}
-        else
-          say $ANTIDOTE_HOME/$bundle
-        fi
-        ;;
-      *)  # full
+      *)
         if [[ $url == https://* ]]; then
           url=${url#https://}
         elif [[ $url == git@*:* ]]; then
           url=${url#git@}
           url=${url:s/\:/\/}
+        fi
+        if [[ $ANTIDOTE_PATH_STYLE == short ]]; then
+          url=${url#*/}
         fi
         say $ANTIDOTE_HOME/$url
         ;;
