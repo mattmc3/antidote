@@ -19,7 +19,7 @@ valid URL bundles.
 # antidote cloning mattmc3/6bc5646ae0fb7cc86502933ca6661d5c...
 % antidote path https://gist.github.com/mattmc3/6bc5646ae0fb7cc86502933ca6661d5c.git | subenv ANTIDOTE_HOME
 $ANTIDOTE_HOME/mattmc3/6bc5646ae0fb7cc86502933ca6661d5c
-% antidote list | grep gist
+% antidote list --url | grep gist
 https://gist.github.com/mattmc3/6bc5646ae0fb7cc86502933ca6661d5c.git
 %
 ```
