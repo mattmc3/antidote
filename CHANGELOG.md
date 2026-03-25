@@ -2,9 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
-## [v2.0.4]
+## [v2.0.4] - Unreleased
 
 - Code cleanup
+- TODO
 
 ## [v2.0.3]
 
