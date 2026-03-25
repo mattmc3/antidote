@@ -2,6 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.4]
+
+- Code cleanup
+
 ## [v2.0.3]
 
 - Reuse existing clones when `path-style` changes, avoiding duplicate clones ([#245](https://github.com/mattmc3/antidote/issues/245))

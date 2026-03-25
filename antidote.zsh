@@ -61,21 +61,18 @@ git() {
     say "$result"
   fi
 }
-git_url()      { git -C "$1" config remote.origin.url; }
-git_sha()      { git -C "$1" rev-parse HEAD; }
-git_shortsha() { git -C "$1" rev-parse --short HEAD; }
-git_is_shallow()  { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
-git_clone()       { git clone --depth 1 --no-local --quiet --recurse-submodules --shallow-submodules "$@"; }
-git_fetch()       { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
-git_pull() {
-  local -a autostash_flag=(--autostash)
-  [[ "$ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
-  git -C "$1" pull --quiet --ff --rebase $autostash_flag
-}
-git_log_oneline()      { git -C "$1" --no-pager log --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
-git_submodule_sync()   { git -C "$1" submodule --quiet sync --recursive; }
-git_submodule_update() { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
-git_checkout_detach()  { git -C "$1" checkout --quiet --detach "$2"; }
+git_checkout_detach()   { git -C "$1" checkout --quiet --detach "$2"; }
+git_clone()             { local d=$1; shift; git clone --depth 1 --no-local --quiet --recurse-submodules --shallow-submodules "$@" "$d"; }
+git_config_get()        { git -C "$1" config --get "$2" 2>/dev/null; }
+git_config_set()        { git -C "$1" config "$2" "$3"; }
+git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
+git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
+git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
+git_log_oneline()       { git -C "$1" --no-pager log --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
+git_sha()               { git -C "${@[-1]}" rev-parse ${@[1,-2]} HEAD; }
+git_submodule_sync()    { git -C "$1" submodule --quiet sync --recursive; }
+git_submodule_update()  { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
+git_url()               { git -C "$1" config remote.origin.url; }
 git_checkout_pin() {
   local dir="$1" sha="$2" bname="$3"
   if ! git_checkout_detach "$dir" "$sha" 2>/dev/null; then
@@ -86,9 +83,11 @@ git_checkout_pin() {
     fi
   fi
 }
-git_config_get()       { git -C "$1" config --get "$2" 2>/dev/null; }
-git_config_set()       { git -C "$1" config "$2" "$3"; }
-git_config_unset()     { git -C "$1" config --unset "$2" 2>/dev/null; }
+git_pull() {
+  local -a autostash_flag=(--autostash)
+  [[ "$ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
+  git -C "$1" pull --quiet --ff --rebase $autostash_flag
+}
 
 # True if the bundle is a git repo (not a local path/file).
 is_repo() {
@@ -194,7 +193,7 @@ bundle_parser() {
 version() {
   local ver="$ANTIDOTE_VERSION"
   if [[ "$ANTIDOTE_VERSION_SHOW_SHA" == true ]]; then
-    local gitsha=$(git_shortsha ${ANTIDOTE_ZSH:h})
+    local gitsha=$(git_sha --short ${ANTIDOTE_ZSH:h})
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   fi
   say "antidote version $ver"
@@ -742,14 +741,14 @@ zsh_script() {
     giturl=$(tourl $bundle)
     warn "# antidote cloning $bname..."
     if (( $#o_pin )); then
-      git_clone $giturl $bundle_path || return 1
+      git_clone $bundle_path $giturl || return 1
       if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
         del "$bundle_path"
         return 1
       fi
       [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
     else
-      git_clone $o_branch $giturl $bundle_path || return 1
+      git_clone $bundle_path $o_branch $giturl || return 1
     fi
   fi
 
@@ -1153,7 +1152,7 @@ antidote_update() {
 
         repo_id="${repo//\//-SLASH-}"
         tmpfile="${tmpdir}/${repo_id}.output"
-        oldsha=$(git_shortsha "$1")
+        oldsha=$(git_sha --short "$1")
 
         # Isolate git from user config
         GIT_CONFIG_GLOBAL=/dev/null
@@ -1173,7 +1172,7 @@ antidote_update() {
           git_pull "$1"
           git_submodule_sync "$1"
           git_submodule_update "$1"
-          newsha=$(git_shortsha "$1")
+          newsha=$(git_sha --short "$1")
         fi
 
         # Capture all output to temporary file
