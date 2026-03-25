@@ -16,7 +16,7 @@ Show antidote's version:
 % antidote --version  #=> --regex antidote version [0-9]+\.[0-9]+\.[0-9]+ \([a-f0-9]+\)
 % zstyle ':antidote:test:version' show-sha off
 % antidote --version
-antidote version 2.0.2
+antidote version 2.0.3
 % zstyle -d ':antidote:test:version' show-sha
 %
 ```
@@ -306,7 +306,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 2.0.2
+antidote version 2.0.3
 %
 ```
 
