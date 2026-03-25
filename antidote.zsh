@@ -97,15 +97,8 @@ is_repo() {
 
 # Find all cloned bundles under ANTIDOTE_HOME.
 find_bundles() {
-  case $ANTIDOTE_PATH_STYLE in
-    escaped)
-      print -l $ANTIDOTE_HOME/*(N/)
-      ;;
-    *)
-      command find "$ANTIDOTE_HOME" -type d -name .git -prune -print 2>/dev/null | \
-        sed 's|/.git$||' | sort
-      ;;
-  esac
+  command find "$ANTIDOTE_HOME" -type d -name .git -prune -print 2>/dev/null | \
+    sed 's|/.git$||' | sort
 }
 
 bulk_clone() {
