@@ -130,6 +130,31 @@ foo bar baz
 %
 ```
 
+## Bundle dir by style
+
+```zsh
+% function __bundle_dir_by_style() { antidote __private__ __bundle_dir_by_style "$@"; }
+% # escaped
+% __bundle_dir_by_style "https://fakegitsite.com/foo/bar" escaped | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
+% # full
+% __bundle_dir_by_style "https://fakegitsite.com/foo/bar" full | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+% # short
+% __bundle_dir_by_style "https://fakegitsite.com/foo/bar" short | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/foo/bar
+% # ssh escaped
+% __bundle_dir_by_style "git@fakegitsite.com:foo/bar" escaped | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/git-AT-fakegitsite.com-COLON-foo-SLASH-bar
+% # ssh full
+% __bundle_dir_by_style "git@fakegitsite.com:foo/bar" full | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+% # ssh short
+% __bundle_dir_by_style "git@fakegitsite.com:foo/bar" short | subenv ANTIDOTE_HOME
+$ANTIDOTE_HOME/foo/bar
+%
+```
+
 ## Bundle dir
 
 ```zsh

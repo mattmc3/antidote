@@ -78,6 +78,7 @@ Bundle a repo at git@fakegitsite.com:foo/qux
 # antidote cloning git@fakegitsite.com:foo/qux...
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/qux" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/qux/qux.plugin.zsh"
+% command rm -rf $ANTIDOTE_HOME/*
 %
 ```
 

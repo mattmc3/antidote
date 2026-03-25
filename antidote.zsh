@@ -450,43 +450,101 @@ collect_input() {
   printf '%s\n' "${input[@]}"
 }
 
+### Compute the bundle directory path for a given path-style.
+#
+# Unlike bundle_dir, this always computes based on the requested style
+# without checking for existing directories.
+#
+__bundle_dir_by_style() {
+  local url=$1 style=${2:-$ANTIDOTE_PATH_STYLE}
+  local result
+  case $style in
+    escaped)
+      result=$url
+      result=${result:gs/\@/-AT-}
+      result=${result:gs/\:/-COLON-}
+      result=${result:gs/\//-SLASH-}
+      ;;
+    *)
+      result=$url
+      if [[ $result == https://* ]]; then
+        result=${result#https://}
+      elif [[ $result == git@*:* ]]; then
+        result=${result#git@}
+        result=${result:s/\:/\/}
+      fi
+      if [[ $style == short ]]; then
+        result=${result#*/}
+      fi
+      ;;
+  esac
+  say $ANTIDOTE_HOME/$result
+}
+
 bundle_dir() {
   # Determine the bundle directory based on the configured path-style:
   #   full (default) : $ANTIDOTE_HOME/github.com/owner/repo
   #   short          : $ANTIDOTE_HOME/owner/repo
   #   escaped        : $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-owner-SLASH-repo
-  # If the bundle is a file, use its parent directory.
-  # Otherwise, just assume the bundle is a directory.
+  #
+  # If a clone already exists under a different path-style, return it rather
+  # than computing a new path. No side effects — use bundle_dir_cleanup to
+  # remove legacy duplicates.
   local bundle=$1
-  local bundle_type="$(bundle_type $bundle)"
+  local bundle_type url preferred style dir found
+  local -a other_styles=(full short escaped)
+  bundle_type="$(bundle_type $bundle)"
 
   if [[ "$bundle_type" == (repo|url|ssh_url) ]] && [[ ! -e "$bundle" ]]; then
-    local url=$(tourl $bundle)
+    url=$(tourl $bundle)
     url=${url%.git}
-    case $ANTIDOTE_PATH_STYLE in
-      escaped)
-        url=${url:gs/\@/-AT-}
-        url=${url:gs/\:/-COLON-}
-        url=${url:gs/\//-SLASH-}
-        say $ANTIDOTE_HOME/$url
-        ;;
-      *)
-        if [[ $url == https://* ]]; then
-          url=${url#https://}
-        elif [[ $url == git@*:* ]]; then
-          url=${url#git@}
-          url=${url:s/\:/\/}
+    preferred=$(__bundle_dir_by_style "$url")
+
+    if [[ -d "$preferred" ]]; then
+      say $preferred
+    else
+      # Check other path-styles for existing clones.
+      other_styles=( ${other_styles:#$ANTIDOTE_PATH_STYLE} )
+      for style in $other_styles; do
+        dir=$(__bundle_dir_by_style "$url" "$style")
+        if [[ -d "$dir" ]]; then
+          found=$dir
+          break
         fi
-        if [[ $ANTIDOTE_PATH_STYLE == short ]]; then
-          url=${url#*/}
-        fi
-        say $ANTIDOTE_HOME/$url
-        ;;
-    esac
+      done
+      say ${found:-$preferred}
+    fi
   elif [[ -f "$bundle" ]]; then
     say ${bundle:A:h}
   else
     say ${bundle}
+  fi
+}
+
+### Remove legacy path-style duplicates for a bundle.
+#
+# If the preferred path exists, remove any clones under other path-styles.
+# Called during bundling to clean up after a path-style migration.
+#
+bundle_dir_cleanup() {
+  local bundle=$1
+  local bundle_type url preferred style dir
+  local -a other_styles=(full short escaped)
+  bundle_type="$(bundle_type $bundle)"
+
+  if [[ "$bundle_type" == (repo|url|ssh_url) ]] && [[ ! -e "$bundle" ]]; then
+    url=$(tourl $bundle)
+    url=${url%.git}
+    preferred=$(__bundle_dir_by_style "$url")
+
+    # Only clean up if the preferred path exists.
+    [[ -d "$preferred" ]] || return 0
+
+    other_styles=( ${other_styles:#$ANTIDOTE_PATH_STYLE} )
+    for style in $other_styles; do
+      dir=$(__bundle_dir_by_style "$url" "$style")
+      [[ -d "$dir" ]] && del "$dir"
+    done
   fi
 }
 
@@ -672,6 +730,9 @@ zsh_script() {
 
   # set the path to the bundle (repo or local)
   [[ -e "$bundle" ]] && bundle_path=$bundle || bundle_path=$(bundle_dir $bundle)
+
+  # Clean up legacy path-style duplicates.
+  bundle_dir_cleanup $bundle
 
   # Validate pin early — requires full 40-character hex SHA
   btype=$(bundle_type $bundle)
