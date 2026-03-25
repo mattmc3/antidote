@@ -2,12 +2,12 @@
 .\"     Title: antidote-list
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-03-23
+.\"      Date: 2026-03-25
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE\-LIST" "1" "2026-03-23" "antidote" "Antidote Manual"
+.TH "ANTIDOTE\-LIST" "1" "2026-03-25" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -32,14 +32,15 @@ antidote-list \- list cloned bundles
 .SH "SYNOPSIS"
 .sp
 \fBantidote list\fP [\-h|\-\-help]
-\fBantidote list\fP [\-l|\-\-long] [\-d|\-\-dirs] [\-j|\-\-jsonl]
+\fBantidote list\fP [\-l|\-\-long] [\-d|\-\-dirs] [\-u|\-\-url] [\-j|\-\-jsonl]
 .SH "DESCRIPTION"
 .sp
 \fBantidote\-list\fP lists the cloned bundles in \fBantidote home\fP.
 .sp
-By default, bundle URLs are shown one per line. Use \fB\-\-long\fP for a
-verbose key\-value view of each bundle, \fB\-\-dirs\fP to show directory paths,
-or \fB\-\-jsonl\fP for machine\-readable output.
+By default, bundle path and URL pairs are shown one per line with path first.
+Use \fB\-\-long\fP for a verbose key\-value view of each bundle, \fB\-\-dirs\fP to show
+directory paths, \fB\-\-url\fP to show URLs only, or \fB\-\-jsonl\fP for machine\-readable
+output.
 .SH "OPTIONS"
 .sp
 \fB\-h, \-\-help\fP
@@ -55,6 +56,11 @@ Show detailed information for each bundle (repo, path, URL, SHA, pin status).
 \fB\-d, \-\-dirs\fP
 .RS 4
 Show bundle directory paths.
+.RE
+.sp
+\fB\-u, \-\-url\fP
+.RS 4
+Show bundle URLs only.
 .RE
 .sp
 \fB\-j, \-\-jsonl\fP

@@ -38,5 +38,8 @@ for manpage in "$BASEDIR"/man/*.adoc; do
     cat "$BASEDIR/man/footer.adoc" >> "$adocfile"
   fi
 
-  asciidoctor --quiet -b manpage -d manpage -o "$manfile" "$adocfile"
+  # Use the last commit date of the adoc source so that rebuilding without
+  # content changes doesn't produce a dirty diff.
+  epoch="$(git log -1 --format=%at -- "$manpage" 2>/dev/null)"
+  SOURCE_DATE_EPOCH="${epoch:-0}" asciidoctor --quiet -b manpage -d manpage -o "$manfile" "$adocfile"
 done
