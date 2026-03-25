@@ -38,6 +38,22 @@ test env="latest":
         exit 1
     fi
 
+# run a specific test file (env: "latest", "542", or "local")
+test-file testfile env="latest":
+    #!/usr/bin/env zsh
+    if [[ "{{env}}" == "local" ]]; then
+        ./tools/run-clitests "{{testfile}}"
+    elif [[ "{{env}}" == "542" ]]; then
+        podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
+          /usr/local/bin/zsh -c 'cd /workspace && ./tools/run-clitests "{{testfile}}"'
+    elif [[ "{{env}}" == "latest" ]]; then
+        podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
+          /bin/zsh -c 'cd /workspace && ./tools/run-clitests "{{testfile}}"'
+    else
+        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
+        exit 1
+    fi
+
 # run all tests (env: "latest", "542", or "local")
 test-all env="latest":
     #!/usr/bin/env zsh
