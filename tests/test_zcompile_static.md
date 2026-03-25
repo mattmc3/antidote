@@ -25,6 +25,15 @@ Ensure a compiled file exists:
 %
 ```
 
+Bundling a bad repo should produce no output, not even the zcompile header:
+
+```zsh
+% zstyle ':antidote:static' zcompile 'yes'
+% antidote bundle does-not/exist 2>/dev/null  #=> --exit 1
+% zstyle ':antidote:static' zcompile 'no'
+%
+```
+
 Ensure a compiled file does not exist:
 
 ```zsh

@@ -903,7 +903,7 @@ zsh_script() {
 # usage: antidote bundle [-h|--help] <bundle>...
 #
 antidote_bundle() {
-  local o_help
+  local o_help bundle_output
   local -a bundles zcompile_script
 
   zparseopts ${ZPARSEOPTS} -- h=o_help -help=h || return 1
@@ -933,17 +933,20 @@ antidote_bundle() {
     '  fi'
     '}'
   )
-  if zstyle -t ':antidote:static' zcompile; then
-    printf '%s\n' $zcompile_script
-  fi
-
   # antidote_script also clones, but this way we can do it all at once in parallel!
   if (( $#bundles > 1 )); then
     source <(printf '%s\n' $bundles | bundle_parser | bulk_clone)
   fi
 
-  # generate bundle script
-  source <(printf '%s\n' $bundles | bundle_scripter) || return $?
+  # generate bundle script, capturing output so zcompile header is only
+  # emitted after all bundles succeed (no output on clone failure)
+  bundle_output=$(source <(printf '%s\n' $bundles | bundle_scripter)) || return $?
+
+  # output static file compilation
+  if zstyle -t ':antidote:static' zcompile; then
+    printf '%s\n' $zcompile_script
+  fi
+  [[ -n "$bundle_output" ]] && printf '%s\n' "$bundle_output"
 }
 
 ### Clone a new bundle and add it to your plugins file.
