@@ -2,6 +2,15 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.3]
+
+- Cleanup of legacy/duplicate clones that used a different `zstyle ':antidote:bundle' path-style`
+- Fix antidote list [#245](https://github.com/mattmc3/antidote/issues/245)
+
+## [v2.0.2]
+
+- Minor fix for bump2version covering more files in the test suite
+
 ## [v2.0.1]
 
 - Fix for gist cloning [#243](https://github.com/mattmc3/antidote/issues/243)
