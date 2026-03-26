@@ -2,12 +2,12 @@
 .\"     Title: antidote
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-03-23
+.\"      Date: 2026-03-26
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE" "1" "2026-03-23" "antidote" "Antidote Manual"
+.TH "ANTIDOTE" "1" "2026-03-26" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -31,7 +31,7 @@
 antidote \- the cure to slow zsh plugin management
 .SH "SYNOPSIS"
 .sp
-\fBantidote\fP [\-v | \-\-version] [\-h | \-\-help] <command> [<args> .\|.\|.]
+\fBantidote\fP [\-v | \-\-version] [\-h | \-\-help] [\-\-diagnostics] <command> [<args> .\|.\|.]
 .SH "DESCRIPTION"
 .sp
 \fBantidote\fP is a Zsh plugin manager made from the ground up thinking about performance.
@@ -49,6 +49,11 @@ Show context\-sensitive help for antidote.
 \fB\-v, \-\-version\fP
 .RS 4
 Show currently installed antidote version.
+.RE
+.sp
+\fB\-\-diagnostics\fP
+.RS 4
+Show antidote and system diagnostics.
 .RE
 .SH "COMMANDS"
 .sp
