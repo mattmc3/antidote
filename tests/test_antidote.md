@@ -113,7 +113,7 @@ Bundle a specific branch of a repo with `branch:<branch>`.
 # antidote cloning foo/bar...
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
-% git -C $(antidote path foo/bar) branch --show-current
+% git -C $(antidote path foo/bar) rev-parse --abbrev-ref HEAD
 dev
 %
 ```

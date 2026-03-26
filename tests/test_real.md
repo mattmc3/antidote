@@ -58,7 +58,7 @@ Check to see that branch:br annotations properly changed the cloned branch
 
 ```zsh
 % branched_plugin="$ANTIDOTE_HOME/mattmc3/antidote"
-% git -C $branched_plugin branch --show-current 2>/dev/null
+% git -C $branched_plugin rev-parse --abbrev-ref HEAD 2>/dev/null
 v1
 %
 ```

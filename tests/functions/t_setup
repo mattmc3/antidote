@@ -8,9 +8,21 @@
   export T_TESTDATA=$T_PRJDIR/tests/testdata
   local testdir="$T_PRJDIR/tests"
 
-  # make sure fixtures exist (only regenerate if needed)
-  if [[ ! -d $testdir/fixtures/bare ]]; then
-    zsh $testdir/bin/init_fixtures.zsh &>/dev/null
+  # Generate fixtures if needed. Use a container-local path so container
+  # fixtures never bleed onto the host mount (or vice versa).
+  local fixture_dir="$testdir/fixtures"
+  local fixture_git_ver="$fixture_dir/.git_version"
+  if [[ ! -d $fixture_dir/bare ]] || \
+     [[ ! -f $fixture_git_ver ]] || \
+     [[ "$(cat $fixture_git_ver)" != "$(git --version)" ]]; then
+    fixture_dir="/tmp/antidote-fixtures"
+    fixture_git_ver="$fixture_dir/.git_version"
+    if [[ ! -d $fixture_dir/bare ]] || \
+       [[ ! -f $fixture_git_ver ]] || \
+       [[ "$(cat $fixture_git_ver)" != "$(git --version)" ]]; then
+      rm -rf "$fixture_dir"
+      FIXTURE_DIR="$fixture_dir" zsh $testdir/bin/init_fixtures.zsh &>/dev/null
+    fi
   fi
 
   # save path/fpath
@@ -48,8 +60,7 @@
   typeset -ga libs=()
 
   # use fixture gitconfig so fetch/pull resolve fake URLs to bare fixtures
-  # sed rewrites stored paths to match current checkout location (handles Docker/CI)
-  local fixture_dir="$testdir/fixtures"
+  # sed rewrites stored paths to match current fixture location
   sed "s|/[^ \"]*/tests/fixtures/|${fixture_dir}/|g" "$fixture_dir/gitconfig" > "$HOME/.gitconfig"
 
   # start from tmp home

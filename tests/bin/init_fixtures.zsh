@@ -9,7 +9,7 @@ warn() { say "$@" >&2; }
 ROOT_DIR="$(git -C "${0:A:h}" rev-parse --show-toplevel)" \
   || ERR=2 die "Cannot locate git root for '$0'."
 
-FIXTURE_DIR="$ROOT_DIR/tests/fixtures"
+FIXTURE_DIR="${FIXTURE_DIR:-$ROOT_DIR/tests/fixtures}"
 FIXTURE_SHAS_FILE="$FIXTURE_DIR/fixture_shas.tsv"
 
 # Load the fixture SHAs from TSV file if it exists
@@ -158,7 +158,7 @@ make_fixture() {
   git_clone_dir="$FIXTURE_DIR/antidote/$clone_path"
 
   # Make a bare repo and clone it.
-  git init --quiet --bare -b main "$git_bare_dir"
+  git init --quiet --bare "$git_bare_dir"
   # git -C "$git_bare_dir" remote add "origin" "$url"
   git clone --quiet "$git_bare_dir" "$git_clone_dir" >/dev/null 2>&1
 
@@ -178,10 +178,13 @@ EOF
   fi
   touch -t 202601010000 "$target"
 
-  # Add files
+  # Add files, commit, and ensure branch is named 'main'.
+  # git <2.28 lacks init -b and always creates 'master', so rename after first commit.
   git -C "$git_clone_dir" add .
   git -C "$git_clone_dir" commit --quiet -m "Add plugin file"
-  git -C "$git_clone_dir" push --quiet
+  git -C "$git_clone_dir" branch -M main
+  git -C "$git_clone_dir" push --quiet -u origin main
+  git -C "$git_bare_dir" symbolic-ref HEAD refs/heads/main
 
   # Record and check the SHA
   record_sha "$short_name" "$git_clone_dir"
@@ -451,3 +454,6 @@ setup_fixture_pintest_pinme
 # Generate the fixture_shas.tsv and gitconfig files
 generate_fixture_shas
 generate_fixture_gitconfig
+
+# Stamp the git version so t_setup knows these fixtures match the current toolchain.
+git --version > "$FIXTURE_DIR/.git_version"

@@ -1556,7 +1556,7 @@ snapshot_pick() {
     return 1
   fi
 
-  if (( ! $+commands[fzf] )); then
+  if ! [[ -o interactive ]] || (( ! $+commands[fzf] )); then
     warn "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
     return 1
   fi
