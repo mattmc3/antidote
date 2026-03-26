@@ -68,7 +68,7 @@ git_config_set()        { git -C "$1" config "$2" "$3"; }
 git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
 git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
 git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
-git_log_oneline()       { git -C "$1" --no-pager log --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
+git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
 git_sha()               { git -C "${@[-1]}" rev-parse ${@[1,-2]} HEAD; }
 git_submodule_sync()    { git -C "$1" submodule --quiet sync --recursive; }
 git_submodule_update()  { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
@@ -1152,7 +1152,7 @@ antidote_update() {
 
         repo_id="${repo//\//-SLASH-}"
         tmpfile="${tmpdir}/${repo_id}.output"
-        oldsha=$(git_sha --short "$1")
+        oldsha=$(git_sha "$1")
 
         # Isolate git from user config
         GIT_CONFIG_GLOBAL=/dev/null
@@ -1167,21 +1167,21 @@ antidote_update() {
 
         if (( $#o_dry_run )); then
           # Compare local HEAD against fetched remote HEAD
-          newsha=$(git -C "$1" rev-parse --short FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+          newsha=$(git -C "$1" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
         else
           git_pull "$1"
           git_submodule_sync "$1"
           git_submodule_update "$1"
-          newsha=$(git_sha --short "$1")
+          newsha=$(git_sha "$1")
         fi
 
         # Capture all output to temporary file
         {
           if [[ $oldsha != $newsha ]]; then
             if (( $#o_dry_run )); then
-              say "${C_YELLOW}antidote:${C_NORMAL} update available: $2 ${C_GREEN}${oldsha}${C_NORMAL} -> ${C_GREEN}${newsha}${C_NORMAL}"
+              say "${C_YELLOW}antidote:${C_NORMAL} update available: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
             else
-              say "${C_GREEN}antidote:${C_NORMAL} updated: $2 ${C_GREEN}${oldsha}${C_NORMAL} -> ${C_GREEN}${newsha}${C_NORMAL}"
+              say "${C_GREEN}antidote:${C_NORMAL} updated: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
             fi
             git_log_oneline "$1" "$oldsha" "$newsha"
           fi
