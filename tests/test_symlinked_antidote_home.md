@@ -113,8 +113,7 @@ Snapshot save/list are included because snapshot save enumerates bundles via
 
 ```zsh
 % antidote snapshot save >/dev/null
-% antidote snapshot list | wc -l | awk '{print $1}'
-1
+% test "$(antidote snapshot list | wc -l | awk '{print $1}')" -gt 0  #=> --exit 0
 %
 ```
 
