@@ -1,0 +1,68 @@
+#!/bin/zsh
+
+### Statically source all bundles from the plugins file.
+#function antidote-load {
+  if [[ "$1" == -h || "$1" == --help ]]; then
+    antidote-help load
+    return $?
+  fi
+
+  local ret=0
+  typeset -g REPLY=
+  () {
+    emulate -L zsh
+    setopt local_options extended_glob no_monitor pipefail
+    if zstyle -t ':antidote:tests' set-warn-options; then
+      setopt warn_create_global warn_nested_var
+    fi
+
+    local bundlefile="$1"
+    if [[ -z "$bundlefile" ]]; then
+      zstyle -s ':antidote:bundle' file 'bundlefile' ||
+        bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+    fi
+
+    local staticfile="$2"
+    if [[ -z "$staticfile" ]]; then
+      zstyle -s ':antidote:static' file 'staticfile'
+      if [[ -z "$staticfile" ]]; then
+        if [[ -z "$bundlefile:t:r" ]]; then
+          staticfile=${bundlefile}.zsh
+        else
+          staticfile=${bundlefile:r}.zsh
+        fi
+      fi
+    fi
+
+    if [[ ! -e "$bundlefile" ]]; then
+      print -ru2 -- "antidote: bundle file not found '$bundlefile'."
+      return 1
+    elif [[ "$bundlefile" == "$staticfile" ]]; then
+      print -ru2 -- "antidote: bundle file and static file are the same '$bundlefile'."
+      return 1
+    fi
+
+    local force_bundle=0
+    if ! zstyle -t ':antidote:load:checkfile' disabled; then
+      local loadable_check_path="$(antidote home)/.antidote.load"
+      if [[ ! -e $loadable_check_path ]]; then
+        force_bundle=1
+        [[ -d $loadable_check_path:h ]] || mkdir -p $loadable_check_path:h
+        touch $loadable_check_path
+      fi
+    fi
+
+    if [[ ! $staticfile -nt $bundlefile ]] || [[ $force_bundle -eq 1 ]]; then
+      mkdir -p "${staticfile:A:h}"
+      antidote bundle <"$bundlefile" >|"$staticfile"
+      if [[ -r "${staticfile}.zwc" ]] && ! zstyle -t ':antidote:static' zcompile; then
+        antidote-zsh __private__ del -f -- "${staticfile}.zwc"
+      fi
+    fi
+
+    typeset -g REPLY=$staticfile
+  } "$@" || ret=$?
+  [[ -f "$REPLY" ]] && source "$REPLY" || ret=${ret:-2}
+  unset REPLY
+  return ${ret:-$?}
+#}
