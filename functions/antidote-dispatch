@@ -22,16 +22,20 @@
     print -r -- "  load      Statically source all bundles from the plugins file"
   }
 
-  local o_help o_version
+  local o_help o_version o_diagnostics
   zparseopts ${_adote_zparopt_flags} -- \
     h=o_help    -help=h    \
-    v=o_version -version=v ||
+    v=o_version -version=v \
+    -diagnostics=o_diagnostics ||
     return 1
 
   local ret=0
 
   if (( ${#o_version} )); then
     antidote-zsh --version
+
+  elif (( ${#o_diagnostics} )); then
+    antidote-zsh --diagnostics
 
   elif (( ${#o_help} )); then
     __antidote_dispatch_usage

@@ -33,8 +33,9 @@ antidote - the cure to slow zsh plugin management
 usage: antidote [<flags>] <command> [<args> ...]
 
 flags:
-  -h, --help           Show context-sensitive help
-  -v, --version        Show application version
+  -h, --help            Show context-sensitive help
+  -v, --version         Show application version
+      --diagnostics     Show antidote and system diagnostics
 
 commands:
   bundle    Clone bundle(s) and generate the static load script
@@ -83,6 +84,25 @@ No arg exit status is 2:
 % antidote -v >/dev/null; echo $?
 0
 % antidote --version >/dev/null; echo $?
+0
+%
+```
+
+## Diagnostics
+
+`--diagnostics` shows system info:
+
+```zsh
+% antidote --diagnostics | head -1
+antidote:
+% antidote --diagnostics | grep 'version:'  #=> --regex ^\s+version:\s+[0-9]+\.[0-9]+\.[0-9]+
+% antidote --diagnostics | grep 'zsh:'
+zsh:
+% antidote --diagnostics | grep 'git:'
+git:
+% antidote --diagnostics | grep 'system:'
+system:
+% antidote --diagnostics >/dev/null; echo $?
 0
 %
 ```

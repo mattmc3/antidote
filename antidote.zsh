@@ -199,6 +199,51 @@ version() {
   say "antidote version $ver"
 }
 
+diagnostics() {
+  local antidote_dir="${ANTIDOTE_ZSH:A:h}"
+  local antidote_ver="$ANTIDOTE_VERSION"
+  local antidote_sha git_ver num_bundles
+  local -a _dirs
+
+  antidote_sha=$(command git -C "$antidote_dir" rev-parse --short HEAD 2>/dev/null) || antidote_sha=""
+  git_ver=$(command ${ANTIDOTE_GIT_CMD} --version 2>/dev/null) || git_ver="(not found)"
+  git_ver=${git_ver#git version }
+
+  if [[ -d "$ANTIDOTE_HOME" ]]; then
+    _dirs=( "$ANTIDOTE_HOME"/*(N/) )
+    num_bundles=${#_dirs}
+  else
+    num_bundles=0
+  fi
+
+  say "antidote:"
+  if [[ -n "$antidote_sha" ]]; then
+    say "  version:     $antidote_ver ($antidote_sha)"
+  else
+    say "  version:     $antidote_ver"
+  fi
+  say "  path:        $antidote_dir"
+  say "  home:        $ANTIDOTE_HOME"
+  say "  bundles:     $num_bundles"
+  say ""
+  say "zsh:"
+  say "  version:     ${ZSH_VERSION:-(unknown)}"
+  say "  path:        ${commands[zsh]:-(not found)}"
+  say ""
+  say "git:"
+  say "  version:      $git_ver"
+  say "  path:         ${commands[${ANTIDOTE_GIT_CMD}]:-(not found)}"
+  say ""
+  say "system:"
+  say "  os:           ${OSTYPE:-(unknown)}"
+  say "  uname:        $(uname -srm 2>/dev/null || say '(unknown)')"
+  say ""
+  say "environment:"
+  say "  ZDOTDIR:      ${ZDOTDIR:-(not set)}"
+  say "  TERM:         ${TERM:-(not set)}"
+  say "  TERM_PROGRAM: ${TERM_PROGRAM:-(not set)}"
+}
+
 usage() {
   say "$ANTIDOTE_HELP"
 }
@@ -1585,14 +1630,20 @@ snapshot_remove() {
 }
 
 antidote() {
-  local o_help o_version
+  local o_help o_version o_diagnostics
   zparseopts ${ZPARSEOPTS} -- \
-    h=o_help      -help=h     \
-    v=o_version   -version=v  ||
+    h=o_help          -help=h           \
+    v=o_version       -version=v        \
+    -diagnostics=o_diagnostics          ||
     return 1
 
   if (( ${#o_version} )); then
     version
+    return 0
+  fi
+
+  if (( ${#o_diagnostics} )); then
+    diagnostics
     return 0
   fi
 
@@ -1666,8 +1717,9 @@ antidote - the cure to slow zsh plugin management
 usage: antidote [<flags>] <command> [<args> ...]
 
 flags:
-  -h, --help           Show context-sensitive help
-  -v, --version        Show application version
+  -h, --help            Show context-sensitive help
+  -v, --version         Show application version
+      --diagnostics     Show antidote and system diagnostics
 
 commands:
   bundle    Clone bundle(s) and generate the static load script

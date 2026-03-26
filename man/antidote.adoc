@@ -7,7 +7,7 @@
 antidote - the cure to slow zsh plugin management
 
 == Synopsis
-*antidote* [-v | --version] [-h | --help] <command> [<args> ...]
+*antidote* [-v | --version] [-h | --help] [--diagnostics] <command> [<args> ...]
 
 == Description
 *antidote* is a Zsh plugin manager made from the ground up thinking about performance.
@@ -19,6 +19,7 @@ It is written natively in Zsh, is well tested, and picks up where Antigen and An
 == Options
 *-h, --help*:: Show context-sensitive help for antidote.
 *-v, --version*:: Show currently installed antidote version.
+*--diagnostics*:: Show antidote and system diagnostics.
 
 == Commands
 *help*:: Show documentation
