@@ -1351,6 +1351,11 @@ antidote_list() {
 
   bundles=("${(@f)$(find_bundles)}")
 
+  if (( $#bundles == 0 )); then
+    warn "antidote: list: no bundles found in '$(print_path $ANTIDOTE_HOME)'"
+    return 0
+  fi
+
   for bundledir in ${bundles[@]}; do
     url=$(git_url "$bundledir") || continue
     repo=${url%.git}
@@ -1387,7 +1392,9 @@ antidote_list() {
       output+=("${bundledir}${TAB}${url}")
     fi
   done
-  (( $#output )) && printf '%s\n' ${(o)output}
+  if (( $#output )); then
+    printf '%s\n' ${(o)output}
+  fi
 }
 
 ### Print the clone path of one or more bundles.
