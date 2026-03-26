@@ -24,6 +24,7 @@ builtin autoload -Uz is-at-least
 ZPARSEOPTS=( -D -M )
 is-at-least 5.8 && ZPARSEOPTS+=( -F )
 typeset -gr TAB=$'\t'
+typeset -gr NL=$'\n'
 
 # Zsh options needed by antidote
 setopt extended_glob
@@ -96,7 +97,7 @@ is_repo() {
 
 # Find all cloned bundles under ANTIDOTE_HOME.
 find_bundles() {
-  command find "$ANTIDOTE_HOME" -type d -name .git -prune -print 2>/dev/null | \
+  command find -H "$ANTIDOTE_HOME" -type d -name .git -prune -print 2>/dev/null | \
     sed 's|/.git$||' | sort
 }
 
@@ -1104,7 +1105,7 @@ antidote_install() {
 #
 antidote_purge() {
   local o_help o_all REPLY i line
-  local bundlefile bundle bundledir dtstmp
+  local bundlefile bundle bundledir dtstmp p
   local -a lines
 
   zparseopts ${ZPARSEOPTS} -- \
@@ -1127,11 +1128,20 @@ antidote_purge() {
   if (( $#o_all )); then
     # last chance to save the user from themselves
     zstyle -s ':antidote:test:purge' answer 'REPLY' || {
-      read -q "REPLY?You are about to permanently remove '$ANTIDOTE_HOME' and all its contents!"$'\n'"Are you sure [Y/n]? "
+      read -q "REPLY?You are about to permanently remove '$ANTIDOTE_HOME' and all its contents!${NL}Are you sure [Y/n]? "
       print
     }
     [[ ${REPLY:u} == "Y" ]] || return 1
-    # remove antidote home and static cache file
+
+    # If $ANTIDOTE_HOME is a symlink, we need to remove contents under it before removing it
+    if [[ -L "$ANTIDOTE_HOME" ]]; then
+      () {
+        setopt localoptions glob_dots
+        for p in "$ANTIDOTE_HOME"/*(N); do
+          del "$p"
+        done
+      }
+    fi
     del "$ANTIDOTE_HOME"
 
     if [[ -e "${bundlefile:r}.zsh" ]]; then
