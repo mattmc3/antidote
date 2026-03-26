@@ -2,6 +2,13 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.5]
+
+- Fix `antidote list` empty-state detection to reliably warn when no bundles are found
+- Fix bundle discovery to follow a symlinked `ANTIDOTE_HOME` path (`find -H`)
+- Fix `antidote purge --all` for symlinked `ANTIDOTE_HOME` by clearing symlink contents before deleting the symlink path
+- Add regression coverage for symlinked `ANTIDOTE_HOME` across `list`, `path`, `update`, `snapshot`, and `purge`
+
 ## [v2.0.4]
 
 - Add `--diagnostics` flag to show antidote and system info for troubleshooting
