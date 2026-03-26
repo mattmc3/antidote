@@ -202,13 +202,10 @@ version() {
 diagnostics() {
   local antidote_dir="${ANTIDOTE_ZSH:A:h}"
   local antidote_ver="$ANTIDOTE_VERSION"
-  local antidote_sha git_ver num_bundles
+  local antidote_sha num_bundles zstyle_output line
   local -a _dirs
 
   antidote_sha=$(command git -C "$antidote_dir" rev-parse --short HEAD 2>/dev/null) || antidote_sha=""
-  git_ver=$(command ${ANTIDOTE_GIT_CMD} --version 2>/dev/null) || git_ver="(not found)"
-  git_ver=${git_ver#git version }
-
   if [[ -d "$ANTIDOTE_HOME" ]]; then
     _dirs=( "$ANTIDOTE_HOME"/*(N/) )
     num_bundles=${#_dirs}
@@ -218,20 +215,20 @@ diagnostics() {
 
   say "antidote:"
   if [[ -n "$antidote_sha" ]]; then
-    say "  version:     $antidote_ver ($antidote_sha)"
+    say "  version:      $antidote_ver ($antidote_sha)"
   else
-    say "  version:     $antidote_ver"
+    say "  version:      $antidote_ver"
   fi
-  say "  path:        $antidote_dir"
-  say "  home:        $ANTIDOTE_HOME"
-  say "  bundles:     $num_bundles"
+  say "  path:         $antidote_dir"
+  say "  home:         $ANTIDOTE_HOME"
+  say "  bundles:      $num_bundles"
   say ""
   say "zsh:"
-  say "  version:     ${ZSH_VERSION:-(unknown)}"
-  say "  path:        ${commands[zsh]:-(not found)}"
+  say "  version:      $(zsh --version 2>&1 || say '(unknown)')"
+  say "  path:         ${commands[zsh]:-(not found)}"
   say ""
   say "git:"
-  say "  version:      $git_ver"
+  say "  version:      $(${ANTIDOTE_GIT_CMD:-git} --version 2>&1 || say '(unknown)')"
   say "  path:         ${commands[${ANTIDOTE_GIT_CMD}]:-(not found)}"
   say ""
   say "system:"
@@ -239,9 +236,20 @@ diagnostics() {
   say "  uname:        $(uname -srm 2>/dev/null || say '(unknown)')"
   say ""
   say "environment:"
-  say "  ZDOTDIR:      ${ZDOTDIR:-(not set)}"
-  say "  TERM:         ${TERM:-(not set)}"
   say "  TERM_PROGRAM: ${TERM_PROGRAM:-(not set)}"
+  say "  TERM:         ${TERM:-(not set)}"
+  say "  ZDOTDIR:      ${ZDOTDIR:-(not set)}"
+  say "  ZSH_VERSION:  ${ZSH_VERSION:-(not set)}"
+  say ""
+  say "zstyles:"
+  zstyle_output=$(eval "$ANTIDOTE_ZSTYLES"; zstyle -L ':antidote:*' 2>/dev/null)
+  if [[ -n "$zstyle_output" ]]; then
+    for line in "${(@f)zstyle_output}"; do
+      say "  $line"
+    done
+  else
+    say "  (none)"
+  fi
 }
 
 usage() {
