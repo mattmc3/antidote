@@ -202,15 +202,21 @@ version() {
 diagnostics() {
   local antidote_dir="${ANTIDOTE_ZSH:A:h}"
   local antidote_ver="$ANTIDOTE_VERSION"
-  local antidote_sha num_bundles zstyle_output line
-  local -a _dirs
+  local antidote_sha num_bundles num_snapshots zstyle_output line configfile bundlefile staticfile
+  local -a bundle_dirs snapshots
 
   antidote_sha=$(command git -C "$antidote_dir" rev-parse --short HEAD 2>/dev/null) || antidote_sha=""
   if [[ -d "$ANTIDOTE_HOME" ]]; then
-    _dirs=( "$ANTIDOTE_HOME"/*(N/) )
-    num_bundles=${#_dirs}
+    bundle_dirs=( "$ANTIDOTE_HOME"/*(N/) )
+    num_bundles=${#bundle_dirs}
   else
     num_bundles=0
+  fi
+  if [[ -d "$ANTIDOTE_SNAPSHOT_DIR" ]]; then
+    snapshots=( "$ANTIDOTE_SNAPSHOT_DIR"/snapshot-*.txt(N) )
+    num_snapshots=${#snapshots}
+  else
+    num_snapshots=0
   fi
 
   say "antidote:"
@@ -222,24 +228,50 @@ diagnostics() {
   say "  path:         $antidote_dir"
   say "  home:         $ANTIDOTE_HOME"
   say "  bundles:      $num_bundles"
+  say "  snapshot dir: $ANTIDOTE_SNAPSHOT_DIR"
+  say "  snapshots:    $num_snapshots"
+  configfile=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
+  if [[ -f "$configfile" ]]; then
+    say "  config:       $configfile"
+  else
+    say "  config:       $configfile (not found)"
+  fi
+  zstyle -s ':antidote:bundle' file 'bundlefile' ||
+    bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+  if [[ -f "$bundlefile" ]]; then
+    say "  bundle file:  $bundlefile"
+  else
+    say "  bundle file:  $bundlefile (not found)"
+  fi
+  zstyle -s ':antidote:static' file 'staticfile'
+  if [[ -z "$staticfile" ]]; then
+    if [[ -z "$bundlefile:t:r" ]]; then
+      staticfile=${bundlefile}.zsh
+    else
+      staticfile=${bundlefile:r}.zsh
+    fi
+  fi
+  if [[ -f "$staticfile" ]]; then
+    say "  static file:  $staticfile"
+  else
+    say "  static file:  $staticfile (not found)"
+  fi
   say ""
-  say "zsh:"
-  say "  version:      $(zsh --version 2>&1 || say '(unknown)')"
-  say "  path:         ${commands[zsh]:-(not found)}"
-  say ""
-  say "git:"
-  say "  version:      $(${ANTIDOTE_GIT_CMD:-git} --version 2>&1 || say '(unknown)')"
-  say "  path:         ${commands[${ANTIDOTE_GIT_CMD}]:-(not found)}"
-  say ""
-  say "system:"
-  say "  os:           ${OSTYPE:-(unknown)}"
-  say "  uname:        $(uname -srm 2>/dev/null || say '(unknown)')"
+  say "system/utils:"
+  say "  system:       $(uname -srm 2>/dev/null || say '(unknown)')"
+  say "  zsh path:     ${commands[zsh]:-(not found)}"
+  say "  zsh version:  $(zsh --version 2>&1 || say '(unknown)')"
+  say "  git path:     ${commands[${ANTIDOTE_GIT_CMD}]:-(not found)}"
+  say "  git version:  $(${ANTIDOTE_GIT_CMD:-git} --version 2>&1 || say '(unknown)')"
   say ""
   say "environment:"
-  say "  TERM_PROGRAM: ${TERM_PROGRAM:-(not set)}"
-  say "  TERM:         ${TERM:-(not set)}"
-  say "  ZDOTDIR:      ${ZDOTDIR:-(not set)}"
-  say "  ZSH_VERSION:  ${ZSH_VERSION:-(not set)}"
+  say "  ANTIDOTE_HOME:    ${ANTIDOTE_HOME:-(not set)}"
+  say "  OSTYPE:           ${OSTYPE:-(not set)}"
+  say "  TERM:             ${TERM:-(not set)}"
+  say "  TERM_PROGRAM:     ${TERM_PROGRAM:-(not set)}"
+  say "  XDG_CONFIG_HOME:  ${XDG_CONFIG_HOME:-(not set)}"
+  say "  ZDOTDIR:          ${ZDOTDIR:-(not set)}"
+  say "  ZSH_VERSION:      ${ZSH_VERSION:-(not set)}"
   say ""
   say "zstyles:"
   zstyle_output=$(eval "$ANTIDOTE_ZSTYLES"; zstyle -L ':antidote:*' 2>/dev/null)

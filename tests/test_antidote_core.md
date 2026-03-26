@@ -96,12 +96,11 @@ No arg exit status is 2:
 % antidote --diagnostics | head -1
 antidote:
 % antidote --diagnostics | grep 'version:'  #=> --regex ^\s+version:\s+[0-9]+\.[0-9]+\.[0-9]+
-% antidote --diagnostics | grep 'zsh:'
-zsh:
-% antidote --diagnostics | grep 'git:'
-git:
-% antidote --diagnostics | grep 'system:'
-system:
+% antidote --diagnostics | grep 'snapshot dir:'  #=> --regex ^\s+snapshot dir:\s+.+
+% antidote --diagnostics | grep 'snapshots:'  #=> --regex ^\s+snapshots:\s+[0-9]+
+% antidote --diagnostics | grep 'zsh version:'  #=> --regex ^\s+zsh version:\s+.+
+% antidote --diagnostics | grep 'git version:'  #=> --regex ^\s+git version:\s+.+
+% antidote --diagnostics | grep 'system:'  #=> --regex ^\s+system:\s+.+
 % antidote --diagnostics >/dev/null; echo $?
 0
 %
