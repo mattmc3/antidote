@@ -1389,14 +1389,14 @@ antidote_list() {
   local -a output=()
   local -a bundles=()
 
-  bundles=("${(@f)$(find_bundles)}")
+  bundles=(${(f)"$(find_bundles)"})
 
-  if (( $#bundles == 0 )); then
+  if (( ${#bundles[@]} == 0 )); then
     warn "antidote: list: no bundles found in '$(print_path $ANTIDOTE_HOME)'"
     return 0
   fi
 
-  for bundledir in ${bundles[@]}; do
+  for bundledir in "${bundles[@]}"; do
     url=$(git_url "$bundledir") || continue
     repo=${url%.git}
     repo=${repo#https://${ANTIDOTE_GIT_SITE}/}
@@ -1497,9 +1497,9 @@ snapshot_save() {
   epoch=$EPOCHSECONDS
   snapshot_file=${1:-$ANTIDOTE_SNAPSHOT_DIR/snapshot-$(TZ=UTC strftime '%Y%m%d-%H%M%SZ' $epoch).txt}
 
-  bundles=("${(@f)$(find_bundles)}")
+  bundles=(${(f)"$(find_bundles)"})
 
-  for bundledir in ${bundles[@]}; do
+  for bundledir in "${bundles[@]}"; do
     url=$(git_url "$bundledir") || continue
     sha=$(git_sha "$bundledir")
 
