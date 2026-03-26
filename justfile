@@ -114,6 +114,23 @@ bump-min:
 bump-rev:
     ./tools/bumpver revision
 
+# show antidote diagnostics (env: "latest", "542", or "local")
+diagnostics env="latest":
+    #!/usr/bin/env zsh
+    local cmd='source ./tests/__init__.zsh && t_setup && antidote --diagnostics'
+    if [[ "{{env}}" == "local" ]]; then
+        eval "$cmd"
+    elif [[ "{{env}}" == "542" ]]; then
+        podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
+          /usr/local/bin/zsh -c "cd /workspace && $cmd"
+    elif [[ "{{env}}" == "latest" ]]; then
+        podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
+          /bin/zsh -c "cd /workspace && $cmd"
+    else
+        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
+        exit 1
+    fi
+
 # start podman machine and build all test containers
 container-up:
     podman machine start 2>/dev/null || true

@@ -1,0 +1,27 @@
+#!/bin/zsh
+
+### Update antidote and/or bundles.
+#function antidote-update {
+  0=${(%):-%x}
+
+  if [[ "$1" == -h || "$1" == --help ]]; then
+    antidote-help update
+    return $?
+  fi
+
+  antidote-zsh update "$@"
+  local ret=$?
+
+  # re-setup antidote after self-update
+  local o_self o_bundles
+  zparseopts ${_adote_zparopt_flags} -- \
+    s=o_self    -self=s    \
+    b=o_bundles -bundles=b 2>/dev/null
+  if (( $#o_self )) || ! (( $#o_bundles )); then
+    (( $+functions[antidote-setup] )) && unfunction antidote-setup
+    builtin autoload -Uz ${0:A:h}/antidote-setup
+    antidote-setup
+  fi
+
+  return $ret
+#}

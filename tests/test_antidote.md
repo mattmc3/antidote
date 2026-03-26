@@ -16,7 +16,7 @@ Show antidote's version:
 % antidote --version  #=> --regex antidote version [0-9]+\.[0-9]+\.[0-9]+ \([a-f0-9]+\)
 % zstyle ':antidote:test:version' show-sha off
 % antidote --version
-antidote version 2.0.3
+antidote version 2.0.4
 % zstyle -d ':antidote:test:version' show-sha
 %
 ```
@@ -32,8 +32,9 @@ antidote - the cure to slow zsh plugin management
 usage: antidote [<flags>] <command> [<args> ...]
 
 flags:
-  -h, --help           Show context-sensitive help
-  -v, --version        Show application version
+  -h, --help            Show context-sensitive help
+  -v, --version         Show application version
+      --diagnostics     Show antidote and system diagnostics
 
 commands:
   bundle    Clone bundle(s) and generate the static load script
@@ -307,7 +308,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 2.0.3
+antidote version 2.0.4
 %
 ```
 

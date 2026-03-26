@@ -2,6 +2,15 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.4]
+
+- Add `--diagnostics` flag to show antidote and system info for troubleshooting
+- Add GitHub issue templates for bug reports and feature requests
+- Fix `antidote list` silently exiting with error when no bundles are cloned ([#247](https://github.com/mattmc3/antidote/issues/247))
+- Fix `antidote update` comparing short SHAs which could produce incorrect output (updates worked, but the output was potentially confusing for large repos)
+- Refactor `antidote-dispatch` into separate autoloaded functions (`antidote-help`, `antidote-load`, `antidote-update`) to be more maintainable
+- Clean up and alphabetize internal git helper functions
+
 ## [v2.0.3]
 
 - Reuse existing clones when `path-style` changes, avoiding duplicate clones ([#245](https://github.com/mattmc3/antidote/issues/245))

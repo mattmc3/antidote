@@ -36,6 +36,7 @@ function _antidote {
   _arguments -C \
     '(- *)'{-v,--version}'[Show version]' \
     '(- *)'{-h,--help}'[Show usage information]' \
+    '(- *)--diagnostics[Show antidote and system diagnostics]' \
     '1: :_antidote_subcommands' \
     '*:: :->subcmds' && return 0
 

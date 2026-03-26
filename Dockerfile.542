@@ -6,11 +6,24 @@ RUN apt-get update && apt-get install -y \
     wget \
     build-essential \
     libncursesw5-dev \
-    git \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libexpat1-dev \
+    zlib1g-dev \
+    gettext \
     automake \
     man-db \
     jq \
     && rm -rf /var/lib/apt/lists/*
+
+# Build and install Git 2.17.0 from source (period-appropriate for Zsh 5.4.2, Jan 2018)
+RUN wget -q https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.17.0.tar.xz \
+    && tar -xf git-2.17.0.tar.xz \
+    && cd git-2.17.0 \
+    && make prefix=/usr -j$(nproc) \
+    && make prefix=/usr install \
+    && cd .. \
+    && rm -rf git-2.17.0 git-2.17.0.tar.xz
 
 # Install just
 RUN wget -qO- https://just.systems/install.sh | bash -s -- --to /usr/local/bin

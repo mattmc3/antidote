@@ -1,0 +1,17 @@
+name: Bug Report
+description: Report a bug with antidote
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file an issue!
+
+        Kindly include the output of `antidote --diagnostics` with your report to help troubleshoot.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true

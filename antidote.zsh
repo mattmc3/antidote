@@ -61,21 +61,18 @@ git() {
     say "$result"
   fi
 }
-git_url()      { git -C "$1" config remote.origin.url; }
-git_sha()      { git -C "$1" rev-parse HEAD; }
-git_shortsha() { git -C "$1" rev-parse --short HEAD; }
-git_is_shallow()  { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
-git_clone()       { git clone --depth 1 --no-local --quiet --recurse-submodules --shallow-submodules "$@"; }
-git_fetch()       { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
-git_pull() {
-  local -a autostash_flag=(--autostash)
-  [[ "$ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
-  git -C "$1" pull --quiet --ff --rebase $autostash_flag
-}
-git_log_oneline()      { git -C "$1" --no-pager log --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
-git_submodule_sync()   { git -C "$1" submodule --quiet sync --recursive; }
-git_submodule_update() { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
-git_checkout_detach()  { git -C "$1" checkout --quiet --detach "$2"; }
+git_checkout_detach()   { git -C "$1" checkout --quiet --detach "$2"; }
+git_clone()             { local d=$1; shift; git clone --depth 1 --no-local --quiet --recurse-submodules --shallow-submodules "$@" "$d"; }
+git_config_get()        { git -C "$1" config --get "$2" 2>/dev/null; }
+git_config_set()        { git -C "$1" config "$2" "$3"; }
+git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
+git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
+git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
+git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
+git_sha()               { git -C "${@[-1]}" rev-parse ${@[1,-2]} HEAD; }
+git_submodule_sync()    { git -C "$1" submodule --quiet sync --recursive; }
+git_submodule_update()  { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
+git_url()               { git -C "$1" config remote.origin.url; }
 git_checkout_pin() {
   local dir="$1" sha="$2" bname="$3"
   if ! git_checkout_detach "$dir" "$sha" 2>/dev/null; then
@@ -86,9 +83,11 @@ git_checkout_pin() {
     fi
   fi
 }
-git_config_get()       { git -C "$1" config --get "$2" 2>/dev/null; }
-git_config_set()       { git -C "$1" config "$2" "$3"; }
-git_config_unset()     { git -C "$1" config --unset "$2" 2>/dev/null; }
+git_pull() {
+  local -a autostash_flag=(--autostash)
+  [[ "$ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
+  git -C "$1" pull --quiet --ff --rebase $autostash_flag
+}
 
 # True if the bundle is a git repo (not a local path/file).
 is_repo() {
@@ -194,10 +193,95 @@ bundle_parser() {
 version() {
   local ver="$ANTIDOTE_VERSION"
   if [[ "$ANTIDOTE_VERSION_SHOW_SHA" == true ]]; then
-    local gitsha=$(git_shortsha ${ANTIDOTE_ZSH:h})
+    local gitsha=$(git_sha --short ${ANTIDOTE_ZSH:h})
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   fi
   say "antidote version $ver"
+}
+
+diagnostics() {
+  local antidote_dir="${ANTIDOTE_ZSH:A:h}"
+  local antidote_ver="$ANTIDOTE_VERSION"
+  local antidote_sha num_bundles num_snapshots zstyle_output line configfile bundlefile staticfile
+  local -a bundle_dirs snapshots
+
+  antidote_sha=$(command git -C "$antidote_dir" rev-parse --short HEAD 2>/dev/null) || antidote_sha=""
+  if [[ -d "$ANTIDOTE_HOME" ]]; then
+    bundle_dirs=( "$ANTIDOTE_HOME"/*(N/) )
+    num_bundles=${#bundle_dirs}
+  else
+    num_bundles=0
+  fi
+  if [[ -d "$ANTIDOTE_SNAPSHOT_DIR" ]]; then
+    snapshots=( "$ANTIDOTE_SNAPSHOT_DIR"/snapshot-*.txt(N) )
+    num_snapshots=${#snapshots}
+  else
+    num_snapshots=0
+  fi
+
+  say "antidote:"
+  if [[ -n "$antidote_sha" ]]; then
+    say "  version:      $antidote_ver ($antidote_sha)"
+  else
+    say "  version:      $antidote_ver"
+  fi
+  say "  path:         $antidote_dir"
+  say "  home:         $ANTIDOTE_HOME"
+  say "  bundles:      $num_bundles"
+  say "  snapshot dir: $ANTIDOTE_SNAPSHOT_DIR"
+  say "  snapshots:    $num_snapshots"
+  configfile=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
+  if [[ -f "$configfile" ]]; then
+    say "  config:       $configfile"
+  else
+    say "  config:       $configfile (not found)"
+  fi
+  zstyle -s ':antidote:bundle' file 'bundlefile' ||
+    bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+  if [[ -f "$bundlefile" ]]; then
+    say "  bundle file:  $bundlefile"
+  else
+    say "  bundle file:  $bundlefile (not found)"
+  fi
+  zstyle -s ':antidote:static' file 'staticfile'
+  if [[ -z "$staticfile" ]]; then
+    if [[ -z "$bundlefile:t:r" ]]; then
+      staticfile=${bundlefile}.zsh
+    else
+      staticfile=${bundlefile:r}.zsh
+    fi
+  fi
+  if [[ -f "$staticfile" ]]; then
+    say "  static file:  $staticfile"
+  else
+    say "  static file:  $staticfile (not found)"
+  fi
+  say ""
+  say "system/utils:"
+  say "  system:       $(uname -srm 2>/dev/null || say '(unknown)')"
+  say "  zsh path:     ${commands[zsh]:-(not found)}"
+  say "  zsh version:  $(zsh --version 2>&1 || say '(unknown)')"
+  say "  git path:     ${commands[${ANTIDOTE_GIT_CMD}]:-(not found)}"
+  say "  git version:  $(${ANTIDOTE_GIT_CMD:-git} --version 2>&1 || say '(unknown)')"
+  say ""
+  say "environment:"
+  say "  ANTIDOTE_HOME:    ${ANTIDOTE_HOME:-(not set)}"
+  say "  OSTYPE:           ${OSTYPE:-(not set)}"
+  say "  TERM:             ${TERM:-(not set)}"
+  say "  TERM_PROGRAM:     ${TERM_PROGRAM:-(not set)}"
+  say "  XDG_CONFIG_HOME:  ${XDG_CONFIG_HOME:-(not set)}"
+  say "  ZDOTDIR:          ${ZDOTDIR:-(not set)}"
+  say "  ZSH_VERSION:      ${ZSH_VERSION:-(not set)}"
+  say ""
+  say "zstyles:"
+  zstyle_output=$(eval "$ANTIDOTE_ZSTYLES"; zstyle -L ':antidote:*' 2>/dev/null)
+  if [[ -n "$zstyle_output" ]]; then
+    for line in "${(@f)zstyle_output}"; do
+      say "  $line"
+    done
+  else
+    say "  (none)"
+  fi
 }
 
 usage() {
@@ -742,14 +826,14 @@ zsh_script() {
     giturl=$(tourl $bundle)
     warn "# antidote cloning $bname..."
     if (( $#o_pin )); then
-      git_clone $giturl $bundle_path || return 1
+      git_clone $bundle_path $giturl || return 1
       if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
         del "$bundle_path"
         return 1
       fi
       [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
     else
-      git_clone $o_branch $giturl $bundle_path || return 1
+      git_clone $bundle_path $o_branch $giturl || return 1
     fi
   fi
 
@@ -1153,7 +1237,7 @@ antidote_update() {
 
         repo_id="${repo//\//-SLASH-}"
         tmpfile="${tmpdir}/${repo_id}.output"
-        oldsha=$(git_shortsha "$1")
+        oldsha=$(git_sha "$1")
 
         # Isolate git from user config
         GIT_CONFIG_GLOBAL=/dev/null
@@ -1168,21 +1252,21 @@ antidote_update() {
 
         if (( $#o_dry_run )); then
           # Compare local HEAD against fetched remote HEAD
-          newsha=$(git -C "$1" rev-parse --short FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+          newsha=$(git -C "$1" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
         else
           git_pull "$1"
           git_submodule_sync "$1"
           git_submodule_update "$1"
-          newsha=$(git_shortsha "$1")
+          newsha=$(git_sha "$1")
         fi
 
         # Capture all output to temporary file
         {
           if [[ $oldsha != $newsha ]]; then
             if (( $#o_dry_run )); then
-              say "${C_YELLOW}antidote:${C_NORMAL} update available: $2 ${C_GREEN}${oldsha}${C_NORMAL} -> ${C_GREEN}${newsha}${C_NORMAL}"
+              say "${C_YELLOW}antidote:${C_NORMAL} update available: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
             else
-              say "${C_GREEN}antidote:${C_NORMAL} updated: $2 ${C_GREEN}${oldsha}${C_NORMAL} -> ${C_GREEN}${newsha}${C_NORMAL}"
+              say "${C_GREEN}antidote:${C_NORMAL} updated: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
             fi
             git_log_oneline "$1" "$oldsha" "$newsha"
           fi
@@ -1307,6 +1391,11 @@ antidote_list() {
 
   bundles=("${(@f)$(find_bundles)}")
 
+  if (( $#bundles == 0 )); then
+    warn "antidote: list: no bundles found in '$(print_path $ANTIDOTE_HOME)'"
+    return 0
+  fi
+
   for bundledir in ${bundles[@]}; do
     url=$(git_url "$bundledir") || continue
     repo=${url%.git}
@@ -1343,7 +1432,9 @@ antidote_list() {
       output+=("${bundledir}${TAB}${url}")
     fi
   done
-  (( $#output )) && printf '%s\n' ${(o)output}
+  if (( $#output )); then
+    printf '%s\n' ${(o)output}
+  fi
 }
 
 ### Print the clone path of one or more bundles.
@@ -1586,14 +1677,20 @@ snapshot_remove() {
 }
 
 antidote() {
-  local o_help o_version
+  local o_help o_version o_diagnostics
   zparseopts ${ZPARSEOPTS} -- \
-    h=o_help      -help=h     \
-    v=o_version   -version=v  ||
+    h=o_help          -help=h           \
+    v=o_version       -version=v        \
+    -diagnostics=o_diagnostics          ||
     return 1
 
   if (( ${#o_version} )); then
     version
+    return 0
+  fi
+
+  if (( ${#o_diagnostics} )); then
+    diagnostics
     return 0
   fi
 
@@ -1619,7 +1716,7 @@ antidote() {
 # Initialize antidote global variables from zstyles and environment.
 () {
   typeset -g ANTIDOTE_ZSH="$1"
-  typeset -g ANTIDOTE_VERSION="2.0.3"
+  typeset -g ANTIDOTE_VERSION="2.0.4"
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_PATH_STYLE
@@ -1667,8 +1764,9 @@ antidote - the cure to slow zsh plugin management
 usage: antidote [<flags>] <command> [<args> ...]
 
 flags:
-  -h, --help           Show context-sensitive help
-  -v, --version        Show application version
+  -h, --help            Show context-sensitive help
+  -v, --version         Show application version
+      --diagnostics     Show antidote and system diagnostics
 
 commands:
   bundle    Clone bundle(s) and generate the static load script
