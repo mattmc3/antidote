@@ -12,11 +12,9 @@
 bar.zsh
 foo*.*
 sandbox/
-tests/fixtures/*/
-tests/fixtures/*
-tests/fixtures/*.*
-!tests/fixtures/.gitkeep
 !tests/**/foo/
 !tests/**/.*/
 !tests/**/.*
+tests/fixtures/*
+!tests/fixtures/.gitkeep
 !footer.*

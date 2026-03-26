@@ -91,7 +91,7 @@ Test that `antidote purge --all` does the work when told "yes".
 % zstyle ':antidote:test:purge' answer 'y'
 % antidote purge --all | tail -n 1
 Antidote purge complete. Be sure to start a new Zsh session.
-% antidote list | wc -l | awk '{print $1}'
+% antidote list 2>/dev/null | wc -l | awk '{print $1}'
 0
 %
 ```

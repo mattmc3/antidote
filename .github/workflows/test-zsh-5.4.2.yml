@@ -9,26 +9,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/checkout@v3
-        with:
-          repository: "aureliojargas/clitest"
-          path: bin/clitest
-      - run: |
-          sudo apt update
-          sudo apt install -y wget build-essential libncursesw5-dev jq
-          wget https://sourceforge.net/projects/zsh/files/zsh/5.4.2/zsh-5.4.2.tar.xz
-          tar -xf zsh-5.4.2.tar.xz
-          cd zsh-5.4.2
-          ./configure --with-tcsetpgrp
-          make
-          sudo make install
-      - name: Verify Zsh Installation
+      - uses: actions/checkout@v4
+      - name: Build pinned Zsh 5.4.2 test image
+        run: docker build -f Dockerfile.542 -t antidote-zsh542-ci .
+      - name: Verify toolchain versions
         run: |
-          which zsh
-          zsh --version
-      - uses: extractions/setup-just@v2
-      - run: |
-          export PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH
-          export ZSH_BINARY=/usr/local/bin/zsh
-          just test-all local
+          docker run --rm antidote-zsh542-ci /usr/local/bin/zsh -lc 'git --version'
+          docker run --rm antidote-zsh542-ci /usr/local/bin/zsh -lc 'zsh --version'
+      - name: Run tests in container
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            antidote-zsh542-ci \
+            /usr/local/bin/zsh -lc 'cd /workspace && just test-all local'

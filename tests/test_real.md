@@ -58,7 +58,7 @@ Check to see that branch:br annotations properly changed the cloned branch
 
 ```zsh
 % branched_plugin="$ANTIDOTE_HOME/mattmc3/antidote"
-% git -C $branched_plugin branch --show-current 2>/dev/null
+% git -C $branched_plugin rev-parse --abbrev-ref HEAD 2>/dev/null
 v1
 %
 ```
@@ -84,7 +84,7 @@ Test that `antidote purge --all` does the work when told "yes".
 % zstyle ':antidote:test:purge' answer 'y'
 % antidote purge --all | tail -n 1           #=> --exit 0
 Antidote purge complete. Be sure to start a new Zsh session.
-% antidote list | wc -l | awk '{print $1}'
+% antidote list 2>/dev/null | wc -l | awk '{print $1}'
 0
 % test_exists $ZDOTDIR/.zsh_plugins.zsh(.N)   #=> --exit 1
 % test_exists $ZDOTDIR/.zsh_plugins*.bak(.N)  #=> --exit 0

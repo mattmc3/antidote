@@ -2,6 +2,17 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.5]
+
+- Fix `antidote list` empty-state detection to reliably warn when no bundles are found
+- More fixes for [#247](https://github.com/mattmc3/antidote/issues/247)
+- Fix bundle discovery to follow a symlinked `ANTIDOTE_HOME` path (`find -H`)
+- Fix `antidote purge --all` for symlinked `ANTIDOTE_HOME` by clearing symlink contents before deleting the symlink path
+- Add regression coverage for symlinked `ANTIDOTE_HOME` across `list`, `path`, `update`, `snapshot`, and `purge`
+- Fix `antidote snapshot` commands launching fzf in non-interactive shells
+- Fix test fixtures for git 2.17 compatibility
+- Bump `actions/checkout` to v4
+
 ## [v2.0.4]
 
 - Add `--diagnostics` flag to show antidote and system info for troubleshooting

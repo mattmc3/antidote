@@ -8,6 +8,18 @@
 %
 ```
 
+Ensure there are no bundles:
+
+```zsh
+% rm -rf -- $ANTIDOTE_HOME
+% antidote list 2>&1 | subenv ANTIDOTE_HOME
+antidote: list: no bundles found in '$ANTIDOTE_HOME'
+% mkdir -p $ANTIDOTE_HOME
+% antidote list 2>&1 | subenv ANTIDOTE_HOME
+antidote: list: no bundles found in '$ANTIDOTE_HOME'
+%
+```
+
 Clone the standard test bundles:
 
 ```zsh
@@ -35,7 +47,7 @@ $ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy    https://fakegitsite.com/ohmy/ohmy
 Entry count matches expected bundles:
 
 ```zsh
-% antidote list | wc -l | awk '{print $1}'
+% antidote list 2>/dev/null | wc -l | awk '{print $1}'
 6
 %
 ```

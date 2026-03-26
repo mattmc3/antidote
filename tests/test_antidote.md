@@ -16,7 +16,7 @@ Show antidote's version:
 % antidote --version  #=> --regex antidote version [0-9]+\.[0-9]+\.[0-9]+ \([a-f0-9]+\)
 % zstyle ':antidote:test:version' show-sha off
 % antidote --version
-antidote version 2.0.4
+antidote version 2.0.5
 % zstyle -d ':antidote:test:version' show-sha
 %
 ```
@@ -113,7 +113,7 @@ Bundle a specific branch of a repo with `branch:<branch>`.
 # antidote cloning foo/bar...
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
-% git -C $(antidote path foo/bar) branch --show-current
+% git -C $(antidote path foo/bar) rev-parse --abbrev-ref HEAD
 dev
 %
 ```
@@ -308,7 +308,7 @@ Bundle updates complete.
 Updating antidote...
 antidote self-update complete.
 
-antidote version 2.0.4
+antidote version 2.0.5
 %
 ```
 
