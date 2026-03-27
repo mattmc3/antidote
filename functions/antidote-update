@@ -9,18 +9,39 @@
     return $?
   fi
 
-  antidote-zsh update "$@"
-  local ret=$?
-
-  # re-setup antidote after self-update
-  local o_self o_bundles
+  local o_self o_bundles o_dry_run
   zparseopts ${_adote_zparopt_flags} -- \
     s=o_self    -self=s    \
-    b=o_bundles -bundles=b 2>/dev/null
+    b=o_bundles -bundles=b \
+    n=o_dry_run -dry-run=n 2>/dev/null
+
+  # bundle update via subprocess (pass through flags it understands)
+  local -a o_passthru=( $o_dry_run )
+  local ret=0
+  if (( $#o_bundles )) || ! (( $#o_self )); then
+    antidote-zsh update "${o_passthru[@]}"
+    ret=$?
+  fi
+
+  # self-update in parent shell
   if (( $#o_self )) || ! (( $#o_bundles )); then
-    (( $+functions[antidote-setup] )) && unfunction antidote-setup
-    builtin autoload -Uz ${0:A:h}/antidote-setup
-    antidote-setup
+    local antidote_dir="${0:A:h:h}"
+    if (( $#o_dry_run )); then
+      print "antidote: skipping self-update (dry run)"
+    elif [[ -d "${antidote_dir}/.git" ]]; then
+      print "Updating antidote..."
+      git -C "$antidote_dir" pull --quiet --ff --rebase 2>/dev/null
+      # re-setup antidote to pick up new version
+      (( $+functions[antidote-setup] )) && unfunction antidote-setup
+      builtin autoload -Uz ${0:A:h}/antidote-setup
+      antidote-setup
+      print "antidote self-update complete."
+      print ""
+      antidote --version
+    else
+      print "Self updating is disabled in this build."
+      print "Use your OS package manager to update antidote itself."
+    fi
   fi
 
   return $ret
