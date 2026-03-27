@@ -1187,17 +1187,15 @@ antidote_purge() {
 
 ### Update antidote's cloned bundles.
 #
-# usage: antidote update [-h|--help] [-s|--self] [-b|--bundles] [-n|--dry-run]
+# usage: antidote update [-h|--help] [-n|--dry-run]
 #
 antidote_update() {
-  local o_help o_self o_bundles o_dry_run
-  local tmpfile tmpdir bundledir url repo filename repo_id antidote_dir pin_ref
+  local o_help o_dry_run
+  local tmpfile tmpdir bundledir url repo filename repo_id pin_ref
   local line loadable_check_path
 
   zparseopts ${ZPARSEOPTS} -- \
     h=o_help    -help=h    \
-    s=o_self    -self=s    \
-    b=o_bundles -bundles=b \
     n=o_dry_run -dry-run=n ||
     return 1
 
@@ -1206,145 +1204,124 @@ antidote_update() {
     return
   fi
 
-  if (( $#o_bundles )) || ! (( $#o_self )); then
-    if (( $#o_dry_run )); then
-      say "Checking for bundle updates (dry run)..."
-    else
-      say "Updating bundles..."
+  if (( $#o_dry_run )); then
+    say "Checking for bundle updates (dry run)..."
+  else
+    say "Updating bundles..."
 
-      # remove zcompiled files
-      del $ANTIDOTE_HOME/**/*.zwc(N)
+    # remove zcompiled files
+    del $ANTIDOTE_HOME/**/*.zwc(N)
 
-      # remove check file
-      loadable_check_path="${ANTIDOTE_HOME}/.antidote.load"
-      [[ -r "$loadable_check_path" ]] && del "$loadable_check_path"
-    fi
-
-    # Setup temporary directory
-    tmpdir=$(maketmp -d -s update)
-
-    # Set trap to ensure cleanup on exit, interrupt, etc.
-    # (EXIT is special, 2=INT, 15=TERM, 1=HUP)
-    trap '[[ -d "$tmpdir" ]] && del "$tmpdir"' EXIT 2 15 1
-
-    # update all bundles
-    for bundledir in $(antidote_list --dirs); do
-      url=$(git_url "$bundledir")
-      repo=$(short_repo_name "$url")
-
-      # Skip pinned bundles
-      pin_ref=$(git_config_get "$bundledir" antidote.pin)
-      if [[ -n "$pin_ref" ]]; then
-        say "${C_BLUE}antidote:${C_NORMAL} skipping update for pinned bundle: $repo (at ${C_GREEN}${pin_ref[1,7]}...${C_NORMAL})"
-        continue
-      fi
-
-      say "${C_BLUE}antidote:${C_NORMAL} checking for updates: $repo"
-
-      () {
-        local repo_id tmpfile oldsha newsha
-        local GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
-
-        repo_id="${repo//\//-SLASH-}"
-        tmpfile="${tmpdir}/${repo_id}.output"
-        oldsha=$(git_sha "$1")
-
-        # Isolate git from user config
-        GIT_CONFIG_GLOBAL=/dev/null
-        GIT_CONFIG_SYSTEM=/dev/null
-
-        # Unshallow the repo if needed
-        if git_is_shallow "$1"; then
-          git_fetch "$1" --unshallow
-        else
-          git_fetch "$1"
-        fi
-
-        if (( $#o_dry_run )); then
-          # Compare local HEAD against fetched remote HEAD
-          newsha=$(git -C "$1" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
-        else
-          git_pull "$1"
-          git_submodule_sync "$1"
-          git_submodule_update "$1"
-          newsha=$(git_sha "$1")
-        fi
-
-        # Capture all output to temporary file
-        {
-          if [[ $oldsha != $newsha ]]; then
-            if (( $#o_dry_run )); then
-              say "${C_YELLOW}antidote:${C_NORMAL} update available: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
-            else
-              say "${C_GREEN}antidote:${C_NORMAL} updated: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
-            fi
-            git_log_oneline "$1" "$oldsha" "$newsha"
-          fi
-
-          # recompile bundles
-          if ! (( $#o_dry_run )); then
-            if zstyle -t ":antidote:bundle:$repo" zcompile; then
-              bundle_zcompile $bundledir
-            fi
-          fi
-        } > "$tmpfile" 2>&1
-      } "$bundledir" "$repo" &
-    done
-
-    say "Waiting for bundle updates to complete..."
-    say ""
-    wait
-
-    # Display all output in sequence
-    for tmpfile in "$tmpdir"/*.output(N); do
-      if [[ -s "$tmpfile" ]]; then
-        filename=${tmpfile:t}
-        repo_id=${filename%.output}
-        repo_id=${repo_id//-SLASH-/\/}
-
-        say "${C_BLUE}Bundle ${repo_id} update check complete.${C_NORMAL}"
-
-        # Colorize the SHA in each line
-        while IFS= read -r line; do
-          if [[ -n "$line" ]] && [[ "$line" == [[:alnum:]]* ]]; then
-            say "${C_YELLOW}${line%% *}${C_NORMAL} ${line#* }"
-          else
-            say "$line"
-          fi
-        done < "$tmpfile"
-        say ""
-      fi
-    done
-
-    # cleanup temp dir
-    [[ -d "$tmpdir" ]] && del "$tmpdir"
-    if (( $#o_dry_run )); then
-      say "${C_GREEN}Dry run complete. No changes were made.${C_NORMAL}"
-    else
-      say "${C_GREEN}Bundle updates complete.${C_NORMAL}"
-      [[ "$ANTIDOTE_AUTOSNAPSHOT" == true ]] && snapshot_save >/dev/null
-    fi
-    say ""
+    # remove check file
+    loadable_check_path="${ANTIDOTE_HOME}/.antidote.load"
+    [[ -r "$loadable_check_path" ]] && del "$loadable_check_path"
   fi
 
-  # self-update
-  if (( $#o_self )) || ! (( $#o_bundles )); then
-    if (( $#o_dry_run )); then
-      say "antidote: skipping self-update (dry run)"
-    else
-      say "Updating antidote..."
-      antidote_dir="${ANTIDOTE_ZSH:A:h}"
-      if [[ -d "${antidote_dir}/.git" ]]; then
-        git_pull "$antidote_dir" 2>/dev/null
-        say "antidote self-update complete."
-        say ""
-        version
+  # Setup temporary directory
+  tmpdir=$(maketmp -d -s update)
+
+  # Set trap to ensure cleanup on exit, interrupt, etc.
+  # (EXIT is special, 2=INT, 15=TERM, 1=HUP)
+  trap '[[ -d "$tmpdir" ]] && del "$tmpdir"' EXIT 2 15 1
+
+  # update all bundles
+  for bundledir in $(antidote_list --dirs); do
+    url=$(git_url "$bundledir")
+    repo=$(short_repo_name "$url")
+
+    # Skip pinned bundles
+    pin_ref=$(git_config_get "$bundledir" antidote.pin)
+    if [[ -n "$pin_ref" ]]; then
+      say "${C_BLUE}antidote:${C_NORMAL} skipping update for pinned bundle: $repo (at ${C_GREEN}${pin_ref[1,7]}...${C_NORMAL})"
+      continue
+    fi
+
+    say "${C_BLUE}antidote:${C_NORMAL} checking for updates: $repo"
+
+    () {
+      local repo_id tmpfile oldsha newsha
+      local GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
+
+      repo_id="${repo//\//-SLASH-}"
+      tmpfile="${tmpdir}/${repo_id}.output"
+      oldsha=$(git_sha "$1")
+
+      # Isolate git from user config
+      GIT_CONFIG_GLOBAL=/dev/null
+      GIT_CONFIG_SYSTEM=/dev/null
+
+      # Unshallow the repo if needed
+      if git_is_shallow "$1"; then
+        git_fetch "$1" --unshallow
       else
-        say "Self updating is disabled in this build."
-        say "Use your OS package manager to update antidote itself."
+        git_fetch "$1"
       fi
+
+      if (( $#o_dry_run )); then
+        # Compare local HEAD against fetched remote HEAD
+        newsha=$(git -C "$1" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+      else
+        git_pull "$1"
+        git_submodule_sync "$1"
+        git_submodule_update "$1"
+        newsha=$(git_sha "$1")
+      fi
+
+      # Capture all output to temporary file
+      {
+        if [[ $oldsha != $newsha ]]; then
+          if (( $#o_dry_run )); then
+            say "${C_YELLOW}antidote:${C_NORMAL} update available: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
+          else
+            say "${C_GREEN}antidote:${C_NORMAL} updated: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
+          fi
+          git_log_oneline "$1" "$oldsha" "$newsha"
+        fi
+
+        # recompile bundles
+        if ! (( $#o_dry_run )); then
+          if zstyle -t ":antidote:bundle:$repo" zcompile; then
+            bundle_zcompile $bundledir
+          fi
+        fi
+      } > "$tmpfile" 2>&1
+    } "$bundledir" "$repo" &
+  done
+
+  say "Waiting for bundle updates to complete..."
+  say ""
+  wait
+
+  # Display all output in sequence
+  for tmpfile in "$tmpdir"/*.output(N); do
+    if [[ -s "$tmpfile" ]]; then
+      filename=${tmpfile:t}
+      repo_id=${filename%.output}
+      repo_id=${repo_id//-SLASH-/\/}
+
+      say "${C_BLUE}Bundle ${repo_id} update check complete.${C_NORMAL}"
+
+      # Colorize the SHA in each line
+      while IFS= read -r line; do
+        if [[ -n "$line" ]] && [[ "$line" == [[:alnum:]]* ]]; then
+          say "${C_YELLOW}${line%% *}${C_NORMAL} ${line#* }"
+        else
+          say "$line"
+        fi
+      done < "$tmpfile"
+      say ""
     fi
+  done
+
+  # cleanup temp dir
+  [[ -d "$tmpdir" ]] && del "$tmpdir"
+  if (( $#o_dry_run )); then
+    say "${C_GREEN}Dry run complete. No changes were made.${C_NORMAL}"
+  else
+    say "${C_GREEN}Bundle updates complete.${C_NORMAL}"
+    [[ "$ANTIDOTE_AUTOSNAPSHOT" == true ]] && snapshot_save >/dev/null
   fi
+  say ""
 }
 
 ### Print where antidote is cloning bundles.
