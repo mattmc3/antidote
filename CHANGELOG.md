@@ -2,6 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.7]
+
+- Fix for [#255](https://github.com/mattmc3/antidote/issues/255): `antidote update` displayed the old version instead of the new version after self-update
+
 ## [v2.0.6]
 
 - Fix `antidote snapshot` fzf picker regression in [#253](https://github.com/mattmc3/antidote/issues/253)
