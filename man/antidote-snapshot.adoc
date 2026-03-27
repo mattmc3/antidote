@@ -45,6 +45,14 @@ The maximum number of snapshots to keep (default 100):
 zstyle ':antidote:snapshot' max 25
 ----
 
+The command used for interactive snapshot selection (default `fzf`).
+Set it to an empty value to disable picker-based selection:
+
+----
+zstyle ':antidote:fzf' cmd fzf
+zstyle ':antidote:fzf' cmd ''
+----
+
 Disable auto-snapshots on `antidote update` (explicit `antidote snapshot save` still works):
 
 ----

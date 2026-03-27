@@ -1548,7 +1548,7 @@ snapshot_prune() {
 snapshot_pick() {
   setopt localoptions pipefail
   local prompt="$1" snap date_line epoch preview_cmd
-  local -a snapshots labels fzf_opts
+  local -a snapshots labels fzf_opts fzf_cmd
 
   snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
   if (( $#snapshots == 0 )); then
@@ -1556,7 +1556,8 @@ snapshot_pick() {
     return 1
   fi
 
-  if ! [[ -o interactive ]] || (( ! $+commands[fzf] )); then
+  fzf_cmd=(${(z)ANTIDOTE_FZF_CMD})
+  if (( ${#fzf_cmd} == 0 )) || ! command -v -- "${fzf_cmd[1]}" >/dev/null 2>&1; then
     warn "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
     return 1
   fi
@@ -1603,7 +1604,7 @@ snapshot_pick() {
     fzf_opts+=(--multi --marker='* ' --color='marker:red')
   fi
 
-  printf '%s\n' $labels | fzf $fzf_opts | cut -f2 \
+  printf '%s\n' $labels | "${fzf_cmd[@]}" $fzf_opts | cut -f2 \
     || { warn "antidote: snapshot: no snapshot selected"; return 1; }
 }
 
@@ -1729,13 +1730,14 @@ antidote() {
   typeset -g ANTIDOTE_VERSION="2.0.5"
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
-  typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_PATH_STYLE
+  typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_FZF_CMD ANTIDOTE_PATH_STYLE
   typeset -g ANTIDOTE_DEFER_BUNDLE ANTIDOTE_FPATH_RULE
   typeset -g ANTIDOTE_OSTYPE ANTIDOTE_LOCALAPPDATA
   typeset -g ANTIDOTE_VERSION_SHOW_SHA=false ANTIDOTE_GIT_AUTOSTASH=false
   zstyle -s ':antidote:bundle'       path-style   ANTIDOTE_PATH_STYLE   || ANTIDOTE_PATH_STYLE=full
   zstyle -s ':antidote:defer'        bundle       ANTIDOTE_DEFER_BUNDLE || ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
   zstyle -s ':antidote:fpath'        rule         ANTIDOTE_FPATH_RULE   || ANTIDOTE_FPATH_RULE=append
+  zstyle -s ':antidote:fzf'          cmd          ANTIDOTE_FZF_CMD      || ANTIDOTE_FZF_CMD=fzf
   zstyle -s ':antidote:git'          cmd          ANTIDOTE_GIT_CMD      || ANTIDOTE_GIT_CMD=git
   zstyle -s ':antidote:git'          protocol     ANTIDOTE_GIT_PROTOCOL || ANTIDOTE_GIT_PROTOCOL=https
   zstyle -s ':antidote:git'          site         ANTIDOTE_GIT_SITE     || ANTIDOTE_GIT_SITE=github.com
