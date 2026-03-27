@@ -1,0 +1,124 @@
+# https://raw.githubusercontent.com/getantibody/antibody/refs/heads/master/scripts/profiling/bundles.txt
+# Just to have it, this is the massive list of clonable things from antibody
+
+dalefukami/accurev-zsh
+djui/alias-tips
+stanislas/allergen
+Valiev/almostontop
+fcambus/ansiweather
+# smallhadroncollider/antigen-git-rebase
+# smallhadroncollider/antigen-git-store
+mollifier/anyframe
+hchbaw/auto-fu.zsh
+horosgrisa/autoenv
+unixorn/autoupdate-antigen.zshplugin
+StackExchange/blackbox
+adolfoabegg/browse-commit
+arzzen/calc.plugin.zsh
+walesmd/caniuse.plugin.zsh
+mollifier/cd-gitroot
+MikeDacre/cdbk
+willghatch/zsh-cdr
+rutchkiwi/copyzshell
+Stibbons/crayon-syntax-zsh
+jsks/czhttpd
+Vifon/deer
+jgrowl/depot_tools
+gusaiani/elixir-oh-my-zsh
+b4b4r07/enhancd
+junegunn/fzf
+voronkovich/get-jquery.plugin.zsh
+fontno/ghost_zeus
+peterhurford/git-aliases.zsh
+unixorn/git-extra-commands
+peterhurford/git-it-on.zsh
+tevren/gitfast-zsh-plugin
+voronkovich/gitignore.plugin.zsh
+bbenne10/goenv
+or17191/going_places
+joepvd/grep2awk
+robertzk/hipchat.zsh
+willghatch/zsh-hooks
+# mgryszko/jvm
+supercrabtree/k
+d12frosted/kitsunebook.plugin.zsh
+lesaint/lesaint-mvn
+Temikus/mac-packaging
+hlohm/mfunc
+horosgrisa/mysql-colorize
+voronkovich/mysql.plugin.zsh
+bric3/nice-exit-code
+srijanshetty/node.plugin.zsh
+keithhamilton/oh-my-dogesh
+gepoch/oh-my-zsh-dirstack
+sandstorm/oh-my-zsh-flow3-plugin
+gerges/oh-my-zsh-jira-plus
+AlexisBRENON/oh-my-zsh-reminder
+tonyseek/oh-my-zsh-virtualenv-prompt
+hchbaw/opp.zsh
+marshallmick007/osx-dev-zsh-plugin
+deyvisonrocha/pantheon-terminal-notify-zsh-plugin
+benclark/parallels-zsh-plugin
+sharat87/pip-app
+sindresorhus/pretty-time-zsh
+shengyou/robo-zsh-plugin
+johnhamelink/rvm-zsh
+oz/safe-paste
+willghatch/zsh-saneopt
+robertzk/send.zsh
+voronkovich/sf2.plugin.zsh
+secrettriangle/smart-cd
+willghatch/zsh-snippets
+skx/sysadmin-util
+yonchu/vimman
+wbinglee/zsh-wakatime
+mfaerevaag/wd
+edouard-lopez/yeoman-zsh-plugin
+zsh-users/zaw
+hchbaw/zce.zsh
+arlimus/zero.zsh
+kmhjs/zinfo_line
+chrissicool/zsh-256color
+# caarlos0/zsh-add-upstream
+mafredri/zsh-async
+Tarrasch/zsh-autoenv
+tarruda/zsh-autosuggestions
+# dirkk/zsh-basex
+chrissicool/zsh-bash
+Tarrasch/zsh-bd
+Tarrasch/zsh-colors
+joel-porquet/zsh-dircolors-solarized
+tymm/zsh-directory-history
+oknowton/zsh-dwim
+Tarrasch/zsh-functional
+s7anley/zsh-geeknote
+# caarlos0/jvm kind:path
+# caarlos0/zsh-git-sync
+clauswitt/zsh-grunt-plugin
+yerinle/zsh-gvm
+joepvd/zsh-hints
+# empty line:
+
+zsh-users/zsh-history-substring-search
+knu/zsh-manydots-magic
+psprint/zsh-navigation-tools
+marzocchi/zsh-notify
+mkwmms/zsh-osx
+# caarlos0/zsh-pg
+RudthMael/zsh-plugin-ibtool
+paraqles/zsh-plugin-rails
+RobSis/zsh-reentry-hook
+srijanshetty/zsh-suffix-alias
+zsh-users/zsh-syntax-highlighting
+chrissicool/zsh-t32
+TBSliver/zsh-plugin-tmux-simple
+ascii-soup/zsh-url-highlighter
+sharat87/zsh-vim-mode
+jocelynmallon/zshmarks
+# comments should be ignored
+# URLs:
+# git@github.com:caarlos0/jvm.git branch:gh-pages
+# https://github.com/caarlos0/zsh-open-pr
+# caarlos0/zsh-git-fetch-merge
+
+ohmyzsh/ohmyzsh
