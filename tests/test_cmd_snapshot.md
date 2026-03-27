@@ -7,6 +7,7 @@
 % t_setup
 % antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
 % SNAP_DIR=$HOME/.antidote-snapshots
+% zstyle ':antidote:fzf' cmd ''
 % zstyle ':antidote:snapshot' dir $SNAP_DIR
 % source $T_PRJDIR/antidote.zsh
 %
@@ -30,7 +31,7 @@ The snapshot file has comment headers:
 % snapshot_file=$(ls $SNAP_DIR/snapshot-*.txt)
 % head -1 $snapshot_file
 # antidote snapshot
-% sed -n '2p' $snapshot_file | grep -c "# version: 2.0.5"
+% sed -n '2p' $snapshot_file | grep -c "# version: 2.0.6"
 1
 % sed -n '3p' "$snapshot_file" | grep -cE '# date: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z'
 1

@@ -2,12 +2,12 @@
 .\"     Title: antidote-snapshot
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-03-24
+.\"      Date: 2026-03-27
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE\-SNAPSHOT" "1" "2026-03-24" "antidote" "Antidote Manual"
+.TH "ANTIDOTE\-SNAPSHOT" "1" "2026-03-27" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -90,6 +90,18 @@ The maximum number of snapshots to keep (default 100):
 .nf
 .fam C
 zstyle \*(Aq:antidote:snapshot\*(Aq max 25
+.fam
+.fi
+.if n .RE
+.sp
+The command used for interactive snapshot selection (default \f(CRfzf\fP).
+Set it to an empty value to disable picker\-based selection:
+.sp
+.if n .RS 4
+.nf
+.fam C
+zstyle \*(Aq:antidote:fzf\*(Aq cmd fzf
+zstyle \*(Aq:antidote:fzf\*(Aq cmd \*(Aq\*(Aq
 .fam
 .fi
 .if n .RE

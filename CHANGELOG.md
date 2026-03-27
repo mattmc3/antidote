@@ -2,6 +2,12 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.6]
+
+- Fix `antidote snapshot` fzf picker regression in [#253](https://github.com/mattmc3/antidote/issues/253)
+- Add `zstyle ':antidote:fzf' cmd ...` to configure which picker command is used for snapshot selection. Supports custom commands and paths to alternative `fzf` locations
+- Allow disabling picker-based snapshot selection by setting `zstyle ':antidote:fzf' cmd ''`
+
 ## [v2.0.5]
 
 - Fix `antidote list` empty-state detection to reliably warn when no bundles are found
