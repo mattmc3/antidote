@@ -2,6 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.9]
+
+- Remove stray `setopt warn_create_global warn_nested_var` from testing
+
 ## [v2.0.8]
 
 - Refactor for better performance
