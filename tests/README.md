@@ -61,8 +61,8 @@ The `-v/--version` flag displays the current version:
 
 ```zsh
 % zstyle ':antidote:test:version' show-sha off
-% antidote --version
-antidote version 2.0.9
+% antidote --version | mask_semver
+antidote version X.X.X
 %
 ```
 

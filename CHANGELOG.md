@@ -5,6 +5,7 @@ Notable changes to this project will be documented in this file.
 ## [v2.0.10]
 
 - Add `antidote snapshot home` subcommand to print the snapshot directory path
+- Fix `antidote --version` printing a git error when installed outside a git repo (eg: Homebrew) ([#259](https://github.com/mattmc3/antidote/issues/259))
 
 ## [v2.0.9]
 

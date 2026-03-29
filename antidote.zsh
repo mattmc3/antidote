@@ -197,8 +197,8 @@ bundle_parser() {
 version() {
   local ver="$ANTIDOTE_VERSION"
   local gitsha
-  if [[ "$ANTIDOTE_VERSION_SHOW_SHA" == true ]]; then
-    gitsha=$(git_sha --short ${ANTIDOTE_ZSH:h})
+  if [[ "$ANTIDOTE_VERSION_SHOW_SHA" == true ]] && [[ -e "${ANTIDOTE_ZSH:h}/.git" ]]; then
+    gitsha=$(git_sha --short "${ANTIDOTE_ZSH:h}")
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   fi
   say "antidote version $ver"
