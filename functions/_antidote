@@ -105,10 +105,11 @@ function _antidote {
         (snapshot)
           if (( CURRENT == 2 )); then
             local -a snapshot_cmds=(
-              'save:Save a snapshot of all cloned bundles'
-              'restore:Restore bundles from a snapshot'
-              'remove:Remove snapshots'
+              'home:Show the snapshot directory'
               'list:List available snapshots'
+              'remove:Remove snapshots'
+              'restore:Restore bundles from a snapshot'
+              'save:Save a snapshot of all cloned bundles'
             )
             _describe 'snapshot command' snapshot_cmds && ret=0
           elif (( CURRENT == 3 )) && [[ "$words[2]" == (restore|remove) ]]; then

@@ -45,6 +45,14 @@ The snapshot body matches the expected fixture:
 %
 ```
 
+## Snapshot home
+
+```zsh
+% antidote snapshot home | subenv
+$HOME/.antidote-snapshots
+%
+```
+
 ## Snapshot list
 
 ```zsh

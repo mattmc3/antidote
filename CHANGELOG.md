@@ -2,6 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.10]
+
+- Add `antidote snapshot home` subcommand to print the snapshot directory path
+
 ## [v2.0.9]
 
 - Remove stray `setopt warn_create_global warn_nested_var` from testing
