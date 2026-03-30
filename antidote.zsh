@@ -197,8 +197,8 @@ bundle_parser() {
 version() {
   local ver="$ANTIDOTE_VERSION"
   local gitsha
-  if [[ "$ANTIDOTE_VERSION_SHOW_SHA" == true ]]; then
-    gitsha=$(git_sha --short ${ANTIDOTE_ZSH:h})
+  if [[ "$ANTIDOTE_VERSION_SHOW_SHA" == true ]] && [[ -e "${ANTIDOTE_ZSH:h}/.git" ]]; then
+    gitsha=$(git_sha --short "${ANTIDOTE_ZSH:h}")
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   fi
   say "antidote version $ver"
@@ -1459,24 +1459,25 @@ antidote_path() {
 
 ### Save, restore, or list snapshots of cloned bundle state.
 #
-# usage: antidote snapshot [save|restore|list] [<file>]
+# usage: antidote snapshot [home|list|remove|restore|save] [<file>]
 #
 antidote_snapshot() {
   local o_help subcmd
   zparseopts ${ZPARSEOPTS} -- h=o_help -help=h || return 1
 
   if (( $#o_help )); then
-    say "usage: antidote snapshot [save|restore|remove|list] [<file>]"
+    say "usage: antidote snapshot [home|list|remove|restore|save] [<file>]"
     return
   fi
 
   subcmd=${1:-list}; shift 2>/dev/null
 
   case "$subcmd" in
-    save)    snapshot_save "$@"    ;;
-    restore) snapshot_restore "$@" ;;
-    remove)  snapshot_remove "$@"  ;;
-    list)    snapshot_list         ;;
+    home)    echo "$ANTIDOTE_SNAPSHOT_DIR" ;;
+    list)    snapshot_list                 ;;
+    remove)  snapshot_remove "$@"          ;;
+    restore) snapshot_restore "$@"         ;;
+    save)    snapshot_save "$@"            ;;
     *)       die "antidote: snapshot: unknown subcommand '$subcmd'" ;;
   esac
 }
@@ -1722,7 +1723,7 @@ antidote() {
 # Initialize antidote global variables from zstyles and environment.
 () {
   typeset -g ANTIDOTE_ZSH="$1"
-  typeset -g ANTIDOTE_VERSION="2.0.9"
+  typeset -g ANTIDOTE_VERSION="2.0.10"
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_FZF_CMD ANTIDOTE_PATH_STYLE

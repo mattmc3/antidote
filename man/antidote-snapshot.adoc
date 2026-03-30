@@ -7,13 +7,15 @@
 antidote-snapshot - save, restore, remove, or list bundle snapshots
 
 == Synopsis
-*antidote snapshot* save [<file>]
+*antidote snapshot* home
 
-*antidote snapshot* restore [<file>]
+*antidote snapshot* list
 
 *antidote snapshot* remove [<file>...]
 
-*antidote snapshot* list
+*antidote snapshot* restore [<file>]
+
+*antidote snapshot* save [<file>]
 
 == Description
 *antidote-snapshot* manages point-in-time snapshots of your cloned bundles. A snapshot is a bundle file where every repository is annotated with `kind:clone pin:<SHA>`, capturing the exact commit of each cloned bundle.
@@ -23,10 +25,11 @@ Snapshots are saved automatically during `antidote update` in static mode. They 
 By default, snapshots are stored in `$XDG_DATA_HOME/antidote/snapshots` (or `~/Library/Application Support/antidote/snapshots` on macOS). A rolling history is maintained, with older snapshots pruned beyond the configured maximum.
 
 == Subcommands
-*save*:: Save a snapshot of all currently cloned bundles. Optionally specify a file path; otherwise a timestamped file is created in the snapshot directory.
-*restore*:: Restore bundles from a snapshot file. If no file is given, the most recent snapshot is used.
-*remove*:: Remove snapshot files. If no file is given and `fzf` is available, an interactive multi-select picker is shown.
+*home*:: Print the path to the snapshot directory.
 *list*:: List all available snapshot files.
+*remove*:: Remove snapshot files. If no file is given and `fzf` is available, an interactive multi-select picker is shown.
+*restore*:: Restore bundles from a snapshot file. If no file is given, the most recent snapshot is used.
+*save*:: Save a snapshot of all currently cloned bundles. Optionally specify a file path; otherwise a timestamped file is created in the snapshot directory.
 
 == Options
 *-h, --help*:: Show the help documentation.
@@ -60,6 +63,12 @@ zstyle ':antidote:snapshot:automatic' enabled no
 ----
 
 == Examples
+
+Show where snapshots are stored:
+
+----
+antidote snapshot home
+----
 
 Save a snapshot:
 

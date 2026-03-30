@@ -49,6 +49,19 @@ Tests for lazy-loading antidote.
 %
 ```
 
+## Version outside a git repo
+
+```zsh
+% nongit_dir=$(mktemp -d)
+% err_file=$(mktemp)
+% cp $T_PRJDIR/antidote.zsh $nongit_dir/
+% zsh $nongit_dir/antidote.zsh --version 2>$err_file | mask_semver
+antidote version X.X.X
+% [[ ! -s $err_file ]] && echo "no errors"
+no errors
+%
+```
+
 ## Teardown
 
 ```zsh
