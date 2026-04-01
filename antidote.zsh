@@ -1260,18 +1260,18 @@ antidote_update() {
 
       # Unshallow the repo if needed
       if git_is_shallow "$1"; then
-        git_fetch "$1" --unshallow
+        git_fetch "$1" --unshallow || return 1
       else
-        git_fetch "$1"
+        git_fetch "$1" || return 1
       fi
 
       if (( $#o_dry_run )); then
         # Compare local HEAD against fetched remote HEAD
         newsha=$(git -C "$1" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
       else
-        git_pull "$1"
-        git_submodule_sync "$1"
-        git_submodule_update "$1"
+        git_pull "$1" || return 1
+        git_submodule_sync "$1" || return 1
+        git_submodule_update "$1" || return 1
         newsha=$(git_sha "$1")
       fi
 
