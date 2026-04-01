@@ -68,7 +68,7 @@ generate_fixture_shas() {
 generate_fixture_gitconfig() {
   local gitconfig_file="$FIXTURE_DIR/gitconfig"
   local url safe_dir
-  : > "$gitconfig_file"
+  printf '[user]\n\tname = Fixture User\n\temail = fixture@example.com\n' > "$gitconfig_file"
   for url in "${fixture_urls[@]}"; do
     safe_dir="$(url_to_dir "$url")"
     printf '[url "%s"]\n\tinsteadOf = %s\n' \
