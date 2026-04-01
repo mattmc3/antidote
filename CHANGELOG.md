@@ -2,6 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.11]
+
+- Feature [#258](https://github.com/mattmc3/antidote/issues/258): fzf improvements
+
 ## [v2.0.10]
 
 - Add `antidote snapshot home` subcommand to print the snapshot directory path
