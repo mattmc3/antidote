@@ -2,12 +2,12 @@
 .\"     Title: antidote-snapshot
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-03-27
+.\"      Date: 2026-03-29
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE\-SNAPSHOT" "1" "2026-03-27" "antidote" "Antidote Manual"
+.TH "ANTIDOTE\-SNAPSHOT" "1" "2026-03-29" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -109,6 +109,17 @@ Set it to an empty value to disable picker\-based selection:
 .fam C
 zstyle \*(Aq:antidote:fzf\*(Aq cmd fzf
 zstyle \*(Aq:antidote:fzf\*(Aq cmd \*(Aq\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+Set the \f(CRFZF_DEFAULT_OPTS\fP and \f(CRFZF_DEFAULT_OPTS_FILE\fP used for fzf in antidote:
+.sp
+.if n .RS 4
+.nf
+.fam C
+zstyle \*(Aq:antidote:fzf\*(Aq opts "\-\-height=40% \-\-layout=reverse"
+zstyle \*(Aq:antidote:fzf\*(Aq opts_file ~/.config/antidote/fzf\-opts
 .fam
 .fi
 .if n .RE

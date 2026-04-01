@@ -56,6 +56,13 @@ zstyle ':antidote:fzf' cmd fzf
 zstyle ':antidote:fzf' cmd ''
 ----
 
+Set the `FZF_DEFAULT_OPTS` and `FZF_DEFAULT_OPTS_FILE` used for fzf in antidote:
+
+----
+zstyle ':antidote:fzf' opts "--height=40% --layout=reverse"
+zstyle ':antidote:fzf' opts_file ~/.config/antidote/fzf-opts
+----
+
 Disable auto-snapshots on `antidote update` (explicit `antidote snapshot save` still works):
 
 ----

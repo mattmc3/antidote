@@ -1,0 +1,3 @@
+#!/bin/sh
+# Stub fzf for testing — simulates no selection made.
+exit 1

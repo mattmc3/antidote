@@ -194,11 +194,13 @@ antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to 
 
 ```zsh
 % zstyle ':antidote:snapshot' dir $HOME/.antidote-no-snaps
+% zstyle ':antidote:fzf' cmd $T_PRJDIR/tests/bin/mock_fzf
 % source $T_PRJDIR/antidote.zsh
 % mkdir -p $HOME/.antidote-no-snaps
 % antidote snapshot restore 2>&1 | head -1
 antidote: snapshot: no snapshots found
 % zstyle -d ':antidote:snapshot' dir
+% zstyle -d ':antidote:fzf' cmd
 %
 ```
 
@@ -254,10 +256,12 @@ antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to 
 
 ```zsh
 % zstyle ':antidote:snapshot' dir $HOME/.antidote-remove-empty
+% zstyle ':antidote:fzf' cmd $T_PRJDIR/tests/bin/mock_fzf
 % source $T_PRJDIR/antidote.zsh
 % mkdir -p $HOME/.antidote-remove-empty
 % antidote snapshot remove 2>&1 | head -1
 antidote: snapshot: no snapshots found
+% zstyle -d ':antidote:fzf' cmd
 %
 ```
 

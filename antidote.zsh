@@ -1529,11 +1529,21 @@ snapshot_prune() {
   fi
 }
 
+### Check for an fzf picker, warning and returning 1 if unavailable.
+snapshot_try_picker() {
+  local -a fzf_cmd
+  fzf_cmd=(${(z)ANTIDOTE_FZF_CMD})
+  if (( ${#fzf_cmd} == 0 )) || ! command -v -- "${fzf_cmd[1]}" >/dev/null 2>&1; then
+    warn "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
+    return 1
+  fi
+}
+
 ### Interactive fzf snapshot picker. Prints selected file path(s) to stdout.
-# Usage: snapshot_pick "prompt" [--multi]
+# Usage: snapshot_pick "label" [--multi]
 snapshot_pick() {
   setopt localoptions pipefail
-  local prompt="$1" snap date_line epoch preview_cmd
+  local label="$1" snap date_line epoch preview_cmd
   local -a snapshots labels fzf_opts fzf_cmd
 
   snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
@@ -1543,11 +1553,6 @@ snapshot_pick() {
   fi
 
   fzf_cmd=(${(z)ANTIDOTE_FZF_CMD})
-  if (( ${#fzf_cmd} == 0 )) || ! command -v -- "${fzf_cmd[1]}" >/dev/null 2>&1; then
-    warn "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
-    return 1
-  fi
-
   preview_cmd='echo {2}; echo; tail -n +4 {2}'
   if [[ "$ANTIDOTE_COLOR" == true ]]; then
     preview_cmd='
@@ -1585,12 +1590,16 @@ snapshot_pick() {
   done
 
   fzf_opts=(--no-sort ${C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t'
-    --prompt="$prompt" --preview="$preview_cmd" --preview-window=right:75%)
+    --prompt="❯ " --border=top --border-label=" $label" --preview="$preview_cmd" --preview-window=right:75%)
   if [[ "$2" == --multi ]]; then
     fzf_opts+=(--multi --marker='* ' --color='marker:red')
   fi
 
-  printf '%s\n' $labels | "${fzf_cmd[@]}" $fzf_opts | cut -f2 \
+  printf '%s\n' $labels \
+    | FZF_DEFAULT_OPTS=$ANTIDOTE_FZF_DEFAULT_OPTS \
+      FZF_DEFAULT_OPTS_FILE=$ANTIDOTE_FZF_DEFAULT_OPTS_FILE \
+      "${fzf_cmd[@]}" $fzf_opts \
+    | cut -f2 \
     || { warn "antidote: snapshot: no snapshot selected"; return 1; }
 }
 
@@ -1600,8 +1609,8 @@ snapshot_restore() {
   local line bundle pin
 
   if [[ -z "$snapshot_file" ]]; then
-    snapshot_file=$(snapshot_pick "Select snapshot to restore: ") \
-      || return 1
+    snapshot_try_picker || return 1
+    snapshot_file=$(snapshot_pick "Select snapshot to restore") || return 1
   fi
 
   if [[ ! -r "$snapshot_file" ]]; then
@@ -1650,7 +1659,8 @@ snapshot_remove() {
     return
   fi
 
-  selected=("${(@f)$(snapshot_pick "Select snapshot(s) to remove: " --multi)}") \
+  snapshot_try_picker || return 1
+  selected=("${(@f)$(snapshot_pick "Select snapshot(s) to remove" --multi)}") \
     || return 1
 
   say "Snapshots to remove:"
@@ -1727,6 +1737,7 @@ antidote() {
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_FZF_CMD ANTIDOTE_PATH_STYLE
+  typeset -g ANTIDOTE_FZF_DEFAULT_OPTS ANTIDOTE_FZF_DEFAULT_OPTS_FILE
   typeset -g ANTIDOTE_DEFER_BUNDLE ANTIDOTE_FPATH_RULE
   typeset -g ANTIDOTE_OSTYPE ANTIDOTE_LOCALAPPDATA
   typeset -g ANTIDOTE_VERSION_SHOW_SHA=false ANTIDOTE_GIT_AUTOSTASH=false
@@ -1734,6 +1745,8 @@ antidote() {
   zstyle -s ':antidote:defer'        bundle       ANTIDOTE_DEFER_BUNDLE || ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
   zstyle -s ':antidote:fpath'        rule         ANTIDOTE_FPATH_RULE   || ANTIDOTE_FPATH_RULE=append
   zstyle -s ':antidote:fzf'          cmd          ANTIDOTE_FZF_CMD      || ANTIDOTE_FZF_CMD=fzf
+  zstyle -s ':antidote:fzf'          opts         ANTIDOTE_FZF_DEFAULT_OPTS
+  zstyle -s ':antidote:fzf'          opts_file    ANTIDOTE_FZF_DEFAULT_OPTS_FILE
   zstyle -s ':antidote:git'          cmd          ANTIDOTE_GIT_CMD      || ANTIDOTE_GIT_CMD=git
   zstyle -s ':antidote:git'          protocol     ANTIDOTE_GIT_PROTOCOL || ANTIDOTE_GIT_PROTOCOL=https
   zstyle -s ':antidote:git'          site         ANTIDOTE_GIT_SITE     || ANTIDOTE_GIT_SITE=github.com
