@@ -70,6 +70,45 @@ updated to latest
 %
 ```
 
+## Update with dirty working tree (autostash)
+
+Roll back foo/baz by one commit, dirty a tracked file, and add an untracked file:
+
+```zsh
+% bundledir=$ANTIDOTE_HOME/fakegitsite.com/foo/baz
+% command git -C $bundledir reset --quiet --hard HEAD~1
+% echo "junk" >> $bundledir/baz.plugin.zsh
+% echo "untracked" > $bundledir/untracked.txt
+% [[ -n "$(command git -C $bundledir status --porcelain)" ]] && echo "dirty"
+dirty
+%
+```
+
+Update should succeed and advance the SHA despite the dirty working tree:
+
+```zsh
+% zstyle ':antidote:test:git' autostash on
+% sha_before=$(command git -C $bundledir rev-parse --short HEAD)
+% antidote update --bundles 2>/dev/null | grep "foo/baz"
+antidote: checking for updates: foo/baz
+Bundle foo/baz update check complete.
+antidote: updated: foo/baz bde701c -> 98cdde2
+% sha_after=$(command git -C $bundledir rev-parse --short HEAD)
+% [[ "$sha_before" != "$sha_after" ]] && echo "updated"
+updated
+%
+```
+
+The tracked modification and untracked file should still be present after the update:
+
+```zsh
+% grep -q "junk" $bundledir/baz.plugin.zsh && echo "tracked change preserved"
+tracked change preserved
+% [[ -f $bundledir/untracked.txt ]] && echo "untracked file preserved"
+untracked file preserved
+%
+```
+
 ## Teardown
 
 ```zsh

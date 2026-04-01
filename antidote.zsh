@@ -1740,7 +1740,7 @@ antidote() {
   typeset -g ANTIDOTE_FZF_DEFAULT_OPTS ANTIDOTE_FZF_DEFAULT_OPTS_FILE
   typeset -g ANTIDOTE_DEFER_BUNDLE ANTIDOTE_FPATH_RULE
   typeset -g ANTIDOTE_OSTYPE ANTIDOTE_LOCALAPPDATA
-  typeset -g ANTIDOTE_VERSION_SHOW_SHA=false ANTIDOTE_GIT_AUTOSTASH=false
+  typeset -g ANTIDOTE_VERSION_SHOW_SHA=true ANTIDOTE_GIT_AUTOSTASH=true
   zstyle -s ':antidote:bundle'       path-style   ANTIDOTE_PATH_STYLE   || ANTIDOTE_PATH_STYLE=full
   zstyle -s ':antidote:defer'        bundle       ANTIDOTE_DEFER_BUNDLE || ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
   zstyle -s ':antidote:fpath'        rule         ANTIDOTE_FPATH_RULE   || ANTIDOTE_FPATH_RULE=append
@@ -1752,8 +1752,8 @@ antidote() {
   zstyle -s ':antidote:git'          site         ANTIDOTE_GIT_SITE     || ANTIDOTE_GIT_SITE=github.com
   zstyle -s ':antidote:test:env'     LOCALAPPDATA ANTIDOTE_LOCALAPPDATA || ANTIDOTE_LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}"
   zstyle -s ':antidote:test:env'     OSTYPE       ANTIDOTE_OSTYPE       || ANTIDOTE_OSTYPE=$OSTYPE
-  zstyle -T ':antidote:test:git'     autostash && ANTIDOTE_GIT_AUTOSTASH=true
-  zstyle -T ':antidote:test:version' show-sha  && ANTIDOTE_VERSION_SHOW_SHA=true
+  zstyle -T ':antidote:test:git'     autostash || ANTIDOTE_GIT_AUTOSTASH=false
+  zstyle -T ':antidote:test:version' show-sha  || ANTIDOTE_VERSION_SHOW_SHA=false
   # Legacy use of friendly names overrides all
   if zstyle -t ':antidote:bundle' use-friendly-names; then
     ANTIDOTE_PATH_STYLE=short
