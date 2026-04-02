@@ -1198,6 +1198,7 @@ antidote_purge() {
 # usage: antidote update [-h|--help] [-n|--dry-run]
 #
 antidote_update() {
+  setup_color
   local o_help o_dry_run
   local tmpfile tmpdir bundledir url repo filename repo_id pin_ref
   local line loadable_check_path
@@ -1462,6 +1463,7 @@ antidote_path() {
 # usage: antidote snapshot [home|list|remove|restore|save] [<file>]
 #
 antidote_snapshot() {
+  setup_color
   local o_help subcmd
   zparseopts ${ZPARSEOPTS} -- h=o_help -help=h || return 1
 
@@ -1529,6 +1531,27 @@ snapshot_prune() {
   fi
 }
 
+### Set color-related globals needed for interactive features (fzf previews, etc).
+setup_color() {
+  typeset -g ANTIDOTE_COLOR C_BLUE C_GREEN C_YELLOW C_NORMAL
+  typeset -g ANTIDOTE_BAT_CMD ANTIDOTE_BAT_LANG ANTIDOTE_BAT_OPTS
+  if supports_color; then
+    ANTIDOTE_COLOR=true
+    C_BLUE=$'\E[34m'
+    C_GREEN=$'\E[32m'
+    C_YELLOW=$'\E[33m'
+    C_NORMAL=$'\E[0m'
+  fi
+  [[ "$ANTIDOTE_COLOR" == true ]] && command -v bat >/dev/null 2>&1 || return 0
+  ANTIDOTE_BAT_CMD=bat
+  if bat --list-languages 2>/dev/null | grep -q 'Antidote Bundle'; then
+    ANTIDOTE_BAT_LANG='Antidote Bundle'
+  else
+    ANTIDOTE_BAT_LANG=properties
+  fi
+  : ${ANTIDOTE_BAT_OPTS:="--color=always -l '${ANTIDOTE_BAT_LANG}'"}
+}
+
 ### Check for an fzf picker, warning and returning 1 if unavailable.
 snapshot_try_picker() {
   local -a fzf_cmd
@@ -1554,7 +1577,9 @@ snapshot_pick() {
 
   fzf_cmd=(${(z)ANTIDOTE_FZF_CMD})
   preview_cmd='echo {2}; echo; tail -n +4 {2}'
-  if [[ "$ANTIDOTE_COLOR" == true ]]; then
+  if [[ -n "$ANTIDOTE_BAT_CMD" ]]; then
+    preview_cmd="BAT_OPTS=${(q)ANTIDOTE_BAT_OPTS} bat {2}"
+  elif [[ "$ANTIDOTE_COLOR" == true ]]; then
     preview_cmd='
   printf "\033[1;4m%s\033[0m\n\n" {2}
   tail -n +4 {2} |
@@ -1589,8 +1614,9 @@ snapshot_pick() {
     labels+=("$date_line	$snap")
   done
 
+  : ${ANTIDOTE_FZF_DEFAULT_OPTS:="--border=top --preview-window=right:75%"}
   fzf_opts=(--no-sort ${C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t'
-    --prompt="❯ " --border=top --border-label=" $label" --preview="$preview_cmd" --preview-window=right:75%)
+    --prompt="❯ " --border-label=" $label " --preview="$preview_cmd")
   if [[ "$2" == --multi ]]; then
     fzf_opts+=(--multi --marker='* ' --color='marker:red')
   fi
@@ -1737,7 +1763,7 @@ antidote() {
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_FZF_CMD ANTIDOTE_PATH_STYLE
-  typeset -g ANTIDOTE_FZF_DEFAULT_OPTS ANTIDOTE_FZF_DEFAULT_OPTS_FILE
+  typeset -g ANTIDOTE_FZF_DEFAULT_OPTS ANTIDOTE_FZF_DEFAULT_OPTS_FILE ANTIDOTE_BAT_OPTS
   typeset -g ANTIDOTE_DEFER_BUNDLE ANTIDOTE_FPATH_RULE
   typeset -g ANTIDOTE_OSTYPE ANTIDOTE_LOCALAPPDATA
   typeset -g ANTIDOTE_VERSION_SHOW_SHA=true ANTIDOTE_GIT_AUTOSTASH=true
@@ -1747,6 +1773,7 @@ antidote() {
   zstyle -s ':antidote:fzf'          cmd          ANTIDOTE_FZF_CMD      || ANTIDOTE_FZF_CMD=fzf
   zstyle -s ':antidote:fzf'          opts         ANTIDOTE_FZF_DEFAULT_OPTS
   zstyle -s ':antidote:fzf'          opts_file    ANTIDOTE_FZF_DEFAULT_OPTS_FILE
+  zstyle -s ':antidote:bat'          opts         ANTIDOTE_BAT_OPTS
   zstyle -s ':antidote:git'          cmd          ANTIDOTE_GIT_CMD      || ANTIDOTE_GIT_CMD=git
   zstyle -s ':antidote:git'          protocol     ANTIDOTE_GIT_PROTOCOL || ANTIDOTE_GIT_PROTOCOL=https
   zstyle -s ':antidote:git'          site         ANTIDOTE_GIT_SITE     || ANTIDOTE_GIT_SITE=github.com
@@ -1767,15 +1794,6 @@ antidote() {
   zstyle -s ':antidote:snapshot' dateformat ANTIDOTE_SNAPSHOT_DATEFMT || ANTIDOTE_SNAPSHOT_DATEFMT='%Y-%m-%d %H:%M:%S %Z'
   zstyle -T ':antidote:snapshot:automatic' enabled && ANTIDOTE_AUTOSNAPSHOT=true
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
-
-  typeset -g ANTIDOTE_COLOR C_BLUE C_GREEN C_YELLOW C_NORMAL
-  if supports_color; then
-    ANTIDOTE_COLOR=true
-    C_BLUE=$'\E[34m'
-    C_GREEN=$'\E[32m'
-    C_YELLOW=$'\E[33m'
-    C_NORMAL=$'\E[0m'
-  fi
 } "${0:A}"
 
 ANTIDOTE_HELP=$(
