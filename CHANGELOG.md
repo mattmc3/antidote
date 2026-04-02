@@ -2,6 +2,14 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.0.12]
+
+- Add syntax definition for antidote bundle files (`.zsh_plugins.txt`). See [misc/zsh_plugins.sublime-syntax](https://raw.githubusercontent.com/mattmc3/antidote/main/misc/zsh_plugins.sublime-syntax).
+- Use bat for fzf snapshot preview when available, using our new syntax highlighter, with fallback to basic coloring if bat is unavailable or syntax is not installed
+- Add `zstyle ':antidote:bat' opts ...` to allow user to configure their preferred bat options
+- Fix `antidote update` to fail faster on git errors
+- Add tests to ensure git autostashing is working
+
 ## [v2.0.11]
 
 - Feature [#258](https://github.com/mattmc3/antidote/issues/258): fzf improvements
