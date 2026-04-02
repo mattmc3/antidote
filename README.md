@@ -102,6 +102,19 @@ fi
 source ${zsh_plugins}.zsh
 ```
 
+## bat syntax highlighting
+
+If you use [bat](https://github.com/sharkdp/bat), antidote includes a syntax definition
+for `.zsh_plugins.txt` files. To install it:
+
+```zsh
+bat_syntax_dir="$(bat --config-dir)/syntaxes"
+mkdir -p "$bat_syntax_dir"
+curl -fsSL https://raw.githubusercontent.com/mattmc3/antidote/main/misc/zsh_plugins.sublime-syntax \
+  -o "$bat_syntax_dir/zsh_plugins.sublime-syntax"
+bat cache --build
+```
+
 ## Benchmarks
 
 You can see how antidote compares with other setups [here][benchmarks].
