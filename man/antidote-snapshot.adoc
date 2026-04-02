@@ -63,6 +63,12 @@ zstyle ':antidote:fzf' opts "--height=40% --layout=reverse"
 zstyle ':antidote:fzf' opts_file ~/.config/antidote/fzf-opts
 ----
 
+If `bat` is installed, it is used for syntax-highlighted fzf previews. If the Antidote Bundle syntax definition is also installed, it will be used; otherwise bat falls back to `properties` syntax. Set bat options with the following zstyle:
+
+----
+zstyle ':antidote:bat' opts "--style=plain"
+----
+
 Disable auto-snapshots on `antidote update` (explicit `antidote snapshot save` still works):
 
 ----

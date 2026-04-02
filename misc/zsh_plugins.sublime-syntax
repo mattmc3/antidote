@@ -1,0 +1,123 @@
+%YAML 1.2
+---
+# syntax-version: 1
+name: Antidote Bundle
+file_extensions:
+  - zsh_plugins.txt
+scope: source.antidote-bundle
+
+contexts:
+  main:
+    - include: comment
+    - include: bundle-line
+
+  comment:
+    - match: '#.*$'
+      scope: comment.line.number-sign
+
+  bundle-line:
+    - match: '^\s*(?=\S)(?!#)'
+      push: bundle-content
+
+  bundle-content:
+    - match: '$'
+      pop: true
+    - match: '#.*$'
+      scope: comment.line.number-sign
+      pop: true
+    - include: annotation
+    - include: bundle-reference
+    - include: whitespace
+
+  whitespace:
+    - match: '\s+'
+
+  bundle-reference:
+    - match: 'https?://\S+'
+      scope: markup.underline.link
+    - match: 'git@[a-zA-Z0-9.-]+:\S+'
+      scope: markup.underline.link
+    - match: '[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+'
+      scope: entity.name.class
+    - match: '\$\{?[a-zA-Z0-9_]+\}?'
+      scope: variable.other
+      push: path-continuation
+    - match: '~[a-zA-Z0-9_\-/.]*'
+      scope: keyword.other
+    - match: '\.\.?/[a-zA-Z0-9_\-/.]*'
+      scope: keyword.other
+    - match: '/[a-zA-Z0-9_\-/.]*'
+      scope: keyword.other
+
+  path-continuation:
+    - match: '[a-zA-Z0-9_\-/.]*'
+      scope: keyword.other
+      pop: true
+    - match: '(?=\s|$|#)'
+      pop: true
+
+  annotation:
+    - match: '\b(kind)(:)'
+      captures:
+        1: entity.other.attribute-name
+        2: punctuation.separator.key-value
+      push: annotation-kind-value
+    - match: '\b(conditional|pre|post)(:)'
+      captures:
+        1: entity.other.attribute-name
+        2: punctuation.separator.key-value
+      push: annotation-function-value
+    - match: '\b(branch|autoload|pin|fpath-rule|path)(:)'
+      captures:
+        1: entity.other.attribute-name
+        2: punctuation.separator.key-value
+      push: annotation-string-value
+    # Unknown annotations (typos or custom)
+    - match: '(?!https?://)([a-zA-Z_][a-zA-Z0-9_-]*)(:)'
+      captures:
+        1: markup.deleted
+        2: markup.deleted
+      push: annotation-invalid-value
+
+  annotation-function-value:
+    - match: '[^\s#]+'
+      scope: entity.name.function
+      pop: true
+    - match: '(?=[\s#]|$)'
+      pop: true
+
+  annotation-invalid-value:
+    - match: '"[^"]*"'
+      scope: markup.deleted
+      pop: true
+    - match: "'[^']*'"
+      scope: markup.deleted
+      pop: true
+    - match: '[^\s#]+'
+      scope: markup.deleted
+      pop: true
+    - match: '(?=[\s#]|$)'
+      pop: true
+
+  annotation-kind-value:
+    - match: '\b(zsh|fpath|path|clone|defer|autoload)\b'
+      scope: string.unquoted
+      pop: true
+    - match: '[^\s#]+'
+      scope: markup.deleted
+      pop: true
+    - match: '(?=[\s#]|$)'
+      pop: true
+
+  annotation-string-value:
+    - match: '"[^"]*"'
+      scope: string.quoted.double
+      pop: true
+    - match: "'[^']*'"
+      scope: string.quoted.single
+      pop: true
+    - match: '[^\s#]+'
+      scope: string.unquoted
+      pop: true
+    - match: '(?=[\s#]|$)'
+      pop: true
