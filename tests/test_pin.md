@@ -40,7 +40,7 @@ HEAD
 The pinned bundle should still generate the correct source script.
 
 ```zsh
-% antidote __private__ zsh_script --pin 64642c5691051ba0d82f5bda60b745f6fd042325 pintest/pinme | subenv ANTIDOTE_HOME
+% antidote __private__ zsh_script __bundle__ pintest/pinme pin 64642c5691051ba0d82f5bda60b745f6fd042325 | subenv ANTIDOTE_HOME
 fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme" )
 source "$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme/pinme.plugin.zsh"
 %
@@ -241,7 +241,7 @@ Tags should work with `branch:` the same as branch names.
 
 ```zsh
 % rm -rf $ANTIDOTE_HOME/fakegitsite.com/pintest/pinme
-% antidote __private__ zsh_script --kind clone --pin deadbeefdeadbeefdeadbeefdeadbeefdeadbeef pintest/pinme 2>&1 | tail -1
+% antidote __private__ zsh_script __bundle__ pintest/pinme kind clone pin deadbeefdeadbeefdeadbeefdeadbeefdeadbeef 2>&1 | tail -1
 antidote: error: pin commit 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' not found for pintest/pinme
 % [[ ! -d $ANTIDOTE_HOME/fakegitsite.com/pintest/pinme ]] && echo "cleaned up"
 cleaned up
@@ -251,7 +251,7 @@ cleaned up
 ### Pin with short or non-SHA value is rejected
 
 ```zsh
-% antidote __private__ zsh_script --kind clone --pin v99.0.0 pintest/pinme 2>&1 | tail -1
+% antidote __private__ zsh_script __bundle__ pintest/pinme kind clone pin v99.0.0 2>&1 | tail -1
 antidote: error: pin requires a full 40-character commit SHA, got 'v99.0.0'
 % [[ ! -d $ANTIDOTE_HOME/fakegitsite.com/pintest/pinme ]] && echo "cleaned up"
 cleaned up

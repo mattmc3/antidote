@@ -1,16 +1,24 @@
 #!/bin/zsh
 #function print_aarr() {
+  # Generic matrix printer. Reads 'typeset -p' output from stdin via eval,
+  # then prints all key-value pairs for the given matrix variable and count variable.
+  # usage: some_serializer | print_aarr <matrix_var> <count_var>
+  #
   emulate -L zsh; setopt local_options
 
-  local input key val
-  local -A bundle
+  local matrix_var=${1:-_parsed_bundles} count_var=${2:-_parsed_bundles_count}
+  local -a all_keys row_keys
+  local i key val
 
-  while IFS= read -r input; do
-    [[ -z "$input" ]] && continue
-    bundle=("${(@Q)${(z)input}}")
-    for key in ${(ok)bundle}; do
-      [[ "$key" == __lineno__ ]] && continue
-      val="$( print -r -- "${bundle[$key]}" | subenv ANTIDOTE_HOME )"
+  eval "$(cat)"
+  all_keys=(${(ok)${(P)matrix_var}})
+  for (( i = 1; i <= ${(P)count_var}; i++ )); do
+    row_keys=()
+    for key in $all_keys; do
+      [[ $key == $i,* ]] && row_keys+=(${key#$i,})
+    done
+    for key in ${(o)row_keys}; do
+      val="$(print -r -- "${${(P)matrix_var}[$i,$key]}" | subenv ANTIDOTE_HOME)"
       if [[ -z "$val" ]]; then
         printf '%-12s:\n' $key
       else

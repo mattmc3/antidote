@@ -5,27 +5,79 @@
 ```zsh
 % source ./tests/__init__.zsh
 % t_setup
-% function bundle_parser() { antidote __private__ bundle_parser "$@"; }
+% function bundle_parser() { antidote __private__ bundle_parser_serialize "$@"; }
 %
 ```
 
-## Test bundle parser associative arrays
+## Test bundle parser matrix
 
-The bundle parser takes the antidote bundle format and returns a flat key-value
-string that can be read into an associative array.
+The bundle parser takes the antidote bundle format and populates a
+`_parsed_bundles[i,key]` matrix plus `_parsed_bundles_count`, parsed once.
 
 Test empty:
 
 ```zsh
-% echo | bundle_parser
-% echo '# This is a full line comment' | bundle_parser
+% eval "$(echo | bundle_parser)"; print $_parsed_bundles_count
+0
+% eval "$(echo '# This is a full line comment' | bundle_parser)"; print $_parsed_bundles_count
+0
 %
 ```
+
+Test matrix for repo:
+
+```zsh
+% eval "$(echo 'foo/bar' | bundle_parser)"
+% print $_parsed_bundles_count
+1
+% print $_parsed_bundles[1,__bundle__]
+foo/bar
+% print $_parsed_bundles[1,__type__]
+repo
+%
+```
+
+Test matrix for multiple bundles:
+
+```zsh
+% eval "$(printf 'foo/bar\nbar/baz kind:defer\n' | bundle_parser)"
+% print $_parsed_bundles_count
+2
+% print $_parsed_bundles[1,__bundle__]
+foo/bar
+% print $_parsed_bundles[2,__bundle__]
+bar/baz
+% print $_parsed_bundles[2,kind]
+defer
+%
+```
+
+Test matrix for annotations:
+
+```zsh
+% eval "$(echo 'foo/bar branch:main kind:zsh' | bundle_parser)"
+% print $_parsed_bundles[1,branch]
+main
+% print $_parsed_bundles[1,kind]
+zsh
+%
+```
+
+Test matrix lineno via comments and blanks:
+
+```zsh
+% eval "$(printf '# comment\n\nfoo/bar\n' | bundle_parser)"
+% print $_parsed_bundles[1,__lineno__]
+3
+%
+```
+
+## Test bundle parser helpers
 
 Test assoc array for repo
 
 ```zsh
-% echo 'foo/bar' | bundle_parser | print_aarr
+% echo 'foo/bar' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -38,7 +90,7 @@ Test assoc array for repo in escaped path
 
 ```zsh
 % zstyle ':antidote:bundle' path-style escaped
-% echo 'foo/bar' | bundle_parser | print_aarr
+% echo 'foo/bar' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
 __short__   : foo/bar
@@ -51,7 +103,7 @@ __url__     : https://fakegitsite.com/foo/bar
 Test assoc array for path
 
 ```zsh
-% echo '$ZSH_CUSTOM/foo' | bundle_parser | print_aarr
+% echo '$ZSH_CUSTOM/foo' | bundle_parser | print_parsed_bundle
 __bundle__  : $ZSH_CUSTOM/foo
 __type__    : path
 %
@@ -60,12 +112,12 @@ __type__    : path
 Test assoc array for jibberish
 
 ```zsh
-% echo 'a b c d:e:f' | bundle_parser | print_aarr
+% echo 'a b c d:e:f' | bundle_parser | print_parsed_bundle
 __bundle__  : a
 __error__   : error: Expecting 'key:value' form for annotation 'c'.
 __type__    : word
 d           : e:f
-% echo 'foo bar:baz' | bundle_parser | print_aarr
+% echo 'foo bar:baz' | bundle_parser | print_parsed_bundle
 __bundle__  : foo
 __type__    : word
 bar         : baz
@@ -75,7 +127,7 @@ bar         : baz
 Test assoc array for everything
 
 ```zsh
-% echo 'foo/bar branch:baz kind:zsh path:plugins/baz pre:precmd post:"post cmd"' | bundle_parser | print_aarr
+% echo 'foo/bar branch:baz kind:zsh path:plugins/baz pre:precmd post:"post cmd"' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -196,7 +248,7 @@ https://gist.github.com/abc123def456
 ## Test pin annotation
 
 ```zsh
-% echo 'foo/bar pin:abc123' | bundle_parser | print_aarr
+% echo 'foo/bar pin:abc123' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -209,7 +261,7 @@ pin         : abc123
 Pin with kind:clone:
 
 ```zsh
-% echo 'foo/bar kind:clone pin:64642c5691051ba0d82f5bda60b745f6fd042325' | bundle_parser | print_aarr
+% echo 'foo/bar kind:clone pin:64642c5691051ba0d82f5bda60b745f6fd042325' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -245,7 +297,7 @@ git@bitbucket.org:foo/bar
 SSH URL __dir__:
 
 ```zsh
-% echo 'git@fakegitsite.com:foo/qux' | bundle_parser | print_aarr
+% echo 'git@fakegitsite.com:foo/qux' | bundle_parser | print_parsed_bundle
 __bundle__  : git@fakegitsite.com:foo/qux
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/qux
 __short__   : git@fakegitsite.com:foo/qux

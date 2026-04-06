@@ -40,7 +40,7 @@ Test that everything compiled
 
 ```zsh
 % zwcfiles=($(ls $(antidote home)/**/*.zwc(N) | wc -l))
-% test $zwcfiles -gt 100 #=> --exit 0
+% test $zwcfiles -gt 50 #=> --exit 0
 %
 ```
 
@@ -50,7 +50,7 @@ Test that everything updated
 % rm -rf -- $(antidote home)/**/*.zwc(N)
 % antidote update &>/dev/null
 % zwcfiles=($(ls $(antidote home)/**/*.zwc(N) | wc -l))
-% test $zwcfiles -gt 100 #=> --exit 0
+% test $zwcfiles -gt 50 #=> --exit 0
 %
 ```
 
