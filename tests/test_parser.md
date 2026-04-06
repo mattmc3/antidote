@@ -12,14 +12,14 @@
 ## Test bundle parser matrix
 
 The bundle parser takes the antidote bundle format and populates a
-`_parsed_bundles[i,key]` matrix plus `_parsed_bundles_count`, parsed once.
+`_parsed_bundles[i,key]` matrix with metadata in `_parsed_bundles[__count__]`, parsed once.
 
 Test empty:
 
 ```zsh
-% eval "$(echo | bundle_parser)"; print $_parsed_bundles_count
+% eval "$(echo | bundle_parser)"; print $_parsed_bundles[__count__]
 0
-% eval "$(echo '# This is a full line comment' | bundle_parser)"; print $_parsed_bundles_count
+% eval "$(echo '# This is a full line comment' | bundle_parser)"; print $_parsed_bundles[__count__]
 0
 %
 ```
@@ -28,7 +28,7 @@ Test matrix for repo:
 
 ```zsh
 % eval "$(echo 'foo/bar' | bundle_parser)"
-% print $_parsed_bundles_count
+% print $_parsed_bundles[__count__]
 1
 % print $_parsed_bundles[1,__bundle__]
 foo/bar
@@ -41,7 +41,7 @@ Test matrix for multiple bundles:
 
 ```zsh
 % eval "$(printf 'foo/bar\nbar/baz kind:defer\n' | bundle_parser)"
-% print $_parsed_bundles_count
+% print $_parsed_bundles[__count__]
 2
 % print $_parsed_bundles[1,__bundle__]
 foo/bar

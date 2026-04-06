@@ -1,8 +1,7 @@
 #!/bin/zsh
 #function print_parsed_bundle() {
-  # Wrapper around print_aarr for _parsed_bundles output.
-  # Filters internal keys (__lineno__) that vary by input position and would
-  # make test assertions fragile.
+  # Prints _parsed_bundles matrix rows, filtering internal keys (__lineno__)
+  # that vary by input position and would make test assertions fragile.
   #
   emulate -L zsh; setopt local_options
 
@@ -11,7 +10,7 @@
 
   eval "$(cat)"
   all_keys=(${(ok)_parsed_bundles})
-  for (( i = 1; i <= _parsed_bundles_count; i++ )); do
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     row_keys=()
     for key in $all_keys; do
       [[ $key == $i,* ]] && [[ ${key#$i,} != __lineno__ ]] && [[ ${key#$i,} != __name__ ]] && row_keys+=(${key#$i,})

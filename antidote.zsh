@@ -103,11 +103,11 @@ bulk_clone() {
   local -a row
   local -aU script
 
-  if (( !${_parsed_bundles_count:-0} )); then
+  if (( !${_parsed_bundles[__count__]:-0} )); then
     bundle_parser
   fi
 
-  for (( i = 1; i <= _parsed_bundles_count; i++ )); do
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     bundle=${_parsed_bundles[$i,__bundle__]}
     bundle_type "$bundle"
     [[ $REPLY == (repo|url|ssh_url) ]] || continue
@@ -132,19 +132,16 @@ bulk_clone() {
 
 ### Parse bundle input into a matrix.
 #
-# Reads bundle text from stdin and sets globals:
-#   _parsed_bundles[i,key] and _parsed_bundles_count
+# Reads bundle text from stdin and sets _parsed_bundles[i,key] globals.
+# Metadata stored as _parsed_bundles[__count__] and _parsed_bundles[__has_pins__].
 #
 bundle_parser() {
   local line lineno arg partno key bname btype bnameval input
-  local -a args lines bkeys
+  local -a args lines
   local -A bundle
   local -i n=0
 
   typeset -gA _parsed_bundles=()
-  typeset -gi _parsed_bundles_count=0
-  typeset -gi _parsed_bundles_has_pins=0
-  typeset -ga _parsed_bundles_keys=()
 
   # Read all input and normalize line endings (\r\n, \r, \n -> \n)
   input=$(cat)
@@ -193,21 +190,18 @@ bundle_parser() {
       for key in ${(k)bundle}; do
         _parsed_bundles[$n,$key]=$bundle[$key]
       done
-      [[ -n "${bundle[pin]}" ]] && _parsed_bundles_has_pins=1
-      # Store sorted user keys (non-internal) in a parallel array for O(N) lookup in bundle_scripter
-      bkeys=(${(ok)bundle})
-      _parsed_bundles_keys[$n]="${(j: :)${(@)bkeys:#__*}}"
+      [[ -n "${bundle[pin]}" ]] && _parsed_bundles[__has_pins__]=1
     fi
     (( lineno++ ))
   done
 
-  _parsed_bundles_count=$n
+  _parsed_bundles[__count__]=$n
 }
 
 ### Serialize the parsed bundles matrix for use in subshell/eval contexts.
 bundle_parser_serialize() {
   bundle_parser
-  typeset -p _parsed_bundles _parsed_bundles_count _parsed_bundles_has_pins _parsed_bundles_keys
+  typeset -p _parsed_bundles
 }
 
 version() {
@@ -637,7 +631,7 @@ bundle_dir_cleanup() {
 ### Remove legacy path-style duplicates for all bundles in the matrix.
 bundle_dir_cleanup_pass() {
   local i
-  for (( i = 1; i <= _parsed_bundles_count; i++ )); do
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     [[ "${_parsed_bundles[$i,__type__]}" == (repo|url|ssh_url) ]] || continue
     bundle_dir_cleanup "${_parsed_bundles[$i,__bundle__]}"
   done
@@ -652,7 +646,7 @@ bundle_dir_cleanup_pass() {
 bundle_sync_pins() {
   local i bundle_path bname pin pin_sha current_pin
 
-  for (( i = 1; i <= _parsed_bundles_count; i++ )); do
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     [[ "${_parsed_bundles[$i,__type__]}" == (repo|url|ssh_url) ]] || continue
     pin=${_parsed_bundles[$i,pin]:-}
     [[ -n "$pin" ]] || continue
@@ -674,7 +668,7 @@ bundle_sync_pins() {
 ### Zcompile all bundles in the matrix that have zcompile enabled.
 bundle_zcompile_pass() {
   local i bundle_str bundle_path subpath kind
-  for (( i = 1; i <= _parsed_bundles_count; i++ )); do
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     bundle_str=${_parsed_bundles[$i,__bundle__]}
     zstyle -t ":antidote:bundle:$bundle_str" zcompile || continue
     kind=${_parsed_bundles[$i,kind]:-zsh}
@@ -699,11 +693,11 @@ bundle_check_conflicts() {
   local i key dir val prev lookup
   local -A seen_repo seen
 
-  if (( !${_parsed_bundles_count:-0} )); then
+  if (( !${_parsed_bundles[__count__]:-0} )); then
     bundle_parser
   fi
 
-  for (( i = 1; i <= _parsed_bundles_count; i++ )); do
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     if [[ -n "${_parsed_bundles[$i,__error__]}" ]]; then
       warn "antidote: Bundle parser error on line ${_parsed_bundles[$i,__lineno__]}: '${_parsed_bundles[$i,__bundle__]}'"
       return 1
@@ -738,17 +732,17 @@ bundle_check_conflicts() {
 
 bundle_scripter() {
   local i key bval skip_load_defer=0
-  local -a row
+  local -a row bkeys
 
   # Support standalone stdin use (eg: antidote __private__ bundle_scripter < input)
-  if (( !${_parsed_bundles_count:-0} )); then
+  if (( !${_parsed_bundles[__count__]:-0} )); then
     bundle_parser < <(collect_input "$@")
   fi
-  if (( !${_parsed_bundles_count:-0} )); then
+  if (( !${_parsed_bundles[__count__]:-0} )); then
     die "antidote: error: bundle argument expected"
   fi
 
-  for (( i = 1; i <= _parsed_bundles_count; i++ )); do
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     if [[ -n "${_parsed_bundles[$i,__error__]}" ]]; then
       warn "antidote: Bundle parser error on line ${_parsed_bundles[$i,__lineno__]}: '${_parsed_bundles[$i,__bundle__]}'"
       return 1
@@ -763,7 +757,8 @@ bundle_scripter() {
       row=(__bundle__ "${(qq)bval}")
     fi
     row+=(__type__ "${_parsed_bundles[$i,__type__]}")
-    for key in ${=_parsed_bundles_keys[$i]}; do
+    bkeys=(${${(k)_parsed_bundles[(I)$i,^__*]}#$i,})
+    for key in ${(o)bkeys}; do
       bval=${_parsed_bundles[$i,$key]}
       if [[ "$bval" == "${(q)bval}" ]]; then
         row+=("$key" "$bval")
@@ -1058,7 +1053,7 @@ antidote_bundle() {
 
   # Parse all bundles once into the matrix
   bundle_parser < <(collect_input "$@")
-  (( _parsed_bundles_count )) || return 1
+  (( _parsed_bundles[__count__] )) || return 1
 
   # validate bundles for conflicting pin/branch before doing any work
   bundle_check_conflicts || return 1
@@ -1076,10 +1071,10 @@ antidote_bundle() {
     '}'
   )
   # Clone all missing repos in parallel, sync pins, zcompile
-  if (( _parsed_bundles_count > 1 )); then
+  if (( _parsed_bundles[__count__] > 1 )); then
     source <(bulk_clone)
   fi
-  (( _parsed_bundles_has_pins )) && { bundle_sync_pins || return 1 }
+  (( _parsed_bundles[__has_pins__] )) && { bundle_sync_pins || return 1 }
   bundle_zcompile_pass
 
   # generate bundle script in parallel — zsh_script still handles clone fallback

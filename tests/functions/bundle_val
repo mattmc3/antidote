@@ -6,7 +6,7 @@
   local i
 
   eval "$(cat)"
-  for (( i = 1; i <= _parsed_bundles_count; i++ )); do
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     print -- "${_parsed_bundles[$i,$key]}"
   done
 #}
