@@ -77,11 +77,11 @@ repo
 % bundle_type foo/bar/baz
 relpath
 % bundle_type foobar
-word
+use_word
 % bundle_type foo bar baz
-word
+use_word
 % bundle_type 'foo bar baz'
-word
+use_word
 %
 ```
 

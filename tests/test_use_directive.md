@@ -49,7 +49,7 @@ kind        : clone
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
-__type__    : repo
+__type__    : use_word
 __url__     : https://fakegitsite.com/foo/bar
 kind        : fpath
 path        : plugins/extract
@@ -69,14 +69,14 @@ kind        : clone
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
-__type__    : repo
+__type__    : use_word
 __url__     : https://fakegitsite.com/foo/bar
 kind        : zsh
 path        : plugins/extract
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
-__type__    : repo
+__type__    : use_word
 __url__     : https://fakegitsite.com/foo/bar
 kind        : zsh
 path        : plugins/git
@@ -96,7 +96,7 @@ kind        : clone
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
-__type__    : repo
+__type__    : use_word
 __url__     : https://fakegitsite.com/foo/bar
 kind        : fpath
 path        : plugins/extract
@@ -117,7 +117,7 @@ kind        : clone
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
-__type__    : repo
+__type__    : use_word
 __url__     : https://fakegitsite.com/foo/bar
 branch      : baz
 kind        : zsh
@@ -125,7 +125,7 @@ path        : plugins/extract
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
-__type__    : repo
+__type__    : use_word
 __url__     : https://fakegitsite.com/foo/bar
 branch      : baz
 kind        : zsh
@@ -147,7 +147,7 @@ kind        : clone
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
-__type__    : repo
+__type__    : use_word
 __url__     : https://fakegitsite.com/foo/bar
 branch      : dev
 kind        : zsh
@@ -155,7 +155,7 @@ path        : plugins/extract
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
-__type__    : repo
+__type__    : use_word
 __url__     : https://fakegitsite.com/foo/bar
 branch      : main
 kind        : zsh
@@ -176,7 +176,7 @@ kind        : clone
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
-__type__    : repo
+__type__    : use_word
 __url__     : https://fakegitsite.com/foo/bar
 kind        : zsh
 path        : extract
@@ -188,7 +188,7 @@ path        : extract
 ```zsh
 % echo 'extract' | bundle_parser | print_parsed_bundle
 __bundle__  : extract
-__type__    : word
+__type__    : use_word
 %
 ```
 
