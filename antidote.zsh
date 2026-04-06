@@ -176,37 +176,55 @@ bundle_parser() {
       (( n++ ))
       bname="$bundle[__bundle__]"
 
-      # Handle use: directive — update context and transform to a clone entry.
+      # Handle use: directive — set the active use context.
+      # Repo use: emits a kind:clone entry for the repo.
+      # Path use: sets context only, no bundle entry emitted.
       if [[ "$bname" == use:* ]]; then
         _antidote_use_context=()
-        _antidote_use_context[repo]=${bname#use:}
+        _antidote_use_context[bundle]=${bname#use:}
+        bundle_type "${_antidote_use_context[bundle]}"; _antidote_use_context[__type__]=$REPLY
         for key in ${(k)bundle}; do
           [[ $key == __* ]] && continue
           _antidote_use_context[$key]=$bundle[$key]
         done
-        bundle[__bundle__]=${bname#use:}
-        bundle[kind]=clone
-        unset "bundle[path]"
-        bname=$bundle[__bundle__]
+        if [[ "${_antidote_use_context[__type__]}" == (repo|url|ssh_url) ]]; then
+          bundle[__bundle__]=${_antidote_use_context[bundle]}
+          bundle[kind]=clone
+          unset "bundle[path]"
+          bname=$bundle[__bundle__]
+        else
+          (( n-- ))
+          (( lineno++ ))
+          continue
+        fi
       fi
 
       # Expand word bundles using the active use context.
       bundle_type "$bname"; btype=$REPLY
-      if [[ "$btype" == use_word && -n "${_antidote_use_context[repo]}" ]]; then
+      if [[ "$btype" == use_word && -n "${_antidote_use_context[bundle]}" ]]; then
         ctx_path=${_antidote_use_context[path]:-}
+        ctx_type=${_antidote_use_context[__type__]:-}
         for key in ${(k)_antidote_use_context}; do
-          [[ $key == (repo|path) ]] && continue
+          [[ $key == (bundle|path|__type__) ]] && continue
           [[ -n "${bundle[$key]}" ]] || bundle[$key]=${_antidote_use_context[$key]}
         done
         [[ -n "${bundle[kind]}" ]] || bundle[kind]=zsh
-        [[ -n "${bundle[path]}" ]] || bundle[path]=${ctx_path:+$ctx_path/}$bname
-        bundle[__bundle__]=${_antidote_use_context[repo]}
-        bname=$bundle[__bundle__]
+        if [[ "$ctx_type" == (path|dir|file|relpath) ]]; then
+          # Path use: construct the full path as the bundle
+          bundle[__bundle__]=${_antidote_use_context[bundle]}${ctx_path:+/$ctx_path}/$bname
+          bname=$bundle[__bundle__]
+          bundle_type "$bname"; btype=$REPLY
+        else
+          # Repo use: keep repo as bundle, set path annotation
+          [[ -n "${bundle[path]}" ]] || bundle[path]=${ctx_path:+$ctx_path/}$bname
+          bundle[__bundle__]=${_antidote_use_context[bundle]}
+          bname=$bundle[__bundle__]
+        fi
       fi
 
       # Compute metadata keys for repo and URL bundles
       bundle[__type__]="$btype"
-      if [[ "$btype" == (repo|url|ssh_url) || ( "$btype" == use_word && -n "${_antidote_use_context[repo]}" ) ]]; then
+      if [[ "$btype" == (repo|url|ssh_url) || ( "$btype" == use_word && -n "${_antidote_use_context[bundle]}" && "${_antidote_use_context[__type__]}" == (repo|url|ssh_url) ) ]]; then
         tourl "$bname"; bundle[__url__]=$REPLY
         short_repo_name "$bname"; bundle[__short__]=$REPLY
         bundle_dir "$bname"; bundle[__dir__]=$REPLY

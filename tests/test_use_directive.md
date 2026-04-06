@@ -195,7 +195,7 @@ __type__    : use_word
 ## full fixture: multiple use: blocks, non-word passthrough, branch inheritance, context persistence
 
 ```zsh
-% antidote bundle <$T_TESTDATA/.zsh_plugins_using.txt | subenv ANTIDOTE_HOME  #=> --file testdata/.zsh_plugins_using.zsh
+% antidote bundle <$T_TESTDATA/.zsh_plugins_using.txt | subenv ANTIDOTE_HOME HOME ZDOTDIR  #=> --file testdata/.zsh_plugins_using.zsh
 %
 ```
 

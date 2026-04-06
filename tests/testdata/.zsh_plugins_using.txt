@@ -21,3 +21,8 @@ pretty.zsh-theme
 # Use with branch: — all entries (clone + words) inherit it
 use:foo/bar branch:dev
 bar.plugin.zsh
+
+# Path-based use: — no clone, words expand to full local paths
+use:$ZDOTDIR/custom path:plugins
+myplugin
+grizwold
