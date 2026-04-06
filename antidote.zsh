@@ -1830,7 +1830,10 @@ antidote() {
     ANTIDOTE_PATH_STYLE=short
   fi
 
-  typeset -g ANTIDOTE_HOME=${ANTIDOTE_HOME:-$(get_cachedir antidote)}
+  typeset -g ANTIDOTE_HOME
+  if [[ -z "$ANTIDOTE_HOME" ]]; then
+    zstyle -s ':antidote:home' dir ANTIDOTE_HOME || ANTIDOTE_HOME=$(get_cachedir antidote)
+  fi
 
   typeset -g ANTIDOTE_SNAPSHOT_DIR ANTIDOTE_SNAPSHOT_MAX ANTIDOTE_SNAPSHOT_DATEFMT ANTIDOTE_AUTOSNAPSHOT=false
   zstyle -s ':antidote:snapshot' dir        ANTIDOTE_SNAPSHOT_DIR     || ANTIDOTE_SNAPSHOT_DIR=$(get_datadir antidote)/snapshots
