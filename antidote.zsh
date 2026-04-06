@@ -1088,7 +1088,7 @@ zsh_script() {
 # usage: antidote bundle [-h|--help] <bundle>...
 #
 antidote_bundle() {
-  local o_help bundle_output
+  local o_help bundle_output ret=0
   local -a zcompile_script
 
   zparseopts ${ZPARSEOPTS} -- h=o_help -help=h || return 1
@@ -1100,7 +1100,15 @@ antidote_bundle() {
 
   # Parse all bundles once into the matrix
   bundle_parser < <(collect_input "$@")
-  (( _parsed_bundles[__count__] )) || return 1
+  if ! (( _parsed_bundles[__count__] )); then
+    # A pure use: directive (path-based) produces no bundle entries but does
+    # update the context — emit it in dynamic mode so the parent shell sees it.
+    if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_use_context} -gt 0 ]]; then
+      typeset -p _antidote_use_context
+      return 0
+    fi
+    return 1
+  fi
 
   # validate bundles for conflicting pin/branch before doing any work
   bundle_check_conflicts || return 1
@@ -1134,7 +1142,14 @@ antidote_bundle() {
   if zstyle -t ':antidote:static' zcompile; then
     printf '%s\n' $zcompile_script
   fi
-  [[ -n "$bundle_output" ]] && printf '%s\n' "$bundle_output"
+  [[ -n "$bundle_output" ]] && printf '%s\n' "$bundle_output" || ret=$?
+
+  # In dynamic mode, emit the use context so the parent shell can source it
+  # and pass it back into the next subprocess call via ANTIDOTE_USE_CTX.
+  if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_use_context} -gt 0 ]]; then
+    typeset -p _antidote_use_context
+  fi
+  return $ret
 }
 
 ### Clone a new bundle and add it to your plugins file.
@@ -1890,6 +1905,7 @@ antidote() {
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
 
   typeset -gA _antidote_use_context
+  [[ -n "$ANTIDOTE_USE_CTX" ]] && eval "$ANTIDOTE_USE_CTX"
 } "${0:A}"
 
 ANTIDOTE_HELP=$(

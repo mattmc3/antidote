@@ -48,6 +48,42 @@ sourcing custom lib2.zsh...
 %
 ```
 
+## Dynamic use: directive
+
+use: context persists across calls in dynamic mode
+
+```zsh
+% source <(antidote init)
+% antidote bundle use:ohmy/ohmy path:plugins
+# antidote cloning ohmy/ohmy...
+% antidote bundle docker
+sourcing plugins/docker/docker.plugin.zsh from ohmy/ohmy...
+% antidote bundle extract
+sourcing plugins/extract/extract.plugin.zsh from ohmy/ohmy...
+% antidote bundle git
+sourcing plugins/git/git.plugin.zsh from ohmy/ohmy...
+%
+```
+
+use: context resets when a new use: is seen
+
+```zsh
+% antidote bundle use:foo/bar
+% antidote bundle bar.plugin.zsh
+sourcing bar.plugin.zsh from foo/bar...
+%
+```
+
+path-based use: in dynamic mode
+
+```zsh
+% antidote bundle use:$ZDOTDIR/custom path:plugins
+% antidote bundle myplugin
+sourcing myplugin...
+% antidote bundle doesnotexist 2>/dev/null
+%
+```
+
 ## Teardown
 
 ```zsh
