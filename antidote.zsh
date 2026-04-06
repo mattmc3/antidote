@@ -136,12 +136,13 @@ bulk_clone() {
 # Metadata stored as _parsed_bundles[__count__] and _parsed_bundles[__has_pins__].
 #
 bundle_parser() {
-  local line lineno arg partno key bname btype bnameval input
+  local line lineno arg partno key bname btype bnameval ctx_path input
   local -a args lines
   local -A bundle
   local -i n=0
 
   typeset -gA _parsed_bundles=()
+  typeset -gA _antidote_use_context
 
   # Read all input and normalize line endings (\r\n, \r, \n -> \n)
   input=$(cat)
@@ -173,9 +174,38 @@ bundle_parser() {
     done
     if [[ $partno -gt 0 ]]; then
       (( n++ ))
-      # Compute metadata keys for repo and URL bundles
       bname="$bundle[__bundle__]"
+
+      # Handle use: directive — update context and transform to a clone entry.
+      if [[ "$bname" == use:* ]]; then
+        _antidote_use_context=()
+        _antidote_use_context[repo]=${bname#use:}
+        for key in ${(k)bundle}; do
+          [[ $key == __* ]] && continue
+          _antidote_use_context[$key]=$bundle[$key]
+        done
+        bundle[__bundle__]=${bname#use:}
+        bundle[kind]=clone
+        unset "bundle[path]"
+        bname=$bundle[__bundle__]
+      fi
+
+      # Expand word bundles using the active use context.
       bundle_type "$bname"; btype=$REPLY
+      if [[ "$btype" == word && -n "${_antidote_use_context[repo]}" ]]; then
+        ctx_path=${_antidote_use_context[path]:-}
+        for key in ${(k)_antidote_use_context}; do
+          [[ $key == (repo|path) ]] && continue
+          [[ -n "${bundle[$key]}" ]] || bundle[$key]=${_antidote_use_context[$key]}
+        done
+        [[ -n "${bundle[kind]}" ]] || bundle[kind]=zsh
+        [[ -n "${bundle[path]}" ]] || bundle[path]=${ctx_path:+$ctx_path/}$bname
+        bundle[__bundle__]=${_antidote_use_context[repo]}
+        bname=$bundle[__bundle__]
+        bundle_type "$bname"; btype=$REPLY
+      fi
+
+      # Compute metadata keys for repo and URL bundles
       bundle[__type__]="$btype"
       if [[ "$btype" == (repo|url|ssh_url) ]]; then
         tourl "$bname"; bundle[__url__]=$REPLY
@@ -1841,6 +1871,8 @@ antidote() {
   zstyle -s ':antidote:snapshot' dateformat ANTIDOTE_SNAPSHOT_DATEFMT || ANTIDOTE_SNAPSHOT_DATEFMT='%Y-%m-%d %H:%M:%S %Z'
   zstyle -T ':antidote:snapshot:automatic' enabled && ANTIDOTE_AUTOSNAPSHOT=true
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
+
+  typeset -gA _antidote_use_context
 } "${0:A}"
 
 ANTIDOTE_HELP=$(
