@@ -192,6 +192,70 @@ __type__    : use_word
 %
 ```
 
+## use: with URL form
+
+```zsh
+% echo 'use:https://fakegitsite.com/foo/bar path:plugins' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
+__bundle__  : https://fakegitsite.com/foo/bar
+__dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+__short__   : foo/bar
+__type__    : url
+__url__     : https://fakegitsite.com/foo/bar
+kind        : clone
+%
+```
+
+## use: with SSH URL form
+
+```zsh
+% echo 'use:git@fakegitsite.com:foo/bar path:plugins' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
+__bundle__  : git@fakegitsite.com:foo/bar
+__dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+__short__   : git@fakegitsite.com:foo/bar
+__type__    : ssh_url
+__url__     : git@fakegitsite.com:foo/bar
+kind        : clone
+%
+```
+
+## use: annotations like conditional: are inherited by words
+
+```zsh
+% printf 'use:foo/bar path:plugins conditional:is-macos\ndocker\n' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
+__bundle__  : foo/bar
+__dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+__short__   : foo/bar
+__type__    : repo
+__url__     : https://fakegitsite.com/foo/bar
+conditional : is-macos
+kind        : clone
+__bundle__  : foo/bar
+__dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+__short__   : foo/bar
+__type__    : use_word
+__url__     : https://fakegitsite.com/foo/bar
+conditional : is-macos
+kind        : zsh
+path        : plugins/docker
+%
+```
+
+## use: with empty target is an error
+
+```zsh
+% antidote bundle 'use:' 2>&1  #=> --exit 1
+antidote: Bundle parser error on line 1: 'use:'
+%
+```
+
+## use: with malformed target is an error
+
+```zsh
+% antidote bundle 'use:foo@bar' 2>&1  #=> --exit 1
+antidote: Bundle parser error on line 1: 'use:foo@bar'
+%
+```
+
 ## full fixture: multiple use: blocks, non-word passthrough, branch inheritance, context persistence
 
 ```zsh

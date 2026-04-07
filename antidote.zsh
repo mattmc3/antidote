@@ -183,6 +183,14 @@ bundle_parser() {
         _antidote_use_context=()
         _antidote_use_context[bundle]=${bname#use:}
         bundle_type "${_antidote_use_context[bundle]}"; _antidote_use_context[__type__]=$REPLY
+        if [[ "${_antidote_use_context[__type__]}" == ('?'|empty) ]]; then
+          bundle[__error__]="invalid use: target '${_antidote_use_context[bundle]}'"
+          for key in ${(k)bundle}; do
+            _parsed_bundles[$n,$key]=$bundle[$key]
+          done
+          (( lineno++ ))
+          continue
+        fi
         for key in ${(k)bundle}; do
           [[ $key == __* ]] && continue
           _antidote_use_context[$key]=$bundle[$key]
