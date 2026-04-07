@@ -1088,7 +1088,7 @@ zsh_script() {
 # usage: antidote bundle [-h|--help] <bundle>...
 #
 antidote_bundle() {
-  local o_help bundle_output ret=0
+  local o_help bundle_output err=0
   local -a zcompile_script
 
   zparseopts ${ZPARSEOPTS} -- h=o_help -help=h || return 1
@@ -1142,14 +1142,14 @@ antidote_bundle() {
   if zstyle -t ':antidote:static' zcompile; then
     printf '%s\n' $zcompile_script
   fi
-  [[ -n "$bundle_output" ]] && printf '%s\n' "$bundle_output" || ret=$?
+  [[ -n "$bundle_output" ]] && printf '%s\n' "$bundle_output" || err=$?
 
   # In dynamic mode, emit the use context so the parent shell can source it
   # and pass it back into the next subprocess call via ANTIDOTE_USE_CTX.
   if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_use_context} -gt 0 ]]; then
     typeset -p _antidote_use_context
   fi
-  return $ret
+  return $err
 }
 
 ### Clone a new bundle and add it to your plugins file.
@@ -1844,7 +1844,7 @@ antidote() {
     shift
     REPLY=
     "${cmd}" "$@"
-    local ret=$?
+    local err=$?
     case $cmd in
       tourl|bundle_type|short_repo_name|bundle_name|bundle_dir|__bundle_dir_by_style|print_path)
         say "$REPLY"
@@ -1853,7 +1853,7 @@ antidote() {
         (( $#reply )) && printf '%s\n' "${reply[@]}"
         ;;
     esac
-    return $ret
+    return $err
   elif (( $+functions[antidote_${cmd}] )); then
     "antidote_${cmd}" "$@"
     return $?
