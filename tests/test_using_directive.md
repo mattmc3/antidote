@@ -1,4 +1,4 @@
-# antidote use: directive tests
+# antidote using: directive tests
 
 ## Setup
 
@@ -10,10 +10,10 @@
 %
 ```
 
-## use: alone emits a single clone entry
+## using: alone emits a single clone entry
 
 ```zsh
-% echo 'use:foo/bar' | bundle_parser | print_parsed_bundle
+% echo 'using:foo/bar' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -23,10 +23,10 @@ kind        : clone
 %
 ```
 
-## use: with path: — clone entry has no path, path is only a prefix for words
+## using: with path: — clone entry has no path, path is only a prefix for words
 
 ```zsh
-% echo 'use:foo/bar path:plugins' | bundle_parser | print_parsed_bundle
+% echo 'using:foo/bar path:plugins' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -36,10 +36,10 @@ kind        : clone
 %
 ```
 
-## use: with kind: — kind becomes the default for words, clone entry is always clone
+## using: with kind: — kind becomes the default for words, clone entry is always clone
 
 ```zsh
-% printf 'use:foo/bar path:plugins kind:fpath\nextract\n' | bundle_parser | print_parsed_bundle
+% printf 'using:foo/bar path:plugins kind:fpath\nextract\n' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -56,10 +56,10 @@ path        : plugins/extract
 %
 ```
 
-## word after use: gets default kind:zsh and path prefix
+## word after using: gets default kind:zsh and path prefix
 
 ```zsh
-% printf 'use:foo/bar path:plugins\nextract\ngit\n' | bundle_parser | print_parsed_bundle
+% printf 'using:foo/bar path:plugins\nextract\ngit\n' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -83,10 +83,10 @@ path        : plugins/git
 %
 ```
 
-## word-level kind: overrides use: default
+## word-level kind: overrides using: default
 
 ```zsh
-% printf 'use:foo/bar path:plugins kind:zsh\nextract kind:fpath\n' | bundle_parser | print_parsed_bundle
+% printf 'using:foo/bar path:plugins kind:zsh\nextract kind:fpath\n' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -103,10 +103,10 @@ path        : plugins/extract
 %
 ```
 
-## use: annotations (branch, etc.) inherited by clone entry and all words
+## using: annotations (branch, etc.) inherited by clone entry and all words
 
 ```zsh
-% printf 'use:foo/bar path:plugins branch:baz\nextract\ngit\n' | bundle_parser | print_parsed_bundle
+% printf 'using:foo/bar path:plugins branch:baz\nextract\ngit\n' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -133,10 +133,10 @@ path        : plugins/git
 %
 ```
 
-## word-level annotation overrides inherited use: annotation
+## word-level annotation overrides inherited using: annotation
 
 ```zsh
-% printf 'use:foo/bar path:plugins branch:main\nextract branch:dev\ngit\n' | bundle_parser | print_parsed_bundle
+% printf 'using:foo/bar path:plugins branch:main\nextract branch:dev\ngit\n' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -163,10 +163,10 @@ path        : plugins/git
 %
 ```
 
-## use: with no path: — word becomes the full path value
+## using: with no path: — word becomes the full path value
 
 ```zsh
-% printf 'use:foo/bar\nextract\n' | bundle_parser | print_parsed_bundle
+% printf 'using:foo/bar\nextract\n' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -192,10 +192,10 @@ __type__    : use_word
 %
 ```
 
-## use: with URL form
+## using: with URL form
 
 ```zsh
-% echo 'use:https://fakegitsite.com/foo/bar path:plugins' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
+% echo 'using:https://fakegitsite.com/foo/bar path:plugins' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
 __bundle__  : https://fakegitsite.com/foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -205,10 +205,10 @@ kind        : clone
 %
 ```
 
-## use: with SSH URL form
+## using: with SSH URL form
 
 ```zsh
-% echo 'use:git@fakegitsite.com:foo/bar path:plugins' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
+% echo 'using:git@fakegitsite.com:foo/bar path:plugins' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
 __bundle__  : git@fakegitsite.com:foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : git@fakegitsite.com:foo/bar
@@ -218,10 +218,10 @@ kind        : clone
 %
 ```
 
-## use: annotations like conditional: are inherited by words
+## using: annotations like conditional: are inherited by words
 
 ```zsh
-% printf 'use:foo/bar path:plugins conditional:is-macos\ndocker\n' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
+% printf 'using:foo/bar path:plugins conditional:is-macos\ndocker\n' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -240,23 +240,23 @@ path        : plugins/docker
 %
 ```
 
-## use: with empty target is an error
+## using: with empty target is an error
 
 ```zsh
-% antidote bundle 'use:' 2>&1  #=> --exit 1
-antidote: Bundle parser error on line 1: 'use:'
+% antidote bundle 'using:' 2>&1  #=> --exit 1
+antidote: Bundle parser error on line 1: 'using:'
 %
 ```
 
-## use: with malformed target is an error
+## using: with malformed target is an error
 
 ```zsh
-% antidote bundle 'use:foo@bar' 2>&1  #=> --exit 1
-antidote: Bundle parser error on line 1: 'use:foo@bar'
+% antidote bundle 'using:foo@bar' 2>&1  #=> --exit 1
+antidote: Bundle parser error on line 1: 'using:foo@bar'
 %
 ```
 
-## full fixture: multiple use: blocks, non-word passthrough, branch inheritance, context persistence
+## full fixture: multiple using: blocks, non-word passthrough, branch inheritance, context persistence
 
 ```zsh
 % antidote bundle <$T_TESTDATA/.zsh_plugins_using.txt | subenv ANTIDOTE_HOME HOME ZDOTDIR  #=> --file testdata/.zsh_plugins_using.zsh

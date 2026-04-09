@@ -35,7 +35,7 @@
   for var in \
     ANTIDOTE_HOME \
     ANTIDOTE_CONFIG \
-    ANTIDOTE_USE_CTX \
+    ANTIDOTE_USING_CTX \
     T_TEMPDIR \
     T_PREV_HOME \
     T_PREV_ZDOTDIR \
@@ -43,7 +43,7 @@
     T_PREV_FPATH \
     plugins \
     libs \
-    _antidote_use_context
+    _antidote_using_context
   do
     [[ -v $var ]] && unset $var
   done

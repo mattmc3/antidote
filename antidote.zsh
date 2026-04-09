@@ -142,7 +142,7 @@ bundle_parser() {
   local -i n=0
 
   typeset -gA _parsed_bundles=()
-  typeset -gA _antidote_use_context
+  typeset -gA _antidote_using_context
 
   # Read all input and normalize line endings (\r\n, \r, \n -> \n)
   input=$(cat)
@@ -176,15 +176,15 @@ bundle_parser() {
       (( n++ ))
       bname="$bundle[__bundle__]"
 
-      # Handle use: directive — set the active use context.
-      # Repo use: emits a kind:clone entry for the repo.
-      # Path use: sets context only, no bundle entry emitted.
-      if [[ "$bname" == use:* ]]; then
-        _antidote_use_context=()
-        _antidote_use_context[bundle]=${bname#use:}
-        bundle_type "${_antidote_use_context[bundle]}"; _antidote_use_context[__type__]=$REPLY
-        if [[ "${_antidote_use_context[__type__]}" == ('?'|empty) ]]; then
-          bundle[__error__]="invalid use: target '${_antidote_use_context[bundle]}'"
+      # Handle using: directive — set the active using context.
+      # Repo using: emits a kind:clone entry for the repo.
+      # Path using: sets context only, no bundle entry emitted.
+      if [[ "$bname" == using:* ]]; then
+        _antidote_using_context=()
+        _antidote_using_context[bundle]=${bname#using:}
+        bundle_type "${_antidote_using_context[bundle]}"; _antidote_using_context[__type__]=$REPLY
+        if [[ "${_antidote_using_context[__type__]}" == ('?'|empty) ]]; then
+          bundle[__error__]="invalid using: target '${_antidote_using_context[bundle]}'"
           for key in ${(k)bundle}; do
             _parsed_bundles[$n,$key]=$bundle[$key]
           done
@@ -193,10 +193,10 @@ bundle_parser() {
         fi
         for key in ${(k)bundle}; do
           [[ $key == __* ]] && continue
-          _antidote_use_context[$key]=$bundle[$key]
+          _antidote_using_context[$key]=$bundle[$key]
         done
-        if [[ "${_antidote_use_context[__type__]}" == (repo|url|ssh_url) ]]; then
-          bundle[__bundle__]=${_antidote_use_context[bundle]}
+        if [[ "${_antidote_using_context[__type__]}" == (repo|url|ssh_url) ]]; then
+          bundle[__bundle__]=${_antidote_using_context[bundle]}
           bundle[kind]=clone
           unset "bundle[path]"
           bname=$bundle[__bundle__]
@@ -209,30 +209,30 @@ bundle_parser() {
 
       # Expand word bundles using the active use context.
       bundle_type "$bname"; btype=$REPLY
-      if [[ "$btype" == use_word && -n "${_antidote_use_context[bundle]}" ]]; then
-        ctx_path=${_antidote_use_context[path]:-}
-        ctx_type=${_antidote_use_context[__type__]:-}
-        for key in ${(k)_antidote_use_context}; do
+      if [[ "$btype" == use_word && -n "${_antidote_using_context[bundle]}" ]]; then
+        ctx_path=${_antidote_using_context[path]:-}
+        ctx_type=${_antidote_using_context[__type__]:-}
+        for key in ${(k)_antidote_using_context}; do
           [[ $key == (bundle|path|__type__) ]] && continue
-          [[ -n "${bundle[$key]}" ]] || bundle[$key]=${_antidote_use_context[$key]}
+          [[ -n "${bundle[$key]}" ]] || bundle[$key]=${_antidote_using_context[$key]}
         done
         [[ -n "${bundle[kind]}" ]] || bundle[kind]=zsh
         if [[ "$ctx_type" == (path|dir|file|relpath) ]]; then
-          # Path use: construct the full path as the bundle
-          bundle[__bundle__]=${_antidote_use_context[bundle]}${ctx_path:+/$ctx_path}/$bname
+          # Path using: construct the full path as the bundle
+          bundle[__bundle__]=${_antidote_using_context[bundle]}${ctx_path:+/$ctx_path}/$bname
           bname=$bundle[__bundle__]
           bundle_type "$bname"; btype=$REPLY
         else
-          # Repo use: keep repo as bundle, set path annotation
+          # Repo using: keep repo as bundle, set path annotation
           [[ -n "${bundle[path]}" ]] || bundle[path]=${ctx_path:+$ctx_path/}$bname
-          bundle[__bundle__]=${_antidote_use_context[bundle]}
+          bundle[__bundle__]=${_antidote_using_context[bundle]}
           bname=$bundle[__bundle__]
         fi
       fi
 
       # Compute metadata keys for repo and URL bundles
       bundle[__type__]="$btype"
-      if [[ "$btype" == (repo|url|ssh_url) || ( "$btype" == use_word && -n "${_antidote_use_context[bundle]}" && "${_antidote_use_context[__type__]}" == (repo|url|ssh_url) ) ]]; then
+      if [[ "$btype" == (repo|url|ssh_url) || ( "$btype" == use_word && -n "${_antidote_using_context[bundle]}" && "${_antidote_using_context[__type__]}" == (repo|url|ssh_url) ) ]]; then
         tourl "$bname"; bundle[__url__]=$REPLY
         short_repo_name "$bname"; bundle[__short__]=$REPLY
         bundle_dir "$bname"; bundle[__dir__]=$REPLY
@@ -1109,10 +1109,10 @@ antidote_bundle() {
   # Parse all bundles once into the matrix
   bundle_parser < <(collect_input "$@")
   if ! (( _parsed_bundles[__count__] )); then
-    # A pure use: directive (path-based) produces no bundle entries but does
+    # A pure using: directive (path-based) produces no bundle entries but does
     # update the context — emit it in dynamic mode so the parent shell sees it.
-    if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_use_context} -gt 0 ]]; then
-      typeset -p _antidote_use_context
+    if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_using_context} -gt 0 ]]; then
+      typeset -p _antidote_using_context
       return 0
     fi
     return 1
@@ -1153,9 +1153,9 @@ antidote_bundle() {
   [[ -n "$bundle_output" ]] && printf '%s\n' "$bundle_output" || err=$?
 
   # In dynamic mode, emit the use context so the parent shell can source it
-  # and pass it back into the next subprocess call via ANTIDOTE_USE_CTX.
-  if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_use_context} -gt 0 ]]; then
-    typeset -p _antidote_use_context
+  # and pass it back into the next subprocess call via ANTIDOTE_USING_CTX.
+  if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_using_context} -gt 0 ]]; then
+    typeset -p _antidote_using_context
   fi
   return $err
 }
@@ -1912,8 +1912,8 @@ antidote() {
   zstyle -T ':antidote:snapshot:automatic' enabled && ANTIDOTE_AUTOSNAPSHOT=true
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
 
-  typeset -gA _antidote_use_context
-  [[ -n "$ANTIDOTE_USE_CTX" ]] && eval "$ANTIDOTE_USE_CTX"
+  typeset -gA _antidote_using_context
+  [[ -n "$ANTIDOTE_USING_CTX" ]] && eval "$ANTIDOTE_USING_CTX"
 } "${0:A}"
 
 ANTIDOTE_HELP=$(
