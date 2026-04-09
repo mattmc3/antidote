@@ -77,7 +77,7 @@ zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/bar/baz/baz.plugin.zsh"
 
 ```zsh
 % echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 | grep 'antidote: error:'
-antidote: error: unexpected kind value: 'whoops'
+# antidote: error: unexpected kind value: 'whoops'
 %
 ```
 

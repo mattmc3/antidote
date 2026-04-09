@@ -1112,6 +1112,13 @@ antidote_bundle() {
   local o_help bundle_output err=0
   local -a zcompile_script
 
+  # Ensure all stderr from this function starts with '#' so redirected bundle
+  # output is safe to source.
+  exec 2> >(while IFS= read -r _line; do
+    [[ "$_line" == '#'* ]] || _line="# $_line"
+    print -r -- "$_line" >&2
+  done)
+
   zparseopts ${ZPARSEOPTS} -- h=o_help -help=h || return 1
 
   if (( $#o_help )); then

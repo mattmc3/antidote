@@ -126,7 +126,7 @@ clear error because the git protocol cannot resolve them on remotes.
 
 ```zsh
 % antidote bundle 'pintest/pinme pin:64642c5' 2>&1 | tail -1
-antidote: error: pin requires a full 40-character commit SHA, got '64642c5'
+# antidote: error: pin requires a full 40-character commit SHA, got '64642c5'
 %
 ```
 
