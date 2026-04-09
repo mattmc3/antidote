@@ -18,7 +18,28 @@ antidote bundle $ZSH_CUSTOM/plugins/myplugin
 antidote bundle ${ZDOTDIR:-$HOME}/.zlibs/myfile.zsh
 ----
 
-Bundles also support annotations. Annotations allow you have finer grained control over your plugins. Annotations are used in the form `keyword:value`.
+Bundle entries support directives and annotations.
+
+The available directives are:
+
+`bundle`::
+  The default directive for plugin entries. `foo/bar` is shorthand for `bundle:foo/bar`.
+`using`::
+  A context directive for subsequent shorthand bundle words.
+
+Directives select what kind of entry a line represents. The default directive is `bundle`, so these are equivalent:
+
+----
+foo/bar
+bundle:foo/bar
+----
+
+=== Bundle Directive
+
+`bundle` directive::
+  A bundle entry can be a repo, URL, local file, or local directory. It may include annotations.
+
+Annotations refine how a `bundle` entry is loaded. Annotations use the form `keyword:value`.
 
 `kind`::
   * *zsh*: A zsh plugin. This is the default kind of bundle.
@@ -40,6 +61,16 @@ Bundles also support annotations. Annotations allow you have finer grained contr
 `pin`::
   The pin annotation allows you to lock a bundle to a specific commit SHA (eg: `pin:abc1234`). A pinned bundle will be cloned at the specified commit and will be skipped during `antidote update`. This is useful for preventing unwanted upstream changes from affecting your environment. Use `branch:` for tags or branches.
 
+=== Using Directive
+
+`using` directive::
+  The using directive sets a context for subsequent shorthand bundle words. It also carries forward annotations unless overridden.
+
+  When `using:` points to a repo or URL, antidote emits a `kind:clone` entry for that repo, and subsequent bare words are treated as paths within that repo (optionally prefixed by `path:`). If `using:` points to a local path, no clone entry is emitted and bare words expand to full local paths.
+
+  The active `using:` context remains in effect until another `using:` is encountered.
+
+== Customizations
 Cloned repo directory naming can be controlled with the following `zstyle`:
 
 ----
@@ -123,4 +154,16 @@ function is_macos {
 
 # conditionally load a plugin using the function you made
 antidote bundle ohmyzsh/ohmyzsh path:plugins/macos conditional:is_macos
+----
+
+Using the *using:* directive:
+
+----
+# set context once
+using:ohmyzsh/ohmyzsh path:plugins
+
+# shorthand words resolve to plugin paths under path:plugins
+docker
+extract
+git
 ----

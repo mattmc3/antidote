@@ -55,7 +55,7 @@ antidote load
 ----
 
 === A More Advanced Config
-Your `.zsh_plugins.txt` file supports annotations. Annotations tell antidote how to do things like load plugins from alternate paths. This lets you use plugins from popular frameworks like Oh-My-Zsh:
+Your `.zsh_plugins.txt` file supports directives and annotations. The default directive is `bundle`, so a bare entry like `ohmyzsh/ohmyzsh` is equivalent to `bundle:ohmyzsh/ohmyzsh`. Annotations tell antidote how to do things like load plugins from alternate paths. This lets you use plugins from popular frameworks like Oh-My-Zsh:
 
 ----
 # ${ZDOTDIR:-$HOME}/.zsh_plugins.txt
@@ -64,6 +64,17 @@ ohmyzsh/ohmyzsh path:plugins/git
 ohmyzsh/ohmyzsh path:plugins/magic-enter
 etc...
 ----
+
+You can also use a `using:` directive to set context once and then list shorthand words:
+
+----
+# ${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+using:ohmyzsh/ohmyzsh path:plugins
+git
+magic-enter
+----
+
+See *antidote-bundle* for full directive and annotation behavior, including `using:` inheritance details.
 
 === Dynamic Bundling
 Users familiar with legacy plugin managers like Antigen might prefer to use dynamic bundling. With dynamic bundling you sacrifice some performance to avoid having separate plugin files. To use dynamic bundling, we need to change how *antidote bundle* handles your plugins. We do this by sourcing the output from *antidote init*.

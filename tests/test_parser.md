@@ -37,6 +37,19 @@ repo
 %
 ```
 
+Test matrix for explicit bundle directive:
+
+```zsh
+% eval "$(echo 'bundle:foo/bar' | bundle_parser)"
+% print $_parsed_bundles[__count__]
+1
+% print $_parsed_bundles[1,__bundle__]
+foo/bar
+% print $_parsed_bundles[1,__type__]
+repo
+%
+```
+
 Test matrix for multiple bundles:
 
 ```zsh
@@ -208,6 +221,11 @@ __bundle__  : foo/bar/
 __error__   : invalid bundle 'foo/bar/'
 __severity__: error
 __type__    : ?
+% echo 'bundle:' | bundle_parser | print_parsed_bundle
+__bundle__  :
+__error__   : invalid bundle ''
+__severity__: error
+__type__    : empty
 %
 ```
 

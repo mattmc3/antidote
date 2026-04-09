@@ -137,10 +137,10 @@ bulk_clone() {
 # Sets matrix-level flags: __count__, __has_pins__, __has_errors__, __has_critical__.
 #
 bundle_parser() {
-  local line lineno arg partno key bname btype bnameval ctx_path ctx_type input bdir bval bprev
+  local line lineno arg partno key bname btype bnameval ctx_path ctx_type input bdir bval bprev directive
   local -a args lines
   local -A bundle seen_bundles seen_bundle_vals
-  local -i n=0
+  local -i n=0 invalid_type invalid_empty_bundle invalid_missing_using
 
   typeset -gA _parsed_bundles=()
   typeset -gA _antidote_using_context
@@ -177,12 +177,24 @@ bundle_parser() {
       (( n++ ))
       bname="$bundle[__bundle__]"
 
+      # Parse entry directive from the first token.
+      # using:<target> switches directive; bundle:<target> normalizes explicitly.
+      if [[ "$bname" == using:* ]]; then
+        directive=using
+        bundle[__bundle__]=${bname#using:}
+        bname=$bundle[__bundle__]
+      else
+        directive=bundle
+        bundle[__bundle__]=${bname#bundle:}
+        bname=$bundle[__bundle__]
+      fi
+
       # Handle using: directive - set the active using context.
       # Repo using: emits a kind:clone entry for the repo.
       # Path using: sets context only, no bundle entry emitted.
-      if [[ "$bname" == using:* ]]; then
+      if [[ "$directive" == using ]]; then
         _antidote_using_context=()
-        _antidote_using_context[bundle]=${bname#using:}
+        _antidote_using_context[bundle]=$bname
         bundle_type "${_antidote_using_context[bundle]}"; _antidote_using_context[__type__]=$REPLY
         if [[ "${_antidote_using_context[__type__]}" == ('?'|empty) ]]; then
           bundle[__error__]="invalid using: target '${_antidote_using_context[bundle]}'"
@@ -234,10 +246,16 @@ bundle_parser() {
       fi
 
       # Detect invalid bundles: unresolvable type or bare word with no active using: context.
-      if [[ "$btype" == '?' || ( "$btype" == using_subplugin && -z "${_antidote_using_context[bundle]}" ) ]]; then
+      invalid_type=0
+      invalid_empty_bundle=0
+      invalid_missing_using=0
+      [[ "$btype" == '?' ]] && invalid_type=1
+      [[ "$btype" == empty && "$directive" == bundle && -z "${bundle[__bundle__]// }" ]] && invalid_empty_bundle=1
+      [[ "$btype" == using_subplugin && -z "${_antidote_using_context[bundle]}" ]] && invalid_missing_using=1
+      if (( invalid_type || invalid_empty_bundle || invalid_missing_using )); then
         if [[ -z "${bundle[__error__]}" ]]; then
           bundle[__error__]="invalid bundle '${bundle[__bundle__]}'"
-          [[ "$btype" == using_subplugin ]] && bundle[__error__]+=". Are you missing a 'using:' directive?"
+          (( invalid_missing_using )) && bundle[__error__]+=". Are you missing a 'using:' directive?"
         fi
         bundle[__severity__]=error
         bundle[__type__]="$btype"
