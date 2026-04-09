@@ -209,7 +209,7 @@ bundle_parser() {
 
       # Expand word bundles using the active use context.
       bundle_type "$bname"; btype=$REPLY
-      if [[ "$btype" == use_word && -n "${_antidote_using_context[bundle]}" ]]; then
+      if [[ "$btype" == using_subplugin && -n "${_antidote_using_context[bundle]}" ]]; then
         ctx_path=${_antidote_using_context[path]:-}
         ctx_type=${_antidote_using_context[__type__]:-}
         for key in ${(k)_antidote_using_context}; do
@@ -232,7 +232,7 @@ bundle_parser() {
 
       # Compute metadata keys for repo and URL bundles
       bundle[__type__]="$btype"
-      if [[ "$btype" == (repo|url|ssh_url) || ( "$btype" == use_word && -n "${_antidote_using_context[bundle]}" && "${_antidote_using_context[__type__]}" == (repo|url|ssh_url) ) ]]; then
+      if [[ "$btype" == (repo|url|ssh_url) || ( "$btype" == using_subplugin && -n "${_antidote_using_context[bundle]}" && "${_antidote_using_context[__type__]}" == (repo|url|ssh_url) ) ]]; then
         tourl "$bname"; bundle[__url__]=$REPLY
         short_repo_name "$bname"; bundle[__short__]=$REPLY
         bundle_dir "$bname"; bundle[__dir__]=$REPLY
@@ -398,10 +398,11 @@ bundle_type() {
       *://*)           REPLY=url      ;;
       *@*:*/*)         REPLY=ssh_url  ;;
       *(:|@)*)         REPLY='?'      ;;
+      *\ *|*$'\t'*)    REPLY='?'      ;;
       */*/*)           REPLY=relpath  ;;
       */)              REPLY=relpath  ;;
       */*)             REPLY=repo     ;;
-      *)               REPLY=use_word ;;
+      *)               REPLY=using_subplugin ;;
     esac
   fi
 }
@@ -927,7 +928,7 @@ zsh_script() {
   # set the path to the bundle (repo or local)
   if [[ -e "$bundle_str" ]]; then
     bundle_path=$bundle_str
-  elif [[ "$btype" == (repo|url|ssh_url|use_word) ]]; then
+  elif [[ "$btype" == (repo|url|ssh_url|using_subplugin) ]]; then
     if [[ -n "${bundle[__dir__]}" ]]; then
       bundle_path=${bundle[__dir__]}
     else

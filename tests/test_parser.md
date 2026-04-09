@@ -115,11 +115,11 @@ Test assoc array for jibberish
 % echo 'a b c d:e:f' | bundle_parser | print_parsed_bundle
 __bundle__  : a
 __error__   : error: Expecting 'key:value' form for annotation 'c'.
-__type__    : use_word
+__type__    : using_subplugin
 d           : e:f
 % echo 'foo bar:baz' | bundle_parser | print_parsed_bundle
 __bundle__  : foo
-__type__    : use_word
+__type__    : using_subplugin
 bar         : baz
 %
 ```
