@@ -92,12 +92,6 @@ git_pull() {
   git -C "$1" pull --quiet --ff --rebase $autostash_flag
 }
 
-# True if the bundle is a git repo (not a local path/file).
-is_repo() {
-  bundle_type "$1"
-  [[ $REPLY == (repo|url|ssh_url) ]]
-}
-
 # Find all cloned bundles under ANTIDOTE_HOME.
 find_bundles() {
   command find -H "$ANTIDOTE_HOME" -type d -name .git -prune -print 2>/dev/null | \
@@ -105,45 +99,51 @@ find_bundles() {
 }
 
 bulk_clone() {
-  local bundle_str branch pin zsh_defer=0
-  local -A bundle
+  local i bundle zsh_defer=0
+  local -a row
   local -aU script
 
-  while IFS= read -r bundle_str; do
-    [[ -n "$bundle_str" ]] || continue
-    typeset -A bundle=("${(@Q)${(z)bundle_str}}")
-    is_repo $bundle[__bundle__] || continue
+  if (( !${_parsed_bundles[__count__]:-0} )); then
+    bundle_parser
+  fi
 
-    if [[ -n "${bundle[branch]}" ]]; then
-      branch="--branch ${bundle[branch]} "
-    else
-      branch=
-    fi
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+    bundle=${_parsed_bundles[$i,__bundle__]}
+    bundle_type "$bundle"
+    [[ $REPLY == (repo|url|ssh_url) ]] || continue
 
-    if [[ -n "${bundle[pin]}" ]]; then
-      pin="--pin ${bundle[pin]} "
-    else
-      pin=
-    fi
-
-    if [[ "${bundle[kind]}" == defer && $zsh_defer == 0 ]]; then
+    if [[ "${_parsed_bundles[$i,kind]}" == defer && $zsh_defer == 0 ]]; then
       zsh_defer=1
-      script+=("zsh_script --kind clone ${ANTIDOTE_DEFER_BUNDLE} &")
+      row=(__bundle__ "${(q)ANTIDOTE_DEFER_BUNDLE}" kind clone)
+      script+=("zsh_script ${(j: :)row} &")
     fi
-    script+=("zsh_script --kind clone ${branch}${pin}${bundle[__bundle__]} &")
+
+    row=(__bundle__ "${(q)bundle}" kind clone)
+    [[ -n "${_parsed_bundles[$i,branch]}" ]] && row+=(branch "${(q)_parsed_bundles[$i,branch]}")
+    [[ -n "${_parsed_bundles[$i,pin]}" ]] && row+=(pin "${(q)_parsed_bundles[$i,pin]}")
+    script+=("zsh_script ${(j: :)row} &")
   done
 
-  # Print script
   if [[ ${#script} -gt 0 ]]; then
     printf '%s\n' ${(o)script[@]}
-    printf '%s\n' "wait"
+    printf 'wait\n'
   fi
 }
 
+### Parse bundle input into a matrix.
+#
+# Reads bundle text from stdin and populates the _parsed_bundles[i,key] global.
+# Detects invalid bundles and conflicting pin/branch annotations inline.
+# Sets matrix-level flags: __count__, __has_pins__, __has_errors__, __has_critical__.
+#
 bundle_parser() {
-  local line lineno arg partno key bname btype input
-  local -a args bundle_arr lines
-  local -A bundle
+  local line lineno arg partno key bname btype bnameval ctx_path ctx_type input bdir bval bprev
+  local -a args lines
+  local -A bundle seen_bundles seen_bundle_vals
+  local -i n=0
+
+  typeset -gA _parsed_bundles=()
+  typeset -gA _antidote_using_context
 
   # Read all input and normalize line endings (\r\n, \r, \n -> \n)
   input=$(cat)
@@ -174,24 +174,135 @@ bundle_parser() {
       fi
     done
     if [[ $partno -gt 0 ]]; then
-      # Compute metadata keys for repo and URL bundles
+      (( n++ ))
       bname="$bundle[__bundle__]"
+
+      # Handle using: directive - set the active using context.
+      # Repo using: emits a kind:clone entry for the repo.
+      # Path using: sets context only, no bundle entry emitted.
+      if [[ "$bname" == using:* ]]; then
+        _antidote_using_context=()
+        _antidote_using_context[bundle]=${bname#using:}
+        bundle_type "${_antidote_using_context[bundle]}"; _antidote_using_context[__type__]=$REPLY
+        if [[ "${_antidote_using_context[__type__]}" == ('?'|empty) ]]; then
+          bundle[__error__]="invalid using: target '${_antidote_using_context[bundle]}'"
+          bundle[__severity__]=error
+          for key in ${(k)bundle}; do
+            _parsed_bundles[$n,$key]=$bundle[$key]
+          done
+          _parsed_bundles[__has_errors__]=1
+          (( lineno++ ))
+          continue
+        fi
+        for key in ${(k)bundle}; do
+          [[ $key == __* ]] && continue
+          _antidote_using_context[$key]=$bundle[$key]
+        done
+        if [[ "${_antidote_using_context[__type__]}" == (repo|url|ssh_url) ]]; then
+          bundle[__bundle__]=${_antidote_using_context[bundle]}
+          bundle[kind]=clone
+          unset "bundle[path]"
+          bname=$bundle[__bundle__]
+        else
+          (( n-- ))
+          (( lineno++ ))
+          continue
+        fi
+      fi
+
+      # Expand word bundles using the active use context.
       bundle_type "$bname"; btype=$REPLY
+      if [[ "$btype" == using_subplugin && -n "${_antidote_using_context[bundle]}" ]]; then
+        ctx_path=${_antidote_using_context[path]:-}
+        ctx_type=${_antidote_using_context[__type__]:-}
+        for key in ${(k)_antidote_using_context}; do
+          [[ $key == (bundle|path|__type__) ]] && continue
+          [[ -n "${bundle[$key]}" ]] || bundle[$key]=${_antidote_using_context[$key]}
+        done
+        [[ -n "${bundle[kind]}" ]] || bundle[kind]=zsh
+        if [[ "$ctx_type" == (path|dir|file) ]]; then
+          # Path using: construct the full path as the bundle
+          bundle[__bundle__]=${_antidote_using_context[bundle]}${ctx_path:+/$ctx_path}/$bname
+          bname=$bundle[__bundle__]
+          bundle_type "$bname"; btype=$REPLY
+        else
+          # Repo using: keep repo as bundle, set path annotation
+          [[ -n "${bundle[path]}" ]] || bundle[path]=${ctx_path:+$ctx_path/}$bname
+          bundle[__bundle__]=${_antidote_using_context[bundle]}
+          bname=$bundle[__bundle__]
+        fi
+      fi
+
+      # Detect invalid bundles: unresolvable type or bare word with no active using: context.
+      if [[ "$btype" == '?' || ( "$btype" == using_subplugin && -z "${_antidote_using_context[bundle]}" ) ]]; then
+        if [[ -z "${bundle[__error__]}" ]]; then
+          bundle[__error__]="invalid bundle '${bundle[__bundle__]}'"
+          [[ "$btype" == using_subplugin ]] && bundle[__error__]+=". Are you missing a 'using:' directive?"
+        fi
+        bundle[__severity__]=error
+        bundle[__type__]="$btype"
+        for key in ${(k)bundle}; do
+          _parsed_bundles[$n,$key]=$bundle[$key]
+        done
+        _parsed_bundles[__has_errors__]=1
+        (( lineno++ ))
+        continue
+      fi
+
+      # Compute metadata keys for repo and URL bundles
       bundle[__type__]="$btype"
-      if [[ "$btype" == (repo|url|ssh_url) ]]; then
+      if [[ "$btype" == (repo|url|ssh_url) || ( "$btype" == using_subplugin && -n "${_antidote_using_context[bundle]}" && "${_antidote_using_context[__type__]}" == (repo|url|ssh_url) ) ]]; then
         tourl "$bname"; bundle[__url__]=$REPLY
         short_repo_name "$bname"; bundle[__short__]=$REPLY
         bundle_dir "$bname"; bundle[__dir__]=$REPLY
+        bundle[__name__]=$bundle[__short__]
+      else
+        bnameval=${bname/#\~\//\$HOME/}
+        bundle[__name__]=${bnameval/#$HOME/\$HOME}
       fi
 
-      bundle_arr=(__lineno__ $bundle[__lineno__])
-      for key in ${(ko)bundle:#__lineno__}; do
-        bundle_arr+=("${(q)key}" "${(q)bundle[$key]}")
+      for key in ${(k)bundle}; do
+        _parsed_bundles[$n,$key]=$bundle[$key]
       done
-      printf '%s\n' "${bundle_arr[*]}"
+      [[ -n "${bundle[pin]}" ]] && _parsed_bundles[__has_pins__]=1
+      if [[ -n "${bundle[__error__]}" ]]; then
+        _parsed_bundles[__has_errors__]=1
+        [[ -z "${_parsed_bundles[$n,__severity__]}" ]] && _parsed_bundles[$n,__severity__]=error
+      fi
+
+      # Detect pin/branch conflicts inline for non-subplugin bundles.
+      if [[ -n "${bundle[__dir__]}" && "$btype" != using_subplugin && -z "${bundle[__error__]}" ]]; then
+        bdir="${bundle[__dir__]}"
+        for key in pin branch; do
+          bval="${bundle[$key]}" bprev="${seen_bundle_vals[${bdir}:${key}]}"
+          if [[ -n "${seen_bundles[$bdir]}" ]]; then
+            if [[ -n "$bval" && -z "$bprev" ]] || [[ -z "$bval" && -n "$bprev" ]]; then
+              _parsed_bundles[$n,__error__]="inconsistent $key for '${bundle[__bundle__]}': some entries have ${key}:${bval:-$bprev}, others do not"
+              _parsed_bundles[$n,__severity__]="critical"
+              _parsed_bundles[__has_critical__]=1
+              _parsed_bundles[__has_errors__]=1
+            elif [[ -n "$bval" && "$bprev" != "$bval" ]]; then
+              _parsed_bundles[$n,__error__]="conflicting $key for '${bundle[__bundle__]}': ${key}:${bval} vs ${key}:${bprev}"
+              _parsed_bundles[$n,__severity__]="critical"
+              _parsed_bundles[__has_critical__]=1
+              _parsed_bundles[__has_errors__]=1
+            fi
+          fi
+          [[ -n "$bval" ]] && seen_bundle_vals[${bdir}:${key}]="$bval"
+        done
+        seen_bundles[$bdir]=1
+      fi
     fi
     (( lineno++ ))
   done
+
+  _parsed_bundles[__count__]=$n
+}
+
+### Serialize the parsed bundles matrix for use in subshell/eval contexts.
+bundle_parser_serialize() {
+  bundle_parser
+  typeset -p _parsed_bundles
 }
 
 version() {
@@ -333,10 +444,11 @@ bundle_type() {
       *://*)           REPLY=url      ;;
       *@*:*/*)         REPLY=ssh_url  ;;
       *(:|@)*)         REPLY='?'      ;;
-      */*/*)           REPLY=relpath  ;;
-      */)              REPLY=relpath  ;;
+      *\ *|*$'\t'*)    REPLY='?'      ;;
+      */*/*)           REPLY='?'      ;;
+      */)              REPLY='?'      ;;
       */*)             REPLY=repo     ;;
-      *)               REPLY=word     ;;
+      *)               REPLY=using_subplugin ;;
     esac
   fi
 }
@@ -560,7 +672,7 @@ bundle_dir() {
   #   escaped        : $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-owner-SLASH-repo
   #
   # If a clone already exists under a different path-style, return it rather
-  # than computing a new path. No side effects — use bundle_dir_cleanup to
+  # than computing a new path. No side effects - use bundle_dir_cleanup to
   # remove legacy duplicates.
   local bundle=$1
   local url preferred style dir found
@@ -598,14 +710,14 @@ bundle_dir() {
 # Called during bundling to clean up after a path-style migration.
 #
 bundle_dir_cleanup() {
-  local bundle=$1
-  local url preferred style dir
+  local bundle=$1 preferred=$2
+  local url style dir
   local -a other_styles=(full short escaped)
   bundle_type "$bundle"
 
   if [[ "$REPLY" == (repo|url|ssh_url) ]] && [[ ! -e "$bundle" ]]; then
     tourl $bundle; url=${REPLY%.git}
-    __bundle_dir_by_style "$url"; preferred=$REPLY
+    [[ -z "$preferred" ]] && { __bundle_dir_by_style "$url"; preferred=$REPLY }
 
     # Only clean up if the preferred path exists.
     [[ -d "$preferred" ]] || return 0
@@ -618,101 +730,124 @@ bundle_dir_cleanup() {
   fi
 }
 
-### Check for conflicting pin/branch annotations on the same repo.
-#
-# Reads raw bundle text from stdin, parses it via bundle_parser, and fails
-# if the same repo directory appears with different pin or branch values.
-#
-bundle_check_conflicts() {
-  local parsed_line key dir val prev lookup
-  local -a parsed_bundles
-  local -A b seen_repo seen
-
-  parsed_bundles=("${(@f)$(bundle_parser)}")
-  for parsed_line in $parsed_bundles; do
-    b=("${(@Q)${(z)parsed_line}}")
-    dir="${b[__dir__]}"
-    [[ -n "$dir" ]] || continue
-
-    for key in pin branch; do
-      val="${b[$key]}"
-      lookup="${dir}:${key}"
-      prev="${seen[$lookup]}"
-
-      if [[ -n "${seen_repo[$dir]}" ]]; then
-        # One entry has the annotation and the other doesn't
-        if [[ -n "$val" && -z "$prev" ]] || [[ -z "$val" && -n "$prev" ]]; then
-          warn "antidote: error: inconsistent $key for '${b[__bundle__]}': some entries have ${key}:${val:-$prev}, others do not"
-          return 1
-        fi
-        # Both have it but they disagree
-        if [[ -n "$val" ]] && [[ "$prev" != "$val" ]]; then
-          warn "antidote: error: conflicting $key for '${b[__bundle__]}': ${key}:${val} vs ${key}:${prev}"
-          return 1
-        fi
-      fi
-
-      [[ -n "$val" ]] && seen[$lookup]="$val"
-    done
-
-    seen_repo[$dir]=1
+### Remove legacy path-style duplicates for all bundles in the matrix.
+bundle_dir_cleanup_pass() {
+  local i
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+    [[ "${_parsed_bundles[$i,__type__]}" == (repo|url|ssh_url) ]] || continue
+    bundle_dir_cleanup "${_parsed_bundles[$i,__bundle__]}"
   done
 }
 
+### Sync pin state for all pinned repo bundles in the matrix.
+#
+# Only handles bundles with an active pin: annotation. The "pin removed" case
+# (clearing a previously-set antidote.pin git config) is handled inside
+# zsh_script so it runs in parallel across all bundles.
+#
+bundle_sync_pins() {
+  local i bundle_path bname pin pin_sha current_pin
+
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+    [[ "${_parsed_bundles[$i,__type__]}" == (repo|url|ssh_url) ]] || continue
+    pin=${_parsed_bundles[$i,pin]:-}
+    [[ -n "$pin" ]] || continue
+    bundle_path=${_parsed_bundles[$i,__dir__]}
+    [[ -e "$bundle_path" ]] || continue
+
+    bname=${_parsed_bundles[$i,__name__]}
+    pin_sha="$pin"
+    current_pin=$(git_config_get "$bundle_path" antidote.pin)
+    if [[ "$current_pin" != "$pin_sha" ]] || [[ "$(git_sha "$bundle_path")" != "$pin_sha" ]]; then
+      if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
+        return 1
+      fi
+      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
+    fi
+  done
+}
+
+### Zcompile all bundles in the matrix that have zcompile enabled.
+bundle_zcompile_pass() {
+  local i bundle_str bundle_path subpath kind
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+    bundle_str=${_parsed_bundles[$i,__bundle__]}
+    zstyle -t ":antidote:bundle:$bundle_str" zcompile || continue
+    kind=${_parsed_bundles[$i,kind]:-zsh}
+    # clone-only bundles: compile the whole bundle dir
+    # zsh bundles: compile the bundle dir (possibly with subpath)
+    # fpath/path/autoload/defer: skip
+    [[ "$kind" == (fpath|path|autoload) ]] && continue
+    bundle_path=${_parsed_bundles[$i,__dir__]:-$bundle_str}
+    subpath=${_parsed_bundles[$i,path]:-}
+    [[ -n "$subpath" ]] && bundle_path+="/$subpath"
+    [[ -e "$bundle_path" ]] || continue
+    bundle_zcompile $bundle_path
+  done
+}
+
+### Emit critical errors from the parsed bundle matrix and return 1 if any exist.
+#
+bundle_check_critical() {
+  local i
+
+  if (( _parsed_bundles[__has_critical__] )); then
+    for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+      [[ "${_parsed_bundles[$i,__severity__]}" == "critical" ]] || continue
+      warn "# antidote: critical error on line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
+    done
+    return 1
+  fi
+}
+
 bundle_scripter() {
-  local parsed_line skip_load_defer
-  local key val
-  local -a parsed_lines
-  local -A bundle
+  local i key bval skip_load_defer=0 err=0
+  local -a row bkeys
 
-  skip_load_defer=0
-
-  # Parse all bundles at once (single bundle_parser call)
-  parsed_lines=("${(@f)$(collect_input "$@" | bundle_parser)}")
-  if ! (( $#parsed_lines )); then
+  if (( !${_parsed_bundles[__count__]:-0} )); then
     die "antidote: error: bundle argument expected"
   fi
 
-  # Loop through parsed bundles
-  for parsed_line in $parsed_lines; do
-    [[ -z "$parsed_line" ]] && continue
-    bundle=("${(@Q)${(z)parsed_line}}")
-    if [[ -n "${bundle[__error__]}" ]]; then
-      warn "antidote: Bundle parser error on line ${bundle[__lineno__]}: '${bundle[__bundle__]}'"
-      return 1
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+    if [[ -n "${_parsed_bundles[$i,__error__]}" ]]; then
+      warn "# antidote: ${_parsed_bundles[$i,__severity__]:-error} on line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
+      err=1
+      continue
     fi
 
-    # alias for convenience
-    bundle[name]=$bundle[__bundle__]
-
-    # move flags to front and call zsh_script
-    print -rn -- "zsh_script"
-    for key in ${(ok)bundle}; do
-      [[ "$key" != name ]] && [[ "$key" != '_'* ]] || continue
-      val="${bundle[$key]}"
-      if [[ "$val" == "${(q)val}" ]]; then
-        printf ' --%s %s' $key $val
+    # Serialize matrix row as key-value args for zsh_script.
+    # Pass __bundle__ and __type__ as the only internal keys; pass all user keys.
+    bval=${_parsed_bundles[$i,__bundle__]}
+    if [[ "$bval" == "${(q)bval}" || "$bval" == '~'* ]]; then
+      row=(__bundle__ "$bval")
+    else
+      row=(__bundle__ "${(qq)bval}")
+    fi
+    row+=(__type__ "${_parsed_bundles[$i,__type__]}")
+    bkeys=(${${(k)_parsed_bundles[(I)$i,^__*]}#$i,})
+    for key in ${(o)bkeys}; do
+      bval=${_parsed_bundles[$i,$key]}
+      if [[ "$bval" == "${(q)bval}" ]]; then
+        row+=("$key" "$bval")
       else
-        printf ' --%s %s' $key ${(qqq)val}
+        row+=("$key" "${(qq)bval}")
       fi
     done
 
-    # Add flag for first defer
-    if [[ "${bundle[kind]}" == "defer" ]]; then
-      if [[ "$skip_load_defer" -eq 0 ]]; then
+    # Track defers: inject __skip_load_defer__ for 2nd+ defer bundles
+    if [[ "${_parsed_bundles[$i,kind]}" == defer ]]; then
+      if (( skip_load_defer == 0 )); then
         skip_load_defer=1
       else
-        printf ' --skip-load-defer'
+        row+=(__skip_load_defer__ 1)
       fi
     fi
 
-    # Escape leading '$' variables
-    if [[ "${bundle[__bundle__]}" == '$'* ]]; then
-      printf ' \$%s\n' "${bundle[name]#\$}"
-    else
-      printf ' %s\n' "${bundle[name]}"
-    fi
+    printf 'zsh_script'
+    printf ' %s' "${row[@]}"
+    printf '\n'
   done
+  return $err
 }
 
 ### Wrap bundle_scripter output for parallel execution.
@@ -739,92 +874,83 @@ bundle_scripter_parallel() {
 
 ### Generate the Zsh script to load a plugin.
 #
-# usage: zsh_script [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
-#               [-c|--conditional <func>] [-b|--branch <branch>]
-#               [--pre <func>] [--post <func>] [--skip-load-defer]
-#               [-a|--autoload <path>] <bundle>
-# <kind>   : zsh,path,fpath,defer,clone,autoload
-# <path>   : Relative path from the bundle root
-# <branch> : The git branch
-# <bundle> : A bundle can be a directory, a zsh script, or a git repo
+# usage: zsh_script __bundle__ <bundle> [key value ...]
+# Accepts a flat key-value list (assoc array pairs) describing the bundle.
+# Keys: __bundle__, kind, path, branch, pin, conditional, autoload, pre,
+#       post, fpath-rule, __skip_load_defer__, __type__, __dir__
+# <kind> : zsh,path,fpath,defer,clone,autoload
 #
 zsh_script() {
-  local MATCH MBEGIN MEND
-  local -a match mbegin mend
-  local -a o_help o_kind o_path o_branch o_pin o_cond o_autoload o_pre o_post o_fpath_rule o_skip_load_defer
-  local repat bundle bname bundle_path btype dopts zsh_defer zsh_defer_bundle giturl current_pin pin_sha unpin_branch
+  local bundle_str bname bundle_path btype dopts zsh_defer zsh_defer_bundle giturl current_pin unpin_branch
   local source_cmd print_bundle_path initfile print_initfile fpath_script
-  local -a supported_kind_vals supported_fpath_rules script
+  local kind subpath branch pin cond autoload_path pre post fpath_rule skip_load_defer
+  local -A bundle
+  local -a supported_kind_vals supported_fpath_rules script branch_flag
 
-  zparseopts ${ZPARSEOPTS} -- \
-    h=o_help       -help=h            \
-    a:=o_autoload  -autoload:=a       \
-    b:=o_branch    -branch:=b         \
-    k:=o_kind      -kind:=k           \
-                   -pin:=o_pin        \
-    p:=o_path      -path:=p           \
-                   -pre:=o_pre        \
-                   -post:=o_post      \
-                   -fpath-rule:=o_fpath_rule \
-                   -skip-load-defer=o_skip_load_defer \
-    c:=o_cond      -conditional:=c    ||
-    return 1
+  # Reconstruct assoc array from flat key-value arg list
+  bundle=("$@")
 
-  # set defaults
-  (( $#o_kind )) || o_kind=(--kind zsh)
-  (( $#o_fpath_rule )) || o_fpath_rule=($ANTIDOTE_FPATH_RULE)
-
-  # strip '=' or ':' from beginning of arg values
-  repat='^[=:]?(.+)$'
-  [[ $o_kind[-1] =~ $repat ]] && o_kind[-1]=$match
-  [[ $o_autoload[-1] =~ $repat ]] && o_autoload[-1]=$match
-  [[ $o_path[-1] =~ $repat ]] && o_path[-1]=$match
-  [[ $o_cond[-1] =~ $repat ]] && o_cond[-1]=$match
-  [[ $o_branch[-1] =~ $repat ]] && o_branch[-1]=$match
-  [[ $o_pin[-1] =~ $repat ]] && o_pin[-1]=$match
-  [[ $o_pre[-1] =~ $repat ]] && o_pre[-1]=$match
-  [[ $o_post[-1] =~ $repat ]] && o_post[-1]=$match
-  [[ $o_fpath_rule[-1] =~ $repat ]] && o_fpath_rule[-1]=$match
-
-  supported_kind_vals=(autoload clone defer fpath path zsh)
-  if (( $#o_kind )) && ! (( $supported_kind_vals[(Ie)$o_kind[-1]] )); then
-    warn "antidote: error: unexpected kind value: '$o_kind[-1]'"
-    return 1
-  fi
-
-  supported_fpath_rules=(append prepend)
-  if ! (( $supported_fpath_rules[(Ie)$o_fpath_rule[-1]] )); then
-    warn "antidote: error: unexpected fpath rule: '$o_fpath_rule[-1]'"
-    return 1
-  fi
-
-  bundle=$1
-  if [[ -z "$bundle" ]]; then
+  bundle_str=${bundle[__bundle__]}
+  if [[ -z "$bundle_str" ]]; then
     warn "antidote: error: bundle argument expected"
     return 1
   fi
 
-  # Compute bundle type and name once
-  bundle_type $bundle; btype=$REPLY
-  bundle_name $bundle; bname=$REPLY
+  # Extract fields with defaults
+  kind=${bundle[kind]:-zsh}
+  subpath=${bundle[path]:-}
+  branch=${bundle[branch]:-}
+  pin=${bundle[pin]:-}
+  cond=${bundle[conditional]:-}
+  autoload_path=${bundle[autoload]:-}
+  pre=${bundle[pre]:-}
+  post=${bundle[post]:-}
+  fpath_rule=${bundle[fpath-rule]:-$ANTIDOTE_FPATH_RULE}
+  skip_load_defer=${bundle[__skip_load_defer__]:-0}
+
+  supported_kind_vals=(autoload clone defer fpath path zsh)
+  if ! (( $supported_kind_vals[(Ie)$kind] )); then
+    warn "antidote: error: unexpected kind value: '$kind'"
+    return 1
+  fi
+
+  supported_fpath_rules=(append prepend)
+  if ! (( $supported_fpath_rules[(Ie)$fpath_rule] )); then
+    warn "antidote: error: unexpected fpath rule: '$fpath_rule'"
+    return 1
+  fi
+
+  # Use pre-computed type from matrix if available, otherwise compute
+  if [[ -n "${bundle[__type__]}" ]]; then
+    btype=${bundle[__type__]}
+  else
+    bundle_type $bundle_str; btype=$REPLY
+  fi
+  if [[ -n "${bundle[__name__]}" ]]; then
+    bname=${bundle[__name__]}
+  else
+    bundle_name $bundle_str; bname=$REPLY
+  fi
 
   # replace ~/ with $HOME/
-  if [[ "$bundle" == '~/'* ]]; then
-    bundle=${~bundle}
+  if [[ "$bundle_str" == '~/'* ]]; then
+    bundle_str=${~bundle_str}
   fi
 
   # set the path to the bundle (repo or local)
-  if [[ -e "$bundle" ]]; then
-    bundle_path=$bundle
-  elif [[ "$btype" == (repo|url|ssh_url) ]]; then
-    bundle_dir $bundle; bundle_path=$REPLY
-    # Clean up legacy path-style duplicates.
-    bundle_dir_cleanup $bundle
+  if [[ -e "$bundle_str" ]]; then
+    bundle_path=$bundle_str
+  elif [[ "$btype" == (repo|url|ssh_url|using_subplugin) ]]; then
+    if [[ -n "${bundle[__dir__]}" ]]; then
+      bundle_path=${bundle[__dir__]}
+    else
+      bundle_dir $bundle_str; bundle_path=$REPLY
+    fi
   else
-    bundle_path=$bundle
+    bundle_path=$bundle_str
   fi
-  if (( $#o_pin )) && [[ "$btype" == (repo|url|ssh_url) ]]; then
-    pin_sha="$o_pin[-1]"
+  if [[ -n "$pin" ]] && [[ "$btype" == (repo|url|ssh_url) ]]; then
+    pin_sha="$pin"
     if (( $#pin_sha != 40 )) || [[ "$pin_sha" != [0-9a-f](#c40) ]]; then
       warn "antidote: error: pin requires a full 40-character commit SHA, got '$pin_sha'"
       return 1
@@ -833,9 +959,10 @@ zsh_script() {
 
   # handle cloning repo bundles
   if [[ "$btype" == (repo|url|ssh_url) ]] && [[ ! -e "$bundle_path" ]]; then
-    tourl $bundle; giturl=$REPLY
+    giturl=${bundle[__url__]:-}
+    [[ -z "$giturl" ]] && { tourl $bundle_str; giturl=$REPLY }
     warn "# antidote cloning $bname..."
-    if (( $#o_pin )); then
+    if [[ -n "$pin" ]]; then
       git_clone $bundle_path $giturl || return 1
       if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
         del "$bundle_path"
@@ -843,66 +970,55 @@ zsh_script() {
       fi
       [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
     else
-      git_clone $bundle_path $o_branch $giturl || return 1
+      branch_flag=()
+      [[ -n "$branch" ]] && branch_flag=(-b "$branch")
+      git_clone $bundle_path "${branch_flag[@]}" $giturl || return 1
     fi
   fi
 
-  # Sync pin state for existing repos
-  if [[ "$btype" == (repo|url|ssh_url) ]] && [[ -e "$bundle_path" ]]; then
-    if (( $#o_pin )); then
-      current_pin=$(git_config_get "$bundle_path" antidote.pin)
-      if [[ "$current_pin" != "$pin_sha" ]] || [[ "$(git_sha "$bundle_path")" != "$pin_sha" ]]; then
-        if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
-          return 1
-        fi
-        [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
+  # Pin removed - clear config and return to branch so update can pull.
+  # Runs here (in parallel) rather than bundle_sync_pins to avoid sequential git calls.
+  if [[ "$btype" == (repo|url|ssh_url) ]] && [[ -e "$bundle_path" ]] && [[ -z "$pin" ]]; then
+    if [[ -n "$(git_config_get "$bundle_path" antidote.pin)" ]]; then
+      git_config_unset "$bundle_path" antidote.pin
+      unpin_branch="$branch"
+      if [[ -z "$unpin_branch" ]]; then
+        unpin_branch=$(git -C "$bundle_path" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)
+        unpin_branch=${unpin_branch#origin/}
       fi
-    else
-      # Pin removed — clear config and return to a branch so update can pull
-      if [[ -n "$(git_config_get "$bundle_path" antidote.pin)" ]]; then
-        git_config_unset "$bundle_path" antidote.pin
-        unpin_branch="${o_branch[-1]}"
-        if [[ -z "$unpin_branch" ]]; then
-          unpin_branch=$(git -C "$bundle_path" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)
-          unpin_branch=${unpin_branch#origin/}
-        fi
-        [[ -n "$unpin_branch" ]] && git -C "$bundle_path" checkout --quiet "$unpin_branch" 2>/dev/null
-      fi
+      [[ -n "$unpin_branch" ]] && git -C "$bundle_path" checkout --quiet "$unpin_branch" 2>/dev/null
     fi
   fi
 
-  # if we only needed to clone the bundle, compile and we're done
-  if [[ "$o_kind[-1]" == "clone" ]]; then
-    if zstyle -t ":antidote:bundle:$bundle" zcompile; then
-      bundle_zcompile $bundle_path
-    fi
+  # if we only needed to clone the bundle, we're done
+  if [[ "$kind" == clone ]]; then
     return
   fi
 
   # add path to bundle
-  [[ -n "$o_path[-1]" ]] && bundle_path+="/$o_path[-1]"
+  [[ -n "$subpath" ]] && bundle_path+="/$subpath"
 
   # handle defer pre-reqs first
   dopts=
   zsh_defer='zsh-defer'
-  zstyle -s ":antidote:bundle:${bundle}" defer-options 'dopts'
+  zstyle -s ":antidote:bundle:${bundle_str}" defer-options 'dopts'
   [[ -n "$dopts" ]] && zsh_defer="zsh-defer $dopts"
 
   # generate the script
   script=()
 
   # add pre-load function
-  (( $#o_pre )) && script+=("$o_pre[-1]")
+  [[ -n "$pre" ]] && script+=("$pre")
 
   # handle defers
   source_cmd="source"
   zsh_defer_bundle=$ANTIDOTE_DEFER_BUNDLE
-  if [[ "$o_kind[-1]" == "defer" ]]; then
+  if [[ "$kind" == defer ]]; then
     source_cmd="${zsh_defer} source"
-    if ! (( $#o_skip_load_defer )); then
+    if (( !skip_load_defer )); then
       script+=(
         'if ! (( $+functions[zsh-defer] )); then'
-        "$(zsh_script $zsh_defer_bundle | indent)"
+        "$(zsh_script __bundle__ $zsh_defer_bundle | indent)"
         'fi'
       )
     fi
@@ -912,44 +1028,41 @@ zsh_script() {
   print_path "$bundle_path"; print_bundle_path=$REPLY
 
   # handle autoloading before sourcing
-  if (( $#o_autoload )); then
-    if [[ "$o_fpath_rule[-1]" == prepend ]]; then
-      script+=("fpath=( \"${print_bundle_path}/${o_autoload[-1]}\" \$fpath )")
+  if [[ -n "$autoload_path" ]]; then
+    if [[ "$fpath_rule" == prepend ]]; then
+      script+=("fpath=( \"${print_bundle_path}/${autoload_path}\" \$fpath )")
       script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
     else
-      script+=("fpath+=( \"${print_bundle_path}/${o_autoload[-1]}\" )")
+      script+=("fpath+=( \"${print_bundle_path}/${autoload_path}\" )")
       script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
     fi
   fi
 
-  # generate load script — recheck type since path may have been appended
+  # generate load script - recheck type since path may have been appended
   if [[ "$btype" != file ]] && [[ -f "$bundle_path" ]]; then
     btype=file
   fi
-  if [[ "$o_fpath_rule[-1]" == prepend ]]; then
+  if [[ "$fpath_rule" == prepend ]]; then
     fpath_script="fpath=( \"$print_bundle_path\" \$fpath )"
   else
     fpath_script="fpath+=( \"$print_bundle_path\" )"
   fi
 
-  if [[ "$o_kind[-1]" == fpath ]]; then
+  if [[ "$kind" == fpath ]]; then
     # fpath
     script+="$fpath_script"
-  elif [[ "$o_kind[-1]" == path ]]; then
+  elif [[ "$kind" == path ]]; then
     # path
     script+="export PATH=\"$print_bundle_path:\$PATH\""
-  elif [[ "$o_kind[-1]" == autoload ]]; then
+  elif [[ "$kind" == autoload ]]; then
     # autoload
     script+=("$fpath_script")
-    if [[ "$o_fpath_rule[-1]" == prepend ]]; then
+    if [[ "$fpath_rule" == prepend ]]; then
       script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
     else
       script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
     fi
   else
-    if zstyle -t ":antidote:bundle:$bundle" zcompile; then
-      bundle_zcompile $bundle_path
-    fi
     if [[ $btype == file ]]; then
       script+="$source_cmd \"$print_bundle_path\""
     else
@@ -957,7 +1070,7 @@ zsh_script() {
       initfiles $bundle_path
       # if no init file was found, assume the default
       if [[ $#reply -eq 0 ]]; then
-        if (( $#o_path )); then
+        if [[ -n "$subpath" ]]; then
           reply=($bundle_path/${bundle_path:t}.plugin.zsh)
         else
           reply=($bundle_path/${bname:t}.plugin.zsh)
@@ -972,17 +1085,17 @@ zsh_script() {
   fi
 
   # add post-load function
-  if (( $#o_post )); then
-    if [[ "$o_kind[-1]" == "defer" ]]; then
-      script+=("${zsh_defer} $o_post[-1]")
+  if [[ -n "$post" ]]; then
+    if [[ "$kind" == defer ]]; then
+      script+=("${zsh_defer} $post")
     else
-      script+=("$o_post[-1]")
+      script+=("$post")
     fi
   fi
 
   # wrap conditional
-  if [[ -n "$o_cond[-1]" ]]; then
-    print "if $o_cond[-1]; then"
+  if [[ -n "$cond" ]]; then
+    print "if $cond; then"
     # (F)join + (@f)split flattens multiline elements so each line gets indented
     printf "  %s\n" "${(@f)${(F)script}}"
     print "fi"
@@ -996,8 +1109,15 @@ zsh_script() {
 # usage: antidote bundle [-h|--help] <bundle>...
 #
 antidote_bundle() {
-  local o_help bundle_output
-  local -a bundles zcompile_script
+  local o_help bundle_output err=0
+  local -a zcompile_script
+
+  # Ensure all stderr from this function starts with '#' so redirected bundle
+  # output is safe to source.
+  exec 2> >(while IFS= read -r _line; do
+    [[ "$_line" == '#'* ]] || _line="# $_line"
+    print -r -- "$_line" >&2
+  done)
 
   zparseopts ${ZPARSEOPTS} -- h=o_help -help=h || return 1
 
@@ -1006,13 +1126,21 @@ antidote_bundle() {
     return
   fi
 
-  # handle bundles as newline delimited arg strings,
-  # or as <redirected or piped| input
-  bundles=("${(@f)$(collect_input "$@")}")
-  (( $#bundles )) || return 1
+  # Parse all bundles once into the matrix
+  bundle_parser < <(collect_input "$@")
+  (( _parsed_bundles[__has_errors__] )) && err=1
+  if ! (( _parsed_bundles[__count__] )); then
+    # A pure using: directive (path-based) produces no bundle entries but does
+    # update the context - emit it in dynamic mode so the parent shell sees it.
+    if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_using_context} -gt 0 ]]; then
+      typeset -p _antidote_using_context
+      return 0
+    fi
+    return 1
+  fi
 
-  # validate bundles for conflicting pin/branch before doing any work
-  printf '%s\n' $bundles | bundle_check_conflicts || return 1
+  # Bail on critical errors (conflicting/inconsistent pins or branches).
+  bundle_check_critical || return 1
 
   # output static file compilation
   zcompile_script=(
@@ -1026,20 +1154,31 @@ antidote_bundle() {
     '  fi'
     '}'
   )
-  # antidote_script also clones, but this way we can do it all at once in parallel!
-  if (( $#bundles > 1 )); then
-    source <(printf '%s\n' $bundles | bundle_parser | bulk_clone)
+  # Clone all missing repos in parallel, sync pins, zcompile
+  if (( _parsed_bundles[__count__] > 1 )); then
+    source <(bulk_clone)
   fi
+  (( _parsed_bundles[__has_pins__] )) && { bundle_sync_pins || return 1 }
+  bundle_zcompile_pass
 
-  # generate bundle script, capturing output so zcompile header is only
-  # emitted after all bundles succeed (no output on clone failure)
-  bundle_output=$(source <(printf '%s\n' $bundles | bundle_scripter_parallel)) || return $?
+  # generate bundle script in parallel - zsh_script still handles clone fallback
+  bundle_output=$(source <(bundle_scripter_parallel)) || return $?
+
+  # clean up legacy path-style dirs after cloning is complete
+  bundle_dir_cleanup_pass
 
   # output static file compilation
   if zstyle -t ':antidote:static' zcompile; then
     printf '%s\n' $zcompile_script
   fi
-  [[ -n "$bundle_output" ]] && printf '%s\n' "$bundle_output"
+  [[ -n "$bundle_output" ]] && printf '%s\n' "$bundle_output" || err=$?
+
+  # In dynamic mode, emit the use context so the parent shell can source it
+  # and pass it back into the next subprocess call via ANTIDOTE_USING_CTX.
+  if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_using_context} -gt 0 ]]; then
+    typeset -p _antidote_using_context
+  fi
+  return $err
 }
 
 ### Clone a new bundle and add it to your plugins file.
@@ -1395,8 +1534,7 @@ antidote_list() {
 
   for bundledir in "${bundles[@]}"; do
     url=$(git_url "$bundledir") || continue
-    repo=${url%.git}
-    repo=${repo#https://${ANTIDOTE_GIT_SITE}/}
+    short_repo_name "$url"; repo=$REPLY
 
     if (( $#o_jsonl )); then
       sha=$(git_sha "$bundledir")
@@ -1493,7 +1631,7 @@ snapshot_save() {
 
   [[ -d "$ANTIDOTE_SNAPSHOT_DIR" ]] || mkdir -p "$ANTIDOTE_SNAPSHOT_DIR"
 
-  epoch=$EPOCHSECONDS
+  zstyle -s ':antidote:test:snapshot' epoch epoch || epoch=$EPOCHSECONDS
   snapshot_file=${1:-$ANTIDOTE_SNAPSHOT_DIR/snapshot-$(TZ=UTC strftime '%Y%m%d-%H%M%SZ' $epoch).txt}
 
   bundles=(${(f)"$(find_bundles)"})
@@ -1501,10 +1639,7 @@ snapshot_save() {
   for bundledir in "${bundles[@]}"; do
     url=$(git_url "$bundledir") || continue
     sha=$(git_sha "$bundledir")
-
-    # Derive short name (user/repo) when possible
-    repo=${url%.git}
-    repo=${repo#https://${ANTIDOTE_GIT_SITE}/}
+    short_repo_name "$url"; repo=$REPLY
 
     bundle_lines+=("$repo kind:clone pin:$sha")
   done
@@ -1709,6 +1844,33 @@ snapshot_remove() {
   done
 }
 
+### Dispatcher for antidote __private__ commands (used in tests and internals).
+#
+# Parses stdin into the bundle matrix for commands that need it, and prints
+# REPLY/reply for commands that return via those vars.
+#
+private_dispatcher() {
+  local cmd err
+  cmd="$1"; shift
+  REPLY=
+  case $cmd in
+    bundle_check_critical|bundle_scripter|zsh_script)
+      bundle_parser < <(collect_input "$@")
+      ;;
+  esac
+  "${cmd}" "$@"
+  err=$?
+  case $cmd in
+    tourl|bundle_type|short_repo_name|bundle_name|bundle_dir|__bundle_dir_by_style|print_path)
+      say "$REPLY"
+      ;;
+    initfiles)
+      (( $#reply )) && printf '%s\n' "${reply[@]}"
+      ;;
+  esac
+  return $err
+}
+
 antidote() {
   local o_help o_version o_diagnostics
   zparseopts ${ZPARSEOPTS} -- \
@@ -1734,20 +1896,8 @@ antidote() {
 
   local cmd=$1; shift
   if [[ "$cmd" == __private__ ]]; then
-    cmd="$1"
-    shift
-    REPLY=
-    "${cmd}" "$@"
-    local ret=$?
-    case $cmd in
-      tourl|bundle_type|short_repo_name|bundle_name|bundle_dir|__bundle_dir_by_style|print_path)
-        say "$REPLY"
-        ;;
-      initfiles)
-        (( $#reply )) && printf '%s\n' "${reply[@]}"
-        ;;
-    esac
-    return $ret
+    private_dispatcher "$@"
+    return $?
   elif (( $+functions[antidote_${cmd}] )); then
     "antidote_${cmd}" "$@"
     return $?
@@ -1759,7 +1909,7 @@ antidote() {
 # Initialize antidote global variables from zstyles and environment.
 () {
   typeset -g ANTIDOTE_ZSH="$1"
-  typeset -g ANTIDOTE_VERSION="2.0.12"
+  typeset -g ANTIDOTE_VERSION="2.1.0"
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_FZF_CMD ANTIDOTE_PATH_STYLE
@@ -1786,7 +1936,10 @@ antidote() {
     ANTIDOTE_PATH_STYLE=short
   fi
 
-  typeset -g ANTIDOTE_HOME=${ANTIDOTE_HOME:-$(get_cachedir antidote)}
+  typeset -g ANTIDOTE_HOME
+  if [[ -z "$ANTIDOTE_HOME" ]]; then
+    zstyle -s ':antidote:home' dir ANTIDOTE_HOME || ANTIDOTE_HOME=$(get_cachedir antidote)
+  fi
 
   typeset -g ANTIDOTE_SNAPSHOT_DIR ANTIDOTE_SNAPSHOT_MAX ANTIDOTE_SNAPSHOT_DATEFMT ANTIDOTE_AUTOSNAPSHOT=false
   zstyle -s ':antidote:snapshot' dir        ANTIDOTE_SNAPSHOT_DIR     || ANTIDOTE_SNAPSHOT_DIR=$(get_datadir antidote)/snapshots
@@ -1794,6 +1947,9 @@ antidote() {
   zstyle -s ':antidote:snapshot' dateformat ANTIDOTE_SNAPSHOT_DATEFMT || ANTIDOTE_SNAPSHOT_DATEFMT='%Y-%m-%d %H:%M:%S %Z'
   zstyle -T ':antidote:snapshot:automatic' enabled && ANTIDOTE_AUTOSNAPSHOT=true
   ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
+
+  typeset -gA _antidote_using_context
+  [[ -n "$ANTIDOTE_USING_CTX" ]] && eval "$ANTIDOTE_USING_CTX"
 } "${0:A}"
 
 ANTIDOTE_HELP=$(

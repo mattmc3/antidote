@@ -13,7 +13,7 @@
 The bundle parser needs to properly handle quoted annotations.
 
 ```zsh
-% echo 'foo/bar path:"plugins/foo bar/baz"' | antidote __private__ bundle_parser | print_aarr
+% echo 'foo/bar path:"plugins/foo bar/baz"' | antidote __private__ bundle_parser_serialize | print_parsed_bundle
 __bundle__  : foo/bar
 __dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
 __short__   : foo/bar
@@ -21,7 +21,7 @@ __type__    : repo
 __url__     : https://fakegitsite.com/foo/bar
 path        : plugins/foo bar/baz
 % echo 'foo/bar' | antidote __private__ bundle_scripter
-zsh_script foo/bar
+zsh_script __bundle__ foo/bar __type__ repo
 % antidote bundle 'foo/bar'
 # antidote cloning foo/bar...
 fpath+=( "$HOME/.cache/antidote with spaces/fakegitsite.com/foo/bar" )

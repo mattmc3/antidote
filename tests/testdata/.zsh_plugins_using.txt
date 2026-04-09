@@ -1,0 +1,28 @@
+# Standalone repo before any using: context
+bar/baz kind:fpath
+
+# Use ohmy/ohmy with a plugins path prefix
+using:ohmy/ohmy path:plugins
+docker
+extract
+git
+
+# A regular repo between use blocks does not reset the context
+foo/baz kind:clone
+
+# Words after a non-word still expand using the active context
+magic-enter
+macos
+
+# Second using: replaces the first — themes with kind:path
+using:ohmy/ohmy path:themes kind:path
+pretty.zsh-theme
+
+# Use with branch: — all entries (clone + words) inherit it
+using:foo/bar branch:dev
+bar.plugin.zsh
+
+# Path-based using: — no clone, words expand to full local paths
+using:$ZDOTDIR/custom path:plugins
+myplugin
+grizwold

@@ -75,7 +75,7 @@ Unshallow foo/baz so we can roll it back, then update. The update should auto-sa
 % newsha=$(command git -C $bundledir rev-parse HEAD)
 % [[ "$oldsha" != "$newsha" ]] && echo "rolled back"
 rolled back
-% sleep 1
+% zstyle ':antidote:test:snapshot' epoch 1000000002
 % antidote update --bundles &>/dev/null
 % ls $SNAP_DIR/snapshot-*.txt | wc -l | tr -d ' '
 2
@@ -148,15 +148,16 @@ Save snapshots over the max and verify pruning keeps only the max:
 % zstyle ':antidote:snapshot' max 3
 % zstyle ':antidote:snapshot' dir $HOME/.antidote-prune-test
 % source $T_PRJDIR/antidote.zsh
-% antidote snapshot save >/dev/null && sleep 1
-% antidote snapshot save >/dev/null && sleep 1
-% antidote snapshot save >/dev/null && sleep 1
-% antidote snapshot save >/dev/null && sleep 1
-% antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000001; antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000002; antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000003; antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000004; antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000005; antidote snapshot save >/dev/null
 % ls $HOME/.antidote-prune-test/snapshot-*.txt | wc -l | tr -d ' '
 3
 % zstyle -d ':antidote:snapshot' max
 % zstyle -d ':antidote:snapshot' dir
+% zstyle -d ':antidote:test:snapshot' epoch
 %
 ```
 
@@ -217,8 +218,8 @@ antidote: snapshot: file not found '/nonexistent/snapshot.txt'
 ```zsh
 % zstyle ':antidote:snapshot' dir $HOME/.antidote-remove-test
 % source $T_PRJDIR/antidote.zsh
-% antidote snapshot save >/dev/null && sleep 1
-% antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000001; antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000002; antidote snapshot save >/dev/null
 % ls $HOME/.antidote-remove-test/snapshot-*.txt | wc -l | tr -d ' '
 2
 % snap=$(ls $HOME/.antidote-remove-test/snapshot-*.txt | head -1)
@@ -227,6 +228,7 @@ antidote: snapshot: file not found '/nonexistent/snapshot.txt'
 % ls $HOME/.antidote-remove-test/snapshot-*.txt | wc -l | tr -d ' '
 1
 % zstyle -d ':antidote:snapshot' dir
+% zstyle -d ':antidote:test:snapshot' epoch
 %
 ```
 
@@ -270,14 +272,15 @@ antidote: snapshot: no snapshots found
 ```zsh
 % zstyle ':antidote:snapshot' dir $HOME/.antidote-order-test
 % source $T_PRJDIR/antidote.zsh
-% antidote snapshot save >/dev/null && sleep 1
-% antidote snapshot save >/dev/null && sleep 1
-% antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000001; antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000002; antidote snapshot save >/dev/null
+% zstyle ':antidote:test:snapshot' epoch 1000000003; antidote snapshot save >/dev/null
 % first=$(antidote snapshot list | head -1)
 % last=$(antidote snapshot list | tail -1)
 % [[ "$first" > "$last" ]] && echo "newest first"
 newest first
 % zstyle -d ':antidote:snapshot' dir
+% zstyle -d ':antidote:test:snapshot' epoch
 %
 ```
 

@@ -40,7 +40,7 @@ fpath rules can only be append/prepend
 % antidote bundle foo/bar kind:fpath fpath-rule:append #=> --exit 0
 % antidote bundle foo/bar kind:fpath fpath-rule:prepend #=> --exit 0
 % antidote bundle foo/bar kind:fpath fpath-rule:foo 2>&1
-antidote: error: unexpected fpath rule: 'foo'
+# antidote: error: unexpected fpath rule: 'foo'
 %
 ```
 

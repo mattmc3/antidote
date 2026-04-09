@@ -1,0 +1,27 @@
+#!/bin/zsh
+#function print_parsed_bundle() {
+  # Prints _parsed_bundles matrix rows, filtering internal keys (__lineno__)
+  # that vary by input position and would make test assertions fragile.
+  #
+  emulate -L zsh; setopt local_options
+
+  local -a all_keys row_keys
+  local i key val
+
+  eval "$(cat)"
+  all_keys=(${(ok)_parsed_bundles})
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+    row_keys=()
+    for key in $all_keys; do
+      [[ $key == $i,* ]] && [[ ${key#$i,} != __lineno__ ]] && [[ ${key#$i,} != __name__ ]] && row_keys+=(${key#$i,})
+    done
+    for key in ${(o)row_keys}; do
+      val="$(print -r -- "${_parsed_bundles[$i,$key]}" | subenv ANTIDOTE_HOME)"
+      if [[ -z "$val" ]]; then
+        printf '%-12s:\n' $key
+      else
+        printf '%-12s: %s\n' $key $val
+      fi
+    done
+  done
+#}
