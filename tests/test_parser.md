@@ -115,11 +115,13 @@ Test assoc array for jibberish
 % echo 'a b c d:e:f' | bundle_parser | print_parsed_bundle
 __bundle__  : a
 __error__   : error: Expecting 'key:value' form for annotation 'c'.
+__severity__: error
 __type__    : using_subplugin
 d           : e:f
 % echo 'foo bar:baz' | bundle_parser | print_parsed_bundle
 __bundle__  : foo
 __error__   : invalid bundle 'foo'. Are you missing a 'using:' directive?
+__severity__: error
 __type__    : using_subplugin
 bar         : baz
 %
@@ -194,14 +196,17 @@ Invalid bundles emit an error:
 % echo 'foobar' | bundle_parser | print_parsed_bundle
 __bundle__  : foobar
 __error__   : invalid bundle 'foobar'. Are you missing a 'using:' directive?
+__severity__: error
 __type__    : using_subplugin
 % echo 'foo/bar/baz' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar/baz
 __error__   : invalid bundle 'foo/bar/baz'
+__severity__: error
 __type__    : ?
 % echo 'foo/bar/' | bundle_parser | print_parsed_bundle
 __bundle__  : foo/bar/
 __error__   : invalid bundle 'foo/bar/'
+__severity__: error
 __type__    : ?
 %
 ```

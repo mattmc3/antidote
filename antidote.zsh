@@ -132,13 +132,14 @@ bulk_clone() {
 
 ### Parse bundle input into a matrix.
 #
-# Reads bundle text from stdin and sets _parsed_bundles[i,key] globals.
-# Metadata stored as _parsed_bundles[__count__] and _parsed_bundles[__has_pins__].
+# Reads bundle text from stdin and populates the _parsed_bundles[i,key] global.
+# Detects invalid bundles and conflicting pin/branch annotations inline.
+# Sets matrix-level flags: __count__, __has_pins__, __has_errors__, __has_critical__.
 #
 bundle_parser() {
-  local line lineno arg partno key bname btype bnameval ctx_path input
+  local line lineno arg partno key bname btype bnameval ctx_path ctx_type input bdir bval bprev
   local -a args lines
-  local -A bundle
+  local -A bundle seen_bundles seen_bundle_vals
   local -i n=0
 
   typeset -gA _parsed_bundles=()
@@ -176,7 +177,7 @@ bundle_parser() {
       (( n++ ))
       bname="$bundle[__bundle__]"
 
-      # Handle using: directive — set the active using context.
+      # Handle using: directive - set the active using context.
       # Repo using: emits a kind:clone entry for the repo.
       # Path using: sets context only, no bundle entry emitted.
       if [[ "$bname" == using:* ]]; then
@@ -185,9 +186,11 @@ bundle_parser() {
         bundle_type "${_antidote_using_context[bundle]}"; _antidote_using_context[__type__]=$REPLY
         if [[ "${_antidote_using_context[__type__]}" == ('?'|empty) ]]; then
           bundle[__error__]="invalid using: target '${_antidote_using_context[bundle]}'"
+          bundle[__severity__]=error
           for key in ${(k)bundle}; do
             _parsed_bundles[$n,$key]=$bundle[$key]
           done
+          _parsed_bundles[__has_errors__]=1
           (( lineno++ ))
           continue
         fi
@@ -236,10 +239,12 @@ bundle_parser() {
           bundle[__error__]="invalid bundle '${bundle[__bundle__]}'"
           [[ "$btype" == using_subplugin ]] && bundle[__error__]+=". Are you missing a 'using:' directive?"
         fi
+        bundle[__severity__]=error
         bundle[__type__]="$btype"
         for key in ${(k)bundle}; do
           _parsed_bundles[$n,$key]=$bundle[$key]
         done
+        _parsed_bundles[__has_errors__]=1
         (( lineno++ ))
         continue
       fi
@@ -260,6 +265,33 @@ bundle_parser() {
         _parsed_bundles[$n,$key]=$bundle[$key]
       done
       [[ -n "${bundle[pin]}" ]] && _parsed_bundles[__has_pins__]=1
+      if [[ -n "${bundle[__error__]}" ]]; then
+        _parsed_bundles[__has_errors__]=1
+        [[ -z "${_parsed_bundles[$n,__severity__]}" ]] && _parsed_bundles[$n,__severity__]=error
+      fi
+
+      # Detect pin/branch conflicts inline for non-subplugin bundles.
+      if [[ -n "${bundle[__dir__]}" && "$btype" != using_subplugin && -z "${bundle[__error__]}" ]]; then
+        bdir="${bundle[__dir__]}"
+        for key in pin branch; do
+          bval="${bundle[$key]}" bprev="${seen_bundle_vals[${bdir}:${key}]}"
+          if [[ -n "${seen_bundles[$bdir]}" ]]; then
+            if [[ -n "$bval" && -z "$bprev" ]] || [[ -z "$bval" && -n "$bprev" ]]; then
+              _parsed_bundles[$n,__error__]="inconsistent $key for '${bundle[__bundle__]}': some entries have ${key}:${bval:-$bprev}, others do not"
+              _parsed_bundles[$n,__severity__]="critical"
+              _parsed_bundles[__has_critical__]=1
+              _parsed_bundles[__has_errors__]=1
+            elif [[ -n "$bval" && "$bprev" != "$bval" ]]; then
+              _parsed_bundles[$n,__error__]="conflicting $key for '${bundle[__bundle__]}': ${key}:${bval} vs ${key}:${bprev}"
+              _parsed_bundles[$n,__severity__]="critical"
+              _parsed_bundles[__has_critical__]=1
+              _parsed_bundles[__has_errors__]=1
+            fi
+          fi
+          [[ -n "$bval" ]] && seen_bundle_vals[${bdir}:${key}]="$bval"
+        done
+        seen_bundles[$bdir]=1
+      fi
     fi
     (( lineno++ ))
   done
@@ -640,7 +672,7 @@ bundle_dir() {
   #   escaped        : $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-github.com-SLASH-owner-SLASH-repo
   #
   # If a clone already exists under a different path-style, return it rather
-  # than computing a new path. No side effects — use bundle_dir_cleanup to
+  # than computing a new path. No side effects - use bundle_dir_cleanup to
   # remove legacy duplicates.
   local bundle=$1
   local url preferred style dir found
@@ -754,69 +786,31 @@ bundle_zcompile_pass() {
   done
 }
 
-### Check for conflicting pin/branch annotations on the same repo.
+### Emit critical errors from the parsed bundle matrix and return 1 if any exist.
 #
-# Uses the pre-populated _parsed_bundles matrix. When called standalone (eg:
-# via antidote __private__) with an empty matrix, parses stdin first.
-#
-bundle_check_conflicts() {
-  local i key dir val prev lookup err=0
-  local -A seen_repo seen
+bundle_check_critical() {
+  local i
 
-  if (( !${_parsed_bundles[__count__]:-0} )); then
-    bundle_parser
-  fi
-
-  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
-    if [[ -n "${_parsed_bundles[$i,__error__]}" ]]; then
-      warn "# antidote: error on line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
-      err=1
-      continue
-    fi
-    dir="${_parsed_bundles[$i,__dir__]}"
-    [[ -n "$dir" ]] || continue
-
-    for key in pin branch; do
-      val="${_parsed_bundles[$i,$key]}"
-      lookup="${dir}:${key}"
-      prev="${seen[$lookup]}"
-
-      if [[ -n "${seen_repo[$dir]}" ]]; then
-        # One entry has the annotation and the other doesn't
-        if [[ -n "$val" && -z "$prev" ]] || [[ -z "$val" && -n "$prev" ]]; then
-          warn "antidote: error: inconsistent $key for '${_parsed_bundles[$i,__bundle__]}': some entries have ${key}:${val:-$prev}, others do not"
-          return 1
-        fi
-        # Both have it but they disagree
-        if [[ -n "$val" ]] && [[ "$prev" != "$val" ]]; then
-          warn "antidote: error: conflicting $key for '${_parsed_bundles[$i,__bundle__]}': ${key}:${val} vs ${key}:${prev}"
-          return 1
-        fi
-      fi
-
-      [[ -n "$val" ]] && seen[$lookup]="$val"
+  if (( _parsed_bundles[__has_critical__] )); then
+    for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+      [[ "${_parsed_bundles[$i,__severity__]}" == "critical" ]] || continue
+      warn "# antidote: critical error on line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
     done
-
-    seen_repo[$dir]=1
-  done
-  return $err
+    return 1
+  fi
 }
 
 bundle_scripter() {
   local i key bval skip_load_defer=0 err=0
   local -a row bkeys
 
-  # Support standalone stdin use (eg: antidote __private__ bundle_scripter < input)
-  if (( !${_parsed_bundles[__count__]:-0} )); then
-    bundle_parser < <(collect_input "$@")
-  fi
   if (( !${_parsed_bundles[__count__]:-0} )); then
     die "antidote: error: bundle argument expected"
   fi
 
   for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     if [[ -n "${_parsed_bundles[$i,__error__]}" ]]; then
-      warn "# antidote: error on line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
+      warn "# antidote: ${_parsed_bundles[$i,__severity__]:-error} on line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
       err=1
       continue
     fi
@@ -982,7 +976,7 @@ zsh_script() {
     fi
   fi
 
-  # Pin removed — clear config and return to branch so update can pull.
+  # Pin removed - clear config and return to branch so update can pull.
   # Runs here (in parallel) rather than bundle_sync_pins to avoid sequential git calls.
   if [[ "$btype" == (repo|url|ssh_url) ]] && [[ -e "$bundle_path" ]] && [[ -z "$pin" ]]; then
     if [[ -n "$(git_config_get "$bundle_path" antidote.pin)" ]]; then
@@ -1044,7 +1038,7 @@ zsh_script() {
     fi
   fi
 
-  # generate load script — recheck type since path may have been appended
+  # generate load script - recheck type since path may have been appended
   if [[ "$btype" != file ]] && [[ -f "$bundle_path" ]]; then
     btype=file
   fi
@@ -1127,9 +1121,10 @@ antidote_bundle() {
 
   # Parse all bundles once into the matrix
   bundle_parser < <(collect_input "$@")
+  (( _parsed_bundles[__has_errors__] )) && err=1
   if ! (( _parsed_bundles[__count__] )); then
     # A pure using: directive (path-based) produces no bundle entries but does
-    # update the context — emit it in dynamic mode so the parent shell sees it.
+    # update the context - emit it in dynamic mode so the parent shell sees it.
     if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_using_context} -gt 0 ]]; then
       typeset -p _antidote_using_context
       return 0
@@ -1137,8 +1132,8 @@ antidote_bundle() {
     return 1
   fi
 
-  # validate bundles for conflicting pin/branch before doing any work
-  bundle_check_conflicts || return 1
+  # Bail on critical errors (conflicting/inconsistent pins or branches).
+  bundle_check_critical || return 1
 
   # output static file compilation
   zcompile_script=(
@@ -1159,7 +1154,7 @@ antidote_bundle() {
   (( _parsed_bundles[__has_pins__] )) && { bundle_sync_pins || return 1 }
   bundle_zcompile_pass
 
-  # generate bundle script in parallel — zsh_script still handles clone fallback
+  # generate bundle script in parallel - zsh_script still handles clone fallback
   bundle_output=$(source <(bundle_scripter_parallel)) || return $?
 
   # clean up legacy path-style dirs after cloning is complete
@@ -1842,6 +1837,33 @@ snapshot_remove() {
   done
 }
 
+### Dispatcher for antidote __private__ commands (used in tests and internals).
+#
+# Parses stdin into the bundle matrix for commands that need it, and prints
+# REPLY/reply for commands that return via those vars.
+#
+private_dispatcher() {
+  local cmd err
+  cmd="$1"; shift
+  REPLY=
+  case $cmd in
+    bundle_check_critical|bundle_scripter|zsh_script)
+      bundle_parser < <(collect_input "$@")
+      ;;
+  esac
+  "${cmd}" "$@"
+  err=$?
+  case $cmd in
+    tourl|bundle_type|short_repo_name|bundle_name|bundle_dir|__bundle_dir_by_style|print_path)
+      say "$REPLY"
+      ;;
+    initfiles)
+      (( $#reply )) && printf '%s\n' "${reply[@]}"
+      ;;
+  esac
+  return $err
+}
+
 antidote() {
   local o_help o_version o_diagnostics
   zparseopts ${ZPARSEOPTS} -- \
@@ -1867,20 +1889,8 @@ antidote() {
 
   local cmd=$1; shift
   if [[ "$cmd" == __private__ ]]; then
-    cmd="$1"
-    shift
-    REPLY=
-    "${cmd}" "$@"
-    local err=$?
-    case $cmd in
-      tourl|bundle_type|short_repo_name|bundle_name|bundle_dir|__bundle_dir_by_style|print_path)
-        say "$REPLY"
-        ;;
-      initfiles)
-        (( $#reply )) && printf '%s\n' "${reply[@]}"
-        ;;
-    esac
-    return $err
+    private_dispatcher "$@"
+    return $?
   elif (( $+functions[antidote_${cmd}] )); then
     "antidote_${cmd}" "$@"
     return $?

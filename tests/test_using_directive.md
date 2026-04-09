@@ -189,6 +189,7 @@ path        : extract
 % echo 'extract' | bundle_parser | print_parsed_bundle
 __bundle__  : extract
 __error__   : invalid bundle 'extract'. Are you missing a 'using:' directive?
+__severity__: error
 __type__    : using_subplugin
 %
 ```
@@ -254,6 +255,15 @@ path        : plugins/docker
 ```zsh
 % antidote bundle 'using:foo@bar' 2>&1  #=> --exit 1
 # antidote: error on line 1: invalid using: target 'foo@bar'
+%
+```
+
+## invalid bundle mixed with valid — error is shown but valid output is still produced
+
+```zsh
+% printf 'foo/bar\nfoo\n' | antidote bundle 2>&1  #=> --exit 1
+# antidote: error on line 2: invalid bundle 'foo'. Are you missing a 'using:' directive?
+source $ANTIDOTE_HOME/fakegitsite.com/foo/bar/foo_bar.plugin.zsh
 %
 ```
 

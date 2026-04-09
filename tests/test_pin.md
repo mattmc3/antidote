@@ -260,51 +260,51 @@ cleaned up
 
 ### Conflict detection
 
-Test `bundle_check_conflicts` directly.
+Test `bundle_check_critical` directly.
 
 Conflicting pins should fail.
 
 ```zsh
-% printf 'pintest/pinme pin:aaa\npintest/pinme pin:bbb\n' | antidote __private__ bundle_check_conflicts 2>&1
-antidote: error: conflicting pin for 'pintest/pinme': pin:bbb vs pin:aaa
+% printf 'pintest/pinme pin:aaa\npintest/pinme pin:bbb\n' | antidote __private__ bundle_check_critical 2>&1
+# antidote: critical error on line 2: conflicting pin for 'pintest/pinme': pin:bbb vs pin:aaa
 %
 ```
 
 Conflicting branches should fail.
 
 ```zsh
-% printf 'foo/bar branch:main\nfoo/bar branch:dev\n' | antidote __private__ bundle_check_conflicts 2>&1
-antidote: error: conflicting branch for 'foo/bar': branch:dev vs branch:main
+% printf 'foo/bar branch:main\nfoo/bar branch:dev\n' | antidote __private__ bundle_check_critical 2>&1
+# antidote: critical error on line 2: conflicting branch for 'foo/bar': branch:dev vs branch:main
 %
 ```
 
 Mixed pin/no-pin for the same repo should fail.
 
 ```zsh
-% printf 'pintest/pinme pin:aaa\npintest/pinme path:lib\n' | antidote __private__ bundle_check_conflicts 2>&1
-antidote: error: inconsistent pin for 'pintest/pinme': some entries have pin:aaa, others do not
+% printf 'pintest/pinme pin:aaa\npintest/pinme path:lib\n' | antidote __private__ bundle_check_critical 2>&1
+# antidote: critical error on line 2: inconsistent pin for 'pintest/pinme': some entries have pin:aaa, others do not
 %
 ```
 
 Mixed branch/no-branch for the same repo should fail.
 
 ```zsh
-% printf 'foo/bar branch:dev\nfoo/bar path:lib\n' | antidote __private__ bundle_check_conflicts 2>&1
-antidote: error: inconsistent branch for 'foo/bar': some entries have branch:dev, others do not
+% printf 'foo/bar branch:dev\nfoo/bar path:lib\n' | antidote __private__ bundle_check_critical 2>&1
+# antidote: critical error on line 2: inconsistent branch for 'foo/bar': some entries have branch:dev, others do not
 %
 ```
 
 Identical pins for the same repo should be fine.
 
 ```zsh
-% printf 'pintest/pinme pin:aaa\npintest/pinme pin:aaa path:lib\n' | antidote __private__ bundle_check_conflicts  #=> --exit 0
+% printf 'pintest/pinme pin:aaa\npintest/pinme pin:aaa path:lib\n' | antidote __private__ bundle_check_critical  #=> --exit 0
 %
 ```
 
 Different repos with different pins should be fine.
 
 ```zsh
-% printf 'foo/bar pin:aaa\npintest/pinme pin:bbb\n' | antidote __private__ bundle_check_conflicts  #=> --exit 0
+% printf 'foo/bar pin:aaa\npintest/pinme pin:bbb\n' | antidote __private__ bundle_check_critical  #=> --exit 0
 %
 ```
 
@@ -312,7 +312,7 @@ Bundling with conflicting pins should also fail end-to-end.
 
 ```zsh
 % printf 'pintest/pinme pin:aaa path:lib\npintest/pinme pin:bbb path:other\n' | antidote bundle 2>&1 | tail -1
-antidote: error: conflicting pin for 'pintest/pinme': pin:bbb vs pin:aaa
+# antidote: critical error on line 2: conflicting pin for 'pintest/pinme': pin:bbb vs pin:aaa
 %
 ```
 
