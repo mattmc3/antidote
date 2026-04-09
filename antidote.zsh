@@ -1631,7 +1631,7 @@ snapshot_save() {
 
   [[ -d "$ANTIDOTE_SNAPSHOT_DIR" ]] || mkdir -p "$ANTIDOTE_SNAPSHOT_DIR"
 
-  epoch=$EPOCHSECONDS
+  zstyle -s ':antidote:test:snapshot' epoch epoch || epoch=$EPOCHSECONDS
   snapshot_file=${1:-$ANTIDOTE_SNAPSHOT_DIR/snapshot-$(TZ=UTC strftime '%Y%m%d-%H%M%SZ' $epoch).txt}
 
   bundles=(${(f)"$(find_bundles)"})
