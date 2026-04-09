@@ -2,6 +2,14 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.1.0]
+
+- Add `using:` directive for loading subplugins from monorepos and local paths (eg: oh-my-zsh, prezto).
+- Improve error detection: invalid bundles and conflicting pin/branch annotations are now caught during parsing and reported with line numbers. Non-fatal errors skip the offending bundle but allow the rest to load. Fatal conflicts bail immediately.
+- Ensure all non-script output from `antidote bundle` now begins with `#`, making redirected output safer to source. Exit code check is preferred for verifying bundle success.
+- Add `zstyle ':antidote:home' dir ...` as an alternative to `$ANTIDOTE_HOME` to configure the antidote home directory for those who prefer to only use zstyles. If both are used, `$ANTIDOTE_HOME` wins.
+- Refactor bundle parser to use an associative matrix, improving performance and enabling richer per-bundle metadata.
+
 ## [v2.0.12]
 
 - Add syntax definition for antidote bundle files (`.zsh_plugins.txt`). See [misc/zsh_plugins.sublime-syntax](https://raw.githubusercontent.com/mattmc3/antidote/main/misc/zsh_plugins.sublime-syntax).
