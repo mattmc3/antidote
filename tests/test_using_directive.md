@@ -183,11 +183,12 @@ path        : extract
 %
 ```
 
-## word without active use context is left as-is
+## word without active using: context is an error
 
 ```zsh
 % echo 'extract' | bundle_parser | print_parsed_bundle
 __bundle__  : extract
+__error__   : invalid bundle 'extract'. Are you missing a 'using:' directive?
 __type__    : using_subplugin
 %
 ```
@@ -244,7 +245,7 @@ path        : plugins/docker
 
 ```zsh
 % antidote bundle 'using:' 2>&1  #=> --exit 1
-antidote: Bundle parser error on line 1: 'using:'
+# antidote: error on line 1: invalid using: target ''
 %
 ```
 
@@ -252,7 +253,7 @@ antidote: Bundle parser error on line 1: 'using:'
 
 ```zsh
 % antidote bundle 'using:foo@bar' 2>&1  #=> --exit 1
-antidote: Bundle parser error on line 1: 'using:foo@bar'
+# antidote: error on line 1: invalid using: target 'foo@bar'
 %
 ```
 

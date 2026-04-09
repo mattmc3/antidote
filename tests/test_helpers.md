@@ -56,7 +56,7 @@ path
 % bundle_type /foobar
 path
 % bundle_type foobar/
-relpath
+?
 % bundle_type '~/foo/bar'
 path
 % bundle_type '$foo/bar'
@@ -75,7 +75,7 @@ repo
 % bundle_type bar/baz.git
 repo
 % bundle_type foo/bar/baz
-relpath
+?
 % bundle_type foobar
 using_subplugin
 % bundle_type foo bar baz

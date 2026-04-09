@@ -119,6 +119,7 @@ __type__    : using_subplugin
 d           : e:f
 % echo 'foo bar:baz' | bundle_parser | print_parsed_bundle
 __bundle__  : foo
+__error__   : invalid bundle 'foo'. Are you missing a 'using:' directive?
 __type__    : using_subplugin
 bar         : baz
 %
@@ -173,7 +174,7 @@ path
 % echo '../foo.zsh' | bundle_parser | bundle_val __type__
 path
 % echo 'foo/bar/' | bundle_parser | bundle_val __type__
-relpath
+?
 % echo 'foo:bar' | bundle_parser | bundle_val __type__
 ?
 % echo 'bad@gitsite.com/foo/bar' | bundle_parser | bundle_val __type__
@@ -184,6 +185,24 @@ relpath
 url
 % echo 'https://gist.github.com/abc123def456' | bundle_parser | bundle_val __type__
 url
+%
+```
+
+Invalid bundles emit an error:
+
+```zsh
+% echo 'foobar' | bundle_parser | print_parsed_bundle
+__bundle__  : foobar
+__error__   : invalid bundle 'foobar'. Are you missing a 'using:' directive?
+__type__    : using_subplugin
+% echo 'foo/bar/baz' | bundle_parser | print_parsed_bundle
+__bundle__  : foo/bar/baz
+__error__   : invalid bundle 'foo/bar/baz'
+__type__    : ?
+% echo 'foo/bar/' | bundle_parser | print_parsed_bundle
+__bundle__  : foo/bar/
+__error__   : invalid bundle 'foo/bar/'
+__type__    : ?
 %
 ```
 

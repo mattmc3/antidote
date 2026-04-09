@@ -217,7 +217,7 @@ bundle_parser() {
           [[ -n "${bundle[$key]}" ]] || bundle[$key]=${_antidote_using_context[$key]}
         done
         [[ -n "${bundle[kind]}" ]] || bundle[kind]=zsh
-        if [[ "$ctx_type" == (path|dir|file|relpath) ]]; then
+        if [[ "$ctx_type" == (path|dir|file) ]]; then
           # Path using: construct the full path as the bundle
           bundle[__bundle__]=${_antidote_using_context[bundle]}${ctx_path:+/$ctx_path}/$bname
           bname=$bundle[__bundle__]
@@ -228,6 +228,20 @@ bundle_parser() {
           bundle[__bundle__]=${_antidote_using_context[bundle]}
           bname=$bundle[__bundle__]
         fi
+      fi
+
+      # Detect invalid bundles: unresolvable type or bare word with no active using: context.
+      if [[ "$btype" == '?' || ( "$btype" == using_subplugin && -z "${_antidote_using_context[bundle]}" ) ]]; then
+        if [[ -z "${bundle[__error__]}" ]]; then
+          bundle[__error__]="invalid bundle '${bundle[__bundle__]}'"
+          [[ "$btype" == using_subplugin ]] && bundle[__error__]+=". Are you missing a 'using:' directive?"
+        fi
+        bundle[__type__]="$btype"
+        for key in ${(k)bundle}; do
+          _parsed_bundles[$n,$key]=$bundle[$key]
+        done
+        (( lineno++ ))
+        continue
       fi
 
       # Compute metadata keys for repo and URL bundles
@@ -399,8 +413,8 @@ bundle_type() {
       *@*:*/*)         REPLY=ssh_url  ;;
       *(:|@)*)         REPLY='?'      ;;
       *\ *|*$'\t'*)    REPLY='?'      ;;
-      */*/*)           REPLY=relpath  ;;
-      */)              REPLY=relpath  ;;
+      */*/*)           REPLY='?'      ;;
+      */)              REPLY='?'      ;;
       */*)             REPLY=repo     ;;
       *)               REPLY=using_subplugin ;;
     esac
@@ -746,7 +760,7 @@ bundle_zcompile_pass() {
 # via antidote __private__) with an empty matrix, parses stdin first.
 #
 bundle_check_conflicts() {
-  local i key dir val prev lookup
+  local i key dir val prev lookup err=0
   local -A seen_repo seen
 
   if (( !${_parsed_bundles[__count__]:-0} )); then
@@ -755,8 +769,9 @@ bundle_check_conflicts() {
 
   for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     if [[ -n "${_parsed_bundles[$i,__error__]}" ]]; then
-      warn "antidote: Bundle parser error on line ${_parsed_bundles[$i,__lineno__]}: '${_parsed_bundles[$i,__bundle__]}'"
-      return 1
+      warn "# antidote: error on line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
+      err=1
+      continue
     fi
     dir="${_parsed_bundles[$i,__dir__]}"
     [[ -n "$dir" ]] || continue
@@ -784,10 +799,11 @@ bundle_check_conflicts() {
 
     seen_repo[$dir]=1
   done
+  return $err
 }
 
 bundle_scripter() {
-  local i key bval skip_load_defer=0
+  local i key bval skip_load_defer=0 err=0
   local -a row bkeys
 
   # Support standalone stdin use (eg: antidote __private__ bundle_scripter < input)
@@ -800,8 +816,9 @@ bundle_scripter() {
 
   for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     if [[ -n "${_parsed_bundles[$i,__error__]}" ]]; then
-      warn "antidote: Bundle parser error on line ${_parsed_bundles[$i,__lineno__]}: '${_parsed_bundles[$i,__bundle__]}'"
-      return 1
+      warn "# antidote: error on line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
+      err=1
+      continue
     fi
 
     # Serialize matrix row as key-value args for zsh_script.
@@ -836,6 +853,7 @@ bundle_scripter() {
     printf ' %s' "${row[@]}"
     printf '\n'
   done
+  return $err
 }
 
 ### Wrap bundle_scripter output for parallel execution.
