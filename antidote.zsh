@@ -72,6 +72,8 @@ git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
 git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
 git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
 git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
+git_merge_ffonly()      { git -C "$1" merge --quiet --ff-only "$2"; }
+git_min_age_sha()       { git -C "$1" rev-list --before="${2} days ago" -1 "${3:-FETCH_HEAD}" 2>/dev/null; }
 git_sha()               { git -C "${@[-1]}" rev-parse ${@[1,-2]} HEAD; }
 git_submodule_sync()    { git -C "$1" submodule --quiet sync --recursive; }
 git_submodule_update()  { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
@@ -902,6 +904,7 @@ zsh_script() {
   local bundle_str bname bundle_path btype dopts zsh_defer zsh_defer_bundle giturl current_pin unpin_branch
   local source_cmd print_bundle_path initfile print_initfile fpath_script
   local kind subpath branch pin cond autoload_path pre post fpath_rule skip_load_defer
+  local min_age min_age_sha
   local -A bundle
   local -a supported_kind_vals supported_fpath_rules script branch_flag
 
@@ -990,7 +993,19 @@ zsh_script() {
     else
       branch_flag=()
       [[ -n "$branch" ]] && branch_flag=(-b "$branch")
+      min_age=0
+      zstyle -s ":antidote:bundle:$bname" 'min-age' min_age || min_age=0
+      (( min_age < 0 )) && (( min_age = -min_age ))
       git_clone $bundle_path "${branch_flag[@]}" $giturl || return 1
+      if (( min_age >= 1 )); then
+        git_fetch "$bundle_path" --unshallow 2>/dev/null || true
+        min_age_sha=$(git_min_age_sha "$bundle_path" "$min_age" HEAD)
+        if [[ -z "$min_age_sha" ]]; then
+          warn "antidote: $bname: no commits older than $min_age days found, using latest"
+        else
+          git -C "$bundle_path" reset --quiet --hard "$min_age_sha"
+        fi
+      fi
     fi
   fi
 
@@ -1405,7 +1420,7 @@ antidote_update() {
     say "${C_BLUE}antidote:${C_NORMAL} checking for updates: $repo"
 
     () {
-      local repo_id tmpfile oldsha newsha
+      local repo_id tmpfile oldsha newsha min_age min_age_sha
       local GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
 
       repo_id="${repo//\//-SLASH-}"
@@ -1423,11 +1438,30 @@ antidote_update() {
         git_fetch "$1" || return 1
       fi
 
+      min_age=0
+      zstyle -s ":antidote:bundle:$2" 'min-age' min_age || min_age=0
+      (( min_age < 0 )) && (( min_age = -min_age ))
+      if (( min_age >= 1 )); then
+        min_age_sha=$(git_min_age_sha "$1" "$min_age")
+        if [[ -z "$min_age_sha" ]]; then
+          warn "antidote: $2: no commits older than $min_age days, skipping update"
+          return 0
+        fi
+      fi
+
       if (( $#o_dry_run )); then
         # Compare local HEAD against fetched remote HEAD
-        newsha=$(git -C "$1" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+        if (( min_age >= 1 )); then
+          newsha=$min_age_sha
+        else
+          newsha=$(git -C "$1" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+        fi
       else
-        git_pull "$1" || return 1
+        if (( min_age >= 1 )); then
+          git_merge_ffonly "$1" "$min_age_sha" || return 1
+        else
+          git_pull "$1" || return 1
+        fi
         git_submodule_sync "$1" || return 1
         git_submodule_update "$1" || return 1
         newsha=$(git_sha "$1")

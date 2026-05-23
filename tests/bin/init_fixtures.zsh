@@ -403,6 +403,41 @@ setup_fixture_test_install() {
   make_fixture "https://fakegitsite.com/test/install" "plugin.zsh"
 }
 
+setup_fixture_dino_saur() {
+  local url dir
+  url="https://fakegitsite.com/dino/saur"
+
+  # Commit dates are relative to now so min-age=200 always works:
+  #   initial (~900d old) and stable (~400d old) qualify; latest (~1d old) does not.
+  zmodload zsh/datetime 2>/dev/null || true
+
+  # initial commit: ~900 days old
+  GIT_AUTHOR_DATE="$(TZ=UTC strftime '%Y-%m-%dT%H:%M:%SZ' $(( EPOCHSECONDS - 86400 * 900 )))"
+  GIT_COMMITTER_DATE="$GIT_AUTHOR_DATE"
+  make_fixture "$url" "plugin.zsh"
+  dir=$(get_fixture_dir "$url")
+  record_sha "dino/saur-initial" "$dir"
+
+  # stable commit: ~400 days old — qualifies for min-age=200
+  GIT_AUTHOR_DATE="$(TZ=UTC strftime '%Y-%m-%dT%H:%M:%SZ' $(( EPOCHSECONDS - 86400 * 400 )))"
+  GIT_COMMITTER_DATE="$GIT_AUTHOR_DATE"
+  cat >> "$dir/saur.plugin.zsh" <<'EOF'
+# v1.1 stable
+EOF
+  commit_and_record "$dir" "dino/saur-stable" "v1.1 stable"
+
+  # latest commit: ~1 day old — always too new for min-age=200
+  GIT_AUTHOR_DATE="$(TZ=UTC strftime '%Y-%m-%dT%H:%M:%SZ' $(( EPOCHSECONDS - 86400 * 1 )))"
+  GIT_COMMITTER_DATE="$GIT_AUTHOR_DATE"
+  cat >> "$dir/saur.plugin.zsh" <<'EOF'
+# v1.2 bleeding edge
+EOF
+  commit_and_record "$dir" "dino/saur-latest" "v1.2 bleeding edge"
+
+  # restore standard dates for subsequent fixtures
+  init_git_environment
+}
+
 setup_fixture_pintest_pinme() {
   local url dir
   url="https://fakegitsite.com/pintest/pinme"
@@ -449,6 +484,7 @@ setup_fixture_purify
 setup_fixture_zsh_defer
 setup_fixture_zsh_users_zsh_autosuggestions
 setup_fixture_test_install
+setup_fixture_dino_saur
 setup_fixture_pintest_pinme
 
 # Generate the fixture_shas.tsv and gitconfig files
