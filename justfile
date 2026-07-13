@@ -7,6 +7,23 @@ set shell := ["zsh", "-c"]
 default:
     @just --list
 
+# run a command locally or in a test container (env: "latest", "542", or "local")
+[private]
+_run env cmd:
+    #!/usr/bin/env zsh
+    if [[ "{{env}}" == "local" ]]; then
+        {{cmd}}
+    elif [[ "{{env}}" == "542" ]]; then
+        podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
+          /usr/local/bin/zsh -c 'cd /workspace && {{cmd}}'
+    elif [[ "{{env}}" == "latest" ]]; then
+        podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
+          /bin/zsh -c 'cd /workspace && {{cmd}}'
+    else
+        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
+        exit 1
+    fi
+
 # run build tasks (man pages, tests)
 build:
     ./tools/buildman
@@ -23,84 +40,19 @@ release:
     ./tools/bumpver revision
 
 # run only unittests (env: "latest", "542", or "local")
-test env="latest":
-    #!/usr/bin/env zsh
-    if [[ "{{env}}" == "local" ]]; then
-        ./tools/run-clitests --unit
-    elif [[ "{{env}}" == "542" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
-          /usr/local/bin/zsh -c 'cd /workspace && just test local'
-    elif [[ "{{env}}" == "latest" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
-          /bin/zsh -c 'cd /workspace && just test local'
-    else
-        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
-        exit 1
-    fi
+test env="latest": (_run env "./tools/run-clitests --unit")
 
 # run a specific test file (env: "latest", "542", or "local")
-test-file testfile env="latest":
-    #!/usr/bin/env zsh
-    if [[ "{{env}}" == "local" ]]; then
-        ./tools/run-clitests "{{testfile}}"
-    elif [[ "{{env}}" == "542" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
-          /usr/local/bin/zsh -c 'cd /workspace && ./tools/run-clitests "{{testfile}}"'
-    elif [[ "{{env}}" == "latest" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
-          /bin/zsh -c 'cd /workspace && ./tools/run-clitests "{{testfile}}"'
-    else
-        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
-        exit 1
-    fi
+test-file testfile env="latest": (_run env "./tools/run-clitests \"" + testfile + "\"")
 
 # run all tests (env: "latest", "542", or "local")
-test-all env="latest":
-    #!/usr/bin/env zsh
-    if [[ "{{env}}" == "local" ]]; then
-        ./tools/run-clitests
-    elif [[ "{{env}}" == "542" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
-          /usr/local/bin/zsh -c 'cd /workspace && just test-all local'
-    elif [[ "{{env}}" == "latest" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
-          /bin/zsh -c 'cd /workspace && just test-all local'
-    else
-        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
-        exit 1
-    fi
+test-all env="latest": (_run env "./tools/run-clitests")
 
 # run only test_real*.md (env: "latest", "542", or "local")
-test-real env="latest":
-    #!/usr/bin/env zsh
-    if [[ "{{env}}" == "local" ]]; then
-        ./tools/run-clitests tests/test_real*.md
-    elif [[ "{{env}}" == "542" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
-          /usr/local/bin/zsh -c 'cd /workspace && just test-real local'
-    elif [[ "{{env}}" == "latest" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
-          /bin/zsh -c 'cd /workspace && just test-real local'
-    else
-        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
-        exit 1
-    fi
+test-real env="latest": (_run env "./tools/run-clitests tests/test_real*.md")
 
 # profile antidote operations with zprof (env: "latest", "542", or "local")
-profile env="latest":
-    #!/usr/bin/env zsh
-    if [[ "{{env}}" == "local" ]]; then
-        ./tools/antidote-profile
-    elif [[ "{{env}}" == "542" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
-          /usr/local/bin/zsh -c 'cd /workspace && ./tools/antidote-profile'
-    elif [[ "{{env}}" == "latest" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
-          /bin/zsh -c 'cd /workspace && ./tools/antidote-profile'
-    else
-        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
-        exit 1
-    fi
+profile env="latest": (_run env "./tools/antidote-profile")
 
 # bump the major version (X.0.0)
 bump-maj:
@@ -115,21 +67,7 @@ bump-rev:
     ./tools/bumpver revision
 
 # show antidote diagnostics (env: "latest", "542", or "local")
-diagnostics env="latest":
-    #!/usr/bin/env zsh
-    local cmd='source ./tests/__init__.zsh && t_setup && antidote --diagnostics'
-    if [[ "{{env}}" == "local" ]]; then
-        eval "$cmd"
-    elif [[ "{{env}}" == "542" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh542 \
-          /usr/local/bin/zsh -c "cd /workspace && $cmd"
-    elif [[ "{{env}}" == "latest" ]]; then
-        podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
-          /bin/zsh -c "cd /workspace && $cmd"
-    else
-        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
-        exit 1
-    fi
+diagnostics env="latest": (_run env "source ./tests/__init__.zsh && t_setup && antidote --diagnostics")
 
 # start podman machine and build all test containers
 container-up:

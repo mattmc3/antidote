@@ -43,22 +43,7 @@ function _antidote {
   case "$state" in
     (subcmds)
       case $words[1] in
-        (bundle)
-          _arguments \
-            '(- *)'{-h,--help}'[Show usage information]' \
-            && ret=0
-          ;;
-        (help)
-          _arguments \
-            '(- *)'{-h,--help}'[Show usage information]' \
-            && ret=0
-          ;;
-        (home)
-          _arguments \
-            '(- *)'{-h,--help}'[Show usage information]' \
-            && ret=0
-          ;;
-        (init)
+        (bundle|help|home|init|load|path)
           _arguments \
             '(- *)'{-h,--help}'[Show usage information]' \
             && ret=0
@@ -83,16 +68,6 @@ function _antidote {
             '(-d --dirs)'{-d,--dirs}'[Show bundle directory paths]' \
             '(-u --url)'{-u,--url}'[Show bundle URLs only]' \
             '(-j --jsonl)'{-j,--jsonl}'[Output the bundle list in JSONL format]' \
-            && ret=0
-          ;;
-        (load)
-          _arguments \
-            '(- *)'{-h,--help}'[Show usage information]' \
-            && ret=0
-          ;;
-        (path)
-          _arguments \
-            '(- *)'{-h,--help}'[Show usage information]' \
             && ret=0
           ;;
         (purge)

@@ -5,6 +5,7 @@
   0=${(%):-%x}
   typeset -gH ANTIDOTE_ZSH="${0:a:h:h}/antidote.zsh"
 
+  typeset -gU fpath
   fpath=( "${0:A:h}" $fpath )
   local fn
   for fn in ${0:A:h}/*; do

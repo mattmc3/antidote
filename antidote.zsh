@@ -36,18 +36,30 @@ setopt extended_glob # warn_create_global # warn_nested_var
 zmodload zsh/datetime
 
 # Load config: source config file then apply any serialized zstyles
-() {
-  local cfg=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
-  [[ -f "$cfg" ]] && source "$cfg"
-}
+typeset -g ANTIDOTE_CONFIG_FILE=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
+[[ -f "$ANTIDOTE_CONFIG_FILE" ]] && source "$ANTIDOTE_CONFIG_FILE"
 [[ -n "$ANTIDOTE_ZSTYLES" ]] && eval "$ANTIDOTE_ZSTYLES"
 
-# Helpers
+##### OUTPUT HELPERS
+
 die()  { warn "$@"; exit "${ERR:-1}"; }
 say()  { printf '%s\n' "$@"; }
 warn() { say "$@" >&2; }
 
-# git helpers.
+# Prompt for a y/n answer unless a test zstyle provides one.
+# usage: confirm <test-zstyle-context> <prompt>
+confirm() {
+  local REPLY
+  zstyle -s "$1" answer REPLY || {
+    read -q "REPLY?$2"
+    print
+  }
+  [[ ${REPLY:u} == Y ]]
+}
+
+##### GIT HELPERS
+
+# Error-capturing wrapper around $ANTIDOTE_GIT_CMD.
 git() {
   local result err
   result="$(command "$ANTIDOTE_GIT_CMD" "$@" 2>&1)"
@@ -92,6 +104,8 @@ git_pull() {
   git -C "$1" pull --quiet --ff --rebase $autostash_flag
 }
 
+##### BUNDLE DISCOVERY & CLONING
+
 # Find all cloned bundles under ANTIDOTE_HOME.
 find_bundles() {
   command find -H "$ANTIDOTE_HOME" -type d -name .git -prune -print 2>/dev/null | \
@@ -129,6 +143,8 @@ bulk_clone() {
     printf 'wait\n'
   fi
 }
+
+##### BUNDLE PARSER
 
 ### Parse bundle input into a matrix.
 #
@@ -305,6 +321,8 @@ bundle_parser_serialize() {
   typeset -p _parsed_bundles
 }
 
+##### INFO & USAGE
+
 version() {
   local ver="$ANTIDOTE_VERSION"
   local gitsha
@@ -346,14 +364,13 @@ diagnostics() {
   say "  bundles:      $num_bundles"
   say "  snapshot dir: $ANTIDOTE_SNAPSHOT_DIR"
   say "  snapshots:    $num_snapshots"
-  configfile=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
+  configfile=$ANTIDOTE_CONFIG_FILE
   if [[ -f "$configfile" ]]; then
     say "  config:       $configfile"
   else
     say "  config:       $configfile (not found)"
   fi
-  zstyle -s ':antidote:bundle' file 'bundlefile' ||
-    bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+  bundlefile=$ANTIDOTE_BUNDLE_FILE
   if [[ -f "$bundlefile" ]]; then
     say "  bundle file:  $bundlefile"
   else
@@ -403,6 +420,8 @@ diagnostics() {
 usage() {
   say "$ANTIDOTE_HELP"
 }
+
+##### BUNDLE TYPES & NAMING
 
 supports_color() {
   [[ -n "$NO_COLOR" ]] && return 1
@@ -473,6 +492,8 @@ bundle_name() {
     REPLY=${REPLY/#$HOME/\$HOME}
   fi
 }
+
+##### FILESYSTEM & MISC HELPERS
 
 initfiles() {
   local dir
@@ -636,6 +657,8 @@ collect_input() {
   printf '%s\n' "${input[@]}"
 }
 
+##### BUNDLE DIRECTORIES
+
 ### Compute the bundle directory path for a given path-style.
 #
 # Unlike bundle_dir, this always computes based on the requested style
@@ -730,6 +753,8 @@ bundle_dir_cleanup() {
   fi
 }
 
+##### MATRIX PASSES
+
 ### Remove legacy path-style duplicates for all bundles in the matrix.
 bundle_dir_cleanup_pass() {
   local i
@@ -797,6 +822,24 @@ bundle_check_critical() {
       warn "# antidote: critical error on line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
     done
     return 1
+  fi
+}
+
+##### SCRIPT GENERATION
+
+### Generate script lines to add a dir to fpath and autoload its functions.
+# usage: autoload_script <dir> <append|prepend>
+autoload_script() {
+  if [[ "$2" == prepend ]]; then
+    reply=(
+      "fpath=( \"$1\" \$fpath )"
+      'builtin autoload -Uz $fpath[1]/*(N.:t)'
+    )
+  else
+    reply=(
+      "fpath+=( \"$1\" )"
+      'builtin autoload -Uz $fpath[-1]/*(N.:t)'
+    )
   fi
 }
 
@@ -881,7 +924,7 @@ bundle_scripter_parallel() {
 # <kind> : zsh,path,fpath,defer,clone,autoload
 #
 zsh_script() {
-  local bundle_str bname bundle_path btype dopts zsh_defer zsh_defer_bundle giturl current_pin unpin_branch
+  local bundle_str bname bundle_path btype dopts zsh_defer zsh_defer_bundle giturl pin_sha unpin_branch
   local source_cmd print_bundle_path initfile print_initfile fpath_script
   local kind subpath branch pin cond autoload_path pre post fpath_rule skip_load_defer
   local -A bundle
@@ -1029,13 +1072,8 @@ zsh_script() {
 
   # handle autoloading before sourcing
   if [[ -n "$autoload_path" ]]; then
-    if [[ "$fpath_rule" == prepend ]]; then
-      script+=("fpath=( \"${print_bundle_path}/${autoload_path}\" \$fpath )")
-      script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
-    else
-      script+=("fpath+=( \"${print_bundle_path}/${autoload_path}\" )")
-      script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
-    fi
+    autoload_script "${print_bundle_path}/${autoload_path}" "$fpath_rule"
+    script+=("${reply[@]}")
   fi
 
   # generate load script - recheck type since path may have been appended
@@ -1056,12 +1094,8 @@ zsh_script() {
     script+="export PATH=\"$print_bundle_path:\$PATH\""
   elif [[ "$kind" == autoload ]]; then
     # autoload
-    script+=("$fpath_script")
-    if [[ "$fpath_rule" == prepend ]]; then
-      script+=("builtin autoload -Uz \$fpath[1]/*(N.:t)")
-    else
-      script+=("builtin autoload -Uz \$fpath[-1]/*(N.:t)")
-    fi
+    autoload_script "$print_bundle_path" "$fpath_rule"
+    script+=("${reply[@]}")
   else
     if [[ $btype == file ]]; then
       script+="$source_cmd \"$print_bundle_path\""
@@ -1103,6 +1137,8 @@ zsh_script() {
     printf "%s\n" $script
   fi
 }
+
+##### COMMANDS
 
 ### Clone bundle(s) and generate the static load script.
 #
@@ -1223,11 +1259,7 @@ antidote_install() {
   fi
 
   bundle=$1
-  bundlefile=$2
-  if [[ -z "$bundlefile" ]]; then
-    zstyle -s ':antidote:bundle' file 'bundlefile' ||
-      bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
-  fi
+  bundlefile=${2:-$ANTIDOTE_BUNDLE_FILE}
 
   bundle_dir $bundle; bundledir=$REPLY
   if [[ -d "$bundledir" ]]; then
@@ -1251,7 +1283,7 @@ antidote_install() {
 #        antidote purge [-a|--all]
 #
 antidote_purge() {
-  local o_help o_all REPLY i line
+  local o_help o_all i line
   local bundlefile bundle bundledir dtstmp p
   local -a lines
 
@@ -1269,16 +1301,13 @@ antidote_purge() {
     die "antidote: error: required argument 'bundle' not provided, try --help"
   fi
 
-  zstyle -s ':antidote:bundle' file 'bundlefile' ||
-    bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+  bundlefile=$ANTIDOTE_BUNDLE_FILE
 
   if (( $#o_all )); then
     # last chance to save the user from themselves
-    zstyle -s ':antidote:test:purge' answer 'REPLY' || {
-      read -q "REPLY?You are about to permanently remove '$ANTIDOTE_HOME' and all its contents!${NL}Are you sure [Y/n]? "
-      print
-    }
-    [[ ${REPLY:u} == "Y" ]] || return 1
+    confirm ':antidote:test:purge' \
+      "You are about to permanently remove '$ANTIDOTE_HOME' and all its contents!${NL}Are you sure [Y/n]? " ||
+      return 1
 
     # If $ANTIDOTE_HOME is a symlink, we need to remove contents under it before removing it
     if [[ -L "$ANTIDOTE_HOME" ]]; then
@@ -1292,11 +1321,8 @@ antidote_purge() {
     del "$ANTIDOTE_HOME"
 
     if [[ -e "${bundlefile:r}.zsh" ]]; then
-      zstyle -s ':antidote:test:purge' answer 'REPLY' || {
-        read -q "REPLY?You are about to remove '${bundlefile:t:r}.zsh'"$'\n'"Are you sure [Y/n]? "
-        print
-      }
-      if [[ ${REPLY:u} == "Y" ]]; then
+      if confirm ':antidote:test:purge' \
+        "You are about to remove '${bundlefile:t:r}.zsh'"$'\n'"Are you sure [Y/n]? "; then
         dtstmp=$(date -u '+%Y%m%d_%H%M%S')
         command mv -f "${bundlefile:r}.zsh" "${bundlefile:r}.${dtstmp}.bak"
         say "'"${bundlefile:r}.zsh"' backed up to '${bundlefile:t:r}.${dtstmp}.bak'"
@@ -1596,6 +1622,8 @@ antidote_path() {
   say $results
 }
 
+##### SNAPSHOTS
+
 ### Save, restore, or list snapshots of cloned bundle state.
 #
 # usage: antidote snapshot [home|list|remove|restore|save] [<file>]
@@ -1805,7 +1833,7 @@ snapshot_list() {
 
 ### Remove snapshots.
 snapshot_remove() {
-  local snap REPLY
+  local snap
   local -a selected
 
   if [[ -n "$1" ]]; then
@@ -1829,11 +1857,8 @@ snapshot_remove() {
     say "  $snap"
   done
 
-  zstyle -s ':antidote:test:snapshot:remove' answer 'REPLY' || {
-    read -q "REPLY?Are you sure you want to remove ${#selected} snapshot(s) [Y/n]? "
-    print
-  }
-  if [[ ${REPLY:u} != "Y" ]]; then
+  if ! confirm ':antidote:test:snapshot:remove' \
+    "Are you sure you want to remove ${#selected} snapshot(s) [Y/n]? "; then
     say "Cancelled."
     return 1
   fi
@@ -1843,6 +1868,8 @@ snapshot_remove() {
     say "Removed: $snap"
   done
 }
+
+##### DISPATCH
 
 ### Dispatcher for antidote __private__ commands (used in tests and internals).
 #
@@ -1906,6 +1933,8 @@ antidote() {
   fi
 }
 
+##### INITIALIZATION
+
 # Initialize antidote global variables from zstyles and environment.
 () {
   typeset -g ANTIDOTE_ZSH="$1"
@@ -1914,9 +1943,10 @@ antidote() {
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_FZF_CMD ANTIDOTE_PATH_STYLE
   typeset -g ANTIDOTE_FZF_DEFAULT_OPTS ANTIDOTE_FZF_DEFAULT_OPTS_FILE ANTIDOTE_BAT_OPTS
-  typeset -g ANTIDOTE_DEFER_BUNDLE ANTIDOTE_FPATH_RULE
+  typeset -g ANTIDOTE_DEFER_BUNDLE ANTIDOTE_FPATH_RULE ANTIDOTE_BUNDLE_FILE
   typeset -g ANTIDOTE_OSTYPE ANTIDOTE_LOCALAPPDATA
   typeset -g ANTIDOTE_VERSION_SHOW_SHA=true ANTIDOTE_GIT_AUTOSTASH=true
+  zstyle -s ':antidote:bundle'       file         ANTIDOTE_BUNDLE_FILE  || ANTIDOTE_BUNDLE_FILE=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
   zstyle -s ':antidote:bundle'       path-style   ANTIDOTE_PATH_STYLE   || ANTIDOTE_PATH_STYLE=full
   zstyle -s ':antidote:defer'        bundle       ANTIDOTE_DEFER_BUNDLE || ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
   zstyle -s ':antidote:fpath'        rule         ANTIDOTE_FPATH_RULE   || ANTIDOTE_FPATH_RULE=append
