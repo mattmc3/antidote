@@ -84,7 +84,7 @@ git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
 git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
 git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
 git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
-git_sha()               { git -C "${@[-1]}" rev-parse ${@[1,-2]} HEAD; }
+git_sha()               { local d=$1; shift; git -C "$d" rev-parse "$@" HEAD; }
 git_submodule_sync()    { git -C "$1" submodule --quiet sync --recursive; }
 git_submodule_update()  { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
 git_url()               { git -C "$1" config remote.origin.url; }
@@ -356,7 +356,7 @@ version() {
   local ver="$ANTIDOTE_VERSION"
   local gitsha
   if [[ "$ANTIDOTE_VERSION_SHOW_SHA" == true ]] && [[ -e "${ANTIDOTE_ZSH:h}/.git" ]]; then
-    gitsha=$(git_sha --short "${ANTIDOTE_ZSH:h}")
+    gitsha=$(git_sha "${ANTIDOTE_ZSH:h}" --short)
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   fi
   say "antidote version $ver"
@@ -567,19 +567,10 @@ get_dir() {
 get_cachedir() { get_dir cache "$@"; }
 get_datadir()  { get_dir data "$@"; }
 
-# Print the OS specific temp dir.
+# Print the OS specific temp dir: ANTIDOTE_TMPDIR if usable, else /tmp.
 temp_dir() {
-  local tmpd=/tmp
-  # Use TMPDIR if it has a value and is better than /tmp
-  if [[ -n "$ANTIDOTE_TMPDIR" ]]; then
-    # Use ANTIDOTE_TMPDIR if it exists and is writable
-    if [[ -d "$ANTIDOTE_TMPDIR" ]] && [[ -w "$ANTIDOTE_TMPDIR" ]]; then
-      tmpd="${ANTIDOTE_TMPDIR%/}"
-    elif [[ ! -d /tmp ]] || [[ ! -w /tmp ]]; then
-      # Fall back to ANTIDOTE_TMPDIR only if /tmp is unusable
-      tmpd="${ANTIDOTE_TMPDIR%/}"
-    fi
-  fi
+  local tmpd="${ANTIDOTE_TMPDIR%/}"
+  [[ -n "$tmpd" && -d "$tmpd" && -w "$tmpd" ]] || tmpd=/tmp
   say "$tmpd"
 }
 
@@ -800,7 +791,7 @@ bundle_dir_cleanup_pass() {
 # zsh_script so it runs in parallel across all bundles.
 #
 bundle_sync_pins() {
-  local i bundle_path bname pin pin_sha current_pin
+  local i bundle_path bname pin current_pin
 
   for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
     [[ "${_parsed_bundles[$i,__type__]}" == (repo|url|ssh_url) ]] || continue
@@ -810,13 +801,12 @@ bundle_sync_pins() {
     [[ -e "$bundle_path" ]] || continue
 
     bname=${_parsed_bundles[$i,__name__]}
-    pin_sha="$pin"
     current_pin=$(git_config_get "$bundle_path" antidote.pin)
-    if [[ "$current_pin" != "$pin_sha" ]] || [[ "$(git_sha "$bundle_path")" != "$pin_sha" ]]; then
-      if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
+    if [[ "$current_pin" != "$pin" ]] || [[ "$(git_sha "$bundle_path")" != "$pin" ]]; then
+      if ! git_checkout_pin "$bundle_path" "$pin" "$bname"; then
         return 1
       fi
-      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
+      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin
     fi
   done
 }
@@ -947,7 +937,7 @@ bundle_scripter_parallel() {
 ### Clone a repo bundle if missing, and sync removed pins.
 #
 # Reads zsh_script's locals (btype, bundle, bundle_str, bundle_path,
-# bname, pin, pin_sha, branch) via dynamic scoping.
+# bname, pin, branch) via dynamic scoping.
 #
 zsh_script_clone() {
   local giturl unpin_branch
@@ -962,11 +952,11 @@ zsh_script_clone() {
     warn "# antidote cloning $bname..."
     if [[ -n "$pin" ]]; then
       git_clone $bundle_path $giturl || return 1
-      if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
+      if ! git_checkout_pin "$bundle_path" "$pin" "$bname"; then
         del "$bundle_path"
         return 1
       fi
-      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
+      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin
     else
       branch_flag=()
       [[ -n "$branch" ]] && branch_flag=(-b "$branch")
@@ -997,34 +987,27 @@ zsh_script_clone() {
 # dynamic scoping.
 #
 zsh_script_render() {
-  local dopts zsh_defer zsh_defer_bundle source_cmd
+  local dopts zsh_defer source_cmd
   local print_bundle_path initfile print_initfile fpath_script
   local -a script
 
   # add path to bundle
   [[ -n "$subpath" ]] && bundle_path+="/$subpath"
 
-  # handle defer pre-reqs first
-  dopts=
-  zsh_defer='zsh-defer'
-  zstyle -s ":antidote:bundle:${bundle_str}" defer-options 'dopts'
-  [[ -n "$dopts" ]] && zsh_defer="zsh-defer $dopts"
-
-  # generate the script
-  script=()
-
   # add pre-load function
   [[ -n "$pre" ]] && script+=("$pre")
 
   # handle defers
   source_cmd="source"
-  zsh_defer_bundle=$ANTIDOTE_DEFER_BUNDLE
   if [[ "$kind" == defer ]]; then
+    zsh_defer='zsh-defer'
+    zstyle -s ":antidote:bundle:${bundle_str}" defer-options 'dopts'
+    [[ -n "$dopts" ]] && zsh_defer="zsh-defer $dopts"
     source_cmd="${zsh_defer} source"
     if (( !skip_load_defer )); then
       script+=(
         'if ! (( $+functions[zsh-defer] )); then'
-        "$(zsh_script __bundle__ $zsh_defer_bundle | indent)"
+        "$(zsh_script __bundle__ $ANTIDOTE_DEFER_BUNDLE | indent)"
         'fi'
       )
     fi
@@ -1112,10 +1095,9 @@ zsh_script_render() {
 # <kind> : zsh,path,fpath,defer,clone,autoload
 #
 zsh_script() {
-  local bundle_str bname bundle_path btype pin_sha
+  local bundle_str bname bundle_path btype
   local kind subpath branch pin cond autoload_path pre post fpath_rule skip_load_defer
   local -A bundle
-  local -a supported_kind_vals supported_fpath_rules
 
   # Reconstruct assoc array from flat key-value arg list
   bundle=("$@")
@@ -1138,14 +1120,12 @@ zsh_script() {
   fpath_rule=${bundle[fpath-rule]:-$ANTIDOTE_FPATH_RULE}
   skip_load_defer=${bundle[__skip_load_defer__]:-0}
 
-  supported_kind_vals=(autoload clone defer fpath path zsh)
-  if ! (( $supported_kind_vals[(Ie)$kind] )); then
+  if [[ "$kind" != (autoload|clone|defer|fpath|path|zsh) ]]; then
     warn "antidote: error: unexpected kind value: '$kind'"
     return 1
   fi
 
-  supported_fpath_rules=(append prepend)
-  if ! (( $supported_fpath_rules[(Ie)$fpath_rule] )); then
+  if [[ "$fpath_rule" != (append|prepend) ]]; then
     warn "antidote: error: unexpected fpath rule: '$fpath_rule'"
     return 1
   fi
@@ -1180,9 +1160,8 @@ zsh_script() {
     bundle_path=$bundle_str
   fi
   if [[ -n "$pin" ]] && [[ "$btype" == (repo|url|ssh_url) ]]; then
-    pin_sha="$pin"
-    if (( $#pin_sha != 40 )) || [[ "$pin_sha" != [0-9a-f](#c40) ]]; then
-      warn "antidote: error: pin requires a full 40-character commit SHA, got '$pin_sha'"
+    if (( $#pin != 40 )) || [[ "$pin" != [0-9a-f](#c40) ]]; then
+      warn "antidote: error: pin requires a full 40-character commit SHA, got '$pin'"
       return 1
     fi
   fi
@@ -1588,17 +1567,7 @@ antidote_home() { say "$ANTIDOTE_HOME" }
 # `antidote bundle` instead of just generating the Zsh script.
 #
 antidote_init() {
-  say "#!/usr/bin/env zsh"
-  say "function antidote {"
-  say "  case \"\$1\" in"
-  say "    bundle)"
-  say "      source <( ANTIDOTE_DYNAMIC=true antidote-dispatch \$@ ) || ANTIDOTE_DYNAMIC=true antidote-dispatch \$@"
-  say "      ;;"
-  say "    *)"
-  say "      ANTIDOTE_DYNAMIC=true antidote-dispatch \$@"
-  say "      ;;"
-  say "  esac"
-  say "}"
+  say "$ANTIDOTE_INIT_SCRIPT"
 }
 
 ### List cloned bundles.
@@ -1855,7 +1824,7 @@ snapshot_pick() {
     labels+=("$date_line	$snap")
   done
 
-  : ${ANTIDOTE_FZF_DEFAULT_OPTS:="--border=top --preview-window=right:75%"}
+  : ${ANTIDOTE_FZF_DFLT_OPTS:="--border=top --preview-window=right:75%"}
   fzf_opts=(--no-sort ${C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t'
     --prompt="❯ " --border-label=" $label " --preview="$preview_cmd")
   if [[ "$2" == --multi ]]; then
@@ -1863,8 +1832,8 @@ snapshot_pick() {
   fi
 
   printf '%s\n' $labels \
-    | FZF_DEFAULT_OPTS=$ANTIDOTE_FZF_DEFAULT_OPTS \
-      FZF_DEFAULT_OPTS_FILE=$ANTIDOTE_FZF_DEFAULT_OPTS_FILE \
+    | FZF_DEFAULT_OPTS=$ANTIDOTE_FZF_DFLT_OPTS \
+      FZF_DEFAULT_OPTS_FILE=$ANTIDOTE_FZF_DFLT_OPTS_FILE \
       "${fzf_cmd[@]}" $fzf_opts \
     | cut -f2 \
     || { warn "antidote: snapshot: no snapshot selected"; return 1; }
@@ -2020,25 +1989,26 @@ antidote() {
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_FZF_CMD ANTIDOTE_PATH_STYLE
-  typeset -g ANTIDOTE_FZF_DEFAULT_OPTS ANTIDOTE_FZF_DEFAULT_OPTS_FILE ANTIDOTE_BAT_OPTS
+  typeset -g ANTIDOTE_FZF_DFLT_OPTS ANTIDOTE_FZF_DFLT_OPTS_FILE ANTIDOTE_BAT_OPTS
   typeset -g ANTIDOTE_DEFER_BUNDLE ANTIDOTE_FPATH_RULE ANTIDOTE_BUNDLE_FILE
   typeset -g ANTIDOTE_OSTYPE ANTIDOTE_LOCALAPPDATA
   typeset -g ANTIDOTE_VERSION_SHOW_SHA=true ANTIDOTE_GIT_AUTOSTASH=true
-  zstyle -s ':antidote:bundle'       file         ANTIDOTE_BUNDLE_FILE  || ANTIDOTE_BUNDLE_FILE=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
-  zstyle -s ':antidote:bundle'       path-style   ANTIDOTE_PATH_STYLE   || ANTIDOTE_PATH_STYLE=full
-  zstyle -s ':antidote:defer'        bundle       ANTIDOTE_DEFER_BUNDLE || ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
-  zstyle -s ':antidote:fpath'        rule         ANTIDOTE_FPATH_RULE   || ANTIDOTE_FPATH_RULE=append
-  zstyle -s ':antidote:fzf'          cmd          ANTIDOTE_FZF_CMD      || ANTIDOTE_FZF_CMD=fzf
-  zstyle -s ':antidote:fzf'          opts         ANTIDOTE_FZF_DEFAULT_OPTS
-  zstyle -s ':antidote:fzf'          opts_file    ANTIDOTE_FZF_DEFAULT_OPTS_FILE
-  zstyle -s ':antidote:bat'          opts         ANTIDOTE_BAT_OPTS
-  zstyle -s ':antidote:git'          cmd          ANTIDOTE_GIT_CMD      || ANTIDOTE_GIT_CMD=git
-  zstyle -s ':antidote:git'          protocol     ANTIDOTE_GIT_PROTOCOL || ANTIDOTE_GIT_PROTOCOL=https
-  zstyle -s ':antidote:git'          site         ANTIDOTE_GIT_SITE     || ANTIDOTE_GIT_SITE=github.com
+  zstyle -s ':antidote:bat'    opts       ANTIDOTE_BAT_OPTS
+  zstyle -s ':antidote:bundle' file       ANTIDOTE_BUNDLE_FILE          || ANTIDOTE_BUNDLE_FILE=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+  zstyle -s ':antidote:bundle' path-style ANTIDOTE_PATH_STYLE           || ANTIDOTE_PATH_STYLE=full
+  zstyle -s ':antidote:defer'  bundle     ANTIDOTE_DEFER_BUNDLE         || ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
+  zstyle -s ':antidote:fpath'  rule       ANTIDOTE_FPATH_RULE           || ANTIDOTE_FPATH_RULE=append
+  zstyle -s ':antidote:fzf'    cmd        ANTIDOTE_FZF_CMD              || ANTIDOTE_FZF_CMD=fzf
+  zstyle -s ':antidote:fzf'    opts       ANTIDOTE_FZF_DFLT_OPTS        || ANTIDOTE_FZF_DFLT_OPTS=$FZF_DEFAULT_OPTS
+  zstyle -s ':antidote:fzf'    opts_file  ANTIDOTE_FZF_DFLT_OPTS_FILE   || ANTIDOTE_FZF_DFLT_OPTS_FILE=$FZF_DEFAULT_OPTS_FILE
+  zstyle -s ':antidote:git'    cmd        ANTIDOTE_GIT_CMD              || ANTIDOTE_GIT_CMD=git
+  zstyle -s ':antidote:git'    protocol   ANTIDOTE_GIT_PROTOCOL         || ANTIDOTE_GIT_PROTOCOL=https
+  zstyle -s ':antidote:git'    site       ANTIDOTE_GIT_SITE             || ANTIDOTE_GIT_SITE=github.com
+  # Tests also have zstyles, but they aren't user facing
   zstyle -s ':antidote:test:env'     LOCALAPPDATA ANTIDOTE_LOCALAPPDATA || ANTIDOTE_LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}"
   zstyle -s ':antidote:test:env'     OSTYPE       ANTIDOTE_OSTYPE       || ANTIDOTE_OSTYPE=$OSTYPE
-  zstyle -T ':antidote:test:git'     autostash || ANTIDOTE_GIT_AUTOSTASH=false
-  zstyle -T ':antidote:test:version' show-sha  || ANTIDOTE_VERSION_SHOW_SHA=false
+  zstyle -T ':antidote:test:git'     autostash                          || ANTIDOTE_GIT_AUTOSTASH=false
+  zstyle -T ':antidote:test:version' show-sha                           || ANTIDOTE_VERSION_SHOW_SHA=false
   # Legacy use of friendly names overrides all
   if zstyle -t ':antidote:bundle' use-friendly-names; then
     ANTIDOTE_PATH_STYLE=short
@@ -2059,6 +2029,22 @@ antidote() {
   typeset -gA _antidote_using_context
   [[ -n "$ANTIDOTE_USING_CTX" ]] && eval "$ANTIDOTE_USING_CTX"
 } "${0:A}"
+
+ANTIDOTE_INIT_SCRIPT=$(
+cat <<'EOS'
+#!/usr/bin/env zsh
+function antidote {
+  case "$1" in
+    bundle)
+      source <( ANTIDOTE_DYNAMIC=true antidote-dispatch $@ ) || ANTIDOTE_DYNAMIC=true antidote-dispatch $@
+      ;;
+    *)
+      ANTIDOTE_DYNAMIC=true antidote-dispatch $@
+      ;;
+  esac
+}
+EOS
+)
 
 ANTIDOTE_HELP=$(
 cat <<'EOS'
