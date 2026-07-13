@@ -62,7 +62,7 @@
 
     typeset -g REPLY=$staticfile
   } "$@" || ret=$?
-  [[ -f "$REPLY" ]] && source "$REPLY" || ret=${ret:-2}
+  { [[ -f "$REPLY" ]] && source "$REPLY" } || (( ret )) || ret=2
   unset REPLY
-  return ${ret:-$?}
+  return $ret
 #}

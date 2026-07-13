@@ -293,7 +293,7 @@ $HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy
 ```zsh
 % zstyle ':antidote:test:version' show-sha off
 % zstyle ':antidote:test:git' autostash off
-% antidote update
+% antidote update --bundles
 Updating bundles...
 antidote: checking for updates: bar/baz
 antidote: checking for updates: foo/bar
@@ -305,10 +305,6 @@ Waiting for bundle updates to complete...
 
 Bundle updates complete.
 
-Updating antidote...
-antidote self-update complete.
-
-antidote version 2.1.0
 %
 ```
 

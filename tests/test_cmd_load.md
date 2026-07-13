@@ -75,6 +75,30 @@ antidote: bundle file not found '/no/such/file.txt'.
 %
 ```
 
+### Load failures return non-zero
+
+A static file that cannot be created fails with exit 2:
+
+```zsh
+% t_reset
+% zstyle ':antidote:load:checkfile' disabled true
+% touch $ZDOTDIR/.zplugins_err.txt
+% touch $HOME/blocker
+% antidote load $ZDOTDIR/.zplugins_err.txt $HOME/blocker/static.zsh 2>/dev/null; echo "exit: $?"
+exit: 2
+%
+```
+
+A static file that fails to source fails with exit 2:
+
+```zsh
+% touch -t 202001010000 $ZDOTDIR/.zplugins_err.txt
+% print 'false' > $ZDOTDIR/.zplugins_err.zsh
+% antidote load $ZDOTDIR/.zplugins_err.txt $ZDOTDIR/.zplugins_err.zsh; echo "exit: $?"
+exit: 2
+%
+```
+
 ## Teardown
 
 ```zsh

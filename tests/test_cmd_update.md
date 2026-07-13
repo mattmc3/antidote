@@ -109,6 +109,48 @@ untracked file preserved
 %
 ```
 
+## Self-update success
+
+Self-updating a clean checkout with a reachable origin succeeds. Fake an
+antidote checkout cloned from a local repo so the pull works offline:
+
+```zsh
+% src=$HOME/fake-antidote-src
+% mkdir -p $src
+% cp -r $T_PRJDIR/functions $src/functions
+% cp $T_PRJDIR/antidote.zsh $src/antidote.zsh
+% command git -C $src init --quiet
+% command git -C $src add -A
+% command git -C $src -c user.email=test@test -c user.name=test commit --quiet -m init
+% command git clone --quiet $src $HOME/fake-antidote-clone 2>/dev/null
+% zstyle ':antidote:test:version' show-sha off
+% ( fpath=($HOME/fake-antidote-clone/functions $fpath); unfunction antidote-update; autoload -Uz $HOME/fake-antidote-clone/functions/antidote-update; antidote-update --self ); echo "exit: $?"
+Updating antidote...
+antidote self-update complete.
+
+antidote version 2.1.0
+exit: 0
+%
+```
+
+## Self-update failure
+
+A failed git pull should report failure, not success. Fake an antidote
+checkout whose repo has no remote so the pull fails:
+
+```zsh
+% fake=$HOME/fake-antidote
+% mkdir -p $fake
+% cp -r $T_PRJDIR/functions $fake/functions
+% cp $T_PRJDIR/antidote.zsh $fake/antidote.zsh
+% command git -C $fake init --quiet
+% ( fpath=($fake/functions $fpath); unfunction antidote-update; autoload -Uz $fake/functions/antidote-update; antidote-update --self 2>&1 ); echo "exit: $?"
+Updating antidote...
+antidote: self-update failed.
+exit: 1
+%
+```
+
 ## Teardown
 
 ```zsh
