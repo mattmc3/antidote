@@ -179,6 +179,20 @@ commands:
 %
 ```
 
+## No leaked helper functions
+
+The private usage helpers should not remain defined in the user's shell:
+
+```zsh
+% antidote -h >/dev/null
+% antidote help >/dev/null 2>&1
+% typeset -f __antidote_dispatch_usage >/dev/null || echo "no dispatch leak"
+no dispatch leak
+% typeset -f __antidote_usage >/dev/null || echo "no help leak"
+no help leak
+%
+```
+
 ## Teardown
 
 ```zsh

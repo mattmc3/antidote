@@ -60,6 +60,9 @@
     fi
   fi
 
+  # guard: nested dispatch calls (eg load -> bundle) share this function name
+  (( $+functions[__antidote_dispatch_usage] )) && unfunction __antidote_dispatch_usage
+
   (( __adote_ksh_arrays )) && __adote_ksh_arrays=0 && setopt KSH_ARRAYS
   (( __adote_sh_glob ))    && __adote_sh_glob=0    && setopt SH_GLOB
   return $ret

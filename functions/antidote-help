@@ -21,16 +21,16 @@
     manpage="antidote-${1}"
   fi
 
-  if (( $+commands[man] )); then
-    if man "$manpage" 2>/dev/null; then
-      return 0
+  local ret=0
+  if (( $+commands[man] )) && man "$manpage" 2>/dev/null; then
+    :
+  else
+    if [[ "$manpage" != antidote && "$manpage" != antidote-help ]]; then
+      printf '%s\n' "No manual entry for $manpage"
+      ret=1
     fi
+    __antidote_usage
   fi
-
-  if [[ "$manpage" != antidote && "$manpage" != antidote-help ]]; then
-    printf '%s\n' "No manual entry for $manpage"
-  fi
-  __antidote_usage
-  [[ "$manpage" == antidote || "$manpage" == antidote-help ]] && return 0
-  return 1
+  (( $+functions[__antidote_usage] )) && unfunction __antidote_usage
+  return $ret
 #}
