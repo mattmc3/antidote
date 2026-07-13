@@ -1770,7 +1770,6 @@ snapshot_prune() {
 ### Set color-related globals needed for interactive features (fzf previews, etc).
 setup_color() {
   typeset -g ANTIDOTE_COLOR C_BLUE C_GREEN C_YELLOW C_NORMAL
-  typeset -g ANTIDOTE_BAT_CMD ANTIDOTE_BAT_LANG ANTIDOTE_BAT_OPTS
   if supports_color; then
     ANTIDOTE_COLOR=true
     C_BLUE=$'\E[34m'
@@ -1778,6 +1777,11 @@ setup_color() {
     C_YELLOW=$'\E[33m'
     C_NORMAL=$'\E[0m'
   fi
+}
+
+### Detect bat for snapshot preview highlighting.
+setup_bat() {
+  typeset -g ANTIDOTE_BAT_CMD ANTIDOTE_BAT_LANG ANTIDOTE_BAT_OPTS
   [[ "$ANTIDOTE_COLOR" == true ]] && command -v bat >/dev/null 2>&1 || return 0
   ANTIDOTE_BAT_CMD=bat
   if bat --list-languages 2>/dev/null | grep -q 'Antidote Bundle'; then
@@ -1805,6 +1809,7 @@ snapshot_pick() {
   local label="$1" snap date_line epoch preview_cmd
   local -a snapshots labels fzf_opts fzf_cmd
 
+  setup_bat
   snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
   if (( $#snapshots == 0 )); then
     warn "antidote: snapshot: no snapshots found"
