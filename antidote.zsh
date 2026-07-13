@@ -146,6 +146,97 @@ bulk_clone() {
 
 ##### BUNDLE PARSER
 
+### Handle a using: directive line - set the active using context.
+#
+# Repo using: converts the entry to kind:clone and returns 0 to keep it.
+# Path using: sets context only and returns 1 to skip the entry.
+# Invalid using: records an error entry and returns 1 to skip it.
+# Reads/writes bundle_parser's locals (bundle, bname, n) via dynamic scoping.
+#
+parse_using_directive() {
+  local key
+  _antidote_using_context=()
+  _antidote_using_context[bundle]=${bname#using:}
+  bundle_type "${_antidote_using_context[bundle]}"; _antidote_using_context[__type__]=$REPLY
+  if [[ "${_antidote_using_context[__type__]}" == ('?'|empty) ]]; then
+    bundle[__error__]="invalid using: target '${_antidote_using_context[bundle]}'"
+    bundle[__severity__]=error
+    for key in ${(k)bundle}; do
+      _parsed_bundles[$n,$key]=$bundle[$key]
+    done
+    _parsed_bundles[__has_errors__]=1
+    return 1
+  fi
+  for key in ${(k)bundle}; do
+    [[ $key == __* ]] && continue
+    _antidote_using_context[$key]=$bundle[$key]
+  done
+  if [[ "${_antidote_using_context[__type__]}" == (repo|url|ssh_url) ]]; then
+    bundle[__bundle__]=${_antidote_using_context[bundle]}
+    bundle[kind]=clone
+    unset "bundle[path]"
+    bname=$bundle[__bundle__]
+    return 0
+  fi
+  (( n-- ))
+  return 1
+}
+
+### Expand a bare-word bundle using the active using: context.
+#
+# Reads/writes bundle_parser's locals (bundle, bname, btype) via dynamic scoping.
+#
+expand_using_subplugin() {
+  local key ctx_path ctx_type
+  ctx_path=${_antidote_using_context[path]:-}
+  ctx_type=${_antidote_using_context[__type__]:-}
+  for key in ${(k)_antidote_using_context}; do
+    [[ $key == (bundle|path|__type__) ]] && continue
+    [[ -n "${bundle[$key]}" ]] || bundle[$key]=${_antidote_using_context[$key]}
+  done
+  [[ -n "${bundle[kind]}" ]] || bundle[kind]=zsh
+  if [[ "$ctx_type" == (path|dir|file) ]]; then
+    # Path using: construct the full path as the bundle
+    bundle[__bundle__]=${_antidote_using_context[bundle]}${ctx_path:+/$ctx_path}/$bname
+    bname=$bundle[__bundle__]
+    bundle_type "$bname"; btype=$REPLY
+  else
+    # Repo using: keep repo as bundle, set path annotation
+    [[ -n "${bundle[path]}" ]] || bundle[path]=${ctx_path:+$ctx_path/}$bname
+    bundle[__bundle__]=${_antidote_using_context[bundle]}
+    bname=$bundle[__bundle__]
+  fi
+}
+
+### Detect pin/branch conflicts across entries sharing a bundle dir.
+#
+# Reads bundle_parser's locals (bundle, btype, n, seen_bundles,
+# seen_bundle_vals) via dynamic scoping; flags criticals in _parsed_bundles.
+#
+check_pin_branch_conflicts() {
+  local key bdir bval bprev
+  [[ -n "${bundle[__dir__]}" && "$btype" != using_subplugin && -z "${bundle[__error__]}" ]] || return 0
+  bdir="${bundle[__dir__]}"
+  for key in pin branch; do
+    bval="${bundle[$key]}" bprev="${seen_bundle_vals[${bdir}:${key}]}"
+    if [[ -n "${seen_bundles[$bdir]}" ]]; then
+      if [[ -n "$bval" && -z "$bprev" ]] || [[ -z "$bval" && -n "$bprev" ]]; then
+        _parsed_bundles[$n,__error__]="inconsistent $key for '${bundle[__bundle__]}': some entries have ${key}:${bval:-$bprev}, others do not"
+        _parsed_bundles[$n,__severity__]="critical"
+        _parsed_bundles[__has_critical__]=1
+        _parsed_bundles[__has_errors__]=1
+      elif [[ -n "$bval" && "$bprev" != "$bval" ]]; then
+        _parsed_bundles[$n,__error__]="conflicting $key for '${bundle[__bundle__]}': ${key}:${bval} vs ${key}:${bprev}"
+        _parsed_bundles[$n,__severity__]="critical"
+        _parsed_bundles[__has_critical__]=1
+        _parsed_bundles[__has_errors__]=1
+      fi
+    fi
+    [[ -n "$bval" ]] && seen_bundle_vals[${bdir}:${key}]="$bval"
+  done
+  seen_bundles[$bdir]=1
+}
+
 ### Parse bundle input into a matrix.
 #
 # Reads bundle text from stdin and populates the _parsed_bundles[i,key] global.
@@ -153,7 +244,7 @@ bulk_clone() {
 # Sets matrix-level flags: __count__, __has_pins__, __has_errors__, __has_critical__.
 #
 bundle_parser() {
-  local line lineno arg partno key bname btype bnameval ctx_path ctx_type input bdir bval bprev
+  local line lineno arg partno key bname btype bnameval input
   local -a args lines
   local -A bundle seen_bundles seen_bundle_vals
   local -i n=0
@@ -194,33 +285,8 @@ bundle_parser() {
       bname="$bundle[__bundle__]"
 
       # Handle using: directive - set the active using context.
-      # Repo using: emits a kind:clone entry for the repo.
-      # Path using: sets context only, no bundle entry emitted.
       if [[ "$bname" == using:* ]]; then
-        _antidote_using_context=()
-        _antidote_using_context[bundle]=${bname#using:}
-        bundle_type "${_antidote_using_context[bundle]}"; _antidote_using_context[__type__]=$REPLY
-        if [[ "${_antidote_using_context[__type__]}" == ('?'|empty) ]]; then
-          bundle[__error__]="invalid using: target '${_antidote_using_context[bundle]}'"
-          bundle[__severity__]=error
-          for key in ${(k)bundle}; do
-            _parsed_bundles[$n,$key]=$bundle[$key]
-          done
-          _parsed_bundles[__has_errors__]=1
-          (( lineno++ ))
-          continue
-        fi
-        for key in ${(k)bundle}; do
-          [[ $key == __* ]] && continue
-          _antidote_using_context[$key]=$bundle[$key]
-        done
-        if [[ "${_antidote_using_context[__type__]}" == (repo|url|ssh_url) ]]; then
-          bundle[__bundle__]=${_antidote_using_context[bundle]}
-          bundle[kind]=clone
-          unset "bundle[path]"
-          bname=$bundle[__bundle__]
-        else
-          (( n-- ))
+        if ! parse_using_directive; then
           (( lineno++ ))
           continue
         fi
@@ -229,24 +295,7 @@ bundle_parser() {
       # Expand word bundles using the active use context.
       bundle_type "$bname"; btype=$REPLY
       if [[ "$btype" == using_subplugin && -n "${_antidote_using_context[bundle]}" ]]; then
-        ctx_path=${_antidote_using_context[path]:-}
-        ctx_type=${_antidote_using_context[__type__]:-}
-        for key in ${(k)_antidote_using_context}; do
-          [[ $key == (bundle|path|__type__) ]] && continue
-          [[ -n "${bundle[$key]}" ]] || bundle[$key]=${_antidote_using_context[$key]}
-        done
-        [[ -n "${bundle[kind]}" ]] || bundle[kind]=zsh
-        if [[ "$ctx_type" == (path|dir|file) ]]; then
-          # Path using: construct the full path as the bundle
-          bundle[__bundle__]=${_antidote_using_context[bundle]}${ctx_path:+/$ctx_path}/$bname
-          bname=$bundle[__bundle__]
-          bundle_type "$bname"; btype=$REPLY
-        else
-          # Repo using: keep repo as bundle, set path annotation
-          [[ -n "${bundle[path]}" ]] || bundle[path]=${ctx_path:+$ctx_path/}$bname
-          bundle[__bundle__]=${_antidote_using_context[bundle]}
-          bname=$bundle[__bundle__]
-        fi
+        expand_using_subplugin
       fi
 
       # Detect invalid bundles: unresolvable type or bare word with no active using: context.
@@ -287,27 +336,7 @@ bundle_parser() {
       fi
 
       # Detect pin/branch conflicts inline for non-subplugin bundles.
-      if [[ -n "${bundle[__dir__]}" && "$btype" != using_subplugin && -z "${bundle[__error__]}" ]]; then
-        bdir="${bundle[__dir__]}"
-        for key in pin branch; do
-          bval="${bundle[$key]}" bprev="${seen_bundle_vals[${bdir}:${key}]}"
-          if [[ -n "${seen_bundles[$bdir]}" ]]; then
-            if [[ -n "$bval" && -z "$bprev" ]] || [[ -z "$bval" && -n "$bprev" ]]; then
-              _parsed_bundles[$n,__error__]="inconsistent $key for '${bundle[__bundle__]}': some entries have ${key}:${bval:-$bprev}, others do not"
-              _parsed_bundles[$n,__severity__]="critical"
-              _parsed_bundles[__has_critical__]=1
-              _parsed_bundles[__has_errors__]=1
-            elif [[ -n "$bval" && "$bprev" != "$bval" ]]; then
-              _parsed_bundles[$n,__error__]="conflicting $key for '${bundle[__bundle__]}': ${key}:${bval} vs ${key}:${bprev}"
-              _parsed_bundles[$n,__severity__]="critical"
-              _parsed_bundles[__has_critical__]=1
-              _parsed_bundles[__has_errors__]=1
-            fi
-          fi
-          [[ -n "$bval" ]] && seen_bundle_vals[${bdir}:${key}]="$bval"
-        done
-        seen_bundles[$bdir]=1
-      fi
+      check_pin_branch_conflicts
     fi
     (( lineno++ ))
   done
@@ -915,6 +944,165 @@ bundle_scripter_parallel() {
   fi
 }
 
+### Clone a repo bundle if missing, and sync removed pins.
+#
+# Reads zsh_script's locals (btype, bundle, bundle_str, bundle_path,
+# bname, pin, pin_sha, branch) via dynamic scoping.
+#
+zsh_script_clone() {
+  local giturl unpin_branch
+  local -a branch_flag
+
+  [[ "$btype" == (repo|url|ssh_url) ]] || return 0
+
+  # handle cloning repo bundles
+  if [[ ! -e "$bundle_path" ]]; then
+    giturl=${bundle[__url__]:-}
+    [[ -z "$giturl" ]] && { tourl $bundle_str; giturl=$REPLY }
+    warn "# antidote cloning $bname..."
+    if [[ -n "$pin" ]]; then
+      git_clone $bundle_path $giturl || return 1
+      if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
+        del "$bundle_path"
+        return 1
+      fi
+      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
+    else
+      branch_flag=()
+      [[ -n "$branch" ]] && branch_flag=(-b "$branch")
+      git_clone $bundle_path "${branch_flag[@]}" $giturl || return 1
+    fi
+  fi
+
+  # Pin removed - clear config and return to branch so update can pull.
+  # Runs here (in parallel) rather than bundle_sync_pins to avoid sequential git calls.
+  if [[ -e "$bundle_path" ]] && [[ -z "$pin" ]]; then
+    if [[ -n "$(git_config_get "$bundle_path" antidote.pin)" ]]; then
+      git_config_unset "$bundle_path" antidote.pin
+      unpin_branch="$branch"
+      if [[ -z "$unpin_branch" ]]; then
+        unpin_branch=$(git -C "$bundle_path" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)
+        unpin_branch=${unpin_branch#origin/}
+      fi
+      [[ -n "$unpin_branch" ]] && git -C "$bundle_path" checkout --quiet "$unpin_branch" 2>/dev/null
+    fi
+  fi
+  return 0
+}
+
+### Print the load script for a bundle after any cloning is done.
+#
+# Reads zsh_script's locals (kind, subpath, cond, autoload_path, pre, post,
+# fpath_rule, skip_load_defer, bundle_str, bundle_path, btype, bname) via
+# dynamic scoping.
+#
+zsh_script_render() {
+  local dopts zsh_defer zsh_defer_bundle source_cmd
+  local print_bundle_path initfile print_initfile fpath_script
+  local -a script
+
+  # add path to bundle
+  [[ -n "$subpath" ]] && bundle_path+="/$subpath"
+
+  # handle defer pre-reqs first
+  dopts=
+  zsh_defer='zsh-defer'
+  zstyle -s ":antidote:bundle:${bundle_str}" defer-options 'dopts'
+  [[ -n "$dopts" ]] && zsh_defer="zsh-defer $dopts"
+
+  # generate the script
+  script=()
+
+  # add pre-load function
+  [[ -n "$pre" ]] && script+=("$pre")
+
+  # handle defers
+  source_cmd="source"
+  zsh_defer_bundle=$ANTIDOTE_DEFER_BUNDLE
+  if [[ "$kind" == defer ]]; then
+    source_cmd="${zsh_defer} source"
+    if (( !skip_load_defer )); then
+      script+=(
+        'if ! (( $+functions[zsh-defer] )); then'
+        "$(zsh_script __bundle__ $zsh_defer_bundle | indent)"
+        'fi'
+      )
+    fi
+  fi
+
+  # Let's make the path a little nicer to deal with
+  print_path "$bundle_path"; print_bundle_path=$REPLY
+
+  # handle autoloading before sourcing
+  if [[ -n "$autoload_path" ]]; then
+    autoload_script "${print_bundle_path}/${autoload_path}" "$fpath_rule"
+    script+=("${reply[@]}")
+  fi
+
+  # generate load script - recheck type since path may have been appended
+  if [[ "$btype" != file ]] && [[ -f "$bundle_path" ]]; then
+    btype=file
+  fi
+  if [[ "$fpath_rule" == prepend ]]; then
+    fpath_script="fpath=( \"$print_bundle_path\" \$fpath )"
+  else
+    fpath_script="fpath+=( \"$print_bundle_path\" )"
+  fi
+
+  case "$kind" in
+    fpath)
+      script+="$fpath_script"
+      ;;
+    path)
+      script+="export PATH=\"$print_bundle_path:\$PATH\""
+      ;;
+    autoload)
+      autoload_script "$print_bundle_path" "$fpath_rule"
+      script+=("${reply[@]}")
+      ;;
+    *)
+      if [[ $btype == file ]]; then
+        script+="$source_cmd \"$print_bundle_path\""
+      else
+        # directory/default
+        initfiles $bundle_path
+        # if no init file was found, assume the default
+        if [[ $#reply -eq 0 ]]; then
+          if [[ -n "$subpath" ]]; then
+            reply=($bundle_path/${bundle_path:t}.plugin.zsh)
+          else
+            reply=($bundle_path/${bname:t}.plugin.zsh)
+          fi
+        fi
+        script+="$fpath_script"
+        for initfile in $reply; do
+          print_path "$initfile"; print_initfile=$REPLY
+          script+="$source_cmd \"$print_initfile\""
+        done
+      fi
+      ;;
+  esac
+
+  # add post-load function
+  if [[ -n "$post" ]]; then
+    if [[ "$kind" == defer ]]; then
+      script+=("${zsh_defer} $post")
+    else
+      script+=("$post")
+    fi
+  fi
+
+  # wrap conditional
+  if [[ -n "$cond" ]]; then
+    print "if $cond; then"
+    # (F)join + (@f)split flattens multiline elements so each line gets indented
+    printf "  %s\n" "${(@f)${(F)script}}"
+    print "fi"
+  else
+    printf "%s\n" $script
+  fi
+}
+
 ### Generate the Zsh script to load a plugin.
 #
 # usage: zsh_script __bundle__ <bundle> [key value ...]
@@ -924,11 +1112,10 @@ bundle_scripter_parallel() {
 # <kind> : zsh,path,fpath,defer,clone,autoload
 #
 zsh_script() {
-  local bundle_str bname bundle_path btype dopts zsh_defer zsh_defer_bundle giturl pin_sha unpin_branch
-  local source_cmd print_bundle_path initfile print_initfile fpath_script
+  local bundle_str bname bundle_path btype pin_sha
   local kind subpath branch pin cond autoload_path pre post fpath_rule skip_load_defer
   local -A bundle
-  local -a supported_kind_vals supported_fpath_rules script branch_flag
+  local -a supported_kind_vals supported_fpath_rules
 
   # Reconstruct assoc array from flat key-value arg list
   bundle=("$@")
@@ -1000,142 +1187,10 @@ zsh_script() {
     fi
   fi
 
-  # handle cloning repo bundles
-  if [[ "$btype" == (repo|url|ssh_url) ]] && [[ ! -e "$bundle_path" ]]; then
-    giturl=${bundle[__url__]:-}
-    [[ -z "$giturl" ]] && { tourl $bundle_str; giturl=$REPLY }
-    warn "# antidote cloning $bname..."
-    if [[ -n "$pin" ]]; then
-      git_clone $bundle_path $giturl || return 1
-      if ! git_checkout_pin "$bundle_path" "$pin_sha" "$bname"; then
-        del "$bundle_path"
-        return 1
-      fi
-      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin_sha
-    else
-      branch_flag=()
-      [[ -n "$branch" ]] && branch_flag=(-b "$branch")
-      git_clone $bundle_path "${branch_flag[@]}" $giturl || return 1
-    fi
-  fi
-
-  # Pin removed - clear config and return to branch so update can pull.
-  # Runs here (in parallel) rather than bundle_sync_pins to avoid sequential git calls.
-  if [[ "$btype" == (repo|url|ssh_url) ]] && [[ -e "$bundle_path" ]] && [[ -z "$pin" ]]; then
-    if [[ -n "$(git_config_get "$bundle_path" antidote.pin)" ]]; then
-      git_config_unset "$bundle_path" antidote.pin
-      unpin_branch="$branch"
-      if [[ -z "$unpin_branch" ]]; then
-        unpin_branch=$(git -C "$bundle_path" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)
-        unpin_branch=${unpin_branch#origin/}
-      fi
-      [[ -n "$unpin_branch" ]] && git -C "$bundle_path" checkout --quiet "$unpin_branch" 2>/dev/null
-    fi
-  fi
-
-  # if we only needed to clone the bundle, we're done
-  if [[ "$kind" == clone ]]; then
-    return
-  fi
-
-  # add path to bundle
-  [[ -n "$subpath" ]] && bundle_path+="/$subpath"
-
-  # handle defer pre-reqs first
-  dopts=
-  zsh_defer='zsh-defer'
-  zstyle -s ":antidote:bundle:${bundle_str}" defer-options 'dopts'
-  [[ -n "$dopts" ]] && zsh_defer="zsh-defer $dopts"
-
-  # generate the script
-  script=()
-
-  # add pre-load function
-  [[ -n "$pre" ]] && script+=("$pre")
-
-  # handle defers
-  source_cmd="source"
-  zsh_defer_bundle=$ANTIDOTE_DEFER_BUNDLE
-  if [[ "$kind" == defer ]]; then
-    source_cmd="${zsh_defer} source"
-    if (( !skip_load_defer )); then
-      script+=(
-        'if ! (( $+functions[zsh-defer] )); then'
-        "$(zsh_script __bundle__ $zsh_defer_bundle | indent)"
-        'fi'
-      )
-    fi
-  fi
-
-  # Let's make the path a little nicer to deal with
-  print_path "$bundle_path"; print_bundle_path=$REPLY
-
-  # handle autoloading before sourcing
-  if [[ -n "$autoload_path" ]]; then
-    autoload_script "${print_bundle_path}/${autoload_path}" "$fpath_rule"
-    script+=("${reply[@]}")
-  fi
-
-  # generate load script - recheck type since path may have been appended
-  if [[ "$btype" != file ]] && [[ -f "$bundle_path" ]]; then
-    btype=file
-  fi
-  if [[ "$fpath_rule" == prepend ]]; then
-    fpath_script="fpath=( \"$print_bundle_path\" \$fpath )"
-  else
-    fpath_script="fpath+=( \"$print_bundle_path\" )"
-  fi
-
-  if [[ "$kind" == fpath ]]; then
-    # fpath
-    script+="$fpath_script"
-  elif [[ "$kind" == path ]]; then
-    # path
-    script+="export PATH=\"$print_bundle_path:\$PATH\""
-  elif [[ "$kind" == autoload ]]; then
-    # autoload
-    autoload_script "$print_bundle_path" "$fpath_rule"
-    script+=("${reply[@]}")
-  else
-    if [[ $btype == file ]]; then
-      script+="$source_cmd \"$print_bundle_path\""
-    else
-      # directory/default
-      initfiles $bundle_path
-      # if no init file was found, assume the default
-      if [[ $#reply -eq 0 ]]; then
-        if [[ -n "$subpath" ]]; then
-          reply=($bundle_path/${bundle_path:t}.plugin.zsh)
-        else
-          reply=($bundle_path/${bname:t}.plugin.zsh)
-        fi
-      fi
-      script+="$fpath_script"
-      for initfile in $reply; do
-        print_path "$initfile"; print_initfile=$REPLY
-        script+="$source_cmd \"$print_initfile\""
-      done
-    fi
-  fi
-
-  # add post-load function
-  if [[ -n "$post" ]]; then
-    if [[ "$kind" == defer ]]; then
-      script+=("${zsh_defer} $post")
-    else
-      script+=("$post")
-    fi
-  fi
-
-  # wrap conditional
-  if [[ -n "$cond" ]]; then
-    print "if $cond; then"
-    # (F)join + (@f)split flattens multiline elements so each line gets indented
-    printf "  %s\n" "${(@f)${(F)script}}"
-    print "fi"
-  else
-    printf "%s\n" $script
-  fi
+  # clone if needed, then emit the load script
+  zsh_script_clone || return 1
+  [[ "$kind" == clone ]] && return 0
+  zsh_script_render
 }
 
 ##### COMMANDS
@@ -1358,6 +1413,62 @@ antidote_purge() {
   fi
 }
 
+### Fetch/pull one bundle and write its report to a tmpfile.
+#
+# usage: update_one_bundle <bundledir> <repo>
+# Run in the background by antidote_update; reads its locals (tmpdir,
+# o_dry_run, C_* colors) via dynamic scoping.
+#
+update_one_bundle() {
+  local bundledir="$1" repo="$2"
+  local repo_id tmpfile oldsha newsha
+  local GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
+
+  repo_id="${repo//\//-SLASH-}"
+  tmpfile="${tmpdir}/${repo_id}.output"
+  oldsha=$(git_sha "$bundledir")
+
+  # Isolate git from user config
+  GIT_CONFIG_GLOBAL=/dev/null
+  GIT_CONFIG_SYSTEM=/dev/null
+
+  # Unshallow the repo if needed
+  if git_is_shallow "$bundledir"; then
+    git_fetch "$bundledir" --unshallow || return 1
+  else
+    git_fetch "$bundledir" || return 1
+  fi
+
+  if (( $#o_dry_run )); then
+    # Compare local HEAD against fetched remote HEAD
+    newsha=$(git -C "$bundledir" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+  else
+    git_pull "$bundledir" || return 1
+    git_submodule_sync "$bundledir" || return 1
+    git_submodule_update "$bundledir" || return 1
+    newsha=$(git_sha "$bundledir")
+  fi
+
+  # Capture all output to temporary file
+  {
+    if [[ $oldsha != $newsha ]]; then
+      if (( $#o_dry_run )); then
+        say "${C_YELLOW}antidote:${C_NORMAL} update available: $repo ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
+      else
+        say "${C_GREEN}antidote:${C_NORMAL} updated: $repo ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
+      fi
+      git_log_oneline "$bundledir" "$oldsha" "$newsha"
+    fi
+
+    # recompile bundles
+    if ! (( $#o_dry_run )); then
+      if zstyle -t ":antidote:bundle:$repo" zcompile; then
+        bundle_zcompile $bundledir
+      fi
+    fi
+  } > "$tmpfile" 2>&1
+}
+
 ### Update antidote's cloned bundles.
 #
 # usage: antidote update [-h|--help] [-n|--dry-run]
@@ -1411,55 +1522,7 @@ antidote_update() {
     fi
 
     say "${C_BLUE}antidote:${C_NORMAL} checking for updates: $repo"
-
-    () {
-      local repo_id tmpfile oldsha newsha
-      local GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
-
-      repo_id="${repo//\//-SLASH-}"
-      tmpfile="${tmpdir}/${repo_id}.output"
-      oldsha=$(git_sha "$1")
-
-      # Isolate git from user config
-      GIT_CONFIG_GLOBAL=/dev/null
-      GIT_CONFIG_SYSTEM=/dev/null
-
-      # Unshallow the repo if needed
-      if git_is_shallow "$1"; then
-        git_fetch "$1" --unshallow || return 1
-      else
-        git_fetch "$1" || return 1
-      fi
-
-      if (( $#o_dry_run )); then
-        # Compare local HEAD against fetched remote HEAD
-        newsha=$(git -C "$1" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
-      else
-        git_pull "$1" || return 1
-        git_submodule_sync "$1" || return 1
-        git_submodule_update "$1" || return 1
-        newsha=$(git_sha "$1")
-      fi
-
-      # Capture all output to temporary file
-      {
-        if [[ $oldsha != $newsha ]]; then
-          if (( $#o_dry_run )); then
-            say "${C_YELLOW}antidote:${C_NORMAL} update available: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
-          else
-            say "${C_GREEN}antidote:${C_NORMAL} updated: $2 ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
-          fi
-          git_log_oneline "$1" "$oldsha" "$newsha"
-        fi
-
-        # recompile bundles
-        if ! (( $#o_dry_run )); then
-          if zstyle -t ":antidote:bundle:$repo" zcompile; then
-            bundle_zcompile $bundledir
-          fi
-        fi
-      } > "$tmpfile" 2>&1
-    } "$bundledir" "$repo" &
+    update_one_bundle "$bundledir" "$repo" &
   done
 
   say "Waiting for bundle updates to complete..."
