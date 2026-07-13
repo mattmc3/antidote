@@ -81,6 +81,19 @@ zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/bar/baz/baz.plugin.zsh"
 %
 ```
 
+## Clone-only bundles succeed with no output
+
+A bundle file of only kind:clone entries emits nothing, but that is
+success, not failure:
+
+```zsh
+% antidote bundle 'foo/baz kind:clone' 2>/dev/null; echo "exit: $?"
+exit: 0
+% antidote bundle 'foo/baz kind:clone' 2>/dev/null; echo "exit: $?"
+exit: 0
+%
+```
+
 ## Teardown
 
 ```zsh

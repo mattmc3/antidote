@@ -1200,7 +1200,7 @@ zsh_script() {
 # usage: antidote bundle [-h|--help] <bundle>...
 #
 antidote_bundle() {
-  local o_help bundle_output err=0
+  local o_help bundle_output err=0 i
   local -a zcompile_script
 
   # Ensure all stderr from this function starts with '#' so redirected bundle
@@ -1258,11 +1258,21 @@ antidote_bundle() {
   # clean up legacy path-style dirs after cloning is complete
   bundle_dir_cleanup_pass
 
+  # Clone failures happen in backgrounded scripts whose status is lost, so
+  # detect them here: every repo bundle must exist on disk after bundling.
+  for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+    [[ "${_parsed_bundles[$i,__type__]}" == (repo|url|ssh_url) ]] || continue
+    [[ -e "${_parsed_bundles[$i,__dir__]}" ]] || err=1
+  done
+
   # output static file compilation
   if zstyle -t ':antidote:static' zcompile; then
     printf '%s\n' $zcompile_script
   fi
-  [[ -n "$bundle_output" ]] && printf '%s\n' "$bundle_output" || err=$?
+  # No output is fine (eg clone-only bundles); only a failed print is an error.
+  if [[ -n "$bundle_output" ]]; then
+    printf '%s\n' "$bundle_output" || err=$?
+  fi
 
   # In dynamic mode, emit the use context so the parent shell can source it
   # and pass it back into the next subprocess call via ANTIDOTE_USING_CTX.
