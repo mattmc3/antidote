@@ -3,6 +3,7 @@ FROM alpine:latest
 RUN apk add --no-cache \
     zsh \
     bash \
+    bats \
     git \
     just \
     perl \

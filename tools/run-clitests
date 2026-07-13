@@ -5,16 +5,27 @@ setopt extended_glob
 local T_PRJDIR="${0:A:h:h}"
 cd "$T_PRJDIR"
 
-local o_unit o_rev
+local o_unit o_rev err=0
 zparseopts -D -M -- -unit=o_unit -rev=o_rev || return 1
 
+# Partition file args: *.bats runs under bats, the rest under clitest.
 testfiles=()
+batsfiles=()
 if (( $# > 0 )); then
-  testfiles=($@)
+  local f
+  for f in $@; do
+    if [[ "$f" == *.bats ]]; then
+      batsfiles+=($f)
+    else
+      testfiles+=($f)
+    fi
+  done
 elif (( $#o_unit )); then
   testfiles=($T_PRJDIR/tests/README.md $T_PRJDIR/tests/test_*.md~*test_real*~*foo*)
+  batsfiles=($T_PRJDIR/tests/bats/*.bats(N))
 else
   testfiles=($T_PRJDIR/tests/README.md $T_PRJDIR/tests/test_*.md)
+  batsfiles=($T_PRJDIR/tests/bats/*.bats(N))
 fi
 
 # if tests are run in reverse order, I can catch places where I didn't teardown properly
@@ -29,10 +40,23 @@ fi
 # Use ZSH_BINARY if set, otherwise fallback to default zsh
 ZSH=${ZSH_BINARY:-zsh}
 
-env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
-    $ZSH -f -- \
-    =clitest \
-        --list-run --progress dot --prompt '%' \
-        --color always \
-        --pre-flight 'git --version; print $T_PRJDIR $VENDOR $OSTYPE =$ZSH $ZSH_VERSION $ZSH_PATCHLEVEL' \
-        -- $testfiles
+if (( $#testfiles )); then
+  env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
+      $ZSH -f -- \
+      =clitest \
+          --list-run --progress dot --prompt '%' \
+          --color always \
+          --pre-flight 'git --version; print $T_PRJDIR $VENDOR $OSTYPE =$ZSH $ZSH_VERSION $ZSH_PATCHLEVEL' \
+          -- $testfiles || err=1
+fi
+
+if (( $#batsfiles )); then
+  if (( $+commands[bats] )); then
+    bats $batsfiles || err=1
+  else
+    print -ru2 "run-clitests: warning: bats not installed; skipping ${#batsfiles} bats file(s)."
+    print -ru2 "run-clitests: install with: brew install bats-core | apt install bats | apk add bats"
+  fi
+fi
+
+return $err
