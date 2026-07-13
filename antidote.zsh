@@ -46,6 +46,15 @@ die()  { warn "$@"; exit "${ERR:-1}"; }
 say()  { printf '%s\n' "$@"; }
 warn() { say "$@" >&2; }
 
+# Escape a string for use inside a JSON double-quoted value.
+json_escape() {
+  REPLY=${1//\\/\\\\}
+  REPLY=${REPLY//\"/\\\"}
+  REPLY=${REPLY//$'\n'/\\n}
+  REPLY=${REPLY//$'\r'/\\r}
+  REPLY=${REPLY//$'\t'/\\t}
+}
+
 # Prompt for a y/n answer unless a test zstyle provides one.
 # usage: confirm <test-zstyle-context> <prompt>
 confirm() {
@@ -1588,7 +1597,7 @@ antidote_list() {
     die "antidote: error: unexpected $1, try --help"
   fi
 
-  local bundledir url repo sha pin_ref
+  local bundledir url repo sha pin_ref jurl jrepo jpath
   local -a output=()
   local -a bundles=()
 
@@ -1607,12 +1616,16 @@ antidote_list() {
     if (( $#o_jsonl )); then
       sha=$(git_sha "$bundledir")
       pin_ref=$(git_config_get "$bundledir" antidote.pin)
+      json_escape "$url";       jurl=$REPLY
+      json_escape "$repo";      jrepo=$REPLY
+      json_escape "$bundledir"; jpath=$REPLY
       if [[ -n "$pin_ref" ]]; then
+        json_escape "$pin_ref"
         printf '{"url":"%s","repo":"%s","path":"%s","sha":"%s","pin":"%s"}\n' \
-          "$url" "$repo" "$bundledir" "$sha" "$pin_ref"
+          "$jurl" "$jrepo" "$jpath" "$sha" "$REPLY"
       else
         printf '{"url":"%s","repo":"%s","path":"%s","sha":"%s"}\n' \
-          "$url" "$repo" "$bundledir" "$sha"
+          "$jurl" "$jrepo" "$jpath" "$sha"
       fi
       continue
     elif (( $#o_long )); then

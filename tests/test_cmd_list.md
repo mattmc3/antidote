@@ -218,6 +218,22 @@ ohmy/ohmy    1cc5b7e
 %
 ```
 
+### JSONL escaping
+
+Quotes and backslashes in values must be JSON-escaped so every line
+stays valid JSON:
+
+```zsh
+% bundledir=$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+% command git -C $bundledir config remote.origin.url 'https://fakegitsite.com/foo/"bar\baz"'
+% antidote list --jsonl | jq -r '.url' | grep baz
+https://fakegitsite.com/bar/baz
+https://fakegitsite.com/foo/"bar\baz"
+https://fakegitsite.com/foo/baz
+% command git -C $bundledir config remote.origin.url 'https://fakegitsite.com/foo/bar'
+%
+```
+
 ## Teardown
 
 ```zsh
