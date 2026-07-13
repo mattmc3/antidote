@@ -30,7 +30,7 @@
       print "antidote: skipping self-update (dry run)"
     elif [[ -d "${antidote_dir}/.git" ]]; then
       print "Updating antidote..."
-      if git -C "$antidote_dir" pull --quiet --ff --rebase 2>/dev/null; then
+      if git -C "$antidote_dir" pull --quiet --rebase 2>/dev/null; then
         # re-setup antidote to pick up new version
         (( $+functions[antidote-setup] )) && unfunction antidote-setup
         builtin autoload -Uz ${0:A:h}/antidote-setup

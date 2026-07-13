@@ -101,7 +101,7 @@ git_checkout_pin() {
 git_pull() {
   local -a autostash_flag=(--autostash)
   [[ "$ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
-  git -C "$1" pull --quiet --ff --rebase $autostash_flag
+  git -C "$1" pull --quiet --rebase $autostash_flag
 }
 
 ##### BUNDLE DISCOVERY & CLONING
