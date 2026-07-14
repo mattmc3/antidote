@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build pinned Zsh 5.4.2 test image
         run: docker build -f Dockerfile.542 -t antidote-zsh542-ci .
       - name: Verify toolchain versions

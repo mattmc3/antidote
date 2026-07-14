@@ -12,8 +12,8 @@ jobs:
         os: [macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           repository: "aureliojargas/clitest"
           path: bin/clitest
@@ -21,6 +21,6 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
       - run: brew install bats-core parallel
         if: ${{ runner.os == 'macOS' }}
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v4
       - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH just test-all local
         shell: zsh {0}
