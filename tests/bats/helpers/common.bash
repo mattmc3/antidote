@@ -14,6 +14,11 @@
 #    Whole-output `expect` walls are only for script-generation and
 #    golden-file tests, where the full output is the contract.
 
+# Vendored assertion libs (tests/bats/lib): assert_success, assert_line,
+# assert_output, refute_*, etc.
+source "${BASH_SOURCE[0]%/*}/../lib/bats-support/load.bash"
+source "${BASH_SOURCE[0]%/*}/../lib/bats-assert/load.bash"
+
 antidote_common_setup() {
   cd "$BATS_TEST_DIRNAME" || return 1
   while [[ ! -f antidote.zsh && "$PWD" != / ]]; do cd ..; done

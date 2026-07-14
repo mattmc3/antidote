@@ -47,4 +47,7 @@
   do
     [[ -v $var ]] && unset $var
   done
+
+  # do not leak the status of the last conditional above
+  true
 #}
