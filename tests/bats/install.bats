@@ -14,8 +14,8 @@ install_session() {
   install_session <<'EOS'
 antidote install 2>&1; echo "exit: $?"
 EOS
-  expect "antidote: error: required argument 'bundle' not provided, try --help
-exit: 1"
+  assert_line --index 0 "antidote: error: required argument 'bundle' not provided, try --help"
+  assert_line --index 1 "exit: 1"
 }
 
 @test "installing an existing bundle fails" {
@@ -23,8 +23,8 @@ exit: 1"
 antidote install foo/bar &>/dev/null; echo "exit: $?"
 antidote install foo/bar 2>&1 | subenv HOME
 EOS
-  expect 'exit: 1
-antidote: error: foo/bar already installed: $HOME/.cache/antidote/fakegitsite.com/foo/bar'
+  assert_line --index 0 "exit: 1"
+  assert_line --index 1 'antidote: error: foo/bar already installed: $HOME/.cache/antidote/fakegitsite.com/foo/bar'
 }
 
 # The clone failure emits git error details with variable temp paths,
@@ -33,10 +33,10 @@ antidote: error: foo/bar already installed: $HOME/.cache/antidote/fakegitsite.co
 @test "installing a non-existent bundle fails" {
   install_session <<'EOS'
 antidote install does-not/exist &>/dev/null; echo "exit: $?"
-antidote install does-not/exist 2>&1 | grep 'unable to install'
+antidote install does-not/exist 2>&1 >/dev/null
 EOS
-  expect "exit: 1
-# antidote: unable to install bundle 'does-not/exist'."
+  assert_line "exit: 1"
+  assert_line "# antidote: unable to install bundle 'does-not/exist'."
 }
 
 @test "install clones and appends to the plugins file" {

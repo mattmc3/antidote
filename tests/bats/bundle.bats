@@ -62,20 +62,22 @@ EOF
   expect "$expected"
 }
 
-@test "bad kind values fail" {
+# Note: bad kind still exits 0 (only the parser sets exit 1); this
+# asserts the error message, matching the original clitest.
+@test "bad kind values report an error" {
   bundle_session <<'EOS'
-echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 | grep 'antidote: error:'
+echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 >/dev/null
 EOS
-  expect "# antidote: error: unexpected kind value: 'whoops'"
+  assert_line "# antidote: error: unexpected kind value: 'whoops'"
 }
 
 # A bundle file of only kind:clone entries emits nothing, but that is
 # success, not failure.
 @test "clone-only bundles succeed with no output" {
   bundle_session <<'EOS'
-antidote bundle 'foo/baz kind:clone' 2>/dev/null; echo "exit: $?"
-antidote bundle 'foo/baz kind:clone' 2>/dev/null; echo "exit: $?"
+antidote bundle 'foo/baz kind:clone' 2>/dev/null; echo "first exit: $?"
+antidote bundle 'foo/baz kind:clone' 2>/dev/null; echo "second exit: $?"
 EOS
-  expect "exit: 0
-exit: 0"
+  assert_line --index 0 "first exit: 0"
+  assert_line --index 1 "second exit: 0"
 }

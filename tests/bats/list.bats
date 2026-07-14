@@ -16,7 +16,7 @@ setup() {
 @test "list reports when there are no bundles" {
   rm -rf "$AHOME" && mkdir -p "$AHOME"
   run antidote list
-  expect "antidote: list: no bundles found in '\$HOME/.cache/antidote'"
+  assert_output "antidote: list: no bundles found in '\$HOME/.cache/antidote'"
 }
 
 @test "list default shows path and url, tab separated" {
@@ -55,28 +55,28 @@ $AHOME/fakegitsite.com/ohmy/ohmy"
 
 @test "list --long shows repo, path, url, and sha" {
   run antidote list --long
-  [[ "$output" == "Repo:   bar/baz
-Path:   \$HOME/.cache/antidote/fakegitsite.com/bar/baz
-URL:    https://fakegitsite.com/bar/baz
-SHA:    $BARBAZ_SHA"* ]]
+  assert_line --index 0 "Repo:   bar/baz"
+  assert_line --index 1 'Path:   $HOME/.cache/antidote/fakegitsite.com/bar/baz'
+  assert_line --index 2 "URL:    https://fakegitsite.com/bar/baz"
+  assert_line --index 3 "SHA:    $BARBAZ_SHA"
 }
 
 @test "list --long shows full SSH URLs and no Pinned line when unpinned" {
   run antidote list --long
-  [[ "$output" == *"Repo:   git@fakegitsite.com:foo/qux"* ]]
-  [[ "$output" != *"Pinned:"* ]]
+  assert_line "Repo:   git@fakegitsite.com:foo/qux"
+  refute_output --partial "Pinned:"
 }
 
 @test "list --jsonl emits one valid json object per bundle" {
   run antidote list --jsonl
   [ "${#lines[@]}" -eq 6 ]
-  [[ "$output" == *"{\"url\":\"https://fakegitsite.com/bar/baz\",\"repo\":\"bar/baz\",\"path\":\"$AHOME/fakegitsite.com/bar/baz\",\"sha\":\"$BARBAZ_SHA\"}"* ]]
-  [[ "$output" != *'"pin"'* ]]
+  assert_line "{\"url\":\"https://fakegitsite.com/bar/baz\",\"repo\":\"bar/baz\",\"path\":\"$AHOME/fakegitsite.com/bar/baz\",\"sha\":\"$BARBAZ_SHA\"}"
+  refute_output --partial '"pin"'
 }
 
 @test "list --jsonl parses with jq" {
   output=$(antidote list --jsonl | jq -r '.repo' | sort | paste -sd, -)
-  expect "bar/baz,foo/bar,foo/baz,getantidote/zsh-defer,git@fakegitsite.com:foo/qux,ohmy/ohmy"
+  assert_output "bar/baz,foo/bar,foo/baz,getantidote/zsh-defer,git@fakegitsite.com:foo/qux,ohmy/ohmy"
 }
 
 # Quotes and backslashes in values must be JSON-escaped so every line
@@ -84,5 +84,5 @@ SHA:    $BARBAZ_SHA"* ]]
 @test "list --jsonl escapes quotes and backslashes" {
   git -C "$AHOME/fakegitsite.com/foo/bar" config remote.origin.url 'https://fakegitsite.com/foo/"bar\baz"'
   run antidote list --jsonl
-  [[ "$output" == *'"url":"https://fakegitsite.com/foo/\"bar\\baz\""'* ]]
+  assert_output --partial '"url":"https://fakegitsite.com/foo/\"bar\\baz\""'
 }

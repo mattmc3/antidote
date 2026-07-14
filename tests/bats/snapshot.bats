@@ -21,7 +21,7 @@ zstyle ':antidote:test:snapshot' epoch $1" antidote snapshot save >/dev/null
 
 @test "snapshot save creates one snapshot file" {
   run antidote snapshot save
-  [[ "$output" == *"Snapshot saved:"* ]]
+  assert_output --partial "Snapshot saved:"
   run ls "$SNAP_DIR"
   [ "${#lines[@]}" -eq 1 ]
 }
@@ -29,20 +29,20 @@ zstyle ':antidote:test:snapshot' epoch $1" antidote snapshot save >/dev/null
 @test "snapshot file has comment headers" {
   antidote snapshot save >/dev/null
   run head -3 "$SNAP_DIR"/snapshot-*.txt
-  [ "${lines[0]}" = "# antidote snapshot" ]
-  [[ "${lines[1]}" =~ ^"# version: "[0-9]+\.[0-9]+\.[0-9]+$ ]]
-  [[ "${lines[2]}" =~ ^"# date: "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+  assert_line --index 0 "# antidote snapshot"
+  assert_line --index 1 --regexp '^# version: [0-9]+\.[0-9]+\.[0-9]+$'
+  assert_line --index 2 --regexp '^# date: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$'
 }
 
 @test "snapshot body matches the expected fixture" {
   antidote snapshot save >/dev/null
   run diff <(tail -n +4 "$SNAP_DIR"/snapshot-*.txt) "$PRJDIR/tests/testdata/.zsh_plugins.snapshot.txt"
-  [ "$status" -eq 0 ]
+  assert_success
 }
 
 @test "snapshot home prints the snapshot dir" {
   run antidote snapshot home
-  expect "$SNAP_DIR"
+  assert_output "$SNAP_DIR"
 }
 
 @test "snapshot list shows saved snapshots" {
@@ -61,19 +61,19 @@ zstyle ':antidote:test:snapshot' epoch 1000000002" antidote update &>/dev/null
   run ls "$SNAP_DIR"
   [ "${#lines[@]}" -eq 2 ]
   run diff <(tail -n +4 "$SNAP_DIR/snapshot-20010909-014642Z.txt") "$PRJDIR/tests/testdata/.zsh_plugins.snapshot.txt"
-  [ "$status" -eq 0 ]
+  assert_success
 }
 
 @test "snapshot restore succeeds from a saved snapshot" {
   save_at_epoch 1000000001
   run antidote snapshot restore "$SNAP_DIR"/snapshot-*.txt
-  [ "$status" -eq 0 ]
+  assert_success
 }
 
 @test "dynamic mode skips snapshot save" {
   EXTRA_ENV="ANTIDOTE_DYNAMIC=true"
   run antidote snapshot save
-  expect ""
+  refute_output
   [ ! -d "$SNAP_DIR" ]
 }
 
@@ -85,13 +85,13 @@ zstyle ':antidote:snapshot:automatic' enabled no"
   antidote update &>/dev/null
   [ ! -d "$SNAP_DIR" ]
   run antidote snapshot save
-  [[ "$output" == *"Snapshot saved:"* ]]
+  assert_output --partial "Snapshot saved:"
 }
 
 @test "snapshot dir zstyle relocates snapshots" {
   ZSTYLES="zstyle ':antidote:snapshot' dir $TESTHOME/.antidote-snaps"
   run antidote snapshot save
-  [[ "$output" == *"$TESTHOME/.antidote-snaps"* ]]
+  assert_output --partial "$TESTHOME/.antidote-snaps"
   [ -d "$TESTHOME/.antidote-snaps" ]
 }
 
@@ -108,17 +108,17 @@ zstyle ':antidote:snapshot' max 3"
 
 @test "snapshot --help and unknown subcommands" {
   run antidote snapshot --help
-  [[ "$output" == *snapshot* ]]
+  assert_output --partial snapshot
   run antidote snapshot foo
-  [ "$status" -eq 1 ]
-  expect "antidote: snapshot: unknown subcommand 'foo'"
+  assert_failure 1
+  assert_output "antidote: snapshot: unknown subcommand 'foo'"
 }
 
 @test "restore without a file and without a picker errors" {
   save_at_epoch 1000000001
   run antidote snapshot restore
-  [ "$status" -eq 1 ]
-  expect "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
+  assert_failure 1
+  assert_output "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
 }
 
 @test "restore with a picker but no snapshots errors" {
@@ -126,36 +126,36 @@ zstyle ':antidote:snapshot' max 3"
 zstyle ':antidote:fzf' cmd $PRJDIR/tests/bin/mock_fzf"
   mkdir -p "$SNAP_DIR"
   run antidote snapshot restore
-  [ "$status" -eq 1 ]
-  expect "antidote: snapshot: no snapshots found"
+  assert_failure 1
+  assert_output "antidote: snapshot: no snapshots found"
 }
 
 @test "restore with a missing file errors" {
   run antidote snapshot restore /nonexistent/snapshot.txt
-  [ "$status" -eq 1 ]
-  expect "antidote: snapshot: file not found '/nonexistent/snapshot.txt'"
+  assert_failure 1
+  assert_output "antidote: snapshot: file not found '/nonexistent/snapshot.txt'"
 }
 
 @test "remove deletes the given snapshot file" {
   save_at_epoch 1000000001
   save_at_epoch 1000000002
   run antidote snapshot remove "$SNAP_DIR/snapshot-20010909-014641Z.txt"
-  [[ "$output" == Removed:* ]]
+  assert_output --partial "Removed:"
   run ls "$SNAP_DIR"
   [ "${#lines[@]}" -eq 1 ]
 }
 
 @test "remove errors: missing file, no picker, no snapshots" {
   run antidote snapshot remove /nonexistent/snapshot.txt
-  [[ "$output" == *"file not found '/nonexistent/snapshot.txt'"* ]]
+  assert_output --partial "file not found '/nonexistent/snapshot.txt'"
   save_at_epoch 1000000001
   run antidote snapshot remove
-  expect "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
+  assert_output "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
   rm -rf "$SNAP_DIR"; mkdir -p "$SNAP_DIR"
   ZSTYLES="zstyle ':antidote:snapshot' dir $SNAP_DIR
 zstyle ':antidote:fzf' cmd $PRJDIR/tests/bin/mock_fzf"
   run antidote snapshot remove
-  expect "antidote: snapshot: no snapshots found"
+  assert_output "antidote: snapshot: no snapshots found"
 }
 
 @test "snapshot list is newest first" {
@@ -163,8 +163,8 @@ zstyle ':antidote:fzf' cmd $PRJDIR/tests/bin/mock_fzf"
   save_at_epoch 1000000002
   save_at_epoch 1000000003
   run antidote snapshot list
-  [ "${lines[0]}" = "$SNAP_DIR/snapshot-20010909-014643Z.txt" ]
-  [ "${lines[2]}" = "$SNAP_DIR/snapshot-20010909-014641Z.txt" ]
+  assert_line --index 0 "$SNAP_DIR/snapshot-20010909-014643Z.txt"
+  assert_line --index 2 "$SNAP_DIR/snapshot-20010909-014641Z.txt"
 }
 
 @test "restore returns a rolled-back repo to the snapshotted SHA" {
@@ -176,5 +176,5 @@ zstyle ':antidote:fzf' cmd $PRJDIR/tests/bin/mock_fzf"
   git -C "$bundledir" reset --quiet --hard HEAD~1
   antidote snapshot restore "$SNAP_DIR"/snapshot-*.txt &>/dev/null
   run git -C "$bundledir" rev-parse HEAD
-  [ "$output" = "$expected_sha" ]
+  assert_output "$expected_sha"
 }

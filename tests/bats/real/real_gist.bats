@@ -17,11 +17,7 @@ antidote bundle https://gist.github.com/mattmc3/6bc5646ae0fb7cc86502933ca6661d5c
 antidote path https://gist.github.com/mattmc3/6bc5646ae0fb7cc86502933ca6661d5c.git | subenv ANTIDOTE_HOME
 antidote list --url | grep gist
 EOS
-  expected=$(cat <<'EOF'
-# antidote cloning mattmc3/6bc5646ae0fb7cc86502933ca6661d5c...
-$ANTIDOTE_HOME/mattmc3/6bc5646ae0fb7cc86502933ca6661d5c
-https://gist.github.com/mattmc3/6bc5646ae0fb7cc86502933ca6661d5c.git
-EOF
-)
-  expect "$expected"
+  assert_line --index 0 "# antidote cloning mattmc3/6bc5646ae0fb7cc86502933ca6661d5c..."
+  assert_line --index 1 '$ANTIDOTE_HOME/mattmc3/6bc5646ae0fb7cc86502933ca6661d5c'
+  assert_line --index 2 "https://gist.github.com/mattmc3/6bc5646ae0fb7cc86502933ca6661d5c.git"
 }

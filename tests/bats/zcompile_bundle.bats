@@ -12,14 +12,14 @@ setup() {
 @test "zcompile off leaves no zwc for a file bundle" {
   ZSTYLES="zstyle ':antidote:bundle:*' zcompile 'no'"
   run antidote bundle "$ZDOTDIR/custom/lib/lib1.zsh"
-  expect 'source "$HOME/.zsh/custom/lib/lib1.zsh"'
+  assert_output 'source "$HOME/.zsh/custom/lib/lib1.zsh"'
   [ ! -e "$ZDOTDIR/custom/lib/lib1.zsh.zwc" ]
 }
 
 @test "zcompile off leaves no zwc for a theme bundle" {
   ZSTYLES="zstyle ':antidote:bundle:*' zcompile 'no'"
   run antidote bundle "$ZDOTDIR/custom/plugins/mytheme"
-  expect 'fpath+=( "$HOME/.zsh/custom/plugins/mytheme" )
+  assert_output 'fpath+=( "$HOME/.zsh/custom/plugins/mytheme" )
 source "$HOME/.zsh/custom/plugins/mytheme/mytheme.zsh-theme"'
   [ ! -e "$ZDOTDIR/custom/plugins/mytheme/mytheme.zsh-theme.zwc" ]
 }

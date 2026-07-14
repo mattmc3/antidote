@@ -28,15 +28,15 @@ check_critical() {
 @test "clone with pin checks out the pinned SHA detached" {
   antidote bundle "pintest/pinme pin:$V100" >/dev/null
   run git -C "$PINDIR" rev-parse HEAD
-  [ "$output" = "$V100" ]
+  assert_output "$V100"
   run git -C "$PINDIR" rev-parse --abbrev-ref HEAD
-  [ "$output" = "HEAD" ]
+  assert_output "HEAD"
 }
 
 @test "clone with pin records the pin in git config" {
   antidote bundle "pintest/pinme pin:$V100" >/dev/null
   run git -C "$PINDIR" config --get antidote.pin
-  [ "$output" = "$V100" ]
+  assert_output "$V100"
 }
 
 # Output paths print with a literal '$HOME' prefix (print_path).
@@ -50,25 +50,25 @@ source "$HOME/.cache/antidote/fakegitsite.com/pintest/pinme/pinme.plugin.zsh"'
 @test "update skips pinned bundles" {
   antidote bundle "pintest/pinme pin:$V100" >/dev/null
   run antidote update -n
-  [[ "$output" == *"skipping update for pinned bundle: pintest/pinme (at 64642c5...)"* ]]
+  assert_output --partial "skipping update for pinned bundle: pintest/pinme (at 64642c5...)"
 }
 
 @test "re-bundling with a new pin advances the checkout" {
   antidote bundle "pintest/pinme pin:$V100" >/dev/null
   antidote bundle "pintest/pinme pin:$V110" >/dev/null
   run git -C "$PINDIR" rev-parse HEAD
-  [ "$output" = "$V110" ]
+  assert_output "$V110"
   run git -C "$PINDIR" config --get antidote.pin
-  [ "$output" = "$V110" ]
+  assert_output "$V110"
 }
 
 @test "removing the pin clears git config and returns to a branch" {
   antidote bundle "pintest/pinme pin:$V110" >/dev/null
   antidote bundle 'pintest/pinme' >/dev/null
   run git -C "$PINDIR" config --get antidote.pin
-  [ "$status" -eq 1 ]
+  assert_failure 1
   run git -C "$PINDIR" rev-parse --abbrev-ref HEAD
-  [ "$output" = "main" ]
+  assert_output "main"
 }
 
 @test "after unpinning, update pulls to the latest commit" {
@@ -76,103 +76,103 @@ source "$HOME/.cache/antidote/fakegitsite.com/pintest/pinme/pinme.plugin.zsh"'
   antidote bundle 'pintest/pinme' >/dev/null
   antidote update &>/dev/null
   run git -C "$PINDIR" rev-parse HEAD
-  [ "$output" = "$V120" ]
+  assert_output "$V120"
 }
 
 @test "re-adding a pin re-checks out and records it" {
   antidote bundle 'pintest/pinme' >/dev/null
   antidote bundle "pintest/pinme pin:$V100" >/dev/null
   run git -C "$PINDIR" config --get antidote.pin
-  [ "$output" = "$V100" ]
+  assert_output "$V100"
   run git -C "$PINDIR" rev-parse --abbrev-ref HEAD
-  [ "$output" = "HEAD" ]
+  assert_output "HEAD"
 }
 
 # Short SHAs are rejected because the git protocol cannot resolve them
 # on remotes.
 @test "short SHA is rejected" {
   run antidote bundle 'pintest/pinme pin:64642c5'
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"pin requires a full 40-character commit SHA, got '64642c5'"* ]]
+  assert_failure
+  assert_output --partial "pin requires a full 40-character commit SHA, got '64642c5'"
 }
 
 @test "list --long shows the pin" {
   antidote bundle "pintest/pinme pin:$V110" &>/dev/null
   run antidote list --long
-  [[ "$output" == *"Pinned: $V110"* ]]
+  assert_output --partial "Pinned: $V110"
 }
 
 @test "list --jsonl includes the pin field" {
   antidote bundle "pintest/pinme pin:$V110" &>/dev/null
   run antidote list --jsonl
-  [[ "$output" == *"\"pin\":\"$V110\""* ]]
+  assert_output --partial "\"pin\":\"$V110\""
 }
 
 @test "kind:clone pins move forward and backward" {
   antidote bundle "pintest/pinme kind:clone pin:$V100" &>/dev/null
   antidote bundle "pintest/pinme kind:clone pin:$V120" >/dev/null
   run git -C "$PINDIR" rev-parse HEAD
-  [ "$output" = "$V120" ]
+  assert_output "$V120"
   antidote bundle "pintest/pinme kind:clone pin:$V100" >/dev/null
   run git -C "$PINDIR" rev-parse HEAD
-  [ "$output" = "$V100" ]
+  assert_output "$V100"
 }
 
 # Tags work with branch: the same as branch names.
 @test "branch annotation accepts a tag" {
   antidote bundle 'pintest/pinme branch:v1.0.0' &>/dev/null
   run git -C "$PINDIR" rev-parse HEAD
-  [ "$output" = "$V100" ]
+  assert_output "$V100"
 }
 
 @test "pin with an unknown SHA fails and cleans up the clone" {
   run antidote __private__ zsh_script __bundle__ pintest/pinme kind clone pin deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"pin commit 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' not found for pintest/pinme"* ]]
+  assert_failure
+  assert_output --partial "pin commit 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' not found for pintest/pinme"
   [ ! -d "$PINDIR" ]
 }
 
 @test "pin with a non-SHA value is rejected without cloning" {
   run antidote __private__ zsh_script __bundle__ pintest/pinme kind clone pin v99.0.0
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"pin requires a full 40-character commit SHA, got 'v99.0.0'"* ]]
+  assert_failure
+  assert_output --partial "pin requires a full 40-character commit SHA, got 'v99.0.0'"
   [ ! -d "$PINDIR" ]
 }
 
 @test "conflicting pins are a critical error" {
   run check_critical 'pintest/pinme pin:aaa' 'pintest/pinme pin:bbb'
-  [ "$status" -ne 0 ]
-  expect "# antidote: critical error on line 2: conflicting pin for 'pintest/pinme': pin:bbb vs pin:aaa"
+  assert_failure
+  assert_output "# antidote: critical error on line 2: conflicting pin for 'pintest/pinme': pin:bbb vs pin:aaa"
 }
 
 @test "conflicting branches are a critical error" {
   run check_critical 'foo/bar branch:main' 'foo/bar branch:dev'
-  [ "$status" -ne 0 ]
-  expect "# antidote: critical error on line 2: conflicting branch for 'foo/bar': branch:dev vs branch:main"
+  assert_failure
+  assert_output "# antidote: critical error on line 2: conflicting branch for 'foo/bar': branch:dev vs branch:main"
 }
 
 @test "mixed pin/no-pin for the same repo is a critical error" {
   run check_critical 'pintest/pinme pin:aaa' 'pintest/pinme path:lib'
-  [ "$status" -ne 0 ]
-  expect "# antidote: critical error on line 2: inconsistent pin for 'pintest/pinme': some entries have pin:aaa, others do not"
+  assert_failure
+  assert_output "# antidote: critical error on line 2: inconsistent pin for 'pintest/pinme': some entries have pin:aaa, others do not"
 }
 
 @test "mixed branch/no-branch for the same repo is a critical error" {
   run check_critical 'foo/bar branch:dev' 'foo/bar path:lib'
-  [ "$status" -ne 0 ]
-  expect "# antidote: critical error on line 2: inconsistent branch for 'foo/bar': some entries have branch:dev, others do not"
+  assert_failure
+  assert_output "# antidote: critical error on line 2: inconsistent branch for 'foo/bar': some entries have branch:dev, others do not"
 }
 
 @test "identical pins and unrelated pins are fine" {
   run check_critical 'pintest/pinme pin:aaa' 'pintest/pinme pin:aaa path:lib'
-  [ "$status" -eq 0 ]
+  assert_success
   run check_critical 'foo/bar pin:aaa' 'pintest/pinme pin:bbb'
-  [ "$status" -eq 0 ]
+  assert_success
 }
 
 @test "bundling with conflicting pins fails end-to-end" {
   run antidote bundle "pintest/pinme pin:aaa path:lib
 pintest/pinme pin:bbb path:other"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"conflicting pin for 'pintest/pinme': pin:bbb vs pin:aaa"* ]]
+  assert_failure
+  assert_output --partial "conflicting pin for 'pintest/pinme': pin:bbb vs pin:aaa"
 }

@@ -39,17 +39,17 @@ Bundle updates complete."
   local sha_before
   sha_before=$(git -C "$BAZDIR" rev-parse --short HEAD)
   run antidote update --dry-run
-  [[ "$output" == *"antidote: update available: foo/baz bde701c -> 98cdde2"* ]]
+  assert_output --partial "antidote: update available: foo/baz bde701c -> 98cdde2"
   run git -C "$BAZDIR" rev-parse --short HEAD
-  [ "$output" = "$sha_before" ]
+  assert_output "$sha_before"
 }
 
 @test "update pulls a rolled-back bundle to the latest commit" {
   rollback_foo_baz
   run antidote update
-  [[ "$output" == *"antidote: updated: foo/baz bde701c -> 98cdde2"* ]]
+  assert_output --partial "antidote: updated: foo/baz bde701c -> 98cdde2"
   run git -C "$BAZDIR" rev-parse --short HEAD
-  [ "$output" = "98cdde2" ]
+  assert_output "98cdde2"
 }
 
 # Update succeeds despite a dirty working tree, preserving both tracked
@@ -61,9 +61,9 @@ zstyle ':antidote:test:git' autostash on"
   echo "junk" >>"$BAZDIR/baz.plugin.zsh"
   echo "untracked" >"$BAZDIR/untracked.txt"
   run antidote update
-  [[ "$output" == *"antidote: updated: foo/baz bde701c -> 98cdde2"* ]]
+  assert_output --partial "antidote: updated: foo/baz bde701c -> 98cdde2"
   run grep -c junk "$BAZDIR/baz.plugin.zsh"
-  [ "$output" = "1" ]
+  assert_output "1"
   [ -f "$BAZDIR/untracked.txt" ]
 }
 

@@ -15,20 +15,20 @@ script_session() {
 antidote __private__ zsh_script &>/dev/null; echo "exit: $?"
 antidote __private__ zsh_script 2>&1
 EOS
-  expect "exit: 1
-antidote: error: bundle argument expected"
+  assert_line "exit: 1"
+  assert_line "antidote: error: bundle argument expected"
 }
 
 # zsh_script accepts flat key-value pairs as an assoc array.
 @test "zsh_script validates kind values" {
   script_session <<'EOS'
-antidote __private__ zsh_script __bundle__ foo/bar kind zsh >/dev/null; echo "exit: $?"
-antidote __private__ zsh_script __bundle__ foo/bar >/dev/null; echo "exit: $?"
+antidote __private__ zsh_script __bundle__ foo/bar kind zsh >/dev/null; echo "kind zsh exit: $?"
+antidote __private__ zsh_script __bundle__ foo/bar >/dev/null; echo "no kind exit: $?"
 antidote __private__ zsh_script __bundle__ foo/bar kind badkind 2>&1
 EOS
-  expect "exit: 0
-exit: 0
-antidote: error: unexpected kind value: 'badkind'"
+  assert_line "kind zsh exit: 0"
+  assert_line "no kind exit: 0"
+  assert_line "antidote: error: unexpected kind value: 'badkind'"
 }
 
 # zsh_script works with local files and directories as well as repos.
@@ -68,7 +68,7 @@ EOS
 antidote __private__ zsh_script __bundle__ foo/bar kind clone
 antidote __private__ zsh_script __bundle__ themes/ohmytheme kind clone
 EOS
-  expect "# antidote cloning themes/ohmytheme..."
+  assert_output "# antidote cloning themes/ohmytheme..."
 }
 
 @test "kind zsh, path, fpath, and autoload script output" {

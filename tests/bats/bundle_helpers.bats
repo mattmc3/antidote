@@ -38,7 +38,7 @@ EOF
   bundle_session <<'EOS'
 cat $T_TESTDATA/.zsh_plugins_empty.txt | antidote-zsh __private__ bulk_clone
 EOS
-  expect ""
+  refute_output
 }
 
 @test "bundle_scripter emits zsh_script statements" {

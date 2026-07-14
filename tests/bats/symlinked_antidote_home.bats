@@ -21,7 +21,7 @@ zstyle ':antidote:test:git' autostash off"
 
 @test "home reports the symlink path" {
   run antidote home
-  [ "$output" = "$AHOME" ]
+  assert_output "$AHOME"
 }
 
 @test "list warns for an empty symlinked home" {
@@ -31,7 +31,7 @@ zstyle ':antidote:test:git' autostash off"
 
 @test "bundle clones through the symlink into the real dir" {
   run antidote bundle foo/bar
-  [ "$status" -eq 0 ]
+  assert_success
   [ -d "$REAL_HOME/fakegitsite.com/foo/bar/.git" ]
 }
 
@@ -49,23 +49,23 @@ https://fakegitsite.com/pintest/pinme"
 @test "list --long and --jsonl work through the symlink" {
   antidote bundle foo/bar &>/dev/null
   run antidote list --long
-  [[ "$output" == *"Path:   \$HOME/.cache/antidote-link/fakegitsite.com/foo/bar"* ]]
+  assert_output --partial "Path:   \$HOME/.cache/antidote-link/fakegitsite.com/foo/bar"
   run antidote list --jsonl
-  [[ "$output" == *"\"path\":\"$AHOME/fakegitsite.com/foo/bar\""* ]]
+  assert_output --partial "\"path\":\"$AHOME/fakegitsite.com/foo/bar\""
 }
 
 @test "path resolves bundles through the symlink" {
   antidote bundle foo/bar &>/dev/null
   run antidote path foo/bar
-  [ "$output" = "$AHOME/fakegitsite.com/foo/bar" ]
+  assert_output "$AHOME/fakegitsite.com/foo/bar"
 }
 
 @test "pinned bundles are skipped by update through the symlink" {
   antidote bundle "pintest/pinme pin:$V100" &>/dev/null
   run antidote update -n
-  [[ "$output" == *"skipping update for pinned bundle: pintest/pinme"* ]]
+  assert_output --partial "skipping update for pinned bundle: pintest/pinme"
   run git -C "$AHOME/fakegitsite.com/pintest/pinme" rev-parse HEAD
-  [ "$output" = "$V100" ]
+  assert_output "$V100"
 }
 
 @test "unpinned bundles update through the symlink" {
@@ -73,7 +73,7 @@ https://fakegitsite.com/pintest/pinme"
   antidote bundle 'pintest/pinme' >/dev/null
   antidote update &>/dev/null
   run git -C "$AHOME/fakegitsite.com/pintest/pinme" rev-parse HEAD
-  [ "$output" = "$V120" ]
+  assert_output "$V120"
 }
 
 # Snapshot save enumerates bundles via find_bundles, which scans
@@ -81,7 +81,7 @@ https://fakegitsite.com/pintest/pinme"
 @test "snapshot save works through the symlink" {
   antidote bundle foo/bar &>/dev/null
   run antidote snapshot save
-  [[ "$output" == *"Snapshot saved:"* ]]
+  assert_output --partial "Snapshot saved:"
   run antidote snapshot list
   [[ "$output" == *snapshot-*.txt ]]
 }
@@ -89,7 +89,7 @@ https://fakegitsite.com/pintest/pinme"
 @test "purge removes a bundle from the symlink target" {
   antidote bundle foo/bar &>/dev/null
   run antidote purge foo/bar
-  [[ "$output" == *"Removed 'foo/bar'."* ]]
+  assert_output --partial "Removed 'foo/bar'."
   [ ! -d "$REAL_HOME/fakegitsite.com/foo/bar" ]
 }
 
@@ -98,11 +98,11 @@ https://fakegitsite.com/pintest/pinme"
   ZSTYLES="$ZSTYLES
 zstyle ':antidote:test:purge' answer 'y'"
   run antidote purge --all
-  [[ "$output" == *"Antidote purge complete."* ]]
+  assert_output --partial "Antidote purge complete."
   [ ! -e "$AHOME" ]
   [ -d "$REAL_HOME" ]
   run find "$REAL_HOME" -mindepth 1
-  [ "$output" = "" ]
+  refute_output
 }
 
 # Documents current behavior when the symlink target is outside $HOME:
@@ -115,6 +115,6 @@ zstyle ':antidote:test:purge' answer 'y'"
   EXTRA_ENV="ANTIDOTE_TMPDIR=$BATS_TEST_TMPDIR"
   antidote bundle foo/bar &>/dev/null
   run antidote purge foo/bar
-  [[ "$output" == *"Removed 'foo/bar'."* ]]
+  assert_output --partial "Removed 'foo/bar'."
   [ ! -d "$REAL_EXT/fakegitsite.com/foo/bar" ]
 }

@@ -6,9 +6,7 @@ load helpers/common
 setup() { antidote_common_setup; }
 
 @test "antidote init emits the dynamic-mode function" {
-  run_session <<'EOS'
-antidote init
-EOS
+  run_session <<<'antidote init'
   expected=$(cat <<'EOF'
 #!/usr/bin/env zsh
 function antidote {
@@ -31,7 +29,7 @@ EOF
 source <(antidote init)
 antidote bundle foo/bar
 EOS
-  expect "# antidote cloning foo/bar...
+  assert_output "# antidote cloning foo/bar...
 sourcing bar.plugin.zsh from foo/bar..."
 }
 
@@ -41,7 +39,7 @@ source <(antidote init)
 antidote bundle foo/baz autoload:functions &>/dev/null
 echo "baz autoloaded: $+functions[baz]"
 EOS
-  expect "baz autoloaded: 1"
+  assert_output "baz autoloaded: 1"
 }
 
 @test "dynamic mode tracks plugins and libs arrays" {
@@ -52,7 +50,7 @@ antidote bundle foo/baz autoload:functions &>/dev/null
 antidote bundle $ZDOTDIR/custom/lib &>/dev/null
 echo "plugins: $#plugins libs: $#libs"
 EOS
-  expect "plugins: 2 libs: 2"
+  assert_output "plugins: 2 libs: 2"
 }
 
 @test "dynamic using: context persists across calls" {
@@ -62,7 +60,7 @@ antidote bundle using:ohmy/ohmy path:plugins &>/dev/null
 antidote bundle docker
 antidote bundle extract
 EOS
-  expect "sourcing plugins/docker/docker.plugin.zsh from ohmy/ohmy...
+  assert_output "sourcing plugins/docker/docker.plugin.zsh from ohmy/ohmy...
 sourcing plugins/extract/extract.plugin.zsh from ohmy/ohmy..."
 }
 
@@ -73,7 +71,7 @@ antidote bundle using:ohmy/ohmy path:plugins &>/dev/null
 antidote bundle using:foo/bar &>/dev/null
 antidote bundle bar.plugin.zsh
 EOS
-  expect "sourcing bar.plugin.zsh from foo/bar..."
+  assert_output "sourcing bar.plugin.zsh from foo/bar..."
 }
 
 @test "dynamic path-based using: loads local subplugins" {
@@ -83,5 +81,5 @@ antidote bundle using:$ZDOTDIR/custom path:plugins
 antidote bundle myplugin
 antidote bundle doesnotexist 2>/dev/null
 EOS
-  expect "sourcing myplugin..."
+  assert_output "sourcing myplugin..."
 }

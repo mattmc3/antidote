@@ -25,6 +25,6 @@ unsetopt KSH_ARRAYS SH_GLOB
 antidote bundle foo/bar >/dev/null
 echo "ksh_arrays=${options[ksharrays]} sh_glob=${options[shglob]}"
 EOS
-  expect "ksh_arrays=on sh_glob=on
-ksh_arrays=off sh_glob=off"
+  assert_line --index 0 "ksh_arrays=on sh_glob=on"
+  assert_line --index 1 "ksh_arrays=off sh_glob=off"
 }

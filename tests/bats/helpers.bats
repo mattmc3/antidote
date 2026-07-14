@@ -3,6 +3,9 @@
 # runs antidote.zsh as a subprocess via `antidote __private__ <fn>` with
 # an isolated HOME; no shell session state is carried between cases.
 
+load lib/bats-support/load
+load lib/bats-assert/load
+
 setup() {
   cd "$BATS_TEST_DIRNAME/../.."
   PRJDIR=$PWD
@@ -44,8 +47,8 @@ check() {
 # be able to.
 @test "del blocks removal outside HOME and tempdir" {
   run __private__ del -- /foo/bar
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"Blocked attempt to rm path: '/foo/bar'."* ]]
+  assert_failure
+  assert_output --partial "Blocked attempt to rm path: '/foo/bar'."
 }
 
 @test "bundle_type classifies files, dirs, and paths" {

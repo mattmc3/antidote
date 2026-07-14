@@ -13,13 +13,14 @@ setup() {
 
 @test "version prints a sha from a git checkout" {
   run antidote --version
-  [[ "$output" =~ ^"antidote version "[0-9]+\.[0-9]+\.[0-9]+" ("[a-f0-9]+")"$ ]]
+  assert_success
+  assert_output --regexp '^antidote version [0-9]+\.[0-9]+\.[0-9]+ \([a-f0-9]+\)$'
 }
 
 @test "version respects the show-sha test zstyle" {
   ZSTYLES="zstyle ':antidote:test:version' show-sha off"
   run antidote --version
-  expect "antidote version $EXPECTED_VERSION"
+  assert_output "antidote version $EXPECTED_VERSION"
 }
 
 @test "help shows full usage" {
@@ -79,7 +80,7 @@ source \"$AHOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar/ba
 @test "bundle clones a specific branch with branch:<branch>" {
   antidote bundle 'foo/bar branch:dev' &>/dev/null
   run git -C "$AHOME/fakegitsite.com/foo/bar" rev-parse --abbrev-ref HEAD
-  expect "dev"
+  assert_output "dev"
 }
 
 @test "kind:zsh is the default load style" {
@@ -92,19 +93,19 @@ source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
 @test "kind:path exports PATH" {
   antidote bundle foo/bar &>/dev/null
   run antidote bundle foo/bar kind:path
-  expect 'export PATH="$HOME/.cache/antidote/fakegitsite.com/foo/bar:$PATH"'
+  assert_output 'export PATH="$HOME/.cache/antidote/fakegitsite.com/foo/bar:$PATH"'
 }
 
 @test "kind:fpath adds to fpath only" {
   antidote bundle foo/bar &>/dev/null
   run antidote bundle foo/bar kind:fpath
-  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )'
+  assert_output 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )'
 }
 
 @test "kind:clone clones without loading" {
   antidote bundle foo/bar &>/dev/null
   run antidote bundle foo/bar kind:clone
-  expect ""
+  refute_output
 }
 
 @test "kind:autoload autoloads a path" {
@@ -145,7 +146,7 @@ source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/lib/lib3.zsh"'
 @test "path: loads a specific file" {
   antidote bundle ohmy/ohmy kind:clone &>/dev/null
   run antidote bundle ohmy/ohmy path:custom/themes/pretty.zsh-theme
-  expect 'source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/custom/themes/pretty.zsh-theme"'
+  assert_output 'source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/custom/themes/pretty.zsh-theme"'
 }
 
 @test "conditional: wraps the bundle in if logic" {
@@ -159,5 +160,5 @@ fi'
 
 @test "home prints the bundle cache dir" {
   run antidote home
-  expect "$AHOME"
+  assert_output "$AHOME"
 }

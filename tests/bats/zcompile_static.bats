@@ -18,8 +18,8 @@ antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
 grep -q zrecompile $ZDOTDIR/.zplugins.static.zsh && echo "static file has zcompile header"
 [[ -e $ZDOTDIR/.zplugins.static.zsh.zwc ]] && echo "zwc compiled"
 EOS
-  expect "static file has zcompile header
-zwc compiled"
+  assert_line "static file has zcompile header"
+  assert_line "zwc compiled"
 }
 
 @test "static zcompile golden output" {
@@ -37,10 +37,8 @@ EOS
 # is emitted before clone failures are detected.
 @test "bad repo bundling fails with static zcompile on" {
   SESSION_PRELUDE="zstyle ':antidote:static' zcompile 'yes'"
-  run_session <<'EOS'
-antidote bundle does-not/exist &>/dev/null; echo "exit: $?"
-EOS
-  expect "exit: 1"
+  run_session <<<'antidote bundle does-not/exist &>/dev/null; echo "exit: $?"'
+  assert_output "exit: 1"
 }
 
 @test "static zcompile off leaves no zwc file" {
@@ -51,5 +49,5 @@ zstyle ':antidote:static' file \$ZDOTDIR/.zplugins_fake_load.zsh"
 antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
 [[ ! -e $ZDOTDIR/.zplugins_fake_load.zsh.zwc ]] && echo "no zwc file"
 EOS
-  expect "no zwc file"
+  assert_output "no zwc file"
 }

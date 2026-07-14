@@ -14,7 +14,7 @@ fpath_session() {
   fpath_session <<'EOS'
 antidote bundle foo/bar kind:fpath
 EOS
-  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )'
+  assert_output 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )'
 }
 
 # fpath can be told to explicitly append, but it's unnecessary
@@ -30,18 +30,18 @@ source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
   fpath_session <<'EOS'
 antidote bundle foo/bar kind:fpath fpath-rule:prepend
 EOS
-  expect 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )'
+  assert_output 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )'
 }
 
 @test "fpath rules can only be append or prepend" {
   fpath_session <<'EOS'
-antidote bundle foo/bar kind:fpath fpath-rule:append >/dev/null; echo "exit: $?"
-antidote bundle foo/bar kind:fpath fpath-rule:prepend >/dev/null; echo "exit: $?"
+antidote bundle foo/bar kind:fpath fpath-rule:append >/dev/null; echo "append exit: $?"
+antidote bundle foo/bar kind:fpath fpath-rule:prepend >/dev/null; echo "prepend exit: $?"
 antidote bundle foo/bar kind:fpath fpath-rule:foo 2>&1
 EOS
-  expect "exit: 0
-exit: 0
-# antidote: error: unexpected fpath rule: 'foo'"
+  assert_line "append exit: 0"
+  assert_line "prepend exit: 0"
+  assert_line "# antidote: error: unexpected fpath rule: 'foo'"
 }
 
 @test "fpath rules apply to kind:autoload" {

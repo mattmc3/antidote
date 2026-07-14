@@ -18,8 +18,8 @@ echo "before: noaliases=$options[noaliases] autocd=$options[autocd]"
 antidote load >/dev/null
 echo "after: noaliases=$options[noaliases] autocd=$options[autocd]"
 EOS
-  expect "before: noaliases=on autocd=off
-after: noaliases=off autocd=on"
+  assert_line --index 0 "before: noaliases=on autocd=off"
+  assert_line --index 1 "after: noaliases=off autocd=on"
 }
 
 # Ensure #86 stays fixed: no stderr noise under posix_identifiers.
@@ -30,20 +30,21 @@ antidote -v 2>&1 >/dev/null && echo "-v: no stderr"
 antidote -h 2>&1 >/dev/null && echo "-h: no stderr"
 antidote help 2>&1 >/dev/null && echo "help: no stderr"
 EOS
-  expect "-v: no stderr
--h: no stderr
-help: no stderr"
+  assert_line "-v: no stderr"
+  assert_line "-h: no stderr"
+  assert_line "help: no stderr"
 }
 
 # Clark Grizwold lighting ceremony! A plugin that enables zillions of
 # zsh options must have all of them take effect.
 @test "grizwold plugin lights up all the zsh options" {
   run_session <<'EOS'
-(( $(setopt | wc -l) < 10 )) && echo "few options enabled before load"
+setopt | wc -l | tr -d ' '
 echo '$ZDOTDIR/custom/plugins/grizwold' > $ZDOTDIR/.zsh_plugins.txt
 antidote load
-(( $(setopt | wc -l) > 150 )) && echo "zillions of options enabled after load"
+setopt | wc -l | tr -d ' '
 EOS
-  expect "few options enabled before load
-zillions of options enabled after load"
+  [ "${#lines[@]}" -eq 2 ]
+  [ "${lines[0]}" -lt 10 ]
+  [ "${lines[1]}" -gt 150 ]
 }

@@ -17,30 +17,29 @@ antidote bundle <$T_TESTDATA/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh 2>/dev/
 }
 
 @test "bundle generates the golden script from real repos" {
-  run_session <<'EOS'
-diff <(cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME) $T_TESTDATA/.zsh_plugins.zsh && echo "bundle script matches"
-diff <(antidote list --url | sort) $T_TESTDATA/repo-list.txt && echo "repo list matches"
-EOS
-  expect "bundle script matches
-repo list matches"
+  run_session <<<'cat $ZDOTDIR/.zsh_plugins.zsh | subenv ANTIDOTE_HOME'
+  expect "$(cat "$PRJDIR/tests/testdata/real/.zsh_plugins.zsh")"
+}
+
+@test "bundle clones the full golden repo list" {
+  run_session <<<'antidote list --url | sort'
+  expect "$(cat "$PRJDIR/tests/testdata/real/repo-list.txt")"
 }
 
 @test "zcompile compiles bundles and update recompiles them" {
   run_session <<'EOS'
-(( $(ls $(antidote home)/**/*.zwc(N) | wc -l) > 50 )) && echo "zwc files compiled"
+ls $(antidote home)/**/*.zwc(N) | wc -l | tr -d ' '
 rm -rf -- $(antidote home)/**/*.zwc(N)
 antidote update &>/dev/null
-(( $(ls $(antidote home)/**/*.zwc(N) | wc -l) > 50 )) && echo "zwc files recompiled after update"
+ls $(antidote home)/**/*.zwc(N) | wc -l | tr -d ' '
 EOS
-  expect "zwc files compiled
-zwc files recompiled after update"
+  [ "${lines[0]}" -gt 50 ]
+  [ "${lines[1]}" -gt 50 ]
 }
 
 @test "branch annotations check out the requested branch" {
-  run_session <<'EOS'
-git -C "$ANTIDOTE_HOME/mattmc3/antidote" rev-parse --abbrev-ref HEAD 2>/dev/null
-EOS
-  expect "v1"
+  run_session <<<'git -C "$ANTIDOTE_HOME/mattmc3/antidote" rev-parse --abbrev-ref HEAD 2>/dev/null'
+  assert_output "v1"
 }
 
 @test "purge --all aborts when told no" {
@@ -50,8 +49,8 @@ zstyle ':antidote:test:purge' answer 'n'"
 antidote purge --all >/dev/null; echo "purge exit: $?"
 echo "bundles remaining: $(antidote list | wc -l | tr -d ' ')"
 EOS
-  expect "purge exit: 1
-bundles remaining: 15"
+  assert_line "purge exit: 1"
+  assert_line "bundles remaining: 15"
 }
 
 @test "purge --all removes everything when told yes" {
@@ -63,18 +62,16 @@ echo "bundles remaining: $(antidote list 2>/dev/null | wc -l | tr -d ' ')"
 [[ ! -e $ZDOTDIR/.zsh_plugins.zsh ]] && echo "static file gone"
 bak=($ZDOTDIR/.zsh_plugins.*.bak(N)) && (( $#bak )) && echo "backup created"
 EOS
-  expect "Antidote purge complete. Be sure to start a new Zsh session.
-bundles remaining: 0
-static file gone
-backup created"
+  assert_line "Antidote purge complete. Be sure to start a new Zsh session."
+  assert_line "bundles remaining: 0"
+  assert_line "static file gone"
+  assert_line "backup created"
 }
 
 # Bundle files with CRLF line endings parse correctly.
 @test "bundle a CRLF plugins file" {
   SESSION_PRELUDE=""
-  run_session <<'EOS'
-antidote bundle <$T_TESTDATA/.zsh_plugins.crlf.txt 2>/dev/null | subenv ANTIDOTE_HOME
-EOS
+  run_session <<<'antidote bundle <$T_TESTDATA/.zsh_plugins.crlf.txt 2>/dev/null | subenv ANTIDOTE_HOME'
   expected=$(cat <<'EOF'
 fpath+=( "$ANTIDOTE_HOME/rupa/z" )
 source "$ANTIDOTE_HOME/rupa/z/z.sh"
@@ -97,8 +94,8 @@ EOF
 antidote load 2>&1
 echo "z alias defined: $+aliases[z]"
 EOS
-  expect "# antidote cloning rupa/z...
-z alias defined: 1"
+  assert_line --index 0 "# antidote cloning rupa/z..."
+  assert_line --index 1 "z alias defined: 1"
 }
 
 @test "load regenerates the static file when the plugins file changes" {

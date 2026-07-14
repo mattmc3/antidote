@@ -10,9 +10,14 @@
 # 2. run_session: for behavior that needs a live zsh session (dynamic
 #    `antidote init` mode, setopts, parent-shell wrappers like load and
 #    autoloading). Arrange steps go in SESSION_PRELUDE; the session
-#    body is act+assert and should stay around 5 lines or fewer.
-#    Whole-output `expect` walls are only for script-generation and
-#    golden-file tests, where the full output is the contract.
+#    body should act and emit facts (labeled lines, raw values), with
+#    judgment done bats-side via assert_line/assert_output.
+#
+# Assertions: prefer bats-assert (assert_output, assert_line --index,
+# assert_output --partial, refute_*). Keep `expect` for whole-output
+# golden compares — it prints a unified diff on failure. Golden blocks
+# under ~20 lines stay inline in the test; larger or shared contracts
+# live in tests/testdata (eg: usage_dispatch.txt).
 
 # Vendored assertion libs (tests/bats/lib): assert_success, assert_line,
 # assert_output, refute_*, etc.
@@ -104,19 +109,6 @@ expect() {
   if [ "$output" != "$1" ]; then
     echo "=== diff (expected vs got) ==="
     diff <(printf '%s\n' "$1") <(printf '%s\n' "$output") || true
-    return 1
-  fi
-}
-
-# Like expect, but line order doesn't matter. Use when stderr passes
-# through antidote's async filter: no ordering guarantee vs stdout.
-expect_any_order() {
-  local want got
-  want=$(printf '%s\n' "$1" | sort)
-  got=$(printf '%s\n' "$output" | sort)
-  if [ "$got" != "$want" ]; then
-    echo "=== diff (expected vs got, sorted) ==="
-    diff <(printf '%s\n' "$want") <(printf '%s\n' "$got") || true
     return 1
   fi
 }
