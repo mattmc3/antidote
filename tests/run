@@ -1,0 +1,77 @@
+#!/usr/bin/env zsh
+# Antidote test runner.
+#
+# usage: tests/run [--real|--all] [file...]
+#   (no args)  unit tests: tests/bats/*.bats plus tests/README.md docs
+#   --real     network tests: tests/bats/real/*.bats
+#   --all      unit + real
+#   file...    specific files (.bats -> bats, .md -> clitest)
+#
+# BATS_JOBS controls bats concurrency (default 8).
+
+0=${(%):-%x}
+setopt extended_glob
+
+local T_PRJDIR="${0:A:h:h}"
+cd "$T_PRJDIR"
+
+# Fail early and loudly on missing prereqs.
+local dep
+for dep in git bats parallel clitest; do
+  (( $+commands[$dep] )) || {
+    print -ru2 "tests/run: fatal: required command '$dep' not found."
+    exit 127
+  }
+done
+
+# Silence GNU parallel's citation nag before bats uses it. Use
+# PARALLEL_HOME so nothing is written to the user's $HOME.
+export PARALLEL_HOME="${TMPDIR:-/tmp}/antidote-tests-parallel"
+mkdir -p "$PARALLEL_HOME" && : >> "$PARALLEL_HOME/will-cite"
+
+# Shared git fixtures generate once, before anything runs in parallel.
+# (bats setup_suite.bash is not reliably discovered, so do it here.)
+env -i PATH="$PATH" zsh -f -c \
+  "source '$T_PRJDIR/tests/__init__.zsh' && t_setup && t_teardown" >/dev/null 2>&1
+
+local o_real o_all err=0
+zparseopts -D -M -- -real=o_real -all=o_all || exit 1
+
+local -a clifiles batsargs
+if (( $# > 0 )); then
+  local f
+  for f in $@; do
+    if [[ "$f" == *.bats ]]; then
+      batsargs+=($f)
+    else
+      clifiles+=($f)
+    fi
+  done
+elif (( $#o_real )); then
+  batsargs=($T_PRJDIR/tests/bats/real)
+elif (( $#o_all )); then
+  clifiles=($T_PRJDIR/tests/README.md(N))
+  batsargs=($T_PRJDIR/tests/bats $T_PRJDIR/tests/bats/real)
+else
+  clifiles=($T_PRJDIR/tests/README.md(N))
+  batsargs=($T_PRJDIR/tests/bats)
+fi
+
+# Use ZSH_BINARY if set, otherwise fallback to default zsh
+ZSH=${ZSH_BINARY:-zsh}
+
+if (( $#clifiles )); then
+  env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
+      $ZSH -f -- \
+      =clitest \
+          --list-run --progress dot --prompt '%' \
+          --color always \
+          --pre-flight 'git --version; print $T_PRJDIR $VENDOR $OSTYPE =$ZSH $ZSH_VERSION $ZSH_PATCHLEVEL' \
+          -- $clifiles || err=1
+fi
+
+if (( $#batsargs )); then
+  bats --jobs ${BATS_JOBS:-8} $batsargs || err=1
+fi
+
+exit $err

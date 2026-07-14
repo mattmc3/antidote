@@ -4,6 +4,7 @@ RUN apk add --no-cache \
     zsh \
     bash \
     bats \
+    parallel \
     git \
     just \
     perl \

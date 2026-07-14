@@ -2,6 +2,9 @@
 
 set shell := ["zsh", "-c"]
 
+# concurrent bats jobs (override: `just bats_jobs=1 test`)
+bats_jobs := "8"
+
 # display this justfile's help information
 [private]
 default:
@@ -27,7 +30,7 @@ _run env cmd:
 # run build tasks (man pages, tests)
 build:
     ./tools/buildman
-    ./tools/run-clitests
+    ./tests/run
 
 # rebuild man pages
 buildman:
@@ -36,20 +39,20 @@ buildman:
 # build and bump revision version
 release:
     ./tools/buildman
-    ./tools/run-clitests
+    ./tests/run --all
     ./tools/bumpver revision
 
 # run only unittests (env: "latest", "542", or "local")
-test env="latest": (_run env "./tools/run-clitests --unit")
+test env="latest": (_run env "BATS_JOBS=" + bats_jobs + " ./tests/run")
 
 # run a specific test file (env: "latest", "542", or "local")
-test-file testfile env="latest": (_run env "./tools/run-clitests \"" + testfile + "\"")
+test-file testfile env="latest": (_run env "BATS_JOBS=" + bats_jobs + " ./tests/run \"" + testfile + "\"")
 
-# run all tests (env: "latest", "542", or "local")
-test-all env="latest": (_run env "./tools/run-clitests")
+# run all tests including network tests (env: "latest", "542", or "local")
+test-all env="latest": (_run env "BATS_JOBS=" + bats_jobs + " ./tests/run --all")
 
-# run only test_real*.md (env: "latest", "542", or "local")
-test-real env="latest": (_run env "./tools/run-clitests tests/test_real*.md")
+# run the real network tests (env: "latest", "542", or "local")
+test-real env="latest": (_run env "BATS_JOBS=" + bats_jobs + " ./tests/run --real")
 
 # profile antidote operations with zprof (env: "latest", "542", or "local")
 profile env="latest": (_run env "./tools/antidote-profile")

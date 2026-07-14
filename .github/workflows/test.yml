@@ -17,9 +17,9 @@ jobs:
         with:
           repository: "aureliojargas/clitest"
           path: bin/clitest
-      - run: sudo apt install zsh bats
+      - run: sudo apt install zsh bats parallel
         if: ${{ runner.os == 'Linux' }}
-      - run: brew install bats-core
+      - run: brew install bats-core parallel
         if: ${{ runner.os == 'macOS' }}
       - uses: extractions/setup-just@v2
       - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH just test-all local
