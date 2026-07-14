@@ -14,7 +14,6 @@ RUN apt-get update && apt-get install -y \
     automake \
     man-db \
     jq \
-    bats \
     parallel \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,6 +25,11 @@ RUN wget -q https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.17.0.tar.
     && make prefix=/usr install \
     && cd .. \
     && rm -rf git-2.17.0 git-2.17.0.tar.xz
+
+# Install bats-core (apt's 1.2.1 too old; tests need BATS_TEST_TMPDIR from 1.4+)
+RUN git clone -q --depth=1 -b v1.13.0 https://github.com/bats-core/bats-core /opt/bats-core \
+    && /opt/bats-core/install.sh /usr/local \
+    && rm -rf /opt/bats-core
 
 # Install just
 RUN wget -qO- https://just.systems/install.sh | bash -s -- --to /usr/local/bin
