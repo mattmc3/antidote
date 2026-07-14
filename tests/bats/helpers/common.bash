@@ -102,3 +102,16 @@ expect() {
     return 1
   fi
 }
+
+# Like expect, but line order doesn't matter. Use when stderr passes
+# through antidote's async filter: no ordering guarantee vs stdout.
+expect_any_order() {
+  local want got
+  want=$(printf '%s\n' "$1" | sort)
+  got=$(printf '%s\n' "$output" | sort)
+  if [ "$got" != "$want" ]; then
+    echo "=== diff (expected vs got, sorted) ==="
+    diff <(printf '%s\n' "$want") <(printf '%s\n' "$got") || true
+    return 1
+  fi
+}

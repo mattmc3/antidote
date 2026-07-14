@@ -290,7 +290,7 @@ EOF
   using_session <<'EOS'
 antidote bundle 'using:' 2>&1; echo "exit: $?"
 EOS
-  expect "# antidote: error on line 1: invalid using: target ''
+  expect_any_order "# antidote: error on line 1: invalid using: target ''
 exit: 1"
 }
 
@@ -298,7 +298,7 @@ exit: 1"
   using_session <<'EOS'
 antidote bundle 'using:foo@bar' 2>&1; echo "exit: $?"
 EOS
-  expect "# antidote: error on line 1: invalid using: target 'foo@bar'
+  expect_any_order "# antidote: error on line 1: invalid using: target 'foo@bar'
 exit: 1"
 }
 
