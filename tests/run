@@ -15,9 +15,10 @@ setopt extended_glob
 local T_PRJDIR="${0:A:h:h}"
 cd "$T_PRJDIR"
 
-# Fail early and loudly on missing prereqs.
+# Fail early and loudly on missing prereqs. clitest is only needed
+# when markdown files run, so it is checked later.
 local dep
-for dep in git bats parallel clitest; do
+for dep in git bats parallel; do
   (( $+commands[$dep] )) || {
     print -ru2 "tests/run: fatal: required command '$dep' not found."
     exit 127
@@ -61,6 +62,10 @@ fi
 ZSH=${ZSH_BINARY:-zsh}
 
 if (( $#clifiles )); then
+  (( $+commands[clitest] )) || {
+    print -ru2 "tests/run: fatal: required command 'clitest' not found."
+    exit 127
+  }
   env -i PATH=$PATH FPATH=$FPATH PAGER=cat \
       $ZSH -f -- \
       =clitest \

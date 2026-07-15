@@ -25,14 +25,6 @@
     fi
   fi
 
-  # save path/fpath
-  typeset -ga T_PREV_PATH=( $path )
-  typeset -ga T_PREV_FPATH=( $fpath )
-
-  # save zstyles, and clear them all for the test session
-  typeset -ga T_PREV_ZSTYLES=( ${(@f)"$(zstyle -L ':antidote:*')"} )
-  source <(zstyle -L ':antidote:*' | awk '!/:antidote:test:/{print "zstyle -d",$2}')
-
   # setup test functions
   fpath+=( $testdir/functions )
   autoload -Uz $testdir/functions/*
@@ -41,8 +33,6 @@
 
   # works with BSD and GNU gmktemp
   T_TEMPDIR=${$(mktemp -d -t t_antidote.XXXXXXXX):A}
-  typeset -g T_PREV_HOME=$HOME
-  typeset -g T_PREV_ZDOTDIR=$ZDOTDIR
 
   export HOME=$T_TEMPDIR
   export ZDOTDIR=$HOME/.zsh

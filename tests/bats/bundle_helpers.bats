@@ -7,15 +7,10 @@ load helpers/common
 
 setup() { antidote_common_setup; }
 
-bundle_session() {
-  SESSION_PRELUDE='antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null' \
-    run_session
-}
-
 # The repo parser pulls a list of all git URLs in a bundle file so that
 # we can clone missing ones in parallel.
 @test "bulk_clone emits parallel clone script" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 cat $T_TESTDATA/.zsh_plugins_repos.txt | antidote-zsh __private__ bulk_clone
 EOS
   expected=$(cat <<'EOF'
@@ -35,14 +30,14 @@ EOF
 }
 
 @test "bulk_clone with empty input emits nothing" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 cat $T_TESTDATA/.zsh_plugins_empty.txt | antidote-zsh __private__ bulk_clone
 EOS
   refute_output
 }
 
 @test "bundle_scripter emits zsh_script statements" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 echo foo/bar | antidote __private__ bundle_scripter
 echo 'https://github.com/foo/bar path:lib branch:dev' | antidote __private__ bundle_scripter
 echo 'git@github.com:foo/bar.git kind:clone branch:main' | antidote __private__ bundle_scripter
@@ -62,7 +57,7 @@ EOF
 
 # Track defers: only the first kind:defer bundle loads zsh-defer itself.
 @test "bundle_scripter skips defer loader after the first defer" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 print 'foo/bar kind:defer\nbar/baz kind:defer\nbaz/qux kind:defer' | antidote __private__ bundle_scripter
 EOS
   expected=$(cat <<'EOF'
@@ -75,7 +70,7 @@ EOF
 }
 
 @test "bundle_scripter handles funky whitespace" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 cr=$'\r'; lf=$'\n'; tab=$'\t'
 echo "foo/bar${tab}kind:path${cr}${lf}" | antidote __private__ bundle_scripter
 EOS
@@ -84,7 +79,7 @@ EOS
 
 # The bundle parser needs to properly handle quoted annotations.
 @test "quoted conditional annotation survives parse, script, and bundle" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 bundle='foo/bar conditional:"is-macos || is-linux"'
 echo $bundle | antidote __private__ bundle_parser_serialize | print_parsed_bundle
 echo $bundle | antidote __private__ bundle_scripter
@@ -108,7 +103,7 @@ EOF
 }
 
 @test "quoted pre/post annotations survive parse, script, and bundle" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 bundle="foo/bar pre:'echo hello \$world' post:\"echo \\\"goodbye \$world\\\"\""
 echo $bundle
 echo $bundle | antidote __private__ bundle_parser_serialize | print_parsed_bundle
@@ -136,7 +131,7 @@ EOF
 
 # The bundle parser turns the bundle DSL into zsh_script statements.
 @test "bundle_scripter handles the full ZDOTDIR plugins file" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ bundle_scripter < $ZDOTDIR/.zsh_plugins.txt
 EOS
   expected=$(cat <<'EOF'

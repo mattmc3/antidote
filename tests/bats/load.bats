@@ -4,13 +4,10 @@
 
 load helpers/common
 
-setup() {
-  antidote_common_setup
-  SESSION_PRELUDE='antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null'
-}
+setup() { antidote_common_setup; }
 
 @test "load sources every bundle in the plugins file" {
-  run_session <<<'antidote load $ZDOTDIR/.zplugins_fake_load'
+  fixture_session <<<'antidote load $ZDOTDIR/.zplugins_fake_load'
   expected=$(cat <<'EOF'
 sourcing bar.plugin.zsh from foo/bar...
 sourcing qux.plugin.zsh from foo/qux...
@@ -30,7 +27,7 @@ EOF
 }
 
 @test "load writes the golden static file" {
-  run_session <<'EOS'
+  fixture_session <<'EOS'
 antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
 cat $ZDOTDIR/.zplugins_fake_load.zsh | subenv
 EOS
@@ -38,20 +35,18 @@ EOS
 }
 
 @test "load fails when bundle and static file are the same" {
-  SESSION_PRELUDE="$SESSION_PRELUDE
-cp \$ZDOTDIR/.zplugins_fake_load \$ZDOTDIR/.zplugins.txt
+  SESSION_PRELUDE="cp \$ZDOTDIR/.zplugins_fake_load \$ZDOTDIR/.zplugins.txt
 zstyle ':antidote:bundle' file \$ZDOTDIR/.zplugins.txt
 zstyle ':antidote:static' file \$ZDOTDIR/.zplugins.txt"
-  run_session <<<'antidote load 2>&1 | subenv ZDOTDIR'
+  fixture_session <<<'antidote load 2>&1 | subenv ZDOTDIR'
   assert_output "antidote: bundle file and static file are the same '\$ZDOTDIR/.zplugins.txt'."
 }
 
 @test "load honors bundle and static file zstyles" {
-  SESSION_PRELUDE="$SESSION_PRELUDE
-cp \$ZDOTDIR/.zplugins_fake_load \$ZDOTDIR/.zplugins.txt
+  SESSION_PRELUDE="cp \$ZDOTDIR/.zplugins_fake_load \$ZDOTDIR/.zplugins.txt
 zstyle ':antidote:bundle' file \$ZDOTDIR/.zplugins.txt
 zstyle ':antidote:static' file \$ZDOTDIR/.zplugins.static.zsh"
-  run_session <<'EOS'
+  fixture_session <<'EOS'
 antidote load >/dev/null && echo "load ok"
 [[ -s $ZDOTDIR/.zplugins.static.zsh ]] && echo "static file written"
 EOS
@@ -60,14 +55,14 @@ EOS
 }
 
 @test "load fails on a missing bundle file" {
-  run_session <<<'antidote load /no/such/file.txt 2>&1'
+  fixture_session <<<'antidote load /no/such/file.txt 2>&1'
   assert_output "antidote: bundle file not found '/no/such/file.txt'."
 }
 
 @test "load fails with exit 2 when the static file cannot be created" {
   SESSION_PRELUDE='zstyle ":antidote:load:checkfile" disabled true
 touch $ZDOTDIR/.zplugins_err.txt $HOME/blocker'
-  run_session <<<'antidote load $ZDOTDIR/.zplugins_err.txt $HOME/blocker/static.zsh 2>/dev/null'
+  fixture_session <<<'antidote load $ZDOTDIR/.zplugins_err.txt $HOME/blocker/static.zsh 2>/dev/null'
   assert_failure 2
 }
 
@@ -75,6 +70,6 @@ touch $ZDOTDIR/.zplugins_err.txt $HOME/blocker'
   SESSION_PRELUDE='zstyle ":antidote:load:checkfile" disabled true
 touch -t 202001010000 $ZDOTDIR/.zplugins_err.txt
 print "false" > $ZDOTDIR/.zplugins_err.zsh'
-  run_session <<<'antidote load $ZDOTDIR/.zplugins_err.txt $ZDOTDIR/.zplugins_err.zsh'
+  fixture_session <<<'antidote load $ZDOTDIR/.zplugins_err.txt $ZDOTDIR/.zplugins_err.zsh'
   assert_failure 2
 }

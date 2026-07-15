@@ -3,19 +3,16 @@
 
 load helpers/common
 
-setup() { antidote_common_setup; }
-
-# Same shorthand the clitest file used; clone the base fixtures since
-# the full-fixture case sources real cloned bundles.
-using_session() {
-  SESSION_PRELUDE='antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
-function bundle_parser() { antidote __private__ bundle_parser_serialize "$@"; }' \
-    run_session
+setup() {
+  antidote_common_setup
+  # Shorthand the clitest file used; fixture_session clones the base
+  # fixtures since the full-fixture case sources real cloned bundles.
+  SESSION_PRELUDE='function bundle_parser() { antidote __private__ bundle_parser_serialize "$@"; }'
 }
 
 # using: alone emits a single clone entry
 @test "using: alone emits a single clone entry" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 echo 'using:foo/bar' | bundle_parser | print_parsed_bundle
 EOS
   expected=$(cat <<'EOF'
@@ -32,7 +29,7 @@ EOF
 
 # using: with path: — clone entry has no path, path is only a prefix for words
 @test "using: with path: keeps the clone entry pathless" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 echo 'using:foo/bar path:plugins' | bundle_parser | print_parsed_bundle
 EOS
   expected=$(cat <<'EOF'
@@ -49,7 +46,7 @@ EOF
 
 # using: with kind: — kind becomes the default for words, clone entry is always clone
 @test "using: kind: is the default for words, clone entry stays clone" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 printf 'using:foo/bar path:plugins kind:fpath\nextract\n' | bundle_parser | print_parsed_bundle
 EOS
   expected=$(cat <<'EOF'
@@ -72,7 +69,7 @@ EOF
 }
 
 @test "words after using: get default kind:zsh and path prefix" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 printf 'using:foo/bar path:plugins\nextract\ngit\n' | bundle_parser | print_parsed_bundle
 EOS
   expected=$(cat <<'EOF'
@@ -102,7 +99,7 @@ EOF
 }
 
 @test "word-level kind: overrides using: default" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 printf 'using:foo/bar path:plugins kind:zsh\nextract kind:fpath\n' | bundle_parser | print_parsed_bundle
 EOS
   expected=$(cat <<'EOF'
@@ -126,7 +123,7 @@ EOF
 
 # using: annotations (branch, etc.) inherited by clone entry and all words
 @test "using: annotations are inherited by clone entry and words" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 printf 'using:foo/bar path:plugins branch:baz\nextract\ngit\n' | bundle_parser | print_parsed_bundle
 EOS
   expected=$(cat <<'EOF'
@@ -159,7 +156,7 @@ EOF
 }
 
 @test "word-level annotation overrides inherited using: annotation" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 printf 'using:foo/bar path:plugins branch:main\nextract branch:dev\ngit\n' | bundle_parser | print_parsed_bundle
 EOS
   expected=$(cat <<'EOF'
@@ -193,7 +190,7 @@ EOF
 
 # using: with no path: — word becomes the full path value
 @test "using: with no path: makes the word the path" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 printf 'using:foo/bar\nextract\n' | bundle_parser | print_parsed_bundle
 EOS
   expected=$(cat <<'EOF'
@@ -216,7 +213,7 @@ EOF
 }
 
 @test "word without active using: context is an error" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 echo 'extract' | bundle_parser | print_parsed_bundle
 EOS
   expected=$(cat <<'EOF'
@@ -230,7 +227,7 @@ EOF
 }
 
 @test "using: with URL form" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 echo 'using:https://fakegitsite.com/foo/bar path:plugins' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
 EOS
   expected=$(cat <<'EOF'
@@ -246,7 +243,7 @@ EOF
 }
 
 @test "using: with SSH URL form" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 echo 'using:git@fakegitsite.com:foo/bar path:plugins' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
 EOS
   expected=$(cat <<'EOF'
@@ -262,7 +259,7 @@ EOF
 }
 
 @test "using: annotations like conditional: are inherited by words" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 printf 'using:foo/bar path:plugins conditional:is-macos\ndocker\n' | bundle_parser | print_parsed_bundle | subenv ANTIDOTE_HOME
 EOS
   expected=$(cat <<'EOF'
@@ -287,7 +284,7 @@ EOF
 }
 
 @test "using: with empty target is an error" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle 'using:' 2>&1
 EOS
   assert_failure 1
@@ -295,7 +292,7 @@ EOS
 }
 
 @test "using: with malformed target is an error" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle 'using:foo@bar' 2>&1
 EOS
   assert_failure 1
@@ -306,7 +303,7 @@ EOS
 # still produced. (The clitest original only asserted the exit code;
 # its output text was stale documentation.)
 @test "invalid bundle mixed with valid still produces valid output" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 printf 'foo/bar\nfoo\n' | antidote bundle 2>&1; echo "exit: $?"
 EOS
   expected=$(cat <<'EOF'
@@ -322,7 +319,7 @@ EOF
 # full fixture: multiple using: blocks, non-word passthrough, branch
 # inheritance, context persistence
 @test "full using: fixture matches golden output" {
-  using_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle <$T_TESTDATA/.zsh_plugins_using.txt | subenv ANTIDOTE_HOME HOME ZDOTDIR
 EOS
   expect "$(cat "$PRJDIR/tests/testdata/.zsh_plugins_using.zsh")"

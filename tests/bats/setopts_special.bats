@@ -6,19 +6,18 @@ load helpers/common
 
 setup() {
   antidote_common_setup
-  SESSION_PRELUDE='antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
-setopt KSH_ARRAYS SH_GLOB'
+  SESSION_PRELUDE='setopt KSH_ARRAYS SH_GLOB'
 }
 
 @test "bundle output is unaffected by KSH_ARRAYS and SH_GLOB" {
-  run_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle <$ZDOTDIR/.zsh_plugins.txt | subenv
 EOS
   expect "$(cat "$PRJDIR/tests/testdata/.zsh_plugins.zsh")"
 }
 
 @test "dispatch preserves KSH_ARRAYS and SH_GLOB" {
-  run_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle foo/bar >/dev/null
 echo "ksh_arrays=${options[ksharrays]} sh_glob=${options[shglob]}"
 unsetopt KSH_ARRAYS SH_GLOB

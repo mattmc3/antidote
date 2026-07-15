@@ -5,13 +5,8 @@ load helpers/common
 
 setup() { antidote_common_setup; }
 
-fpath_session() {
-  SESSION_PRELUDE='antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null' \
-    run_session
-}
-
 @test "fpath is appended to by default" {
-  fpath_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle foo/bar kind:fpath
 EOS
   assert_output 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )'
@@ -19,7 +14,7 @@ EOS
 
 # fpath can be told to explicitly append, but it's unnecessary
 @test "explicit fpath-rule:append works" {
-  fpath_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle foo/bar kind:zsh fpath-rule:append
 EOS
   expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
@@ -27,14 +22,14 @@ source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
 }
 
 @test "fpath-rule:prepend prepends" {
-  fpath_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle foo/bar kind:fpath fpath-rule:prepend
 EOS
   assert_output 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )'
 }
 
 @test "fpath rules can only be append or prepend" {
-  fpath_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle foo/bar kind:fpath fpath-rule:append >/dev/null; echo "append exit: $?"
 antidote bundle foo/bar kind:fpath fpath-rule:prepend >/dev/null; echo "prepend exit: $?"
 antidote bundle foo/bar kind:fpath fpath-rule:foo 2>&1
@@ -46,7 +41,7 @@ EOS
 }
 
 @test "fpath rules apply to kind:autoload" {
-  fpath_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle foo/baz path:baz kind:autoload fpath-rule:append
 antidote bundle foo/baz path:baz kind:autoload fpath-rule:prepend
 EOS
@@ -61,7 +56,7 @@ EOF
 }
 
 @test "fpath rules apply to autoload:funcdir annotations" {
-  fpath_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle foo/baz autoload:baz fpath-rule:append
 antidote bundle foo/baz autoload:baz fpath-rule:prepend
 EOS
@@ -82,7 +77,7 @@ EOF
 # fpath rules can be set globally with a zstyle:
 #   zstyle ':antidote:fpath' rule 'prepend'
 @test "global fpath rule zstyle" {
-  fpath_session <<'EOS'
+  fixture_session <<'EOS'
 zstyle ':antidote:fpath' rule 'prepend'
 antidote bundle foo/bar
 antidote bundle foo/bar kind:fpath
@@ -101,7 +96,7 @@ EOF
 
 # It is NOT recommended, but explicit fpath-rules still beat the zstyle.
 @test "explicit fpath-rule overrides the global zstyle" {
-  fpath_session <<'EOS'
+  fixture_session <<'EOS'
 zstyle ':antidote:fpath' rule 'prepend'
 antidote bundle foo/bar fpath-rule:append
 antidote bundle foo/bar kind:fpath fpath-rule:append

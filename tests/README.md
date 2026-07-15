@@ -13,7 +13,7 @@ Support files:
 
 - `tests/functions/` - autoloaded session helpers (`t_setup`,
   `t_teardown`, `t_setup_real`, `subenv`, `bundle_val`,
-  `print_parsed_bundle`, `t_unload_antidote`, `mask_semver`)
+  `print_parsed_bundle`, `t_unload_antidote`)
 - `tests/bin/` - executables tests shell out to (`mock_fzf`,
   `init_fixtures.zsh`)
 - `tests/tmp_home/` - skeleton HOME copied into each isolated test home
@@ -79,7 +79,7 @@ The `-v/--version` flag displays the current version:
 
 ```zsh
 % zstyle ':antidote:test:version' show-sha off
-% antidote --version | mask_semver
+% antidote --version | sed 's/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/X.X.X/g'
 antidote version X.X.X
 %
 ```

@@ -7,13 +7,8 @@ load helpers/common
 
 setup() { antidote_common_setup; }
 
-bundle_session() {
-  SESSION_PRELUDE='antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null' \
-    run_session
-}
-
 @test "bundle generates the static file for the ZDOTDIR plugins file" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle <$ZDOTDIR/.zsh_plugins.txt >$ZDOTDIR/.zsh_plugins.zsh
 cat $ZDOTDIR/.zsh_plugins.zsh | subenv
 EOS
@@ -22,7 +17,7 @@ EOS
 
 # Test |piping, <redirection, and --args
 @test "bundle accepts args, pipes, and redirection" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 ANTIDOTE_HOME=$HOME/.cache/antidote
 antidote bundle foo/bar | subenv ANTIDOTE_HOME
 echo 'foo/bar' | antidote bundle | subenv ANTIDOTE_HOME
@@ -33,7 +28,7 @@ EOS
 }
 
 @test "bundle accepts args, pipes, and redirection with escaped path-style" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 zstyle ':antidote:bundle' path-style escaped
 ANTIDOTE_HOME=$HOME/.cache/antibody
 antidote bundle foo/bar 2>/dev/null | subenv ANTIDOTE_HOME
@@ -45,7 +40,7 @@ EOS
 }
 
 @test "multiple defers only load zsh-defer once" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle 'foo/bar kind:defer\nbar/baz kind:defer' | subenv ANTIDOTE_HOME
 EOS
   expected=$(cat <<'EOF'
@@ -63,7 +58,7 @@ EOF
 }
 
 @test "bad kind values fail" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 >/dev/null
 EOS
   assert_failure 1
@@ -73,7 +68,7 @@ EOS
 # A bundle file of only kind:clone entries emits nothing, but that is
 # success, not failure.
 @test "clone-only bundles succeed with no output" {
-  bundle_session <<'EOS'
+  fixture_session <<'EOS'
 antidote bundle 'foo/baz kind:clone' 2>/dev/null; echo "first exit: $?"
 antidote bundle 'foo/baz kind:clone' 2>/dev/null; echo "second exit: $?"
 EOS

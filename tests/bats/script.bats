@@ -5,20 +5,15 @@ load helpers/common
 
 setup() { antidote_common_setup; }
 
-script_session() {
-  SESSION_PRELUDE='antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null' \
-    run_session
-}
-
 @test "zsh_script requires a bundle argument" {
-  script_session <<<'antidote __private__ zsh_script 2>&1'
+  fixture_session <<<'antidote __private__ zsh_script 2>&1'
   assert_failure 1
   assert_output "antidote: error: bundle argument expected"
 }
 
 # zsh_script accepts flat key-value pairs as an assoc array.
 @test "zsh_script validates kind values" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ foo/bar kind zsh >/dev/null; echo "kind zsh exit: $?"
 antidote __private__ zsh_script __bundle__ foo/bar >/dev/null; echo "no kind exit: $?"
 antidote __private__ zsh_script __bundle__ foo/bar kind badkind 2>&1
@@ -30,7 +25,7 @@ EOS
 
 # zsh_script works with local files and directories as well as repos.
 @test "zsh_script handles local files, lib dirs, and plugin dirs" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ $ZDOTDIR/aliases.zsh | subenv ZDOTDIR
 antidote __private__ zsh_script __bundle__ $ZDOTDIR/custom/lib | subenv ZDOTDIR
 antidote __private__ zsh_script __bundle__ $ZDOTDIR/custom/plugins/myplugin | subenv ZDOTDIR
@@ -48,7 +43,7 @@ EOF
 }
 
 @test "zsh_script handles repos in escaped path-style" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 zstyle ':antidote:bundle' path-style escaped
 ANTIDOTE_HOME=$HOME/.cache/antibody
 antidote __private__ zsh_script __bundle__ foo/bar 2>/dev/null | subenv ANTIDOTE_HOME
@@ -61,7 +56,7 @@ EOS
 
 # kind:clone does nothing when the plugin exists, clones when missing.
 @test "kind:clone clones only when missing" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ foo/bar kind clone
 antidote __private__ zsh_script __bundle__ themes/ohmytheme kind clone
 EOS
@@ -69,7 +64,7 @@ EOS
 }
 
 @test "kind zsh, path, fpath, and autoload script output" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ foo/bar kind zsh | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ foo/bar kind path | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ foo/bar kind fpath | subenv ANTIDOTE_HOME
@@ -88,7 +83,7 @@ EOF
 }
 
 @test "kind:defer loads zsh-defer first unless skipped" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ foo/bar kind defer | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ foo/bar kind defer __skip_load_defer__ 1 | subenv ANTIDOTE_HOME
 EOS
@@ -108,7 +103,7 @@ EOF
 
 # defer-options zstyles: pattern zstyles apply per-bundle.
 @test "defer-options zstyles customize zsh-defer flags" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 zstyle ':antidote:bundle:*' defer-options '-a'
 zstyle ':antidote:bundle:foo/bar' defer-options '-p'
 antidote __private__ zsh_script __bundle__ foo/bar kind defer | subenv ANTIDOTE_HOME
@@ -133,7 +128,7 @@ EOF
 }
 
 @test "path: annotation handles plugin dirs, files, lib dirs, and themes" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ ohmy/ohmy path plugins/extract | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ ohmy/ohmy path lib/lib1.zsh | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ ohmy/ohmy path lib | subenv ANTIDOTE_HOME
@@ -154,7 +149,7 @@ EOF
 }
 
 @test "conditional wraps output and autoload precedes sourcing" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ ohmy/ohmy path plugins/macos conditional is-macos | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ ohmy/ohmy path plugins/macos autoload functions | subenv ANTIDOTE_HOME
 EOS
@@ -173,7 +168,7 @@ EOF
 }
 
 @test "fpath-rule append, prepend, and rejection" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ ohmy/ohmy path plugins/docker fpath-rule append | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ ohmy/ohmy path plugins/docker fpath-rule prepend | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ ohmy/ohmy path plugins/docker fpath-rule foobar 2>&1
@@ -192,7 +187,7 @@ EOF
 # If a plugin is deferred, so is its post event; conditional wraps the
 # entire deferred block.
 @test "pre/post functions, including deferred and conditional variants" {
-  script_session <<'EOS'
+  fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ foo/bar pre run_before | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ foo/bar post run_after | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ foo/bar kind defer pre pre-event post post-event | subenv ANTIDOTE_HOME

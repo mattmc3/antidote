@@ -4,16 +4,12 @@
 
 load helpers/common
 
-setup() {
-  antidote_common_setup
-  SESSION_PRELUDE='antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null'
-}
+setup() { antidote_common_setup; }
 
 @test "static zcompile on compiles the static file" {
-  SESSION_PRELUDE="$SESSION_PRELUDE
-zstyle ':antidote:static' zcompile 'yes'
+  SESSION_PRELUDE="zstyle ':antidote:static' zcompile 'yes'
 zstyle ':antidote:static' file \$ZDOTDIR/.zplugins.static.zsh"
-  run_session <<'EOS'
+  fixture_session <<'EOS'
 antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
 grep -q zrecompile $ZDOTDIR/.zplugins.static.zsh && echo "static file has zcompile header"
 [[ -e $ZDOTDIR/.zplugins.static.zsh.zwc ]] && echo "zwc compiled"
@@ -23,10 +19,9 @@ EOS
 }
 
 @test "static zcompile golden output" {
-  SESSION_PRELUDE="$SESSION_PRELUDE
-zstyle ':antidote:static' zcompile 'yes'
+  SESSION_PRELUDE="zstyle ':antidote:static' zcompile 'yes'
 zstyle ':antidote:static' file \$ZDOTDIR/.zplugins_fake_zcompile_static.zsh"
-  run_session <<'EOS'
+  fixture_session <<'EOS'
 antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
 cat $ZDOTDIR/.zplugins_fake_zcompile_static.zsh | subenv
 EOS
@@ -42,10 +37,9 @@ EOS
 }
 
 @test "static zcompile off leaves no zwc file" {
-  SESSION_PRELUDE="$SESSION_PRELUDE
-zstyle ':antidote:static' zcompile 'no'
+  SESSION_PRELUDE="zstyle ':antidote:static' zcompile 'no'
 zstyle ':antidote:static' file \$ZDOTDIR/.zplugins_fake_load.zsh"
-  run_session <<'EOS'
+  fixture_session <<'EOS'
 antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
 [[ ! -e $ZDOTDIR/.zplugins_fake_load.zsh.zwc ]] && echo "no zwc file"
 EOS

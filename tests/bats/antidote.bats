@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
-# antidote end-to-end bundle tests (ported from tests/test_antidote.md).
-# Script-generation outputs compare whole blocks on purpose: the
-# emitted script is the unit under test, and paths print with a literal
-# '$HOME' prefix (print_path).
+# antidote end-to-end tests (ported from tests/test_antidote.md):
+# version/help/home plus the bundle behaviors that only show up end to
+# end (clone resolution, branches, path-style). The per-kind and
+# per-annotation script output matrix lives in script.bats.
 
 load helpers/common
 
@@ -81,81 +81,6 @@ source \"$AHOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar/ba
   antidote bundle 'foo/bar branch:dev' &>/dev/null
   run git -C "$AHOME/fakegitsite.com/foo/bar" rev-parse --abbrev-ref HEAD
   assert_output "dev"
-}
-
-@test "kind:zsh is the default load style" {
-  antidote bundle foo/bar &>/dev/null
-  run antidote bundle foo/bar kind:zsh
-  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
-source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
-}
-
-@test "kind:path exports PATH" {
-  antidote bundle foo/bar &>/dev/null
-  run antidote bundle foo/bar kind:path
-  assert_output 'export PATH="$HOME/.cache/antidote/fakegitsite.com/foo/bar:$PATH"'
-}
-
-@test "kind:fpath adds to fpath only" {
-  antidote bundle foo/bar &>/dev/null
-  run antidote bundle foo/bar kind:fpath
-  assert_output 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )'
-}
-
-@test "kind:clone clones without loading" {
-  antidote bundle foo/bar &>/dev/null
-  run antidote bundle foo/bar kind:clone
-  refute_output
-}
-
-@test "kind:autoload autoloads a path" {
-  antidote bundle foo/baz &>/dev/null
-  run antidote bundle foo/baz kind:autoload path:functions
-  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/functions" )
-builtin autoload -Uz $fpath[-1]/*(N.:t)'
-}
-
-@test "kind:defer wraps loading in zsh-defer" {
-  antidote bundle foo/baz &>/dev/null
-  antidote bundle getantidote/zsh-defer kind:clone &>/dev/null
-  run antidote bundle foo/baz kind:defer
-  expect 'if ! (( $+functions[zsh-defer] )); then
-  fpath+=( "$HOME/.cache/antidote/fakegitsite.com/getantidote/zsh-defer" )
-  source "$HOME/.cache/antidote/fakegitsite.com/getantidote/zsh-defer/zsh-defer.plugin.zsh"
-fi
-fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz" )
-zsh-defer source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"'
-}
-
-@test "path: loads a subplugin" {
-  antidote bundle ohmy/ohmy kind:clone &>/dev/null
-  run antidote bundle ohmy/ohmy path:plugins/docker
-  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/plugins/docker" )
-source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/plugins/docker/docker.plugin.zsh"'
-}
-
-@test "path: loads a whole lib directory" {
-  antidote bundle ohmy/ohmy kind:clone &>/dev/null
-  run antidote bundle ohmy/ohmy path:lib
-  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/lib" )
-source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/lib/lib1.zsh"
-source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/lib/lib2.zsh"
-source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/lib/lib3.zsh"'
-}
-
-@test "path: loads a specific file" {
-  antidote bundle ohmy/ohmy kind:clone &>/dev/null
-  run antidote bundle ohmy/ohmy path:custom/themes/pretty.zsh-theme
-  assert_output 'source "$HOME/.cache/antidote/fakegitsite.com/ohmy/ohmy/custom/themes/pretty.zsh-theme"'
-}
-
-@test "conditional: wraps the bundle in if logic" {
-  antidote bundle foo/bar &>/dev/null
-  run antidote bundle foo/bar conditional:is-macos
-  expect 'if is-macos; then
-  fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
-  source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
-fi'
 }
 
 @test "home prints the bundle cache dir" {

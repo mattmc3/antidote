@@ -4,50 +4,12 @@
   emulate -L zsh
   setopt local_options
 
-  # Return to project directory
+  # Every caller (run_session, clitest, fixture pregen) runs in a
+  # throwaway zsh, so there is no shell state to restore - just leave
+  # the tempdir and remove it.
   popd
-
-  # reset current session
-  HOME=$T_PREV_HOME
-  ZDOTDIR=$T_PREV_ZDOTDIR
-
-  # unfunction all antidote
-  for fn in ${(k)functions}; do
-    [[ $fn == *antidote* ]] && unfunction -- $fn
-  done
-  (( $+functions[git] )) && unfunction git
-
-  # unfunction zsh-defer
-  (( $+functions[zsh-defer] )) && unfunction zsh-defer
-
-  # restore original path/fpath
-  path=( $T_PREV_PATH )
-  fpath=( $T_PREV_FPATH )
-
-  # restore original zstyles
-  source <(zstyle -L ':antidote:*' | awk '{print "zstyle -d",$2}')
-  source <(printf '%s\n' $T_PREV_ZSTYLES)
-
-  # remove tempdir
   [[ -d "$T_TEMPDIR" ]] && command rm -rf -- "$T_TEMPDIR"
 
-  # remove vars
-  for var in \
-    ANTIDOTE_HOME \
-    ANTIDOTE_CONFIG \
-    ANTIDOTE_USING_CTX \
-    T_TEMPDIR \
-    T_PREV_HOME \
-    T_PREV_ZDOTDIR \
-    T_PREV_PATH \
-    T_PREV_FPATH \
-    plugins \
-    libs \
-    _antidote_using_context
-  do
-    [[ -v $var ]] && unset $var
-  done
-
-  # do not leak the status of the last conditional above
+  # do not leak the status of the conditional above
   true
 #}

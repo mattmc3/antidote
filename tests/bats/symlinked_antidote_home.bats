@@ -4,9 +4,6 @@
 
 load helpers/common
 
-V100=64642c5691051ba0d82f5bda60b745f6fd042325
-V120=d54e0cad999d196822584f2cca72f7c7bd908ea9
-
 setup() {
   antidote_common_setup
   antidote_test_home
@@ -61,19 +58,19 @@ https://fakegitsite.com/pintest/pinme"
 }
 
 @test "pinned bundles are skipped by update through the symlink" {
-  antidote bundle "pintest/pinme pin:$V100" &>/dev/null
+  antidote bundle "pintest/pinme pin:$PIN_V100" &>/dev/null
   run antidote update -n
   assert_output --partial "skipping update for pinned bundle: pintest/pinme"
   run git -C "$AHOME/fakegitsite.com/pintest/pinme" rev-parse HEAD
-  assert_output "$V100"
+  assert_output "$PIN_V100"
 }
 
 @test "unpinned bundles update through the symlink" {
-  antidote bundle "pintest/pinme pin:$V100" &>/dev/null
+  antidote bundle "pintest/pinme pin:$PIN_V100" &>/dev/null
   antidote bundle 'pintest/pinme' >/dev/null
   antidote update &>/dev/null
   run git -C "$AHOME/fakegitsite.com/pintest/pinme" rev-parse HEAD
-  assert_output "$V120"
+  assert_output "$PIN_V120"
 }
 
 # Snapshot save enumerates bundles via find_bundles, which scans

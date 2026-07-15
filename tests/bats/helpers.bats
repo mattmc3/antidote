@@ -1,40 +1,20 @@
 #!/usr/bin/env bats
 # Helper function tests (ported from tests/test_helpers.md). Each case
-# runs antidote.zsh as a subprocess via `antidote __private__ <fn>` with
-# an isolated HOME; no shell session state is carried between cases.
+# runs antidote.zsh as a subprocess via `antidote __private__ <fn>` in
+# the standard isolated test home (see helpers/common.bash).
 
-load lib/bats-support/load
-load lib/bats-assert/load
+load helpers/common
 
 setup() {
-  cd "$BATS_TEST_DIRNAME/../.."
-  PRJDIR=$PWD
-  # Resolve symlinks (macOS /var/folders -> /private/var) so subprocess
-  # path prefix checks against $HOME hold.
-  mkdir -p "$BATS_TEST_TMPDIR/home"
-  TESTHOME="$(cd "$BATS_TEST_TMPDIR/home" && pwd -P)"
-  ZDOTDIR="$TESTHOME/.zsh"
-  AHOME="$TESTHOME/.cache/antidote"
-  mkdir -p "$ZDOTDIR" "$AHOME"
-  ZSTYLES="zstyle ':antidote:git' site fakegitsite.com"
-  EXTRA_ENV=""
+  antidote_common_setup
+  antidote_test_home
 }
 
-# Run `antidote __private__ <fn> [args...]` in the isolated test home.
-__private__() {
-  ( cd "$TESTHOME" && env \
-      -u XDG_CACHE_HOME -u XDG_DATA_HOME -u XDG_CONFIG_HOME \
-      HOME="$TESTHOME" ZDOTDIR="$ZDOTDIR" T_PRJDIR="$PRJDIR" \
-      ANTIDOTE_HOME="$AHOME" ANTIDOTE_CONFIG=/dev/null \
-      ANTIDOTE_ZSTYLES="$ZSTYLES" $EXTRA_ENV \
-      zsh "$PRJDIR/antidote.zsh" __private__ "$@" )
-}
-
-# check <expected-output> <fn> [args...] - run and compare, with a
-# readable failure message.
+# check <expected-output> <fn> [args...] - run `antidote __private__`
+# and compare, with a readable failure message.
 check() {
   local expected=$1; shift
-  run __private__ "$@"
+  run antidote __private__ "$@"
   if [ "$output" != "$expected" ]; then
     echo "cmd:      antidote __private__ $*"
     echo "expected: $expected"
@@ -46,7 +26,7 @@ check() {
 # Appease my paranoia and ensure you can't remove a path you shouldn't
 # be able to.
 @test "del blocks removal outside HOME and tempdir" {
-  run __private__ del -- /foo/bar
+  run antidote __private__ del -- /foo/bar
   assert_failure
   assert_output --partial "Blocked attempt to rm path: '/foo/bar'."
 }
@@ -231,10 +211,10 @@ zstyle ':antidote:test:env' OSTYPE linux-gnu"
 }
 
 @test "collect_input reads args, stdin, or nothing" {
-  [ "$(echo foo/bar | __private__ collect_input)" = "foo/bar" ]
-  [ "$(printf 'foo/bar\nbar/baz\nbaz/qux\n' | __private__ collect_input)" = $'foo/bar\nbar/baz\nbaz/qux' ]
-  [ "$(__private__ collect_input 'foo/bar' </dev/null)" = "foo/bar" ]
-  [ "$(__private__ collect_input $'foo/bar\nbar/baz' </dev/null)" = $'foo/bar\nbar/baz' ]
-  [ "$(echo piped | __private__ collect_input args-win)" = "args-win" ]
-  [ "$(__private__ collect_input </dev/null)" = "" ]
+  [ "$(echo foo/bar | antidote __private__ collect_input)" = "foo/bar" ]
+  [ "$(printf 'foo/bar\nbar/baz\nbaz/qux\n' | antidote __private__ collect_input)" = $'foo/bar\nbar/baz\nbaz/qux' ]
+  [ "$(antidote __private__ collect_input 'foo/bar' </dev/null)" = "foo/bar" ]
+  [ "$(antidote __private__ collect_input $'foo/bar\nbar/baz' </dev/null)" = $'foo/bar\nbar/baz' ]
+  [ "$(echo piped | antidote __private__ collect_input args-win)" = "args-win" ]
+  [ "$(antidote __private__ collect_input </dev/null)" = "" ]
 }
