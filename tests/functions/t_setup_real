@@ -10,8 +10,10 @@
   typeset -g T_TESTDATA=$T_PRJDIR/tests/testdata/real
   unset ANTIDOTE_CONFIG
 
-  # remove fixture gitconfig so we clone from real GitHub
-  rm -f "$HOME/.gitconfig"
+  # replace fixture gitconfig so we clone from real GitHub; keep
+  # background maintenance off since detached git gc processes race
+  # t_teardown's rm -rf of the tempdir
+  printf '[gc]\n\tauto = 0\n[maintenance]\n\tauto = false\n' > "$HOME/.gitconfig"
 
   # replace test versions of bundle files with real versions
   local file
