@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote purge tests (ported from tests/test_cmd_purge.md)
+# antidote purge tests
 
 load helpers/common
 

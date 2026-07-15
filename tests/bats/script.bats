@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote zsh_script tests (ported from tests/test_cmd_script.md)
+# antidote zsh_script tests
 
 load helpers/common
 
@@ -167,65 +167,61 @@ EOF
   expect "$expected"
 }
 
-@test "fpath-rule append, prepend, and rejection" {
-  fixture_session <<'EOS'
-antidote __private__ zsh_script __bundle__ ohmy/ohmy path plugins/docker fpath-rule append | subenv ANTIDOTE_HOME
-antidote __private__ zsh_script __bundle__ ohmy/ohmy path plugins/docker fpath-rule prepend | subenv ANTIDOTE_HOME
-antidote __private__ zsh_script __bundle__ ohmy/ohmy path plugins/docker fpath-rule foobar 2>&1
-EOS
-  expected=$(cat <<'EOF'
-fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/docker" )
-source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
-fpath=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/docker" $fpath )
-source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/docker/docker.plugin.zsh"
-antidote: error: unexpected fpath rule: 'foobar'
-EOF
-)
-  expect "$expected"
-}
+# fpath-rule behavior lives in fpath_rules.bats.
 
-# If a plugin is deferred, so is its post event; conditional wraps the
-# entire deferred block.
-@test "pre/post functions, including deferred and conditional variants" {
+@test "pre and post functions wrap sourcing" {
   fixture_session <<'EOS'
 antidote __private__ zsh_script __bundle__ foo/bar pre run_before | subenv ANTIDOTE_HOME
 antidote __private__ zsh_script __bundle__ foo/bar post run_after | subenv ANTIDOTE_HOME
-antidote __private__ zsh_script __bundle__ foo/bar kind defer pre pre-event post post-event | subenv ANTIDOTE_HOME
-antidote __private__ zsh_script __bundle__ foo/bar kind defer conditional is-macos | subenv ANTIDOTE_HOME
-antidote __private__ zsh_script __bundle__ foo/bar conditional is-macos pre setup post cleanup | subenv ANTIDOTE_HOME
 EOS
-  expected=$(cat <<'EOF'
-run_before
+  expect 'run_before
 fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
 source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
 source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
-run_after
-pre-event
+run_after'
+}
+
+# If a plugin is deferred, so is its post event; the pre event still
+# runs immediately.
+@test "deferred bundles defer the post event" {
+  fixture_session <<'EOS'
+antidote __private__ zsh_script __bundle__ foo/bar kind defer pre pre-event post post-event | subenv ANTIDOTE_HOME
+EOS
+  expect 'pre-event
 if ! (( $+functions[zsh-defer] )); then
   fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer" )
   source "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer/zsh-defer.plugin.zsh"
 fi
 fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
 zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
-zsh-defer post-event
-if is-macos; then
+zsh-defer post-event'
+}
+
+@test "conditional wraps the entire deferred block" {
+  fixture_session <<'EOS'
+antidote __private__ zsh_script __bundle__ foo/bar kind defer conditional is-macos | subenv ANTIDOTE_HOME
+EOS
+  expect 'if is-macos; then
   if ! (( $+functions[zsh-defer] )); then
     fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer" )
     source "$ANTIDOTE_HOME/fakegitsite.com/getantidote/zsh-defer/zsh-defer.plugin.zsh"
   fi
   fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
   zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
-fi
-if is-macos; then
+fi'
+}
+
+@test "conditional wraps pre/post along with sourcing" {
+  fixture_session <<'EOS'
+antidote __private__ zsh_script __bundle__ foo/bar conditional is-macos pre setup post cleanup | subenv ANTIDOTE_HOME
+EOS
+  expect 'if is-macos; then
   setup
   fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
   source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
   cleanup
-fi
-EOF
-)
-  expect "$expected"
+fi'
 }
 
 # initfiles picks the best init file by precedence, one type at a time.
@@ -263,6 +259,26 @@ $PLUGINDIR/lib/lib2.zsh
 $PLUGINDIR/lib/lib3.zsh
 no match exit: 1
 empty exit: 1
+EOF
+)
+  expect "$expected"
+}
+
+# If the user forks zsh-defer, support setting a zstyle for an
+# alternative repo location.
+@test "defer bundle honors the :antidote:defer bundle zstyle" {
+  run_session <<'EOS'
+zstyle ':antidote:bundle' path-style short
+zstyle ':antidote:defer' bundle 'custom/zsh-defer'
+antidote bundle 'zsh-users/zsh-autosuggestions kind:defer' 2>/dev/null | subenv HOME
+EOS
+  expected=$(cat <<'EOF'
+if ! (( $+functions[zsh-defer] )); then
+  fpath+=( "$HOME/.cache/antidote/custom/zsh-defer" )
+  source "$HOME/.cache/antidote/custom/zsh-defer/zsh-defer.plugin.zsh"
+fi
+fpath+=( "$HOME/.cache/antidote/zsh-users/zsh-autosuggestions" )
+zsh-defer source "$HOME/.cache/antidote/zsh-users/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh"
 EOF
 )
   expect "$expected"

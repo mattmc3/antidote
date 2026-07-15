@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
-# Helper function tests (ported from tests/test_helpers.md). Each case
-# runs antidote.zsh as a subprocess via `antidote __private__ <fn>` in
-# the standard isolated test home (see helpers/common.bash).
+# Helper function tests. Each case runs antidote.zsh as a subprocess
+# via `antidote __private__ <fn>` in the standard isolated test home
+# (see helpers/common.bash).
 
 load helpers/common
 

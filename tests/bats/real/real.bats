@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
-# Real-world antidote tests (ported from tests/test_real.md). These hit
-# real GitHub repos over the network — run via `just test-real`, never
-# part of the unit suite.
+# Real-world antidote tests. These hit real GitHub repos over the
+# network — run via `just test-real`, never part of the unit suite.
 
 load ../helpers/common
 

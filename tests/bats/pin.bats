@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote pin annotation tests (ported from tests/test_pin.md).
+# antidote pin annotation tests.
 #
 # The pintest/pinme fixture has three commits:
 # - v1.0.0 - initial good version

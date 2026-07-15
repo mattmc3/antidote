@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote bundle_parser tests (ported from tests/test_parser.md).
+# antidote bundle_parser tests.
 # The bundle parser takes the antidote bundle format and populates a
 # _parsed_bundles[i,key] matrix with metadata in
 # _parsed_bundles[__count__], parsed once.
@@ -8,9 +8,9 @@ load helpers/common
 
 setup() { antidote_common_setup; }
 
-# Each session defines the same shorthand the clitest file used, plus
-# val, which pairs input and parsed value so assertion failures name
-# the exact case: "<bundle> [<key>] -> <value>".
+# Each session defines the bundle_parser shorthand, plus val, which
+# pairs input and parsed value so assertion failures name the exact
+# case: "<bundle> [<key>] -> <value>".
 parser_session() {
   SESSION_PRELUDE='function bundle_parser() { antidote __private__ bundle_parser_serialize "$@"; }
 function val() { print -r -- "$1 [$2] -> $(print -r -- "$1" | bundle_parser | bundle_val "$2")" }' \

@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote snapshot tests (ported from tests/test_cmd_snapshot.md)
+# antidote snapshot tests
 
 load helpers/common
 
@@ -145,15 +145,21 @@ zstyle ':antidote:fzf' cmd $PRJDIR/tests/bin/mock_fzf"
   [ "${#lines[@]}" -eq 1 ]
 }
 
-@test "remove errors: missing file, no picker, no snapshots" {
+@test "remove with a missing file errors" {
   run antidote snapshot remove /nonexistent/snapshot.txt
   assert_output --partial "file not found '/nonexistent/snapshot.txt'"
+}
+
+@test "remove without a file and without a picker errors" {
   save_at_epoch 1000000001
   run antidote snapshot remove
   assert_output "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
-  rm -rf "$SNAP_DIR"; mkdir -p "$SNAP_DIR"
+}
+
+@test "remove with a picker but no snapshots errors" {
   ZSTYLES="zstyle ':antidote:snapshot' dir $SNAP_DIR
 zstyle ':antidote:fzf' cmd $PRJDIR/tests/bin/mock_fzf"
+  mkdir -p "$SNAP_DIR"
   run antidote snapshot remove
   assert_output "antidote: snapshot: no snapshots found"
 }

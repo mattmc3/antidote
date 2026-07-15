@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote path tests (ported from tests/test_cmd_path.md)
+# antidote path tests
 
 load helpers/common
 

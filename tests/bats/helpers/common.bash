@@ -54,7 +54,7 @@ antidote_fixture_dir() {
 
 # Build an isolated HOME for subprocess tests: tmp_home contents, the
 # test config, and a gitconfig that maps fakegitsite.com to the local
-# bare fixtures. Exports TESTHOME, ZDOTDIR, and AHOME.
+# bare fixtures. Exports TESTHOME, ZDOTDIR, AHOME, and ACONFIG.
 antidote_test_home() {
   # Resolve symlinks (macOS /var/folders -> /private/var) so subprocess
   # path prefix checks against $HOME hold.
@@ -62,6 +62,7 @@ antidote_test_home() {
   TESTHOME="$(cd "$BATS_TEST_TMPDIR/home" && pwd -P)"
   ZDOTDIR="$TESTHOME/.zsh"
   AHOME="$TESTHOME/.cache/antidote"
+  ACONFIG="$TESTHOME/.config/antidote/test_config.zsh"
   mkdir -p "$ZDOTDIR" "$AHOME"
   cp -Rf "$PRJDIR/tests/tmp_home/." "$TESTHOME"
   local fixdir
@@ -72,12 +73,16 @@ antidote_test_home() {
 # Run antidote (or `antidote __private__ <fn>`) as a subprocess in the
 # isolated test home. Extra zstyles go in $ZSTYLES.
 # Set AHOME="" to test antidote's own ANTIDOTE_HOME resolution.
+# Set ACONFIG="" to test antidote's own config file discovery.
 antidote() {
+  # EXTRA_ENV stays unquoted on purpose: it word-splits into VAR=value
+  # assignments, and quoting it hands env an empty-string utility name.
   ( cd "$TESTHOME" && env \
       -u XDG_CACHE_HOME -u XDG_DATA_HOME -u XDG_CONFIG_HOME \
+      -u ANTIDOTE_CONFIG \
       HOME="$TESTHOME" ZDOTDIR="$ZDOTDIR" T_PRJDIR="$PRJDIR" \
       ${AHOME:+ANTIDOTE_HOME="$AHOME"} \
-      ANTIDOTE_CONFIG="$TESTHOME/.config/antidote/test_config.zsh" \
+      ${ACONFIG:+ANTIDOTE_CONFIG="$ACONFIG"} \
       ANTIDOTE_ZSTYLES="${ZSTYLES:-}" ${EXTRA_ENV:-} \
       zsh "$PRJDIR/antidote.zsh" "$@" )
 }

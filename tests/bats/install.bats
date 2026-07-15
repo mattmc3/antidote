@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote install tests (ported from tests/test_cmd_install.md)
+# antidote install tests
 
 load helpers/common
 
@@ -23,8 +23,7 @@ EOS
 }
 
 # The clone failure emits git error details with variable temp paths,
-# so assert only the stable lines. (The clitest original checked exit
-# code only.)
+# so assert only the stable lines.
 @test "installing a non-existent bundle fails" {
   fixture_session <<'EOS'
 antidote install does-not/exist &>/dev/null; echo "exit: $?"

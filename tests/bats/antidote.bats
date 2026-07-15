@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote end-to-end tests (ported from tests/test_antidote.md):
+# antidote end-to-end tests:
 # version/help/home plus the bundle behaviors that only show up end to
 # end (clone resolution, branches, path-style). The per-kind and
 # per-annotation script output matrix lives in script.bats.

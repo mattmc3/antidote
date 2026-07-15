@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote list tests (ported from tests/test_cmd_list.md).
+# antidote list tests.
 # The full 6-bundle listings are the command's output contract, so
 # whole-output compares are intentional.
 

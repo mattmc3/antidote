@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
-# antidote load tests (ported from tests/test_cmd_load.md). load runs in
-# the parent shell (functions/antidote-load), so these use sessions.
+# antidote load tests. load runs in the parent shell
+# (functions/antidote-load), so these use sessions.
 
 load helpers/common
 

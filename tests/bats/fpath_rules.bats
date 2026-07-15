@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote bundle fpath-rule:<rule> tests (ported from tests/test_fpath_rules.md)
+# antidote bundle fpath-rule:<rule> tests
 
 load helpers/common
 

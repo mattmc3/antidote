@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote init tests (ported from tests/test_cmd_init.md)
+# antidote init tests
 
 load helpers/common
 

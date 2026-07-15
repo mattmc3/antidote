@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Per-bundle zcompile tests (ported from tests/test_zcompile_bundle.md).
+# Per-bundle zcompile tests.
 # Bundled paths under HOME print with a literal '$HOME' prefix.
 
 load helpers/common

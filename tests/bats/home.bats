@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote home tests (ported from tests/test_cmd_home.md).
+# antidote home tests.
 # `antidote home -h` man routing is covered in help.bats.
 
 load helpers/common

@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote update tests (ported from tests/test_cmd_update.md)
+# antidote update tests
 
 load helpers/common
 

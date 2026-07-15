@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
-# antidote bundle command tests (ported from tests/test_cmd_bundle.md).
-# Many 'bundle' tests could just as well be 'script' tests; script.md
+# antidote bundle command tests.
+# Many 'bundle' tests could just as well be 'script' tests; script.bats
 # finds scripting issues, this covers actual bundling in bulk.
 
 load helpers/common
@@ -63,6 +63,17 @@ echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 >/dev/null
 EOS
   assert_failure 1
   assert_line "# antidote: error: unexpected kind value: 'whoops'"
+}
+
+# A failed clone must not take down the rest of the bundle run: the
+# exit code reports the failure, the good bundles still come through.
+@test "a bad repo mixed with good ones fails but emits the good" {
+  fixture_session <<'EOS'
+printf 'foo/bar\ndoes-not/exist\n' | antidote bundle 2>/dev/null | subenv ANTIDOTE_HOME
+echo "exit: $pipestatus[2]"
+EOS
+  assert_line "exit: 1"
+  assert_line 'source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"'
 }
 
 # A bundle file of only kind:clone entries emits nothing, but that is

@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
-# Tests for supports_color (ported from tests/test_supports_color.md).
+# Tests for supports_color.
 # Runs antidote.zsh directly as a subprocess; no shell session state needed.
-# Note: bats captures stdout through a pipe, so [[ -t 1 ]] is always false
-# here, same as the clitest harness.
+# Note: bats captures stdout through a pipe, so [[ -t 1 ]] is always
+# false here.
 
 load lib/bats-support/load
 load lib/bats-assert/load

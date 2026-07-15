@@ -1,11 +1,11 @@
 #!/usr/bin/env bats
-# antidote using: directive tests (ported from tests/test_using_directive.md)
+# antidote using: directive tests
 
 load helpers/common
 
 setup() {
   antidote_common_setup
-  # Shorthand the clitest file used; fixture_session clones the base
+  # bundle_parser is per-file shorthand; fixture_session clones the base
   # fixtures since the full-fixture case sources real cloned bundles.
   SESSION_PRELUDE='function bundle_parser() { antidote __private__ bundle_parser_serialize "$@"; }'
 }
@@ -300,8 +300,7 @@ EOS
 }
 
 # invalid bundle mixed with valid — error is shown but valid output is
-# still produced. (The clitest original only asserted the exit code;
-# its output text was stale documentation.)
+# still produced.
 @test "invalid bundle mixed with valid still produces valid output" {
   fixture_session <<'EOS'
 printf 'foo/bar\nfoo\n' | antidote bundle 2>&1; echo "exit: $?"

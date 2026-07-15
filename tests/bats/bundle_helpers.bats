@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote bundle helper tests (ported from tests/test_bundle_helpers.md).
+# antidote bundle helper tests.
 # Many 'bundle' tests could just as well be 'script' tests; this covers
 # actual bundling and things not handled by 'antidote script'.
 
@@ -130,6 +130,30 @@ EOF
 }
 
 # The bundle parser turns the bundle DSL into zsh_script statements.
+@test "quoted annotations and ANTIDOTE_HOME with spaces" {
+  run_session <<'EOS'
+ANTIDOTE_HOME="$HOME/.cache/antidote with spaces"
+mkdir -p -- "$ANTIDOTE_HOME"
+echo 'foo/bar path:"plugins/foo bar/baz"' | antidote __private__ bundle_parser_serialize | print_parsed_bundle
+echo 'foo/bar' | antidote __private__ bundle_scripter
+antidote bundle 'foo/bar'
+EOS
+  expected=$(cat <<'EOF'
+__bundle__  : foo/bar
+__dir__     : $ANTIDOTE_HOME/fakegitsite.com/foo/bar
+__short__   : foo/bar
+__type__    : repo
+__url__     : https://fakegitsite.com/foo/bar
+path        : plugins/foo bar/baz
+zsh_script __bundle__ foo/bar __type__ repo
+# antidote cloning foo/bar...
+fpath+=( "$HOME/.cache/antidote with spaces/fakegitsite.com/foo/bar" )
+source "$HOME/.cache/antidote with spaces/fakegitsite.com/foo/bar/bar.plugin.zsh"
+EOF
+)
+  expect "$expected"
+}
+
 @test "bundle_scripter handles the full ZDOTDIR plugins file" {
   fixture_session <<'EOS'
 antidote __private__ bundle_scripter < $ZDOTDIR/.zsh_plugins.txt

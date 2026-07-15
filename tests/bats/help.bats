@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote help tests (ported from tests/test_cmd_help.md)
+# antidote help tests
 
 load helpers/common
 
@@ -21,16 +21,10 @@ EOS
   assert_line --index 2 "$header"
 }
 
-@test "help command and flags exist" {
-  run_session <<'EOS'
-antidote help &>/dev/null; echo "help: $?"
-antidote -h &>/dev/null; echo "-h: $?"
-antidote --help &>/dev/null; echo "--help: $?"
-EOS
-  assert_success
-  assert_line "help: 0"
-  assert_line "-h: 0"
-  assert_line "--help: 0"
+# -h/--help flag plumbing is covered in antidote_core.bats.
+@test "bare help command works" {
+  run_session <<<'antidote help &>/dev/null; echo "help: $?"'
+  assert_output "help: 0"
 }
 
 @test "man antidote works and MANPATH is set" {

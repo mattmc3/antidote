@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
-# Symlinked ANTIDOTE_HOME tests (ported from
-# tests/test_symlinked_antidote_home.md)
+# Symlinked ANTIDOTE_HOME tests
 
 load helpers/common
 

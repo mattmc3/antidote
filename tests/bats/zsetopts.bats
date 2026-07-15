@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
-# antidote respects setopts (ported from tests/test_zsetopts.md).
+# antidote respects setopts.
 # These need run_session: the behavior under test is option state in
-# the shell that runs `antidote load`.
+# the shell that runs antidote.
 
 load helpers/common
 
@@ -33,6 +33,29 @@ EOS
   assert_line "-v: no stderr"
   assert_line "-h: no stderr"
   assert_line "help: no stderr"
+}
+
+# Special zsh options that change parsing/expansion semantics must not
+# break antidote or leak state changes. See issue #154.
+@test "bundle output is unaffected by KSH_ARRAYS and SH_GLOB" {
+  SESSION_PRELUDE='setopt KSH_ARRAYS SH_GLOB'
+  fixture_session <<'EOS'
+antidote bundle <$ZDOTDIR/.zsh_plugins.txt | subenv
+EOS
+  expect "$(cat "$PRJDIR/tests/testdata/.zsh_plugins.zsh")"
+}
+
+@test "dispatch preserves KSH_ARRAYS and SH_GLOB" {
+  SESSION_PRELUDE='setopt KSH_ARRAYS SH_GLOB'
+  fixture_session <<'EOS'
+antidote bundle foo/bar >/dev/null
+echo "ksh_arrays=${options[ksharrays]} sh_glob=${options[shglob]}"
+unsetopt KSH_ARRAYS SH_GLOB
+antidote bundle foo/bar >/dev/null
+echo "ksh_arrays=${options[ksharrays]} sh_glob=${options[shglob]}"
+EOS
+  assert_line --index 0 "ksh_arrays=on sh_glob=on"
+  assert_line --index 1 "ksh_arrays=off sh_glob=off"
 }
 
 # Clark Grizwold lighting ceremony! A plugin that enables zillions of

@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Static file zcompile tests (ported from tests/test_zcompile_static.md).
+# Static file zcompile tests.
 # antidote load runs in the parent shell, so these use sessions.
 
 load helpers/common

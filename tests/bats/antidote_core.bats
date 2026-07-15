@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# antidote core tests (ported from tests/test_antidote_core.md).
+# antidote core tests.
 # Tests for antidote's most basic functionality.
 
 load helpers/common
