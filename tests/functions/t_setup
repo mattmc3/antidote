@@ -52,9 +52,6 @@
   # copy tmp_home contents
   cp -rf $testdir/tmp_home/* $T_TEMPDIR
 
-  # put testdata into position
-  cp -rf -- $T_PRJDIR/tests $T_TEMPDIR/tests
-
   # our mock plugins use this
   typeset -ga plugins=()
   typeset -ga libs=()

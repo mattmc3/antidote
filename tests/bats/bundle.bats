@@ -62,12 +62,11 @@ EOF
   expect "$expected"
 }
 
-# Note: bad kind still exits 0 (only the parser sets exit 1); this
-# asserts the error message, matching the original clitest.
-@test "bad kind values report an error" {
+@test "bad kind values fail" {
   bundle_session <<'EOS'
 echo "foo/bar\nfoo/baz kind:whoops" | antidote bundle 2>&1 >/dev/null
 EOS
+  assert_failure 1
   assert_line "# antidote: error: unexpected kind value: 'whoops'"
 }
 

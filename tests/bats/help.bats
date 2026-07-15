@@ -55,7 +55,7 @@ EOS
 
 @test "unknown topic falls back to usage" {
   run_session <<<'antidote help foo'
-  assert_success
+  assert_failure 1
   assert_output "No manual entry for antidote-foo
 $(cat "$PRJDIR/tests/testdata/usage_dispatch.txt")"
 }

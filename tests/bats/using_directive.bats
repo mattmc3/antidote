@@ -288,18 +288,18 @@ EOF
 
 @test "using: with empty target is an error" {
   using_session <<'EOS'
-antidote bundle 'using:' 2>&1; echo "exit: $?"
+antidote bundle 'using:' 2>&1
 EOS
+  assert_failure 1
   assert_line "# antidote: error on line 1: invalid using: target ''"
-  assert_line "exit: 1"
 }
 
 @test "using: with malformed target is an error" {
   using_session <<'EOS'
-antidote bundle 'using:foo@bar' 2>&1; echo "exit: $?"
+antidote bundle 'using:foo@bar' 2>&1
 EOS
+  assert_failure 1
   assert_line "# antidote: error on line 1: invalid using: target 'foo@bar'"
-  assert_line "exit: 1"
 }
 
 # invalid bundle mixed with valid — error is shown but valid output is

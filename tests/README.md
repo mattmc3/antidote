@@ -1,6 +1,24 @@
 # antidote tests
 
-Tests are using [clitest](https://github.com/aureliojargas/clitest). `clitest` utilizes markdown files in this folder to house the tests in a literate format.
+The test suite is [bats](https://github.com/bats-core/bats-core), in `tests/bats/`
+(network tests in `tests/bats/real/`). Run it with `just test`, or
+`just test-all` to include the real network tests. See
+`tests/bats/helpers/common.bash` for the harness and testing styles.
+
+This README doubles as a [clitest](https://github.com/aureliojargas/clitest)
+smoke test of the literate format the suite grew from; `tests/run`
+still executes it alongside bats.
+
+Support files:
+
+- `tests/functions/` - autoloaded session helpers (`t_setup`,
+  `t_teardown`, `t_setup_real`, `subenv`, `bundle_val`,
+  `print_parsed_bundle`, `t_unload_antidote`, `mask_semver`)
+- `tests/bin/` - executables tests shell out to (`mock_fzf`,
+  `init_fixtures.zsh`)
+- `tests/tmp_home/` - skeleton HOME copied into each isolated test home
+- `tests/testdata/` - golden files and fixtures
+- `tests/fixtures/` - generated git fixtures (see `t_setup`)
 
 ## Setup
 

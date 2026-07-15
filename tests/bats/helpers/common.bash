@@ -89,9 +89,11 @@ tgit() {
 
 # SESSION_PRELUDE, when set, is injected after setup — use it for
 # per-file shorthand. SESSION_SETUP overrides the setup function
-# (default t_setup; real tests use t_setup_real). Never pipe INTO
-# run_session: `run` would execute in a pipeline subshell and $output
-# would be lost.
+# (default t_setup; real tests use t_setup_real). $status is the exit
+# of the LAST body command (teardown still runs), so a session ending
+# in the probe command can assert_success/assert_failure directly.
+# Never pipe INTO run_session: `run` would execute in a pipeline
+# subshell and $output would be lost.
 run_session() {
   local script="$BATS_TEST_TMPDIR/session.zsh"
   {
@@ -99,7 +101,9 @@ run_session() {
     echo "${SESSION_SETUP:-t_setup} || exit 9"
     [ -n "${SESSION_PRELUDE:-}" ] && printf '%s\n' "$SESSION_PRELUDE"
     cat
+    echo '__t_status=$?'
     echo "t_teardown"
+    echo 'exit $__t_status'
   } >"$script"
   run env -i PATH="$PATH" PAGER=cat TERM=dumb zsh -f "$script"
 }

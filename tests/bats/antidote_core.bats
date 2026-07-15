@@ -15,11 +15,10 @@ setup() { antidote_common_setup; }
   run_session <<'EOS'
 echo "antidote fn defined: $+functions[antidote]"
 antidote
-echo "exit: $?"
 EOS
+  assert_failure 2
   assert_line --index 0 "antidote fn defined: 1"
   assert_output --partial "$(cat "$PRJDIR/tests/testdata/usage_dispatch.txt")"
-  assert_line "exit: 2"
 }
 
 @test "help and version flags work" {

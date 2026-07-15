@@ -39,6 +39,7 @@ antidote bundle foo/bar kind:fpath fpath-rule:append >/dev/null; echo "append ex
 antidote bundle foo/bar kind:fpath fpath-rule:prepend >/dev/null; echo "prepend exit: $?"
 antidote bundle foo/bar kind:fpath fpath-rule:foo 2>&1
 EOS
+  assert_failure 1
   assert_line "append exit: 0"
   assert_line "prepend exit: 0"
   assert_line "# antidote: error: unexpected fpath rule: 'foo'"

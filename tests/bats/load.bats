@@ -67,14 +67,14 @@ EOS
 @test "load fails with exit 2 when the static file cannot be created" {
   SESSION_PRELUDE='zstyle ":antidote:load:checkfile" disabled true
 touch $ZDOTDIR/.zplugins_err.txt $HOME/blocker'
-  run_session <<<'antidote load $ZDOTDIR/.zplugins_err.txt $HOME/blocker/static.zsh 2>/dev/null; echo "exit: $?"'
-  assert_output "exit: 2"
+  run_session <<<'antidote load $ZDOTDIR/.zplugins_err.txt $HOME/blocker/static.zsh 2>/dev/null'
+  assert_failure 2
 }
 
 @test "load fails with exit 2 when the static file fails to source" {
   SESSION_PRELUDE='zstyle ":antidote:load:checkfile" disabled true
 touch -t 202001010000 $ZDOTDIR/.zplugins_err.txt
 print "false" > $ZDOTDIR/.zplugins_err.zsh'
-  run_session <<<'antidote load $ZDOTDIR/.zplugins_err.txt $ZDOTDIR/.zplugins_err.zsh; echo "exit: $?"'
-  assert_output "exit: 2"
+  run_session <<<'antidote load $ZDOTDIR/.zplugins_err.txt $ZDOTDIR/.zplugins_err.zsh'
+  assert_failure 2
 }

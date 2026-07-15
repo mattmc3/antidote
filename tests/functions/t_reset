@@ -1,7 +1,0 @@
-#!/bin/zsh
-#function t_reset {
-  0=${(%):-%x}
-  t_teardown
-  t_setup
-  source ${0:A:h:h:h}/antidote.zsh
-#}

@@ -11,12 +11,9 @@ script_session() {
 }
 
 @test "zsh_script requires a bundle argument" {
-  script_session <<'EOS'
-antidote __private__ zsh_script &>/dev/null; echo "exit: $?"
-antidote __private__ zsh_script 2>&1
-EOS
-  assert_line "exit: 1"
-  assert_line "antidote: error: bundle argument expected"
+  script_session <<<'antidote __private__ zsh_script 2>&1'
+  assert_failure 1
+  assert_output "antidote: error: bundle argument expected"
 }
 
 # zsh_script accepts flat key-value pairs as an assoc array.

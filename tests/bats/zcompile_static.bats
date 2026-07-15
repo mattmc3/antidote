@@ -37,8 +37,8 @@ EOS
 # is emitted before clone failures are detected.
 @test "bad repo bundling fails with static zcompile on" {
   SESSION_PRELUDE="zstyle ':antidote:static' zcompile 'yes'"
-  run_session <<<'antidote bundle does-not/exist &>/dev/null; echo "exit: $?"'
-  assert_output "exit: 1"
+  run_session <<<'antidote bundle does-not/exist &>/dev/null'
+  assert_failure 1
 }
 
 @test "static zcompile off leaves no zwc file" {

@@ -931,15 +931,20 @@ bundle_scripter_parallel() {
   local n=0
   par_dir=$(maketmp -d -s par)
 
+  # Track each job's pid so `wait $pid` can recover its exit status;
+  # a bare `wait` would lose script failures like a bad kind value.
+  printf 'local -a __pids\nlocal __pid __err=0\n'
   while IFS= read -r line; do
     (( n++ ))
     printf '%s > "%s"/%03d &\n' "$line" "$par_dir" $n
+    printf '__pids+=($!)\n'
   done < <(bundle_scripter "$@")
 
   if (( n > 0 )); then
-    printf 'wait\n'
+    printf 'for __pid in $__pids; do wait $__pid || __err=1; done\n'
     printf 'cat "%s"/*\n' "$par_dir"
     printf 'rm -rf "%s"\n' "$par_dir"
+    printf 'return $__err\n'
   fi
 }
 
@@ -1240,8 +1245,10 @@ antidote_bundle() {
   (( _parsed_bundles[__has_pins__] )) && { bundle_sync_pins || return 1 }
   bundle_zcompile_pass
 
-  # generate bundle script in parallel - zsh_script still handles clone fallback
-  bundle_output=$(source <(bundle_scripter_parallel)) || return $?
+  # generate bundle script in parallel - zsh_script still handles clone
+  # fallback. Script failures (bad kind, bad pin) flag the whole bundle
+  # run as failed, but valid bundles still produce output.
+  bundle_output=$(source <(bundle_scripter_parallel)) || err=1
 
   # clean up legacy path-style dirs after cloning is complete
   bundle_dir_cleanup_pass

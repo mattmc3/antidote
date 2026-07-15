@@ -12,10 +12,10 @@ install_session() {
 
 @test "install requires a bundle argument" {
   install_session <<'EOS'
-antidote install 2>&1; echo "exit: $?"
+antidote install 2>&1
 EOS
-  assert_line --index 0 "antidote: error: required argument 'bundle' not provided, try --help"
-  assert_line --index 1 "exit: 1"
+  assert_failure 1
+  assert_output "antidote: error: required argument 'bundle' not provided, try --help"
 }
 
 @test "installing an existing bundle fails" {
