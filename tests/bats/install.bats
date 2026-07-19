@@ -33,6 +33,18 @@ EOS
   assert_line "# antidote: unable to install bundle 'does-not/exist'."
 }
 
+# An unrecognized short flag must error out, not silently append a
+# malformed ':value' annotation to the plugins file.
+@test "install rejects unknown flags" {
+  fixture_session <<'EOS'
+antidote install -x foo themes/purify 2>&1; echo "exit: $?"
+grep purify $ZDOTDIR/.zsh_plugins.txt || echo "not in plugins file"
+EOS
+  assert_line "antidote: error: unknown flag '-x', try --help"
+  assert_line "exit: 1"
+  assert_line "not in plugins file"
+}
+
 @test "install clones and appends to the plugins file" {
   fixture_session <<'EOS'
 antidote install themes/purify | subenv ZDOTDIR

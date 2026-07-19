@@ -5,7 +5,7 @@ if [ -n "$BASH_VERSION" ]; then
   echo >&2 "antidote: This script requires Zsh, not Bash"
   return 1 2>/dev/null || exit 1
 elif [ -z "$ZSH_VERSION" ]; then
-  shellname="$(ps -p $$ -oargs= | awk 'NR=1{print $1}')"
+  shellname="$(ps -p $$ -oargs= 2>/dev/null | awk 'NR==1{print $1}')"
   echo >&2 "antidote: This script requires Zsh, not '$shellname'."
   return 1 2>/dev/null || exit 1
 fi
@@ -48,11 +48,22 @@ warn() { say "$@" >&2; }
 
 # Escape a string for use inside a JSON double-quoted value.
 json_escape() {
+  local i ch
   REPLY=${1//\\/\\\\}
   REPLY=${REPLY//\"/\\\"}
+  REPLY=${REPLY//$'\b'/\\b}
+  REPLY=${REPLY//$'\f'/\\f}
   REPLY=${REPLY//$'\n'/\\n}
   REPLY=${REPLY//$'\r'/\\r}
   REPLY=${REPLY//$'\t'/\\t}
+  # Any remaining C0 control chars need \u00XX form to be valid JSON.
+  if [[ "$REPLY" == *[$'\x01'-$'\x1f']* ]]; then
+    for (( i = 1; i <= 31; i++ )); do
+      ch=${(#)i}
+      [[ "$REPLY" == *${ch}* ]] || continue
+      REPLY=${REPLY//${ch}/\\u$(printf '%04x' $i)}
+    done
+  fi
 }
 
 # Prompt for a y/n answer unless a test zstyle provides one.
@@ -815,9 +826,13 @@ bundle_sync_pins() {
       if ! git_checkout_pin "$bundle_path" "$pin" "$bname"; then
         return 1
       fi
-      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin
+      # if-form so an ephemeral pin doesn't leak status 1 from the loop
+      if [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]]; then
+        git_config_set "$bundle_path" antidote.pin $pin
+      fi
     fi
   done
+  return 0
 }
 
 ### Zcompile all bundles in the matrix that have zcompile enabled.
@@ -1308,7 +1323,11 @@ antidote_install() {
       ;;
       --)   shift; break  ;;
       --*)  annotations+=( "${arg#*--}:$2" ); shift  ;;
-      -*)   annotations+=( $flag_to_annotation[$arg]:$2 ); shift  ;;
+      -*)
+        [[ -n "${flag_to_annotation[$arg]}" ]] ||
+          die "antidote: error: unknown flag '$arg', try --help"
+        annotations+=( $flag_to_annotation[$arg]:$2 ); shift
+      ;;
       *)    break  ;;
     esac
     shift
@@ -1410,7 +1429,12 @@ antidote_purge() {
     if [[ -e "$bundlefile" ]]; then
       lines=( "${(@f)"$(<$bundlefile)"}" )
       for (( i=1; i<=$#lines; i++ )); do
-        [[ "${lines[$i]}" =~ "^[[:blank:]]*${bundle}" ]] && lines[$i]="# $lines[$i]"
+        # Match the bundle literally (not as a pattern), whole word only, so
+        # purging foo/bar leaves foo/barbaz alone.
+        line=${lines[$i]##[[:blank:]]#}
+        if [[ "$line" == "$bundle" || "$line" == "$bundle"[[:blank:]]* ]]; then
+          lines[$i]="# $lines[$i]"
+        fi
       done
       printf '%s\n' "${lines[@]}" > "$bundlefile"
       say "Bundle '$bundle' was commented out in '$bundlefile'."
@@ -1427,15 +1451,10 @@ antidote_purge() {
 update_one_bundle() {
   local bundledir="$1" repo="$2"
   local repo_id tmpfile oldsha newsha
-  local GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
 
   repo_id="${repo//\//-SLASH-}"
   tmpfile="${tmpdir}/${repo_id}.output"
   oldsha=$(git_sha "$bundledir")
-
-  # Isolate git from user config
-  GIT_CONFIG_GLOBAL=/dev/null
-  GIT_CONFIG_SYSTEM=/dev/null
 
   # Unshallow the repo if needed
   if git_is_shallow "$bundledir"; then
@@ -1862,7 +1881,8 @@ snapshot_pick() {
 ### Restore bundles from a snapshot file.
 snapshot_restore() {
   local snapshot_file="$1"
-  local line bundle pin
+  local line bundle pin i err=0
+  local -a pids bundles
 
   if [[ -z "$snapshot_file" ]]; then
     snapshot_try_picker || return 1
@@ -1881,9 +1901,21 @@ snapshot_restore() {
     pin=${pin%% *}
     say "${C_BLUE}antidote:${C_NORMAL} restoring $bundle (${C_GREEN}${pin[1,7]}...${C_NORMAL})"
     ANTIDOTE_EPHEMERAL_PIN=true antidote_bundle "$line" &>/dev/null &
+    pids+=($!)
+    bundles+=("$bundle")
   done <"$snapshot_file"
-  wait
 
+  for (( i = 1; i <= $#pids; i++ )); do
+    if ! wait ${pids[$i]}; then
+      warn "antidote: snapshot: restore failed for '${bundles[$i]}'"
+      err=1
+    fi
+  done
+
+  if (( err )); then
+    warn "Restore completed with errors."
+    return 1
+  fi
   say "${C_GREEN}Restore complete.${C_NORMAL}"
 }
 

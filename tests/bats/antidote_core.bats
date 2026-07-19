@@ -11,6 +11,12 @@ setup() { antidote_common_setup; }
   assert_output "antidote: This script requires Zsh, not Bash"
 }
 
+@test "fails gracefully when someone tries plain sh" {
+  run_session <<<'sh -c ". $T_PRJDIR/antidote.zsh"; echo "exit: $?"'
+  assert_output --partial "antidote: This script requires Zsh, not"
+  assert_line "exit: 1"
+}
+
 @test "no args displays help and exits 2" {
   run_session <<'EOS'
 echo "antidote fn defined: $+functions[antidote]"

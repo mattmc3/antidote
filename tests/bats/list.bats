@@ -86,3 +86,13 @@ $AHOME/fakegitsite.com/ohmy/ohmy"
   run antidote list --jsonl
   assert_output --partial '"url":"https://fakegitsite.com/foo/\"bar\\baz\""'
 }
+
+# Control characters (\b, \f, other C0) must be JSON-escaped too, or
+# the line is not valid JSON.
+@test "list --jsonl escapes control characters" {
+  git -C "$AHOME/fakegitsite.com/foo/bar" config remote.origin.url \
+    "$(printf 'https://fakegitsite.com/foo/b\bar\fbaz\001qux')"
+  run antidote list --jsonl
+  assert_output --partial '/foo/b\bar\fbaz\u0001qux'
+  antidote list --jsonl | jq -e . >/dev/null
+}

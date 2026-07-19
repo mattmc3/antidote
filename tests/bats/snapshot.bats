@@ -70,6 +70,22 @@ zstyle ':antidote:test:snapshot' epoch 1000000002" antidote update &>/dev/null
   assert_success
 }
 
+# A bundle that fails to clone must be reported and fail the restore,
+# not vanish behind an unconditional "Restore complete."
+@test "snapshot restore reports failed bundles" {
+  mkdir -p "$SNAP_DIR"
+  cat >"$SNAP_DIR/snapshot-bad.txt" <<'EOF'
+# antidote snapshot
+# version: 0.0.0
+# date: 2024-01-01T00:00:00Z
+does-not/exist kind:clone pin:0000000000000000000000000000000000000000
+EOF
+  run antidote snapshot restore "$SNAP_DIR/snapshot-bad.txt"
+  assert_failure
+  assert_line --partial "restore failed for 'does-not/exist'"
+  refute_output --partial "Restore complete."
+}
+
 @test "dynamic mode skips snapshot save" {
   EXTRA_ENV="ANTIDOTE_DYNAMIC=true"
   run antidote snapshot save

@@ -35,6 +35,16 @@ setup() {
   assert_success
 }
 
+# A bundle whose name extends the purged one (foo/barbaz vs foo/bar)
+# must not get commented out too.
+@test "purge only comments out exact bundle matches" {
+  echo 'foo/barbaz kind:clone' >>"$ZDOTDIR/.zsh_plugins.txt"
+  run antidote purge foo/bar
+  assert_output --partial "Bundle 'foo/bar' was commented out"
+  run grep '^foo/barbaz' "$ZDOTDIR/.zsh_plugins.txt"
+  assert_output 'foo/barbaz kind:clone'
+}
+
 @test "purging a local path is not allowed" {
   run antidote purge "$AHOME"
   assert_failure 2
