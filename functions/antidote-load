@@ -57,8 +57,17 @@
     fi
 
     if [[ ! $staticfile -nt $bundlefile ]] || [[ $force_bundle -eq 1 ]]; then
-      mkdir -p "${staticfile:A:h}"
-      antidote bundle <"$bundlefile" >|"$staticfile"
+      mkdir -p "${staticfile:A:h}" || return 2
+      if antidote bundle <"$bundlefile" >|"${staticfile}.new"; then
+        command mv -f -- "${staticfile}.new" "$staticfile" || {
+          command rm -f -- "${staticfile}.new"; return 2
+        }
+      else
+        command rm -f -- "${staticfile}.new"
+        (( force_bundle )) && command rm -f -- "$loadable_check_path"
+        typeset -g REPLY=$staticfile
+        return 1
+      fi
       if [[ -r "${staticfile}.zwc" ]] && ! zstyle -t ':antidote:static' zcompile; then
         antidote-zsh __private__ del -f -- "${staticfile}.zwc"
       fi

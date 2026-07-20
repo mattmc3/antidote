@@ -102,3 +102,20 @@ print "false" > $ZDOTDIR/.zplugins_err.zsh'
   fixture_session <<<'antidote load $ZDOTDIR/.zplugins_err.txt $ZDOTDIR/.zplugins_err.zsh'
   assert_failure 2
 }
+
+@test "failed regeneration preserves the last known-good static file" {
+  SESSION_PRELUDE='print "bad:bundle:value" > $ZDOTDIR/.zplugins_bad.txt
+print "print last-known-good" > $ZDOTDIR/.zplugins_bad.zsh'
+  run_session <<'EOS'
+antidote load $ZDOTDIR/.zplugins_bad.txt $ZDOTDIR/.zplugins_bad.zsh 2>/dev/null
+echo "exit: $?"
+grep -q last-known-good $ZDOTDIR/.zplugins_bad.zsh && echo "static preserved"
+[[ -e $ZDOTDIR/.zplugins_bad.zsh.new ]] && echo ".new present" || echo ".new absent"
+[[ -e $ANTIDOTE_HOME/.antidote.load ]] && echo "checkfile present" || echo "checkfile absent"
+EOS
+  assert_line "last-known-good"
+  assert_line "exit: 1"
+  assert_line "static preserved"
+  assert_line ".new absent"
+  assert_line "checkfile absent"
+}
