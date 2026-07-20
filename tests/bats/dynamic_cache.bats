@@ -330,6 +330,15 @@ EOS
   assert_line "manifests: 0"
 }
 
+@test "invalid bundle from stdin fails" {
+  run_session <<'EOS'
+source <(antidote init)
+print -r -- 'bad:bundle:value' | antidote bundle 2>/dev/null
+echo "exit: $?"
+EOS
+  assert_line "exit: 1"
+}
+
 @test "failed clone is not cached and fails" {
   run_session <<'EOS'
 source <(antidote init)

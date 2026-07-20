@@ -31,8 +31,9 @@
   # Piped/redirected input (no bundle args) bypasses the cache - the
   # whole batch is a single subprocess already.
   if (( $# == 0 )); then
-    source <( ANTIDOTE_DYNAMIC=true antidote-dispatch bundle ) ||
-      ANTIDOTE_DYNAMIC=true antidote-dispatch bundle
+    local __adote_script
+    __adote_script="$(ANTIDOTE_DYNAMIC=true antidote-dispatch bundle)" || return
+    source <( print -r -- "$__adote_script" )
     return
   fi
 
