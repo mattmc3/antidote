@@ -1,0 +1,201 @@
+#!/bin/zsh
+
+### Dynamic-mode `antidote bundle` with a manifest script cache.
+#
+# usage: antidote-bundle-dynamic <antidote-home> <config-file> [<bundle>...]
+#
+# Generated load scripts live in content-addressed files under
+# <antidote-home>/.dynamic/<djb2-of-script>.zsh, zcompiled so warm
+# sources skip the parse. The _antidote_dynamic_cache assoc maps each
+# bundle line (plus the active using: context) to its script filename,
+# and persists to a manifest file. One manifest exists per
+# ':antidote:*' zstyle combination, so alternating configs keep
+# separate warm caches; identical scripts share one file across
+# manifests. New entries append to the manifest as they are generated,
+# so no exit hook is needed and nothing is lost if the shell dies
+# early.
+#
+# A manifest is discarded when its header no longer matches the current
+# zstyles or the mtimes of antidote.zsh/the config file, when an entry
+# fails to source (eg: a bundle deleted out-of-band), or when
+# `antidote purge` or `antidote update` clears the cache dir. A script
+# file whose content does not match what a store generated (hash
+# collision or out-of-band edit) is never reused - the store bumps to
+# a suffixed filename instead.
+#function antidote-bundle-dynamic {
+  local __adote_ahome="$1" __adote_configfile="$2"
+  local __adote_ret=0 __adote_hit=0 __adote_scriptfile=
+  shift 2
+
+  # Piped/redirected input (no bundle args) bypasses the cache - the
+  # whole batch is a single subprocess already.
+  if (( $# == 0 )); then
+    source <( ANTIDOTE_DYNAMIC=true antidote-dispatch bundle ) ||
+      ANTIDOTE_DYNAMIC=true antidote-dispatch bundle
+    return
+  fi
+
+  # Serialize ':antidote:*' zstyles into REPLY without forking.
+  __adote_dynamic_zstyles() {
+    emulate -L zsh
+    local pat sty
+    local -a patterns styles vals
+    REPLY=
+    zstyle -g patterns
+    for pat in ${(o)patterns}; do
+      [[ "$pat" == :antidote:* ]] || continue
+      zstyle -g styles "$pat"
+      for sty in ${(o)styles}; do
+        vals=()
+        zstyle -g vals "$pat" "$sty"
+        REPLY+="$pat $sty ${(j: :)vals}"$'\n'
+      done
+    done
+  }
+
+  # djb2 hash of $1 in pure zsh; REPLY gets the decimal value.
+  __adote_dynamic_hash() {
+    emulate -L zsh
+    local c
+    local -a chs
+    local -i hash i
+    hash=5381
+    chs=(${(s::)1})
+    for (( i = 1; i <= $#chs; i++ )); do
+      c=$chs[i]
+      (( hash = (hash * 33 + #c) % 4294967296 ))
+    done
+    REPLY=$hash
+  }
+
+  # Compute this line's cache key (bundle args + using: context, which
+  # changes how bare-word bundles expand) into REPLY.
+  __adote_dynamic_key() {
+    emulate -L zsh
+    local k
+    REPLY="$*"
+    for k in ${(ok)_antidote_using_context}; do
+      REPLY+="|$k=${_antidote_using_context[$k]}"
+    done
+  }
+
+  # Load or refresh the manifest, then look up this bundle line. On a
+  # hit, REPLY gets the cached script file path. The manifest filename
+  # is a djb2 hash of the zstyles; the full zstyle text in the header
+  # guards against collisions - a collision just reads as a stale
+  # manifest.
+  __adote_dynamic_lookup() {
+    emulate -L zsh
+    setopt local_options extended_glob
+    local ahome="$1" configfile="$2"; shift 2
+    local zstyles file key
+    local zsh_mtime=0 config_mtime=0
+    local -a mtimes
+
+    # Declare before the first subscript read: an unset param
+    # math-evals its subscript, and `zstyles` is a local here.
+    typeset -gA _antidote_dynamic_cache _antidote_dynamic_meta
+
+    zmodload -F zsh/stat b:zstat 2>/dev/null
+    zstat -A mtimes +mtime -- "$ANTIDOTE_ZSH" 2>/dev/null && zsh_mtime=$mtimes[1]
+    zstat -A mtimes +mtime -- "$configfile" 2>/dev/null && config_mtime=$mtimes[1]
+    __adote_dynamic_zstyles; zstyles=$REPLY
+
+    if [[ "${_antidote_dynamic_meta[zstyles]}" != "$zstyles" ||
+          "${_antidote_dynamic_meta[zsh_mtime]}" != "$zsh_mtime" ||
+          "${_antidote_dynamic_meta[config_mtime]}" != "$config_mtime" ]]; then
+      __adote_dynamic_hash "$zstyles"
+      file="$ahome/.dynamic/manifest-${REPLY}.zsh"
+
+      _antidote_dynamic_cache=() _antidote_dynamic_meta=()
+      if [[ -r "$file" ]]; then
+        builtin source "$file" 2>/dev/null || command rm -f -- "$file"
+      fi
+      if [[ "${_antidote_dynamic_meta[zstyles]}" != "$zstyles" ||
+            "${_antidote_dynamic_meta[zsh_mtime]}" != "$zsh_mtime" ||
+            "${_antidote_dynamic_meta[config_mtime]}" != "$config_mtime" ]]; then
+        command rm -f -- "$file"
+        _antidote_dynamic_cache=()
+      fi
+      _antidote_dynamic_meta=(
+        file          "$file"
+        zstyles       "$zstyles"
+        zsh_mtime     "$zsh_mtime"
+        config_mtime  "$config_mtime"
+      )
+    fi
+
+    __adote_dynamic_key "$@"; key=$REPLY
+    (( ${+_antidote_dynamic_cache[$key]} )) || return 1
+    REPLY="$ahome/.dynamic/${_antidote_dynamic_cache[$key]}"
+    [[ -e "$REPLY" || -e "$REPLY.zwc" ]] || return 1
+  }
+
+  # Generate this line's script in a subprocess, write it to a
+  # content-addressed file, and record the filename in the assoc and
+  # the manifest. REPLY gets the script file path.
+  __adote_dynamic_store() {
+    emulate -L zsh
+    setopt local_options extended_glob
+    local ahome="$1" configfile="$2"; shift 2
+    local file="${_antidote_dynamic_meta[file]}"
+    local key script hashval sname sfile
+    local -i n=1
+
+    __adote_dynamic_key "$@"; key=$REPLY
+    script="$(ANTIDOTE_DYNAMIC=true antidote-dispatch bundle "$@")" || return 1
+
+    # Identical content shares one file; mismatched content (hash
+    # collision or out-of-band edit) bumps to a suffixed name so a
+    # wrong script is never served.
+    __adote_dynamic_hash "$script"; hashval=$REPLY
+    sname="${hashval}.zsh"
+    sfile="$ahome/.dynamic/$sname"
+    command mkdir -p -- "${sfile:h}"
+    while [[ -e "$sfile" && "$(<$sfile)" != "$script" ]]; do
+      (( n++ ))
+      sname="${hashval}-${n}.zsh"
+      sfile="$ahome/.dynamic/$sname"
+    done
+    if [[ ! -e "$sfile" ]]; then
+      print -r -- "$script" >| "$sfile"
+      builtin autoload -Uz zrecompile
+      zrecompile -pq "$sfile"
+    fi
+    _antidote_dynamic_cache[$key]="$sname"
+
+    if [[ ! -e "$file" ]]; then
+      print -r -- "_antidote_dynamic_meta=( zstyles ${(qqqq)_antidote_dynamic_meta[zstyles]} zsh_mtime ${(qqqq)_antidote_dynamic_meta[zsh_mtime]} config_mtime ${(qqqq)_antidote_dynamic_meta[config_mtime]} )" >| "$file"
+    fi
+    # += array form, not a subscript assignment: assignment subscripts
+    # skip quote removal, so a ${(qqqq)} key would not round-trip.
+    print -r -- "_antidote_dynamic_cache+=( ${(qqqq)key} ${(qqqq)sname} )" >>| "$file"
+    REPLY="$sfile"
+  }
+
+  # Source outside any emulate scope so plugin setopts and setups stick
+  # in the caller's shell, same as sourcing a static file. A .zwc next
+  # to the script file is picked up automatically.
+  if __adote_dynamic_lookup "$__adote_ahome" "$__adote_configfile" "$@"; then
+    __adote_hit=1
+    __adote_scriptfile="$REPLY"
+    builtin source "$__adote_scriptfile"
+    __adote_ret=$?
+  fi
+  if (( ! __adote_hit || __adote_ret )); then
+    if __adote_dynamic_store "$__adote_ahome" "$__adote_configfile" "$@"; then
+      __adote_scriptfile="$REPLY"
+      builtin source "$__adote_scriptfile"
+      __adote_ret=$?
+    else
+      # Generation failed - rerun un-cached so the user sees the errors.
+      ANTIDOTE_DYNAMIC=true antidote-dispatch bundle "$@"
+      __adote_ret=$?
+    fi
+  fi
+
+  unfunction __adote_dynamic_zstyles __adote_dynamic_hash \
+    __adote_dynamic_key __adote_dynamic_lookup __adote_dynamic_store
+  unset REPLY
+  return $__adote_ret
+#}

@@ -57,6 +57,9 @@ test-real env="latest": (_run env "BATS_JOBS=" + bats_jobs + " ./tests/run --rea
 # profile antidote operations with zprof (env: "latest", "542", or "local")
 profile env="latest": (_run env "./tools/antidote-profile")
 
+# benchmark antidote load performance (env: "latest", "542", or "local")
+bench env="local": (_run env "./tools/antidote-bench")
+
 # bump the major version (X.0.0)
 bump-maj:
     ./tools/bumpver major

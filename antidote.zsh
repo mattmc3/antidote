@@ -1425,6 +1425,9 @@ antidote_purge() {
     del "$bundledir"
     say "Removed '$bundle'."
 
+    # invalidate the dynamic-mode script cache so purged bundles reclone
+    [[ -d "$ANTIDOTE_HOME/.dynamic" ]] && del "$ANTIDOTE_HOME/.dynamic"
+
     # attempt to comment out the bundle from .zsh_plugins.txt
     if [[ -e "$bundlefile" ]]; then
       lines=( "${(@f)"$(<$bundlefile)"}" )
@@ -1524,6 +1527,9 @@ antidote_update() {
     # remove check file
     loadable_check_path="${ANTIDOTE_HOME}/.antidote.load"
     [[ -r "$loadable_check_path" ]] && del "$loadable_check_path"
+
+    # invalidate the dynamic-mode script cache; bundle contents change
+    [[ -d "$ANTIDOTE_HOME/.dynamic" ]] && del "$ANTIDOTE_HOME/.dynamic"
   fi
 
   # Setup temporary directory
@@ -1602,7 +1608,12 @@ antidote_home() { say "$ANTIDOTE_HOME" }
 # `antidote bundle` instead of just generating the Zsh script.
 #
 antidote_init() {
-  say "$ANTIDOTE_INIT_SCRIPT"
+  # Bake the resolved home and config paths into the emitted function so
+  # the parent shell never needs a subprocess to find the bundle cache.
+  local script=$ANTIDOTE_INIT_SCRIPT
+  script=${script//@ANTIDOTE_HOME@/${(qq)ANTIDOTE_HOME}}
+  script=${script//@ANTIDOTE_CONFIG_FILE@/${(qq)ANTIDOTE_CONFIG_FILE}}
+  say "$script"
 }
 
 ### List cloned bundles.
@@ -2088,7 +2099,8 @@ cat <<'EOS'
 function antidote {
   case "$1" in
     bundle)
-      source <( ANTIDOTE_DYNAMIC=true antidote-dispatch $@ ) || ANTIDOTE_DYNAMIC=true antidote-dispatch $@
+      shift
+      antidote-bundle-dynamic @ANTIDOTE_HOME@ @ANTIDOTE_CONFIG_FILE@ "$@"
       ;;
     *)
       ANTIDOTE_DYNAMIC=true antidote-dispatch $@

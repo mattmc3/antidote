@@ -2,12 +2,12 @@
 .\"     Title: antidote
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-03-26
+.\"      Date: 2026-07-20
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE" "1" "2026-03-26" "antidote" "Antidote Manual"
+.TH "ANTIDOTE" "1" "2026-07-20" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -155,7 +155,9 @@ etc...
 .if n .RE
 .SS "Dynamic Bundling"
 .sp
-Users familiar with legacy plugin managers like Antigen might prefer to use dynamic bundling. With dynamic bundling you sacrifice some performance to avoid having separate plugin files. To use dynamic bundling, we need to change how \fBantidote bundle\fP handles your plugins. We do this by sourcing the output from \fBantidote init\fP.
+Users familiar with legacy plugin managers like Antigen might prefer to use dynamic bundling. With dynamic bundling you avoid having separate plugin files. To use dynamic bundling, we need to change how \fBantidote bundle\fP handles your plugins. We do this by sourcing the output from \fBantidote init\fP.
+.sp
+Each \fBantidote bundle\fP line caches its generated load script in a zcompiled file under \fBantidote home\fP, indexed by a manifest, so after the first run new shells load the cache instead of regenerating. The cache refreshes automatically when antidote or your config changes, when \*(Aq:antidote:*\*(Aq zstyles change, or after \fBantidote purge\fP or \fBantidote update\fP.
 .sp
 An example config might look like this:
 .sp

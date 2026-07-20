@@ -1,0 +1,89 @@
+#!/usr/bin/env zsh
+# Benchmark antidote load performance using the local test fixtures.
+# Usage: ./tools/antidote-bench
+#
+# Reports wall time for dynamic-mode bundling (uncached, cold cache,
+# warm fresh-shell, warm in-memory) and static-mode load, so cache and
+# loader changes can be compared before/after.
+
+0=${(%):-%x}
+typeset T_PRJDIR="${0:A:h:h}"
+cd "$T_PRJDIR" || exit 1
+
+zmodload zsh/datetime
+
+fpath+=( $T_PRJDIR/tests/functions )
+autoload -Uz $T_PRJDIR/tests/functions/*
+
+source ./tests/__init__.zsh || exit 1
+t_setup || exit 1
+trap 't_teardown' EXIT
+
+# A representative bundle set: repos, ssh URL, autoload, subpaths.
+typeset -ga BENCH_LINES=(
+  'bar/baz'
+  'foo/bar'
+  'foo/baz autoload:functions'
+  'git@fakegitsite.com:foo/qux'
+  'ohmy/ohmy path:lib'
+  'ohmy/ohmy path:plugins/extract'
+)
+
+### bench <iterations> <label> <fn> - report avg wall time per pass.
+bench() {
+  local n=$1 label=$2 fn=$3
+  local -F t0 t1 ms
+  local -i i
+  t0=$EPOCHREALTIME
+  for (( i = 1; i <= n; i++ )); do "$fn"; done
+  t1=$EPOCHREALTIME
+  ms=$(( (t1 - t0) / n * 1000 ))
+  printf '%-44s %8.1f ms  (%5.2f ms/line)\n' "$label" $ms $(( ms / $#BENCH_LINES ))
+}
+
+run_lines_cached() {
+  local line
+  for line in $BENCH_LINES; do
+    antidote bundle ${(z)line} >/dev/null 2>&1
+  done
+}
+
+# The pre-cache dynamic path: one subprocess per line.
+run_lines_uncached() {
+  local line
+  for line in $BENCH_LINES; do
+    source <( ANTIDOTE_DYNAMIC=true antidote-dispatch bundle ${(z)line} ) >/dev/null 2>&1
+  done
+}
+
+# A fresh shell has no in-memory cache; the manifest loads from disk.
+run_lines_fresh_shell() {
+  _antidote_dynamic_cache=() _antidote_dynamic_meta=() _antidote_using_context=()
+  run_lines_cached
+}
+
+run_static_load() {
+  antidote-load "$ZDOTDIR/.zsh_plugins_bench.txt" >/dev/null 2>&1
+}
+
+print "==> antidote-bench: ${#BENCH_LINES} bundle lines, local fixtures"
+print "    zsh $ZSH_VERSION"
+print ""
+
+# Arrange: enter dynamic mode, pre-clone everything so timings measure
+# script generation and loading, not network/disk clone work.
+source <(antidote init)
+printf '%s\n' $BENCH_LINES >"$ZDOTDIR/.zsh_plugins_bench.txt"
+antidote bundle <"$ZDOTDIR/.zsh_plugins_bench.txt" >/dev/null 2>&1
+
+print -r -- "-- dynamic mode (source <(antidote init)) --"
+bench 3 "uncached, subprocess per line (pre-2.1)" run_lines_uncached
+command rm -rf -- "$ANTIDOTE_HOME/.dynamic"
+bench 1 "cold cache (generate + write manifest)" run_lines_cached
+bench 5 "warm, fresh shell (manifest load)" run_lines_fresh_shell
+bench 10 "warm, in-memory" run_lines_cached
+print ""
+
+print -r -- "-- static mode (antidote load) --"
+run_static_load  # generate the static file once
+bench 5 "warm (staticfile up to date)" run_static_load
