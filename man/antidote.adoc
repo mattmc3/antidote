@@ -68,7 +68,7 @@ etc...
 === Dynamic Bundling
 Users familiar with legacy plugin managers like Antigen might prefer to use dynamic bundling. With dynamic bundling you avoid having separate plugin files. To use dynamic bundling, we need to change how *antidote bundle* handles your plugins. We do this by sourcing the output from *antidote init*.
 
-Each *antidote bundle* line caches its generated load script in a zcompiled file under *antidote home*, indexed by a manifest, so after the first run new shells load the cache instead of regenerating. The cache refreshes automatically when antidote or your config changes, when ':antidote:*' zstyles change, or after *antidote purge* or *antidote update*.
+Each *antidote bundle* line caches its generated load script in a file under *antidote home*, indexed by a manifest, so after the first run new shells load the cache instead of regenerating. Set `zstyle ':antidote:dynamic' zcompile 'yes'` to zcompile those cache files. The cache refreshes automatically when antidote or your config changes, when ':antidote:*' zstyles change, or after *antidote purge* or *antidote update*.
 
 An example config might look like this:
 

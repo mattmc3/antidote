@@ -1,0 +1,36 @@
+#!/bin/zsh
+
+### Print where antidote clones bundles.
+#
+# Resolves ANTIDOTE_HOME in the parent shell (no subprocess), mirroring
+# the precedence in antidote.zsh's init + get_dir. Sets REPLY and prints
+# it, so hot-path callers (antidote-load) can read $REPLY without a fork.
+# Kept honest by the "no subprocess drift" test in load.bats.
+#function antidote-home {
+  emulate -L zsh
+  setopt local_options extended_glob
+
+  if [[ "$1" == -h || "$1" == --help ]]; then
+    antidote-help home
+    return $?
+  fi
+
+  local ostype localappdata
+  typeset -g REPLY
+  if [[ -n "$ANTIDOTE_HOME" ]]; then
+    REPLY=$ANTIDOTE_HOME
+  elif ! zstyle -s ':antidote:home' dir REPLY; then
+    zstyle -s ':antidote:test:env' OSTYPE ostype || ostype=$OSTYPE
+    if [[ $ostype == darwin* ]]; then
+      REPLY=$HOME/Library/Caches/antidote
+    elif [[ $ostype == (cygwin|msys)* ]]; then
+      zstyle -s ':antidote:test:env' LOCALAPPDATA localappdata ||
+        localappdata=${LOCALAPPDATA:-$LocalAppData}
+      (( $+commands[cygpath] )) && localappdata=$(cygpath "$localappdata")
+      REPLY=$localappdata/antidote
+    else
+      REPLY=${XDG_CACHE_HOME:-$HOME/.cache}/antidote
+    fi
+  fi
+  print -r -- "$REPLY"
+#}

@@ -20,29 +20,41 @@ echo "manifests: $#manifests"
 scripts=($ANTIDOTE_HOME/.dynamic/[0-9]*.zsh(N))
 echo "scripts: $#scripts"
 echo "entries: $#_antidote_dynamic_cache"
-[[ -e $scripts[1].zwc ]] && echo "zwc compiled"
 print 'echo cache hit' >>$scripts[1]
-rm -f $scripts[1].zwc
 antidote bundle foo/bar
 EOS
   assert_line "manifests: 1"
   assert_line "scripts: 1"
   assert_line "entries: 1"
-  assert_line "zwc compiled"
   assert_line "cache hit"
   assert_line "sourcing bar.plugin.zsh from foo/bar..."
 }
 
-# The text file can vanish (eg: cleaned out-of-band); the compiled
-# copy still serves.
-@test "warm serve works from the zwc alone" {
+# zcompile is opt-in: without the zstyle, no .zwc files are written.
+@test "cache files are not zcompiled by default" {
   run_session <<'EOS'
 source <(antidote init)
 antidote bundle foo/bar &>/dev/null
+zwcs=($ANTIDOTE_HOME/.dynamic/*.zwc(N))
+echo "zwc files: $#zwcs"
+EOS
+  assert_line "zwc files: 0"
+}
+
+# With the zstyle set, cache files are zcompiled and a warm serve works
+# from the .zwc alone (the .zsh removed).
+@test "zcompile zstyle compiles cache files and serves from the zwc" {
+  run_session <<'EOS'
+zstyle ':antidote:dynamic' zcompile yes
+source <(antidote init)
+antidote bundle foo/bar &>/dev/null
+zwcs=($ANTIDOTE_HOME/.dynamic/[0-9]*.zsh.zwc(N))
+echo "zwc files: $#zwcs"
 scripts=($ANTIDOTE_HOME/.dynamic/[0-9]*.zsh(N))
 rm $scripts[1]
 antidote bundle foo/bar
 EOS
+  assert_line "zwc files: 1"
   assert_line "sourcing bar.plugin.zsh from foo/bar..."
 }
 

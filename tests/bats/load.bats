@@ -54,6 +54,35 @@ EOS
   assert_line "static file written"
 }
 
+# The checkfile forces a one-time rebundle. It lands under ANTIDOTE_HOME.
+@test "load writes the checkfile under ANTIDOTE_HOME" {
+  fixture_session <<'EOS'
+antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null 2>&1
+[[ -e $ANTIDOTE_HOME/.antidote.load ]] && echo "checkfile present"
+EOS
+  assert_line "checkfile present"
+}
+
+# antidote-home resolves ANTIDOTE_HOME in the parent shell (no
+# subprocess). Guard against that resolver drifting from the real
+# subprocess resolution: across every OS branch, parent antidote-home
+# must equal what the antidote.zsh subprocess reports.
+@test "antidote-home matches the subprocess across OS branches" {
+  SESSION_PRELUDE='unset ANTIDOTE_HOME'
+  fixture_session <<'EOS'
+for os in darwin21.3.0 msys foobar; do
+  zstyle ':antidote:test:env' OSTYPE $os
+  [[ $os == msys ]] && zstyle ':antidote:test:env' LOCALAPPDATA $HOME/AppData
+  parent=$(antidote home)
+  sub=$(antidote-zsh home)
+  [[ $parent == $sub ]] && echo "$os: match" || echo "$os: MISMATCH parent=$parent sub=$sub"
+done
+EOS
+  assert_line "darwin21.3.0: match"
+  assert_line "msys: match"
+  assert_line "foobar: match"
+}
+
 @test "load fails on a missing bundle file" {
   fixture_session <<<'antidote load /no/such/file.txt 2>&1'
   assert_output "antidote: bundle file not found '/no/such/file.txt'."

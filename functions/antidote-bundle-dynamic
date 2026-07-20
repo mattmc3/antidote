@@ -5,8 +5,9 @@
 # usage: antidote-bundle-dynamic <antidote-home> <config-file> [<bundle>...]
 #
 # Generated load scripts live in content-addressed files under
-# <antidote-home>/.dynamic/<djb2-of-script>.zsh, zcompiled so warm
-# sources skip the parse. The _antidote_dynamic_cache assoc maps each
+# <antidote-home>/.dynamic/<djb2-of-script>.zsh, zcompiled when
+# ':antidote:dynamic' zcompile is set so warm sources skip the parse.
+# The _antidote_dynamic_cache assoc maps each
 # bundle line (plus the active using: context) to its script filename,
 # and persists to a manifest file. One manifest exists per
 # ':antidote:*' zstyle combination, so alternating configs keep
@@ -35,24 +36,6 @@
     return
   fi
 
-  # Serialize ':antidote:*' zstyles into REPLY without forking.
-  __adote_dynamic_zstyles() {
-    emulate -L zsh
-    local pat sty
-    local -a patterns styles vals
-    REPLY=
-    zstyle -g patterns
-    for pat in ${(o)patterns}; do
-      [[ "$pat" == :antidote:* ]] || continue
-      zstyle -g styles "$pat"
-      for sty in ${(o)styles}; do
-        vals=()
-        zstyle -g vals "$pat" "$sty"
-        REPLY+="$pat $sty ${(j: :)vals}"$'\n'
-      done
-    done
-  }
-
   # djb2 hash of $1 in pure zsh; REPLY gets the decimal value.
   __adote_dynamic_hash() {
     emulate -L zsh
@@ -68,29 +51,20 @@
     REPLY=$hash
   }
 
-  # Compute this line's cache key (bundle args + using: context, which
-  # changes how bare-word bundles expand) into REPLY.
-  __adote_dynamic_key() {
-    emulate -L zsh
-    local k
-    REPLY="$*"
-    for k in ${(ok)_antidote_using_context}; do
-      REPLY+="|$k=${_antidote_using_context[$k]}"
-    done
-  }
-
-  # Load or refresh the manifest, then look up this bundle line. On a
-  # hit, REPLY gets the cached script file path. The manifest filename
-  # is a djb2 hash of the zstyles; the full zstyle text in the header
-  # guards against collisions - a collision just reads as a stale
-  # manifest.
-  __adote_dynamic_lookup() {
+  # Resolve this bundle line to its cached script file - the warm happy
+  # path. On a hit, REPLY gets the script file path and returns 0. The
+  # zstyle serialize, mtime read, key compute, and manifest lookup are
+  # inlined here (not split across sub-helpers) so a warm hit is a
+  # single emulated call, not several. The manifest is only reloaded
+  # when its header no longer matches the live zstyles/mtimes; the hash
+  # helper runs solely on that cold branch.
+  __adote_dynamic_resolve() {
     emulate -L zsh
     setopt local_options extended_glob
     local ahome="$1" configfile="$2"; shift 2
-    local zstyles file key
+    local zstyles file key pat sty k
     local zsh_mtime=0 config_mtime=0
-    local -a mtimes
+    local -a mtimes patterns styles vals
 
     # Declare before the first subscript read: an unset param
     # math-evals its subscript, and `zstyles` is a local here.
@@ -99,7 +73,17 @@
     zmodload -F zsh/stat b:zstat 2>/dev/null
     zstat -A mtimes +mtime -- "$ANTIDOTE_ZSH" 2>/dev/null && zsh_mtime=$mtimes[1]
     zstat -A mtimes +mtime -- "$configfile" 2>/dev/null && config_mtime=$mtimes[1]
-    __adote_dynamic_zstyles; zstyles=$REPLY
+
+    zstyle -g patterns
+    for pat in ${(o)patterns}; do
+      [[ "$pat" == :antidote:* ]] || continue
+      zstyle -g styles "$pat"
+      for sty in ${(o)styles}; do
+        vals=()
+        zstyle -g vals "$pat" "$sty"
+        zstyles+="$pat $sty ${(j: :)vals}"$'\n'
+      done
+    done
 
     if [[ "${_antidote_dynamic_meta[zstyles]}" != "$zstyles" ||
           "${_antidote_dynamic_meta[zsh_mtime]}" != "$zsh_mtime" ||
@@ -125,7 +109,10 @@
       )
     fi
 
-    __adote_dynamic_key "$@"; key=$REPLY
+    key="$*"
+    for k in ${(ok)_antidote_using_context}; do
+      key+="|$k=${_antidote_using_context[$k]}"
+    done
     (( ${+_antidote_dynamic_cache[$key]} )) || return 1
     REPLY="$ahome/.dynamic/${_antidote_dynamic_cache[$key]}"
     [[ -e "$REPLY" || -e "$REPLY.zwc" ]] || return 1
@@ -133,16 +120,20 @@
 
   # Generate this line's script in a subprocess, write it to a
   # content-addressed file, and record the filename in the assoc and
-  # the manifest. REPLY gets the script file path.
+  # the manifest. REPLY gets the script file path. Cold path only, so
+  # the key recompute here costs nothing on warm hits.
   __adote_dynamic_store() {
     emulate -L zsh
     setopt local_options extended_glob
     local ahome="$1" configfile="$2"; shift 2
     local file="${_antidote_dynamic_meta[file]}"
-    local key script hashval sname sfile
+    local key script hashval sname sfile k
     local -i n=1
 
-    __adote_dynamic_key "$@"; key=$REPLY
+    key="$*"
+    for k in ${(ok)_antidote_using_context}; do
+      key+="|$k=${_antidote_using_context[$k]}"
+    done
     script="$(ANTIDOTE_DYNAMIC=true antidote-dispatch bundle "$@")" || return 1
 
     # Identical content shares one file; mismatched content (hash
@@ -159,8 +150,10 @@
     done
     if [[ ! -e "$sfile" ]]; then
       print -r -- "$script" >| "$sfile"
-      builtin autoload -Uz zrecompile
-      zrecompile -pq "$sfile"
+      if zstyle -t ':antidote:dynamic' zcompile; then
+        builtin autoload -Uz zrecompile
+        zrecompile -pq "$sfile"
+      fi
     fi
     _antidote_dynamic_cache[$key]="$sname"
 
@@ -176,7 +169,7 @@
   # Source outside any emulate scope so plugin setopts and setups stick
   # in the caller's shell, same as sourcing a static file. A .zwc next
   # to the script file is picked up automatically.
-  if __adote_dynamic_lookup "$__adote_ahome" "$__adote_configfile" "$@"; then
+  if __adote_dynamic_resolve "$__adote_ahome" "$__adote_configfile" "$@"; then
     __adote_hit=1
     __adote_scriptfile="$REPLY"
     builtin source "$__adote_scriptfile"
@@ -194,8 +187,7 @@
     fi
   fi
 
-  unfunction __adote_dynamic_zstyles __adote_dynamic_hash \
-    __adote_dynamic_key __adote_dynamic_lookup __adote_dynamic_store
+  unfunction __adote_dynamic_hash __adote_dynamic_resolve __adote_dynamic_store
   unset REPLY
   return $__adote_ret
 #}
