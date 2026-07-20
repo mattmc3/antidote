@@ -157,7 +157,7 @@ etc...
 .sp
 Users familiar with legacy plugin managers like Antigen might prefer to use dynamic bundling. With dynamic bundling you avoid having separate plugin files. To use dynamic bundling, we need to change how \fBantidote bundle\fP handles your plugins. We do this by sourcing the output from \fBantidote init\fP.
 .sp
-Each \fBantidote bundle\fP line caches its generated load script in a file under \fBantidote home\fP, indexed by a manifest, so after the first run new shells load the cache instead of regenerating. Set \f(CRzstyle \*(Aq:antidote:dynamic\*(Aq zcompile \*(Aqyes\*(Aq\fP to zcompile those cache files. The cache refreshes automatically when antidote or your config changes, when \*(Aq:antidote:*\*(Aq zstyles change, or after \fBantidote purge\fP or \fBantidote update\fP.
+Each \fBantidote bundle\fP line caches its generated load script in a file under \fBantidote home\fP, so after the first run new shells load the cache instead of regenerating. Set \f(CRzstyle \*(Aq:antidote:dynamic\*(Aq zcompile \*(Aqyes\*(Aq\fP to zcompile those cache files. The cache refreshes automatically when antidote or your config changes, when \*(Aq:antidote:*\*(Aq zstyles change, or after \fBantidote purge\fP or \fBantidote update\fP.
 .sp
 An example config might look like this:
 .sp

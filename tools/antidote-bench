@@ -3,8 +3,8 @@
 # Usage: ./tools/antidote-bench
 #
 # Reports wall time for dynamic-mode bundling (uncached, cold cache,
-# warm fresh-shell, warm in-memory) and static-mode load, so cache and
-# loader changes can be compared before/after.
+# and warm cache) and static-mode load, so cache and loader changes can
+# be compared before/after.
 
 0=${(%):-%x}
 typeset T_PRJDIR="${0:A:h:h}"
@@ -56,12 +56,6 @@ run_lines_uncached() {
   done
 }
 
-# A fresh shell has no in-memory cache; the manifest loads from disk.
-run_lines_fresh_shell() {
-  _antidote_dynamic_cache=() _antidote_dynamic_meta=() _antidote_using_context=()
-  run_lines_cached
-}
-
 run_static_load() {
   antidote-load "$ZDOTDIR/.zsh_plugins_bench.txt" >/dev/null 2>&1
 }
@@ -79,9 +73,9 @@ antidote bundle <"$ZDOTDIR/.zsh_plugins_bench.txt" >/dev/null 2>&1
 print -r -- "-- dynamic mode (source <(antidote init)) --"
 bench 3 "uncached, subprocess per line (pre-2.1)" run_lines_uncached
 command rm -rf -- "$ANTIDOTE_HOME/.dynamic"
-bench 1 "cold cache (generate + write manifest)" run_lines_cached
-bench 5 "warm, fresh shell (manifest load)" run_lines_fresh_shell
-bench 10 "warm, in-memory" run_lines_cached
+bench 1 "cold cache (generate + queue writes)" run_lines_cached
+wait_for_files "$ANTIDOTE_HOME/.dynamic/[0-9]*.zsh" $#BENCH_LINES || exit 1
+bench 10 "warm cache files" run_lines_cached
 print ""
 
 print -r -- "-- static mode (antidote load) --"

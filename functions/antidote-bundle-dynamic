@@ -1,31 +1,17 @@
 #!/bin/zsh
 
-### Dynamic-mode `antidote bundle` with a manifest script cache.
+### Dynamic-mode `antidote bundle` with an input-keyed script cache.
 #
 # usage: antidote-bundle-dynamic <antidote-home> <config-file> [<bundle>...]
 #
-# Generated load scripts live in content-addressed files under
-# <antidote-home>/.dynamic/<djb2-of-script>.zsh, zcompiled when
-# ':antidote:dynamic' zcompile is set so warm sources skip the parse.
-# The _antidote_dynamic_cache assoc maps each
-# bundle line (plus the active using: context) to its script filename,
-# and persists to a manifest file. One manifest exists per
-# ':antidote:*' zstyle combination, so alternating configs keep
-# separate warm caches; identical scripts share one file across
-# manifests. New entries append to the manifest as they are generated,
-# so no exit hook is needed and nothing is lost if the shell dies
-# early.
-#
-# A manifest is discarded when its header no longer matches the current
-# zstyles or the mtimes of antidote.zsh/the config file, when an entry
-# fails to source (eg: a bundle deleted out-of-band), or when
-# `antidote purge` or `antidote update` clears the cache dir. A script
-# file whose content does not match what a store generated (hash
-# collision or out-of-band edit) is never reused - the store bumps to
-# a suffixed filename instead.
+# Generated load scripts live under
+# <antidote-home>/.dynamic/<djb2-of-generation-inputs>.zsh. Inputs include
+# ':antidote:*' zstyles, antidote/config mtimes, active using: context,
+# and bundle arguments. Cold scripts run before being published in the
+# background, so cache writes never delay or determine bundle success.
 #function antidote-bundle-dynamic {
   local __adote_ahome="$1" __adote_configfile="$2"
-  local __adote_ret=0 __adote_hit=0 __adote_scriptfile=
+  local __adote_ret=0 __adote_script= __adote_scriptfile=
   shift 2
 
   # Piped/redirected input (no bundle args) bypasses the cache - the
@@ -52,24 +38,15 @@
     REPLY=$hash
   }
 
-  # Resolve this bundle line to its cached script file - the warm happy
-  # path. On a hit, REPLY gets the script file path and returns 0. The
-  # zstyle serialize, mtime read, key compute, and manifest lookup are
-  # inlined here (not split across sub-helpers) so a warm hit is a
-  # single emulated call, not several. The manifest is only reloaded
-  # when its header no longer matches the live zstyles/mtimes; the hash
-  # helper runs solely on that cold branch.
-  __adote_dynamic_resolve() {
+  # Hash every input that can change the generated script. REPLY gets
+  # the deterministic cache path.
+  __adote_dynamic_cachefile() {
     emulate -L zsh
     setopt local_options extended_glob
     local ahome="$1" configfile="$2"; shift 2
-    local zstyles file key pat sty k
+    local zstyles key pat sty k
     local zsh_mtime=0 config_mtime=0
     local -a mtimes patterns styles vals
-
-    # Declare before the first subscript read: an unset param
-    # math-evals its subscript, and `zstyles` is a local here.
-    typeset -gA _antidote_dynamic_cache _antidote_dynamic_meta
 
     zmodload -F zsh/stat b:zstat 2>/dev/null
     zstat -A mtimes +mtime -- "$ANTIDOTE_ZSH" 2>/dev/null && zsh_mtime=$mtimes[1]
@@ -86,109 +63,53 @@
       done
     done
 
-    if [[ "${_antidote_dynamic_meta[zstyles]}" != "$zstyles" ||
-          "${_antidote_dynamic_meta[zsh_mtime]}" != "$zsh_mtime" ||
-          "${_antidote_dynamic_meta[config_mtime]}" != "$config_mtime" ]]; then
-      __adote_dynamic_hash "$zstyles"
-      file="$ahome/.dynamic/manifest-${REPLY}.zsh"
-
-      _antidote_dynamic_cache=() _antidote_dynamic_meta=()
-      if [[ -r "$file" ]]; then
-        builtin source "$file" 2>/dev/null || command rm -f -- "$file"
-      fi
-      if [[ "${_antidote_dynamic_meta[zstyles]}" != "$zstyles" ||
-            "${_antidote_dynamic_meta[zsh_mtime]}" != "$zsh_mtime" ||
-            "${_antidote_dynamic_meta[config_mtime]}" != "$config_mtime" ]]; then
-        command rm -f -- "$file"
-        _antidote_dynamic_cache=()
-      fi
-      _antidote_dynamic_meta=(
-        file          "$file"
-        zstyles       "$zstyles"
-        zsh_mtime     "$zsh_mtime"
-        config_mtime  "$config_mtime"
-      )
-    fi
-
-    key="$*"
+    key="$ANTIDOTE_ZSH:$zsh_mtime"$'\n'"$configfile:$config_mtime"$'\n'
+    key+="$zstyles"$'\n'"$*"
     for k in ${(ok)_antidote_using_context}; do
       key+="|$k=${_antidote_using_context[$k]}"
     done
-    (( ${+_antidote_dynamic_cache[$key]} )) || return 1
-    REPLY="$ahome/.dynamic/${_antidote_dynamic_cache[$key]}"
-    [[ -e "$REPLY" || -e "$REPLY.zwc" ]] || return 1
-  }
-
-  # Generate this line's script in a subprocess, write it to a
-  # content-addressed file, and record the filename in the assoc and
-  # the manifest. REPLY gets the script file path. Cold path only, so
-  # the key recompute here costs nothing on warm hits.
-  __adote_dynamic_store() {
-    emulate -L zsh
-    setopt local_options extended_glob
-    local ahome="$1" configfile="$2"; shift 2
-    local file="${_antidote_dynamic_meta[file]}"
-    local key script hashval sname sfile k
-    local -i n=1
-
-    key="$*"
-    for k in ${(ok)_antidote_using_context}; do
-      key+="|$k=${_antidote_using_context[$k]}"
-    done
-    script="$(ANTIDOTE_DYNAMIC=true antidote-dispatch bundle "$@")" || return 1
-
-    # Identical content shares one file; mismatched content (hash
-    # collision or out-of-band edit) bumps to a suffixed name so a
-    # wrong script is never served.
-    __adote_dynamic_hash "$script"; hashval=$REPLY
-    sname="${hashval}.zsh"
-    sfile="$ahome/.dynamic/$sname"
-    command mkdir -p -- "${sfile:h}"
-    while [[ -e "$sfile" && "$(<$sfile)" != "$script" ]]; do
-      (( n++ ))
-      sname="${hashval}-${n}.zsh"
-      sfile="$ahome/.dynamic/$sname"
-    done
-    if [[ ! -e "$sfile" ]]; then
-      print -r -- "$script" >| "$sfile"
-      if zstyle -t ':antidote:dynamic' zcompile; then
-        builtin autoload -Uz zrecompile
-        zrecompile -pq "$sfile"
-      fi
-    fi
-    _antidote_dynamic_cache[$key]="$sname"
-
-    if [[ ! -e "$file" ]]; then
-      print -r -- "_antidote_dynamic_meta=( zstyles ${(qqqq)_antidote_dynamic_meta[zstyles]} zsh_mtime ${(qqqq)_antidote_dynamic_meta[zsh_mtime]} config_mtime ${(qqqq)_antidote_dynamic_meta[config_mtime]} )" >| "$file"
-    fi
-    # += array form, not a subscript assignment: assignment subscripts
-    # skip quote removal, so a ${(qqqq)} key would not round-trip.
-    print -r -- "_antidote_dynamic_cache+=( ${(qqqq)key} ${(qqqq)sname} )" >>| "$file"
-    REPLY="$sfile"
+    __adote_dynamic_hash "$key"
+    REPLY="$ahome/.dynamic/${REPLY}.zsh"
   }
 
   # Source outside any emulate scope so plugin setopts and setups stick
   # in the caller's shell, same as sourcing a static file. A .zwc next
   # to the script file is picked up automatically.
-  if __adote_dynamic_resolve "$__adote_ahome" "$__adote_configfile" "$@"; then
-    __adote_hit=1
-    __adote_scriptfile="$REPLY"
+  __adote_dynamic_cachefile "$__adote_ahome" "$__adote_configfile" "$@"
+  __adote_scriptfile="$REPLY"
+  if [[ -e "$__adote_scriptfile" || -e "$__adote_scriptfile.zwc" ]]; then
     builtin source "$__adote_scriptfile"
     __adote_ret=$?
-  fi
-  if (( ! __adote_hit || __adote_ret )); then
-    if __adote_dynamic_store "$__adote_ahome" "$__adote_configfile" "$@"; then
-      __adote_scriptfile="$REPLY"
-      builtin source "$__adote_scriptfile"
+  else
+    __adote_script="$(ANTIDOTE_DYNAMIC=true antidote-dispatch bundle "$@")"
+    __adote_ret=$?
+    if (( ! __adote_ret )); then
+      builtin source <( print -r -- "$__adote_script" )
       __adote_ret=$?
-    else
-      # Generation failed - rerun un-cached so the user sees the errors.
-      ANTIDOTE_DYNAMIC=true antidote-dispatch bundle "$@"
-      __adote_ret=$?
+      if (( ! __adote_ret )); then
+        () {
+          setopt local_options no_bg_nice
+          (
+            emulate -L zsh
+            local tmp
+            command mkdir -p -- "${__adote_scriptfile:h}" || exit
+            tmp=$(mktemp "${__adote_scriptfile}.new.XXXXXXXXXX") || exit
+            if ! print -r -- "$__adote_script" >| "$tmp" ||
+               ! command mv -f -- "$tmp" "$__adote_scriptfile"; then
+              command rm -f -- "$tmp"
+              exit
+            fi
+            if zstyle -t ':antidote:dynamic' zcompile; then
+              builtin autoload -Uz zrecompile
+              zrecompile -pq "$__adote_scriptfile"
+            fi
+          ) </dev/null &>/dev/null &!
+        }
+      fi
     fi
   fi
 
-  unfunction __adote_dynamic_hash __adote_dynamic_resolve __adote_dynamic_store
+  unfunction __adote_dynamic_hash __adote_dynamic_cachefile
   unset REPLY
   return $__adote_ret
 #}
