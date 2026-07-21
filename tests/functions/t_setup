@@ -49,6 +49,9 @@
   # use fixture gitconfig so fetch/pull resolve fake URLs to bare fixtures
   # sed rewrites stored paths to match current fixture location
   sed "s|/[^ \"]*/tests/fixtures/|${fixture_dir}/|g" "$fixture_dir/gitconfig" > "$HOME/.gitconfig"
+  # background maintenance off since detached git gc processes race
+  # teardown's rm -rf of the test home.
+  printf '[gc]\n\tauto = 0\n[maintenance]\n\tauto = false\n' >> "$HOME/.gitconfig"
 
   # start from tmp home
   pushd
