@@ -12,7 +12,7 @@
      src="https://avatars.githubusercontent.com/u/101279220?s=80&v=4">
 </a>
 
-> [Get the cure][antidote]</blockquote>
+> [Get the cure][antidote]
 
 [Antidote][antidote] is a feature-complete Zsh implementation of the legacy
 [Antibody][antibody] plugin manager, which in turn was derived from [Antigen][antigen].
