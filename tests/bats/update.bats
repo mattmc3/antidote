@@ -44,12 +44,45 @@ Bundle updates complete."
   assert_output "$sha_before"
 }
 
+@test "update reports repositories with the same short name separately" {
+  rollback_foo_baz
+  local other="$AHOME/other.example/foo/baz"
+  local bare="$(antidote_fixture_dir)/bare/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-baz.git"
+  mkdir -p "$(dirname "$other")"
+  cp -R "$BAZDIR" "$other"
+  tgit -C "$other" remote set-url origin https://other.example/foo/baz
+  tgit config --global --add url."$bare".insteadOf https://other.example/foo/baz
+
+  run antidote update --dry-run
+  assert_success
+  [ "$(grep -c 'update available: foo/baz' <<<"$output")" -eq 2 ]
+}
+
 @test "update pulls a rolled-back bundle to the latest commit" {
   rollback_foo_baz
   run antidote update
   assert_output --partial "antidote: updated: foo/baz bde701c -> 98cdde2"
   run git -C "$BAZDIR" rev-parse --short HEAD
   assert_output "98cdde2"
+}
+
+@test "update reports worker failures and skips autosnapshot" {
+  local snapdir="$BATS_TEST_TMPDIR/snapshots"
+  tgit -C "$BAZDIR" remote set-url origin /does/not/exist/foo/baz
+  ZSTYLES="$ZSTYLES
+zstyle ':antidote:snapshot' dir '$snapdir'
+zstyle ':antidote:snapshot:automatic' enabled yes"
+
+  run antidote update
+  assert_failure
+  assert_output --partial "antidote: update failed for 'foo/baz'"
+  refute_output --partial "Bundle updates complete."
+  [ ! -e "$snapdir" ]
+}
+
+@test "parent-shell bundle update completes" {
+  fixture_session <<<'antidote update --bundles >/dev/null; echo "update exit: $?"'
+  assert_output "update exit: 0"
 }
 
 # Update succeeds despite a dirty working tree, preserving both tracked

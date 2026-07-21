@@ -10,7 +10,7 @@ antidote-update - update bundles
 *antidote update* [-h|--help] [-s|--self] [-b|--bundles] [-n|--dry-run]
 
 == Description
-*antidote-update* updates antidote and its cloned bundles. Bundles that have been pinned with the `pin:` annotation will be skipped. In static mode, a snapshot is automatically saved before updating so you can restore to the previous state if needed (see *antidote-snapshot*).
+*antidote-update* updates antidote and its cloned bundles. Bundles that have been pinned with the `pin:` annotation will be skipped. After a successful update in static mode, a snapshot is automatically saved to record the updated state (see *antidote-snapshot*).
 
 == Options
 *-h, --help*:: Show the help documentation.
