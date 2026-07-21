@@ -20,7 +20,7 @@ antidote-snapshot - save, restore, remove, or list bundle snapshots
 == Description
 *antidote-snapshot* manages point-in-time snapshots of your cloned bundles. A snapshot is a bundle file where every repository is annotated with `kind:clone pin:<SHA>`, capturing the exact commit of each cloned bundle.
 
-Snapshots are saved automatically during `antidote update` in static mode. They are not created in dynamic mode.
+Snapshots are saved automatically after a successful `antidote update` in static mode. They are not created in dynamic mode.
 
 By default, snapshots are stored in `$XDG_DATA_HOME/antidote/snapshots` (or `~/Library/Application Support/antidote/snapshots` on macOS). A rolling history is maintained, with older snapshots pruned beyond the configured maximum.
 
@@ -28,7 +28,7 @@ By default, snapshots are stored in `$XDG_DATA_HOME/antidote/snapshots` (or `~/L
 *home*:: Print the path to the snapshot directory.
 *list*:: List all available snapshot files.
 *remove*:: Remove snapshot files. If no file is given and `fzf` is available, an interactive multi-select picker is shown.
-*restore*:: Restore bundles from a snapshot file. If no file is given, the most recent snapshot is used.
+*restore*:: Restore bundles from a snapshot file. If no file is given and `fzf` is available, an interactive picker is shown; otherwise the command exits with an error.
 *save*:: Save a snapshot of all currently cloned bundles. Optionally specify a file path; otherwise a timestamped file is created in the snapshot directory.
 
 == Options
@@ -95,7 +95,7 @@ List snapshots:
 antidote snapshot list
 ----
 
-Restore from the most recent snapshot:
+Select a snapshot interactively:
 
 ----
 antidote snapshot restore

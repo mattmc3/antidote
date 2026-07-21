@@ -1456,53 +1456,62 @@ antidote_purge() {
 
 ### Fetch/pull one bundle and write its report to a tmpfile.
 #
-# usage: update_one_bundle <bundledir> <repo>
+# usage: update_one_bundle <bundledir> <repo> <slot>
 # Run in the background by antidote_update; reads its locals (tmpdir,
-# o_dry_run, C_* colors) via dynamic scoping.
+# o_dry_run, _C_* colors) via dynamic scoping. <slot> is a unique index so
+# repos that share a short name never overwrite each other's files.
+# Always writes the worker exit status to a .status file for aggregation.
 #
 update_one_bundle() {
-  local bundledir="$1" repo="$2"
-  local repo_id tmpfile oldsha newsha
+  local bundledir="$1" repo="$2" slot="$3"
+  local tmpfile statusfile oldsha newsha rc=0
 
-  repo_id="${repo//\//-SLASH-}"
-  tmpfile="${tmpdir}/${repo_id}.output"
+  tmpfile="${tmpdir}/${slot}.output"
+  statusfile="${tmpdir}/${slot}.status"
   oldsha=$(git_sha "$bundledir")
 
   # Unshallow the repo if needed
   if git_is_shallow "$bundledir"; then
-    git_fetch "$bundledir" --unshallow || return 1
+    git_fetch "$bundledir" --unshallow || rc=1
   else
-    git_fetch "$bundledir" || return 1
+    git_fetch "$bundledir" || rc=1
   fi
 
-  if (( $#o_dry_run )); then
-    # Compare local HEAD against fetched remote HEAD
-    newsha=$(git -C "$bundledir" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
-  else
-    git_pull "$bundledir" || return 1
-    git_submodule_sync "$bundledir" || return 1
-    git_submodule_update "$bundledir" || return 1
-    newsha=$(git_sha "$bundledir")
+  if (( rc == 0 )); then
+    if (( $#o_dry_run )); then
+      # Compare local HEAD against fetched remote HEAD
+      newsha=$(git -C "$bundledir" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+    elif git_pull "$bundledir" && git_submodule_sync "$bundledir" && git_submodule_update "$bundledir"; then
+      newsha=$(git_sha "$bundledir")
+    else
+      rc=1
+    fi
   fi
 
-  # Capture all output to temporary file
-  {
-    if [[ $oldsha != $newsha ]]; then
-      if (( $#o_dry_run )); then
-        say "${_C_YELLOW}antidote:${_C_NORMAL} update available: $repo ${_C_GREEN}${oldsha[1,7]}${_C_NORMAL} -> ${_C_GREEN}${newsha[1,7]}${_C_NORMAL}"
-      else
-        say "${_C_GREEN}antidote:${_C_NORMAL} updated: $repo ${_C_GREEN}${oldsha[1,7]}${_C_NORMAL} -> ${_C_GREEN}${newsha[1,7]}${_C_NORMAL}"
+  # Capture all report output to temporary file
+  if (( rc == 0 )); then
+    {
+      if [[ $oldsha != $newsha ]]; then
+        if (( $#o_dry_run )); then
+          say "${_C_YELLOW}antidote:${_C_NORMAL} update available: $repo ${_C_GREEN}${oldsha[1,7]}${_C_NORMAL} -> ${_C_GREEN}${newsha[1,7]}${_C_NORMAL}"
+        else
+          say "${_C_GREEN}antidote:${_C_NORMAL} updated: $repo ${_C_GREEN}${oldsha[1,7]}${_C_NORMAL} -> ${_C_GREEN}${newsha[1,7]}${_C_NORMAL}"
+        fi
+        git_log_oneline "$bundledir" "$oldsha" "$newsha"
       fi
-      git_log_oneline "$bundledir" "$oldsha" "$newsha"
-    fi
 
-    # recompile bundles
-    if ! (( $#o_dry_run )); then
-      if zstyle -t ":antidote:bundle:$repo" zcompile; then
-        bundle_zcompile $bundledir
+      # recompile bundles
+      if ! (( $#o_dry_run )); then
+        if zstyle -t ":antidote:bundle:$repo" zcompile; then
+          bundle_zcompile $bundledir
+        fi
       fi
-    fi
-  } > "$tmpfile" 2>&1
+    } > "$tmpfile" 2>&1
+  fi
+
+  # The .status file is the only failure signal the parent reads; bare
+  # wait discards the worker's own exit status.
+  print -r -- $rc > "$statusfile"
 }
 
 ### Update antidote's cloned bundles.
@@ -1512,8 +1521,9 @@ update_one_bundle() {
 antidote_update() {
   setup_color
   local o_help o_dry_run
-  local tmpfile tmpdir bundledir url repo filename repo_id pin_ref
-  local line loadable_check_path
+  local tmpfile tmpdir bundledir url repo pin_ref
+  local line loadable_check_path slot report_repo st
+  local -a worker_repos failed_repos
 
   zparseopts ${ZPARSEOPTS} -- \
     h=o_help    -help=h    \
@@ -1558,21 +1568,22 @@ antidote_update() {
     fi
 
     say "${_C_BLUE}antidote:${_C_NORMAL} checking for updates: $repo"
-    update_one_bundle "$bundledir" "$repo" &
+    worker_repos+=("$repo")
+    update_one_bundle "$bundledir" "$repo" $#worker_repos &
   done
 
   say "Waiting for bundle updates to complete..."
   say ""
   wait
 
-  # Display all output in sequence
-  for tmpfile in "$tmpdir"/*.output(N); do
-    if [[ -s "$tmpfile" ]]; then
-      filename=${tmpfile:t}
-      repo_id=${filename%.output}
-      repo_id=${repo_id//-SLASH-/\/}
+  # Display each worker's report and aggregate its exit status. Iterate by
+  # slot so the repo name is known even when reports collide by short name.
+  for slot in {1..$#worker_repos}; do
+    tmpfile="$tmpdir/$slot.output"
+    report_repo=$worker_repos[$slot]
 
-      say "${_C_BLUE}Bundle ${repo_id} update check complete.${_C_NORMAL}"
+    if [[ -s "$tmpfile" ]]; then
+      say "${_C_BLUE}Bundle ${report_repo} update check complete.${_C_NORMAL}"
 
       # Colorize the SHA in each line
       while IFS= read -r line; do
@@ -1584,10 +1595,23 @@ antidote_update() {
       done < "$tmpfile"
       say ""
     fi
+
+    st=$(<"$tmpdir/$slot.status" 2>/dev/null) || st=1
+    (( st == 0 )) || failed_repos+=("$report_repo")
   done
 
   # cleanup temp dir
   [[ -d "$tmpdir" ]] && del "$tmpdir"
+
+  # A failed worker must not report success or trigger an autosnapshot.
+  if (( $#failed_repos )); then
+    for report_repo in $failed_repos; do
+      say "${_C_RED}antidote:${_C_NORMAL} update failed for '$report_repo'"
+    done
+    say ""
+    return 1
+  fi
+
   if (( $#o_dry_run )); then
     say "${_C_GREEN}Dry run complete. No changes were made.${_C_NORMAL}"
   else
@@ -1789,12 +1813,13 @@ snapshot_prune() {
 
 ### Set color-related globals needed for interactive features (fzf previews, etc).
 setup_color() {
-  typeset -g _ANTIDOTE_COLOR='' _C_BLUE='' _C_GREEN='' _C_YELLOW='' _C_NORMAL=''
+  typeset -g _ANTIDOTE_COLOR='' _C_BLUE='' _C_GREEN='' _C_YELLOW='' _C_RED='' _C_NORMAL=''
   if supports_color; then
     typeset -g _ANTIDOTE_COLOR=true
     typeset -g _C_BLUE=$'\E[34m'
     typeset -g _C_GREEN=$'\E[32m'
     typeset -g _C_YELLOW=$'\E[33m'
+    typeset -g _C_RED=$'\E[31m'
     typeset -g _C_NORMAL=$'\E[0m'
   fi
 }

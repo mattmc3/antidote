@@ -44,7 +44,7 @@ antidote-snapshot \- save, restore, remove, or list bundle snapshots
 .sp
 \fBantidote\-snapshot\fP manages point\-in\-time snapshots of your cloned bundles. A snapshot is a bundle file where every repository is annotated with \f(CRkind:clone pin:<SHA>\fP, capturing the exact commit of each cloned bundle.
 .sp
-Snapshots are saved automatically during \f(CRantidote update\fP in static mode. They are not created in dynamic mode.
+Snapshots are saved automatically after a successful \f(CRantidote update\fP in static mode. They are not created in dynamic mode.
 .sp
 By default, snapshots are stored in \f(CR$XDG_DATA_HOME/antidote/snapshots\fP (or \f(CR~/Library/Application Support/antidote/snapshots\fP on macOS). A rolling history is maintained, with older snapshots pruned beyond the configured maximum.
 .SH "SUBCOMMANDS"
@@ -66,7 +66,7 @@ Remove snapshot files. If no file is given and \f(CRfzf\fP is available, an inte
 .sp
 \fBrestore\fP
 .RS 4
-Restore bundles from a snapshot file. If no file is given, the most recent snapshot is used.
+Restore bundles from a snapshot file. If no file is given and \f(CRfzf\fP is available, an interactive picker is shown; otherwise the command exits with an error.
 .RE
 .sp
 \fBsave\fP
@@ -175,7 +175,7 @@ antidote snapshot list
 .fi
 .if n .RE
 .sp
-Restore from the most recent snapshot:
+Select a snapshot interactively:
 .sp
 .if n .RS 4
 .nf
