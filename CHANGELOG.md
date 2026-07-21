@@ -87,10 +87,10 @@ Notable changes to this project will be documented in this file.
 
 - New `antidote snapshot` command lets you save, restore, and list point-in-time snapshots of your plugin state
   - `antidote snapshot save` writes a snapshot file capturing the exact commit SHA of every cloned bundle
-  - `antidote snapshot restore` restores your bundles to a previous state (uses the most recent snapshot if no file is given)
+  - `antidote snapshot restore` restores your bundles to a previous state (uses an interactive picker if no file is given)
   - `antidote snapshot remove` removes snapshot files (interactive multi-select with `fzf` if available)
   - `antidote snapshot list` shows all available snapshots
-- Snapshots are saved automatically during `antidote update` (static mode only)
+- Snapshots are saved automatically after a successful `antidote update` (static mode only)
 - To disable automatic snapshotting during updates, set this zstyle in your config (eg: ~/.config/antidote/config.zsh):
   ```zsh
   zstyle ':antidote:snapshot:automatic' enabled no
