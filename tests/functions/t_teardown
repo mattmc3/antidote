@@ -8,7 +8,18 @@
   # throwaway zsh, so there is no shell state to restore - just leave
   # the tempdir and remove it.
   popd
-  [[ -d "$T_TEMPDIR" ]] && command rm -rf -- "$T_TEMPDIR"
+
+  # Dynamic mode writes its script cache in a detached (&!) subshell that
+  # can still be creating files under $ANTIDOTE_HOME as we tear down.
+  # Retry until the tempdir is gone, stderr suppressed, so a racing writer
+  # never leaks a "Directory not empty" error into captured test output.
+  local i
+  for (( i = 0; i < 250; i++ )); do
+    [[ -d "$T_TEMPDIR" ]] || break
+    command rm -rf -- "$T_TEMPDIR" 2>/dev/null
+    [[ -d "$T_TEMPDIR" ]] || break
+    command sleep 0.02
+  done
 
   # do not leak the status of the conditional above
   true
