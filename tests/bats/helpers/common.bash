@@ -68,6 +68,9 @@ antidote_test_home() {
   local fixdir
   fixdir=$(antidote_fixture_dir)
   sed "s|/[^ \"]*/tests/fixtures/|${fixdir}/|g" "$fixdir/gitconfig" >"$TESTHOME/.gitconfig"
+  # background maintenance off since detached git gc processes race
+  # teardown's rm -rf of the test home.
+  printf '[gc]\n\tauto = 0\n[maintenance]\n\tauto = false\n' >>"$TESTHOME/.gitconfig"
 }
 
 # Run antidote (or `antidote __private__ <fn>`) as a subprocess in the
