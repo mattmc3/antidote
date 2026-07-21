@@ -2,7 +2,7 @@
 #
 # Place this file at: ${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh
 #
-# All available zstyles are shown below with their default values.
+# Common zstyles are shown below with their default values.
 # Uncomment and modify any lines you want to change.
 
 # =============================================================================
