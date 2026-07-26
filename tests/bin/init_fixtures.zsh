@@ -412,12 +412,12 @@ setup_fixture_pintest_pinme() {
   make_fixture "$url" "plugin.zsh"
   dir=$(get_fixture_dir "$url")
 
-  # Tag v1.0.0 at the initial commit — this is the "good" pinned version
+  # Tag v1.0.0 at the initial commit. This is the "good" pinned version
   git -C "$dir" tag v1.0.0
   git -C "$dir" push --quiet origin v1.0.0
   record_sha "pintest/pinme-v1.0.0" "$dir"
 
-  # v1.1.0 — a normal update
+  # v1.1.0: a normal update
   cat > "$dir/pinme.plugin.zsh" <<'EOF'
 echo "sourcing pinme.plugin.zsh from pintest/pinme..."
 plugins+=(pintest/pinme)
@@ -427,7 +427,7 @@ EOF
   git -C "$dir" tag v1.1.0
   git -C "$dir" push --quiet origin v1.1.0
 
-  # v1.2.0 — upstream pushed something sketchy, this is what we pin away from
+  # v1.2.0: upstream pushed something sketchy, this is what we pin away from
   cat > "$dir/pinme.plugin.zsh" <<'EOF'
 echo "sourcing pinme.plugin.zsh from pintest/pinme..."
 plugins+=(pintest/pinme)

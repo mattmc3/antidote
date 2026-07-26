@@ -23,7 +23,7 @@ _run env cmd:
         podman run --rm -v "$PWD:/workspace:z" antidote-zsh-latest \
           /bin/zsh -c 'cd /workspace && {{cmd}}'
     else
-        print -ru2 "just: invalid env '{{env}}' — expected 'latest', '542', or 'local'"
+        print -ru2 "just: invalid env '{{env}}': expected 'latest', '542', or 'local'"
         exit 1
     fi
 

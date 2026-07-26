@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Real snapshot tests (network — run via `just test-real`).
+# Real snapshot tests (network, run via `just test-real`).
 #
 # Unit tests (tests/bats/snapshot.bats) cover snapshot mechanics
 # against local fixtures. This only verifies what needs real GitHub:

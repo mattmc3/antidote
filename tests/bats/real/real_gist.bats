@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # Real gist bundle tests.
-# Network test — run via `just test-real`.
+# Network test. Run via `just test-real`.
 
 load ../helpers/common
 

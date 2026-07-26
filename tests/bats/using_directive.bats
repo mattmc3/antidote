@@ -27,7 +27,7 @@ EOF
   expect "$expected"
 }
 
-# using: with path: — clone entry has no path, path is only a prefix for words
+# using: with path: clone entry has no path, path is only a prefix for words
 @test "using: with path: keeps the clone entry pathless" {
   fixture_session <<'EOS'
 echo 'using:foo/bar path:plugins' | bundle_parser | print_parsed_bundle
@@ -44,7 +44,7 @@ EOF
   expect "$expected"
 }
 
-# using: with kind: — kind becomes the default for words, clone entry is always clone
+# using: with kind: kind becomes the default for words, clone entry is always clone
 @test "using: kind: is the default for words, clone entry stays clone" {
   fixture_session <<'EOS'
 printf 'using:foo/bar path:plugins kind:fpath\nextract\n' | bundle_parser | print_parsed_bundle
@@ -188,7 +188,7 @@ EOF
   expect "$expected"
 }
 
-# using: with no path: — word becomes the full path value
+# using: with no path: word becomes the full path value
 @test "using: with no path: makes the word the path" {
   fixture_session <<'EOS'
 printf 'using:foo/bar\nextract\n' | bundle_parser | print_parsed_bundle
@@ -299,7 +299,7 @@ EOS
   assert_line "# antidote: error on line 1: invalid using: target 'foo@bar'"
 }
 
-# invalid bundle mixed with valid — error is shown but valid output is
+# invalid bundle mixed with valid: error is shown but valid output is
 # still produced.
 @test "invalid bundle mixed with valid still produces valid output" {
   fixture_session <<'EOS'

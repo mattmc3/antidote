@@ -4,7 +4,7 @@
 #
 # 1. Canonical bats (default): `antidote_test_home` in setup(), then one
 #    `run antidote ...` per statement with focused asserts. Works for
-#    anything whose state lives on disk (clones, files) — the antidote()
+#    anything whose state lives on disk (clones, files). The antidote()
 #    wrapper runs antidote.zsh as a subprocess in an isolated HOME.
 #
 # 2. run_session: for behavior that needs a live zsh session (dynamic
@@ -15,7 +15,7 @@
 #
 # Assertions: prefer bats-assert (assert_output, assert_line --index,
 # assert_output --partial, refute_*). Keep `expect` for whole-output
-# golden compares — it prints a unified diff on failure. Golden blocks
+# golden compares. It prints a unified diff on failure. Golden blocks
 # under ~20 lines stay inline in the test; larger or shared contracts
 # live in tests/testdata (eg: usage_dispatch.txt).
 
@@ -98,7 +98,7 @@ tgit() {
   HOME="$TESTHOME" git "$@"
 }
 
-# SESSION_PRELUDE, when set, is injected after setup — use it for
+# SESSION_PRELUDE, when set, is injected after setup. Use it for
 # per-file shorthand. SESSION_SETUP overrides the setup function
 # (default t_setup; real tests use t_setup_real). $status is the exit
 # of the LAST body command (teardown still runs), so a session ending
