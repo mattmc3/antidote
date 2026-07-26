@@ -86,22 +86,22 @@ command git -C \$fake -c user.email=test@test -c user.name=test commit --quiet -
 command git clone --quiet \$fake \$fake-clone 2>/dev/null
 fake=\$fake-clone"
   run_session <<'EOS'
-( use_fake_update; antidote-update --self ); echo "exit: $?"
+( use_fake_update; antidote-update --self )
 EOS
+  assert_success
   expect "Updating antidote...
 antidote self-update complete.
 
-antidote version $EXPECTED_VERSION
-exit: 0"
+antidote version $EXPECTED_VERSION"
 }
 
 # A repo with no remote makes the pull fail.
 @test "self-update failure reports an error" {
   SESSION_PRELUDE="$fake_checkout_prelude"
   run_session <<'EOS'
-( use_fake_update; antidote-update --self 2>&1 ); echo "exit: $?"
+( use_fake_update; antidote-update --self 2>&1 )
 EOS
+  assert_failure 1
   expect "Updating antidote...
-antidote: self-update failed.
-exit: 1"
+antidote: self-update failed."
 }

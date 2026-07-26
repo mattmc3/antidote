@@ -13,7 +13,7 @@ Support files:
 
 - `tests/functions/` - autoloaded session helpers (`t_setup`,
   `t_teardown`, `t_setup_real`, `bundle_val`, `print_parsed_bundle`,
-  `t_unload_antidote`)
+  `clone_dirs`, `t_unload_antidote`)
 - `tests/bin/` - executables tests shell out to (`mock_fzf`, `subenv`,
   `init_fixtures.zsh`); `t_setup` puts this on `$PATH`
 - `tests/tmp_home/` - skeleton HOME copied into each isolated test home

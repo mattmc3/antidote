@@ -18,7 +18,14 @@
 #    `antidote init` mode, setopts, parent-shell wrappers like load and
 #    autoloading). Arrange steps go in SESSION_PRELUDE; the session
 #    body should act and emit facts (labeled lines, raw values), with
-#    judgment done bats-side via assert_line/assert_output.
+#    judgment done bats-side via assert_line/assert_output. Never emit
+#    a verdict the session already decided: `[[ $x == y ]] && echo ok`
+#    tells a failure nothing about what x was, so print x and assert on
+#    it instead.
+#
+#    Exit codes: end the body with the command under test and use
+#    assert_success/assert_failure. `echo "exit: $?"` is only for a
+#    code from the middle of a body, which $status cannot reach.
 #
 # Assertions: prefer bats-assert (assert_output, assert_line --index,
 # assert_output --partial, refute_*). Keep `expect` for whole-output

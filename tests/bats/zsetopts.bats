@@ -26,13 +26,13 @@ EOS
 @test "no stderr noise under posix_identifiers" {
   run_session <<'EOS'
 setopt posix_identifiers
-antidote -v 2>&1 >/dev/null && echo "-v: no stderr"
-antidote -h 2>&1 >/dev/null && echo "-h: no stderr"
-antidote help 2>&1 >/dev/null && echo "help: no stderr"
+err=$(antidote -v 2>&1 >/dev/null);   print -r -- "-v: exit=$? stderr=[$err]"
+err=$(antidote -h 2>&1 >/dev/null);   print -r -- "-h: exit=$? stderr=[$err]"
+err=$(antidote help 2>&1 >/dev/null); print -r -- "help: exit=$? stderr=[$err]"
 EOS
-  assert_line "-v: no stderr"
-  assert_line "-h: no stderr"
-  assert_line "help: no stderr"
+  assert_line "-v: exit=0 stderr=[]"
+  assert_line "-h: exit=0 stderr=[]"
+  assert_line "help: exit=0 stderr=[]"
 }
 
 # Special zsh options that change parsing/expansion semantics must not

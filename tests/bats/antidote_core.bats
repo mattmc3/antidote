@@ -12,9 +12,9 @@ setup() { antidote_common_setup; antidote_test_home; }
 }
 
 @test "fails gracefully when someone tries plain sh" {
-  run_session <<<'sh -c ". $T_PRJDIR/antidote.zsh"; echo "exit: $?"'
+  run_session <<<'sh -c ". $T_PRJDIR/antidote.zsh"'
+  assert_failure 1
   assert_output --partial "antidote: This script requires Zsh, not"
-  assert_line "exit: 1"
 }
 
 # zsh puts 'filecode' (not 'file') in ZSH_EVAL_CONTEXT when a script is
@@ -62,7 +62,8 @@ EOS
 }
 
 @test "diagnostics shows system info" {
-  run_session <<<'antidote --diagnostics; echo "exit: $?"'
+  run_session <<<'antidote --diagnostics'
+  assert_success
   assert_line --index 0 "antidote:"
   assert_line --regexp '^[[:space:]]+version:[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+'
   assert_line --regexp '^[[:space:]]+snapshot dir:[[:space:]]+.+'
@@ -70,18 +71,17 @@ EOS
   assert_line --regexp '^[[:space:]]+zsh version:[[:space:]]+.+'
   assert_line --regexp '^[[:space:]]+git version:[[:space:]]+.+'
   assert_line --regexp '^[[:space:]]+system:[[:space:]]+.+'
-  assert_line "exit: 0"
 }
 
 @test "unrecognized options and commands fail with exit 1" {
   run_session <<'EOS'
 antidote --foo 2>&1 >/dev/null; echo "bad option exit: $?"
-antidote foo 2>&1; echo "bad command exit: $?"
+antidote foo 2>&1
 EOS
+  assert_failure 1
   assert_line --regexp 'bad option|command not found'
   assert_line "bad option exit: 1"
   assert_line "antidote: command not found 'foo'"
-  assert_line "bad command exit: 1"
 }
 
 # The :antidote:test setopts style takes a list of extra shell options

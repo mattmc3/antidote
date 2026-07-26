@@ -41,7 +41,7 @@ EOS
 zstyle ':antidote:static' file \$ZDOTDIR/.zplugins_fake_load.zsh"
   fixture_session <<'EOS'
 antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
-[[ ! -e $ZDOTDIR/.zplugins_fake_load.zsh.zwc ]] && echo "no zwc file"
+print -r -- "zwc files: ${(o)$(print -l $ZDOTDIR/*.zwc(N:t))}"
 EOS
-  assert_output "no zwc file"
+  assert_output "zwc files: "
 }

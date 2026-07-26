@@ -303,13 +303,13 @@ EOS
 # still produced.
 @test "invalid bundle mixed with valid still produces valid output" {
   fixture_session <<'EOS'
-printf 'foo/bar\nfoo\n' | antidote bundle 2>&1; echo "exit: $?"
+printf 'foo/bar\nfoo\n' | antidote bundle 2>&1
 EOS
+  assert_failure 1
   expected=$(cat <<'EOF'
 # antidote: error on line 2: invalid bundle 'foo'. Are you missing a 'using:' directive?
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
-exit: 1
 EOF
 )
   expect "$expected"

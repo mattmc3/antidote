@@ -1,0 +1,13 @@
+#!/bin/zsh
+#function clone_dirs {
+  # Print every clone under $ANTIDOTE_HOME (any dir holding a .git),
+  # relative to $ANTIDOTE_HOME, sorted. Path-style tests assert on this
+  # instead of probing one path at a time, so a failure shows what is
+  # actually on disk rather than just which probe missed.
+  emulate -L zsh; setopt local_options extended_glob
+
+  local d
+  for d in $ANTIDOTE_HOME/**/.git(/N); do
+    print -r -- ${${d:h}#$ANTIDOTE_HOME/}
+  done | sort
+#}

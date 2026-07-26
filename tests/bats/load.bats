@@ -47,11 +47,11 @@ zstyle ':antidote:static' file \$ZDOTDIR/.zplugins.txt"
 zstyle ':antidote:bundle' file \$ZDOTDIR/.zplugins.txt
 zstyle ':antidote:static' file \$ZDOTDIR/.zplugins.static.zsh"
   fixture_session <<'EOS'
-antidote load >/dev/null && echo "load ok"
-[[ -s $ZDOTDIR/.zplugins.static.zsh ]] && echo "static file written"
+antidote load >/dev/null; print "load exit: $?"
+print "static lines: $(wc -l <$ZDOTDIR/.zplugins.static.zsh)"
 EOS
-  assert_line "load ok"
-  assert_line "static file written"
+  assert_line --index 0 "load exit: 0"
+  assert_line --index 1 --regexp 'static lines: +[1-9][0-9]*$'
 }
 
 @test "load fails on a missing bundle file" {

@@ -17,80 +17,67 @@ function bundle_dir_cleanup() { antidote __private__ bundle_dir_cleanup "$@"; }'
 # returns it instead of computing a new path.
 @test "bundle_dir reuses an escaped-style clone" {
   migration_session <<'EOS'
-escaped_dir=$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
-command mkdir -p $escaped_dir/.git
+command mkdir -p $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar/.git
 zstyle ':antidote:bundle' path-style full
 bundle_dir foo/bar | subenv ANTIDOTE_HOME
-test -d $ANTIDOTE_HOME/fakegitsite.com/foo/bar || echo "no full dir created"
+clone_dirs
 EOS
-  assert_line --index 0 '$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar'
-  assert_line --index 1 "no full dir created"
-  [ "${#lines[@]}" -eq 2 ]
+  expect '$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
+https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar'
 }
 
 @test "bundle_dir reuses a short-style clone" {
   migration_session <<'EOS'
-short_dir=$ANTIDOTE_HOME/foo/bar
-command mkdir -p $short_dir/.git
+command mkdir -p $ANTIDOTE_HOME/foo/bar/.git
 zstyle ':antidote:bundle' path-style full
 bundle_dir foo/bar | subenv ANTIDOTE_HOME
-test -d $ANTIDOTE_HOME/fakegitsite.com/foo/bar || echo "no full dir created"
+clone_dirs
 EOS
-  assert_line --index 0 '$ANTIDOTE_HOME/foo/bar'
-  assert_line --index 1 "no full dir created"
-  [ "${#lines[@]}" -eq 2 ]
+  expect '$ANTIDOTE_HOME/foo/bar
+foo/bar'
 }
 
 @test "bundle_dir reuses an escaped-style ssh clone" {
   migration_session <<'EOS'
-escaped_ssh_dir=$ANTIDOTE_HOME/git-AT-fakegitsite.com-COLON-foo-SLASH-qux
-command mkdir -p $escaped_ssh_dir/.git
+command mkdir -p $ANTIDOTE_HOME/git-AT-fakegitsite.com-COLON-foo-SLASH-qux/.git
 zstyle ':antidote:bundle' path-style full
 bundle_dir git@fakegitsite.com:foo/qux | subenv ANTIDOTE_HOME
-test -d $ANTIDOTE_HOME/fakegitsite.com/foo/qux || echo "no full dir created"
+clone_dirs
 EOS
-  assert_line --index 0 '$ANTIDOTE_HOME/git-AT-fakegitsite.com-COLON-foo-SLASH-qux'
-  assert_line --index 1 "no full dir created"
-  [ "${#lines[@]}" -eq 2 ]
+  expect '$ANTIDOTE_HOME/git-AT-fakegitsite.com-COLON-foo-SLASH-qux
+git-AT-fakegitsite.com-COLON-foo-SLASH-qux'
 }
 
 # bundle_dir itself has no side effects; bundle_dir_cleanup removes
 # legacy dupes when the preferred path exists.
 @test "bundle_dir_cleanup removes a legacy escaped duplicate" {
   migration_session <<'EOS'
-escaped_dir=$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
-full_dir=$ANTIDOTE_HOME/fakegitsite.com/foo/bar
-command mkdir -p $escaped_dir/.git $full_dir/.git
+command mkdir -p \
+  $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar/.git \
+  $ANTIDOTE_HOME/fakegitsite.com/foo/bar/.git
 zstyle ':antidote:bundle' path-style full
 bundle_dir foo/bar | subenv ANTIDOTE_HOME
-test -d $escaped_dir && echo "legacy clone untouched by bundle_dir"
+clone_dirs
 bundle_dir_cleanup foo/bar
-test -d $escaped_dir || echo "legacy clone removed"
-test -d $full_dir && echo "preferred clone kept"
+clone_dirs
 EOS
-  assert_line --index 0 '$ANTIDOTE_HOME/fakegitsite.com/foo/bar'
-  assert_line --index 1 "legacy clone untouched by bundle_dir"
-  assert_line --index 2 "legacy clone removed"
-  assert_line --index 3 "preferred clone kept"
-  [ "${#lines[@]}" -eq 4 ]
+  expect '$ANTIDOTE_HOME/fakegitsite.com/foo/bar
+fakegitsite.com/foo/bar
+https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
+fakegitsite.com/foo/bar'
 }
 
 @test "bundle_dir_cleanup removes every legacy style at once" {
   migration_session <<'EOS'
-escaped_dir=$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
-short_dir=$ANTIDOTE_HOME/foo/bar
-full_dir=$ANTIDOTE_HOME/fakegitsite.com/foo/bar
-command mkdir -p $escaped_dir/.git $short_dir/.git $full_dir/.git
+command mkdir -p \
+  $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar/.git \
+  $ANTIDOTE_HOME/foo/bar/.git \
+  $ANTIDOTE_HOME/fakegitsite.com/foo/bar/.git
 zstyle ':antidote:bundle' path-style full
 bundle_dir_cleanup foo/bar
-test -d $full_dir && echo "preferred survives"
-test -d $escaped_dir || echo "escaped removed"
-test -d $short_dir || echo "short removed"
+clone_dirs
 EOS
-  assert_line --index 0 "preferred survives"
-  assert_line --index 1 "escaped removed"
-  assert_line --index 2 "short removed"
-  [ "${#lines[@]}" -eq 3 ]
+  expect 'fakegitsite.com/foo/bar'
 }
 
 # When no clone exists under any style, the current path-style is used.
@@ -128,32 +115,26 @@ EOS
   migration_session <<'EOS'
 zstyle ':antidote:bundle' path-style short
 antidote bundle foo/bar &>/dev/null
-test -d $ANTIDOTE_HOME/foo/bar && echo "short clone exists"
+clone_dirs
 zstyle ':antidote:bundle' path-style full
 antidote bundle foo/bar &>/dev/null
-test -d $ANTIDOTE_HOME/fakegitsite.com/foo/bar || echo "no full dupe"
-test -d $ANTIDOTE_HOME/foo/bar && echo "short clone kept"
+clone_dirs
 EOS
-  assert_line --index 0 "short clone exists"
-  assert_line --index 1 "no full dupe"
-  assert_line --index 2 "short clone kept"
-  [ "${#lines[@]}" -eq 3 ]
+  expect 'foo/bar
+foo/bar'
 }
 
 @test "escaped re-bundle reuses a full-style clone" {
   migration_session <<'EOS'
 zstyle ':antidote:bundle' path-style full
 antidote bundle foo/bar &>/dev/null
-test -d $ANTIDOTE_HOME/fakegitsite.com/foo/bar && echo "full clone exists"
+clone_dirs
 zstyle ':antidote:bundle' path-style escaped
 antidote bundle foo/bar &>/dev/null
-test -d $ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar || echo "no escaped dupe"
-test -d $ANTIDOTE_HOME/fakegitsite.com/foo/bar && echo "full clone kept"
+clone_dirs
 EOS
-  assert_line --index 0 "full clone exists"
-  assert_line --index 1 "no escaped dupe"
-  assert_line --index 2 "full clone kept"
-  [ "${#lines[@]}" -eq 3 ]
+  expect 'fakegitsite.com/foo/bar
+fakegitsite.com/foo/bar'
 }
 
 @test "short re-bundle reuses a full-style clone" {
@@ -162,10 +143,7 @@ zstyle ':antidote:bundle' path-style full
 antidote bundle foo/bar &>/dev/null
 zstyle ':antidote:bundle' path-style short
 antidote bundle foo/bar &>/dev/null
-test -d $ANTIDOTE_HOME/foo/bar || echo "no short dupe"
-test -d $ANTIDOTE_HOME/fakegitsite.com/foo/bar && echo "full clone kept"
+clone_dirs
 EOS
-  assert_line --index 0 "no short dupe"
-  assert_line --index 1 "full clone kept"
-  [ "${#lines[@]}" -eq 2 ]
+  expect 'fakegitsite.com/foo/bar'
 }

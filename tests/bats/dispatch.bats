@@ -14,17 +14,18 @@ lazy_load_check() {
 t_unload_antidote
 echo "dispatch loaded: \$+functions[antidote-dispatch]"
 autoload -Uz $dir/antidote
-antidote -v &>/dev/null && echo "antidote -v works"
+antidote -v >/dev/null; echo "antidote -v exit: \$?"
 echo "dispatch loaded: \$+functions[antidote-dispatch]"
 EOS
   assert_line --index 0 "dispatch loaded: 0"
-  assert_line --index 1 "antidote -v works"
+  assert_line --index 1 "antidote -v exit: 0"
   assert_line --index 2 "dispatch loaded: 1"
 }
 
 @test "antidote-dispatch --version works" {
-  run_session <<<'antidote-dispatch --version >/dev/null && echo "dispatch --version ok"'
-  assert_output "dispatch --version ok"
+  run_session <<<'antidote-dispatch --version'
+  assert_success
+  assert_output --partial "antidote version $EXPECTED_VERSION"
 }
 
 @test "antidote lazy loads from the repo root" {

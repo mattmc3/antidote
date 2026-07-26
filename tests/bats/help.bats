@@ -30,11 +30,11 @@ EOS
 @test "man antidote works and MANPATH is set" {
   run_session <<'EOS'
 PAGER=cat man antidote | head -n 1 | sed 's/  */ /g'
-[[ "$MANPATH" == *"$T_PRJDIR/man:"* ]] && echo "MANPATH ok"
+print -r -- "$MANPATH"
 EOS
   assert_success
   assert_line --index 0 "ANTIDOTE(1) Antidote Manual ANTIDOTE(1)"
-  assert_line --index 1 "MANPATH ok"
+  assert_line --index 1 --partial "$PRJDIR/man:"
 }
 
 @test "antidote help bundle" { manpage_check bundle ANTIDOTE-BUNDLE; }
@@ -55,14 +55,13 @@ $(cat "$PRJDIR/tests/testdata/usage_dispatch.txt")"
 }
 
 # The private usage helpers should not remain defined in the user's shell.
+# Printing the survivors names the leak instead of just failing a probe.
 @test "no leaked usage helper functions" {
   run_session <<'EOS'
 antidote -h >/dev/null
 antidote help >/dev/null 2>&1
-typeset -f __antidote_dispatch_usage >/dev/null || echo "no dispatch leak"
-typeset -f __antidote_usage >/dev/null || echo "no help leak"
+print -r -- "leaked: ${(ok)functions[(I)__antidote*]}"
 EOS
   assert_success
-  assert_line "no dispatch leak"
-  assert_line "no help leak"
+  assert_output "leaked: "
 }

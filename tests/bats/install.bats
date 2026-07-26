@@ -38,11 +38,11 @@ EOS
 @test "install rejects unknown flags" {
   fixture_session <<'EOS'
 antidote install -x foo themes/purify 2>&1; echo "exit: $?"
-grep purify $ZDOTDIR/.zsh_plugins.txt || echo "not in plugins file"
+print -r -- "purify lines: $(grep -c purify $ZDOTDIR/.zsh_plugins.txt)"
 EOS
   assert_line "antidote: error: unknown flag '-x', try --help"
   assert_line "exit: 1"
-  assert_line "not in plugins file"
+  assert_line "purify lines: 0"
 }
 
 @test "install clones and appends to the plugins file" {
