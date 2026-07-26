@@ -6,6 +6,13 @@
 #    `run antidote ...` per statement with focused asserts. Works for
 #    anything whose state lives on disk (clones, files). The antidote()
 #    wrapper runs antidote.zsh as a subprocess in an isolated HOME.
+#    Extra zstyles go in $ZSTYLES; use subenv_output to fold tmpdir
+#    paths back to $HOME/$ANTIDOTE_HOME before asserting.
+#
+#    When a file's tests all want the standard fixture clones, pair
+#    `setup_file() { antidote_fixture_proto; }` with
+#    `antidote_test_home_cached` in setup(). That clones once per file
+#    instead of once per test; the clone dominates fixture test time.
 #
 # 2. run_session: for behavior that needs a live zsh session (dynamic
 #    `antidote init` mode, setopts, parent-shell wrappers like load and
@@ -55,11 +62,14 @@ antidote_fixture_dir() {
 # Build an isolated HOME for subprocess tests: tmp_home contents, the
 # test config, and a gitconfig that maps fakegitsite.com to the local
 # bare fixtures. Exports TESTHOME, ZDOTDIR, AHOME, and ACONFIG.
+# Takes an optional base dir (default $BATS_TEST_TMPDIR) so setup_file
+# can build a prototype home outside any single test's tmpdir.
 antidote_test_home() {
+  local base=${1:-$BATS_TEST_TMPDIR}
   # Resolve symlinks (macOS /var/folders -> /private/var) so subprocess
   # path prefix checks against $HOME hold.
-  mkdir -p "$BATS_TEST_TMPDIR/home"
-  TESTHOME="$(cd "$BATS_TEST_TMPDIR/home" && pwd -P)"
+  mkdir -p "$base/home"
+  TESTHOME="$(cd "$base/home" && pwd -P)"
   ZDOTDIR="$TESTHOME/.zsh"
   AHOME="$TESTHOME/.cache/antidote"
   ACONFIG="$TESTHOME/.config/antidote/test_config.zsh"
@@ -90,6 +100,26 @@ antidote() {
 # Clone the standard test fixtures into the test home, quietly.
 antidote_clone_fixtures() {
   antidote bundle <"$ZDOTDIR/.base_test_fixtures.txt" &>/dev/null
+}
+
+# setup_file() half of the cached-fixture pair: build one prototype home
+# with the fixtures already cloned, in $BATS_FILE_TMPDIR. Pair with
+# antidote_test_home_cached in setup(). Cloning is the dominant cost of
+# a fixture test, so doing it once per file beats once per test.
+antidote_fixture_proto() {
+  antidote_common_setup || return 1
+  antidote_test_home "$BATS_FILE_TMPDIR/proto"
+  antidote_clone_fixtures
+}
+
+# setup() half: copy the prototype into this test's tmpdir so each test
+# still gets a private writable home, without re-cloning.
+antidote_test_home_cached() {
+  cp -R "$BATS_FILE_TMPDIR/proto/home" "$BATS_TEST_TMPDIR/home"
+  TESTHOME="$(cd "$BATS_TEST_TMPDIR/home" && pwd -P)"
+  ZDOTDIR="$TESTHOME/.zsh"
+  AHOME="$TESTHOME/.cache/antidote"
+  ACONFIG="$TESTHOME/.config/antidote/test_config.zsh"
 }
 
 # git against the test home, so the fixture gitconfig (insteadOf rules
@@ -125,6 +155,21 @@ run_session() {
 fixture_session() {
   SESSION_PRELUDE='antidote bundle <$ZDOTDIR/.base_test_fixtures.txt &>/dev/null
 '"${SESSION_PRELUDE:-}" run_session
+}
+
+# tests/bin/subenv, the same filter session tests pipe through, fed the
+# test home's values instead of the bats process's own env.
+subenv() {
+  env HOME="$TESTHOME" ZDOTDIR="$ZDOTDIR" \
+    ${AHOME:+ANTIDOTE_HOME="$AHOME"} \
+    "$PRJDIR/tests/bin/subenv" "$@"
+}
+
+# Rewrite $output (and $lines) through subenv after a run, so asserts can
+# compare against $VAR placeholders instead of tmpdir paths.
+subenv_output() {
+  output=$(subenv "$@" <<<"$output")
+  mapfile -t lines <<<"$output"
 }
 
 # Compare $output against an expected string, showing a diff on failure.

@@ -1,0 +1,25 @@
+#!/bin/zsh
+# Filter that rewrites absolute paths on stdin back to $VAR placeholders,
+# so golden files stay stable across tmpdirs. Defaults to HOME.
+#
+# Literal '$HOME' is expanded first, which is what lets `subenv
+# ANTIDOTE_HOME` collapse a generated "$HOME/.cache/antidote/..." path
+# down to "$ANTIDOTE_HOME/...".
+#
+# This runs as a subprocess, so every var named here has to be exported
+# by the caller. Bats-side callers pass the test home's values via env.
+emulate -L zsh
+setopt local_options
+
+if (( $# == 0 )); then
+  set -- HOME
+fi
+
+typeset -a sedargs=(-e "s|\$HOME|$HOME|g")
+while (( $# )); do
+  if [[ -v "$1" ]]; then
+    sedargs+=(-e "s|${(P)1}|\$$1|g")
+  fi
+  shift
+done
+sed "$sedargs[@]"

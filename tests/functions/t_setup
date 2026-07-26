@@ -29,6 +29,9 @@
   fpath+=( $testdir/functions )
   autoload -Uz $testdir/functions/*
 
+  # tests/bin holds executables shared with bats-side helpers (subenv)
+  path=( $testdir/bin $path )
+
   # gitconfig insteadOf rules handle URL rewriting for fake URLs
 
   # works with BSD and GNU gmktemp

@@ -3,112 +3,93 @@
 
 load helpers/common
 
-setup() { antidote_common_setup; }
+setup_file() { antidote_fixture_proto; }
+
+setup() {
+  antidote_common_setup
+  antidote_test_home_cached
+}
 
 @test "fpath is appended to by default" {
-  fixture_session <<'EOS'
-antidote bundle foo/bar kind:fpath
-EOS
+  run antidote bundle foo/bar kind:fpath
   assert_output 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )'
 }
 
 # fpath can be told to explicitly append, but it's unnecessary
 @test "explicit fpath-rule:append works" {
-  fixture_session <<'EOS'
-antidote bundle foo/bar kind:zsh fpath-rule:append
-EOS
+  run antidote bundle foo/bar kind:zsh fpath-rule:append
   expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
 }
 
 @test "fpath-rule:prepend prepends" {
-  fixture_session <<'EOS'
-antidote bundle foo/bar kind:fpath fpath-rule:prepend
-EOS
+  run antidote bundle foo/bar kind:fpath fpath-rule:prepend
   assert_output 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )'
 }
 
 @test "fpath rules can only be append or prepend" {
-  fixture_session <<'EOS'
-antidote bundle foo/bar kind:fpath fpath-rule:append >/dev/null; echo "append exit: $?"
-antidote bundle foo/bar kind:fpath fpath-rule:prepend >/dev/null; echo "prepend exit: $?"
-antidote bundle foo/bar kind:fpath fpath-rule:foo 2>&1
-EOS
+  run antidote bundle foo/bar kind:fpath fpath-rule:append
+  assert_success
+  run antidote bundle foo/bar kind:fpath fpath-rule:prepend
+  assert_success
+  run antidote bundle foo/bar kind:fpath fpath-rule:foo
   assert_failure 1
-  assert_line "append exit: 0"
-  assert_line "prepend exit: 0"
-  assert_line "# antidote: error: unexpected fpath rule: 'foo'"
+  assert_output "# antidote: error: unexpected fpath rule: 'foo'"
 }
 
 @test "fpath rules apply to kind:autoload" {
-  fixture_session <<'EOS'
-antidote bundle foo/baz path:baz kind:autoload fpath-rule:append
-antidote bundle foo/baz path:baz kind:autoload fpath-rule:prepend
-EOS
-  expected=$(cat <<'EOF'
-fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
-builtin autoload -Uz $fpath[-1]/*(N.:t)
-fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
-builtin autoload -Uz $fpath[1]/*(N.:t)
-EOF
-)
-  expect "$expected"
+  run antidote bundle foo/baz path:baz kind:autoload fpath-rule:append
+  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
+builtin autoload -Uz $fpath[-1]/*(N.:t)'
+
+  run antidote bundle foo/baz path:baz kind:autoload fpath-rule:prepend
+  expect 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
+builtin autoload -Uz $fpath[1]/*(N.:t)'
 }
 
 @test "fpath rules apply to autoload:funcdir annotations" {
-  fixture_session <<'EOS'
-antidote bundle foo/baz autoload:baz fpath-rule:append
-antidote bundle foo/baz autoload:baz fpath-rule:prepend
-EOS
-  expected=$(cat <<'EOF'
-fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
+  run antidote bundle foo/baz autoload:baz fpath-rule:append
+  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
 builtin autoload -Uz $fpath[-1]/*(N.:t)
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz" )
-source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"
-fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"'
+
+  run antidote bundle foo/baz autoload:baz fpath-rule:prepend
+  expect 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
 builtin autoload -Uz $fpath[1]/*(N.:t)
 fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz" $fpath )
-source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"
-EOF
-)
-  expect "$expected"
+source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"'
 }
 
 # fpath rules can be set globally with a zstyle:
 #   zstyle ':antidote:fpath' rule 'prepend'
 @test "global fpath rule zstyle" {
-  fixture_session <<'EOS'
-zstyle ':antidote:fpath' rule 'prepend'
-antidote bundle foo/bar
-antidote bundle foo/bar kind:fpath
-antidote bundle foo/baz path:baz kind:autoload
-EOS
-  expected=$(cat <<'EOF'
-fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )
-source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
-fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )
-fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
-builtin autoload -Uz $fpath[1]/*(N.:t)
-EOF
-)
-  expect "$expected"
+  ZSTYLES="zstyle ':antidote:fpath' rule prepend"
+
+  run antidote bundle foo/bar
+  expect 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
+
+  run antidote bundle foo/bar kind:fpath
+  assert_output 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" $fpath )'
+
+  run antidote bundle foo/baz path:baz kind:autoload
+  expect 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
+builtin autoload -Uz $fpath[1]/*(N.:t)'
 }
 
 # It is NOT recommended, but explicit fpath-rules still beat the zstyle.
 @test "explicit fpath-rule overrides the global zstyle" {
-  fixture_session <<'EOS'
-zstyle ':antidote:fpath' rule 'prepend'
-antidote bundle foo/bar fpath-rule:append
-antidote bundle foo/bar kind:fpath fpath-rule:append
-antidote bundle foo/baz path:baz kind:autoload fpath-rule:append
-EOS
-  expected=$(cat <<'EOF'
-fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
-source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"
-fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
-fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
-builtin autoload -Uz $fpath[-1]/*(N.:t)
-EOF
-)
-  expect "$expected"
+  ZSTYLES="zstyle ':antidote:fpath' rule prepend"
+
+  run antidote bundle foo/bar fpath-rule:append
+  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
+source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
+
+  run antidote bundle foo/bar kind:fpath fpath-rule:append
+  assert_output 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )'
+
+  run antidote bundle foo/baz path:baz kind:autoload fpath-rule:append
+  expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
+builtin autoload -Uz $fpath[-1]/*(N.:t)'
 }

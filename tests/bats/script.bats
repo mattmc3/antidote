@@ -227,7 +227,7 @@ fi'
 # initfiles picks the best init file by precedence, one type at a time.
 @test "initfiles precedence and failure cases" {
   run_session <<'EOS'
-PLUGINDIR=$T_TEMPDIR/initfiles/myplugin
+export PLUGINDIR=$T_TEMPDIR/initfiles/myplugin  # subenv is a subprocess
 mkdir -p $PLUGINDIR/lib
 touch $PLUGINDIR/myplugin.plugin.zsh $PLUGINDIR/whatever.plugin.zsh
 touch $PLUGINDIR/file.zsh $PLUGINDIR/file.sh $PLUGINDIR/file.bash
