@@ -204,12 +204,12 @@ EOS
   run_session <<'EOS'
 source <(antidote init)
 antidote bundle foo/bar &>/dev/null
-[[ -d $ANTIDOTE_HOME/.dynamic ]] && echo "cache dir present"
+[[ -d $ANTIDOTE_HOME/.dynamic ]] && echo "before update: present" || echo "before update: gone"
 antidote update --bundles &>/dev/null
-[[ -d $ANTIDOTE_HOME/.dynamic ]] || echo "cache dir gone"
+[[ -d $ANTIDOTE_HOME/.dynamic ]] && echo "after update: present" || echo "after update: gone"
 EOS
-  assert_line "cache dir present"
-  assert_line "cache dir gone"
+  assert_line "before update: present"
+  assert_line "after update: gone"
 }
 
 # A warm source failure is returned without regenerating and sourcing
@@ -303,13 +303,13 @@ EOS
   run_session <<'EOS'
 source <(antidote init)
 antidote bundle $ZDOTDIR/custom/plugins/grizwold &>/dev/null
-[[ -o globdots ]] && echo "cold setopt ok"
+print -r -- "cold globdots: $options[globdots]"
 unsetopt globdots
 antidote bundle $ZDOTDIR/custom/plugins/grizwold &>/dev/null
-[[ -o globdots ]] && echo "warm setopt ok"
+print -r -- "warm globdots: $options[globdots]"
 EOS
-  assert_line "cold setopt ok"
-  assert_line "warm setopt ok"
+  assert_line "cold globdots: on"
+  assert_line "warm globdots: on"
 }
 
 @test "invalid bundle is not cached and fails" {
@@ -328,9 +328,8 @@ EOS
   run_session <<'EOS'
 source <(antidote init)
 print -r -- 'bad:bundle:value' | antidote bundle 2>/dev/null
-echo "exit: $?"
 EOS
-  assert_line "exit: 1"
+  assert_failure
 }
 
 @test "failed clone is not cached and fails" {

@@ -156,7 +156,8 @@ zstyle ':antidote:snapshot:automatic' enabled yes"
 
   run antidote update
   assert_success
-  [ -z "$(ls -A "$tmpbase")" ]
+  run ls -A "$tmpbase"
+  assert_output ""
 }
 
 @test "update removes its temp dir when a worker fails" {
@@ -167,7 +168,8 @@ zstyle ':antidote:snapshot:automatic' enabled yes"
 
   run antidote update
   assert_failure
-  [ -z "$(ls -A "$tmpbase")" ]
+  run ls -A "$tmpbase"
+  assert_output ""
 }
 
 @test "parent-shell bundle update completes" {

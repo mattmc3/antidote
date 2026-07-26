@@ -58,7 +58,7 @@ EOS
 @test "load writes the checkfile under ANTIDOTE_HOME" {
   fixture_session <<'EOS'
 antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null 2>&1
-[[ -e $ANTIDOTE_HOME/.antidote.load ]] && echo "checkfile present"
+[[ -e $ANTIDOTE_HOME/.antidote.load ]] && echo "checkfile present" || echo "checkfile absent"
 EOS
   assert_line "checkfile present"
 }
@@ -109,7 +109,7 @@ print "print last-known-good" > $ZDOTDIR/.zplugins_bad.zsh'
   run_session <<'EOS'
 antidote load $ZDOTDIR/.zplugins_bad.txt $ZDOTDIR/.zplugins_bad.zsh 2>/dev/null
 echo "exit: $?"
-grep -q last-known-good $ZDOTDIR/.zplugins_bad.zsh && echo "static preserved"
+grep -q last-known-good $ZDOTDIR/.zplugins_bad.zsh && echo "static preserved" || echo "static clobbered"
 [[ -e $ZDOTDIR/.zplugins_bad.zsh.new ]] && echo ".new present" || echo ".new absent"
 [[ -e $ANTIDOTE_HOME/.antidote.load ]] && echo "checkfile present" || echo "checkfile absent"
 EOS
