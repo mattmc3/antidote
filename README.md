@@ -14,14 +14,14 @@
 
 > [Get the cure][antidote]</blockquote>
 
-[Antidote][antidote] is a feature-complete Zsh implementation of the legacy
+Meet [antidote][antidote], a feature-complete Zsh implementation of the legacy
 [Antibody][antibody] plugin manager, which in turn was derived from [Antigen][antigen].
-Antidote not only aims to provide continuity for those legacy plugin managers, but also
+It not only aims to provide continuity for those legacy plugin managers, but also
 to delight new users with high-performance, easy-to-use Zsh plugin management.
 
 ## Usage
 
-Basic usage should look really familiar to you if you have used Antibody or Antigen.
+Basic usage should look really familiar to you if you have used antibody or antigen.
 Bundles (aka: Zsh plugins) are stored in a file typically called `.zsh_plugins.txt`.
 
 ```zsh
