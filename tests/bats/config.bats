@@ -39,3 +39,20 @@ setup() {
   assert_success
   assert_output "$AHOME/github.com/foo/bar"
 }
+
+@test "diagnostics reports the explicit config path" {
+  run antidote --diagnostics
+  assert_line --regexp "^ +config: +${ACONFIG}\$"
+}
+
+@test "diagnostics reports the discovered config path" {
+  ACONFIG=""
+  run antidote --diagnostics
+  assert_line --regexp "^ +config: +${TESTHOME}/.config/antidote/config.zsh\$"
+}
+
+@test "diagnostics flags a config path with no file" {
+  ACONFIG="$TESTHOME/.config/antidote/nope.zsh"
+  run antidote --diagnostics
+  assert_line --regexp "^ +config: +${ACONFIG} \(not found\)\$"
+}

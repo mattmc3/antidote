@@ -36,8 +36,8 @@ setopt extended_glob # warn_create_global # warn_nested_var
 zmodload zsh/datetime
 
 # Load config: source config file then apply any serialized zstyles
-typeset -g ANTIDOTE_CONFIG_FILE=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
-[[ -f "$ANTIDOTE_CONFIG_FILE" ]] && source "$ANTIDOTE_CONFIG_FILE"
+typeset -g ANTIDOTE_CONFIG=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
+[[ -f "$ANTIDOTE_CONFIG" ]] && source "$ANTIDOTE_CONFIG"
 [[ -n "$ANTIDOTE_ZSTYLES" ]] && eval "$ANTIDOTE_ZSTYLES"
 
 ##### OUTPUT HELPERS
@@ -413,7 +413,7 @@ diagnostics() {
   say "  bundles:      $num_bundles"
   say "  snapshot dir: $ANTIDOTE_SNAPSHOT_DIR"
   say "  snapshots:    $num_snapshots"
-  configfile=$ANTIDOTE_CONFIG_FILE
+  configfile=$ANTIDOTE_CONFIG
   if [[ -f "$configfile" ]]; then
     say "  config:       $configfile"
   else
