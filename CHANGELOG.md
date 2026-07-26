@@ -2,6 +2,25 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.1.1]
+
+- Fix `antidote.zsh` exiting the shell when sourced from compiled `.zwc` bytecode ([#270](https://github.com/mattmc3/antidote/issues/270)). Zsh reports the eval context as `filecode` rather than `file` in that case, so the sourced check fell through to the CLI branch.
+- Fix `antidote bundle` exiting 1 for bundle files containing only `kind:clone` entries, and make it exit non-zero when a clone or a parallel script generation job fails. Previously those failures printed to stderr but still exited 0.
+- Fix `antidote load` returning 0 when the static file was missing or could not be sourced.
+- Fix `antidote update` printing "self-update complete" after a failed self-update. It now reports the error and returns 1.
+- Fix `antidote purge` commenting out unrelated bundles in the plugins file when one bundle name was a prefix of another (eg: purging `foo/bar` also matched `foo/barbaz`). Names now match literally, whole word only.
+- Fix `antidote install` silently writing `:value` garbage to the plugins file for unknown short flags. It now fails with an error.
+- Fix `antidote snapshot restore` reporting success when restores failed, and fix pinned restores always failing under ephemeral pins.
+- Fix `antidote list --jsonl` producing invalid JSON when values contained quotes, backslashes, or control characters.
+- Fix `antidote-dispatch` and `antidote-help` leaking private usage helper functions into the user's shell.
+- Fix the non-Zsh guard misreporting the shell name, and tolerate a `ps` without `-p` (busybox).
+- Speed up `antidote update` by only probing for bat when the snapshot picker actually runs.
+- Ehance completions: `install` gains arg specs, a `--pin` value, and bundle positionals; `path` completes installed bundles; `help` completes topics; `load` and `snapshot` complete files.
+- Remove unused git config isolation from `update` that would have broken credential helpers and `insteadOf` rewrites had it ever taken effect.
+- Add an [ARCHITECTURE.md](https://github.com/mattmc3/antidote/blob/main/ARCHITECTURE.md) guide covering file layout, the parent/subprocess boundary, and the bundle pipeline.
+- Internal: rename globals so `ANTIDOTE_*` means externally managed only, decompose oversized functions, and make `antidote.zsh` clean under `warn_nested_var`. No behavior changes.
+- Internal: migrate the test suite from clitest markdown files to bats (`tests/bats`), with network tests split out under `just test-real`.
+
 ## [v2.1.0]
 
 - Add `using:` directive for loading subplugins from monorepos and local paths (eg: oh-my-zsh, prezto).
