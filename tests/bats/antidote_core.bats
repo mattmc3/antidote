@@ -17,6 +17,27 @@ setup() { antidote_common_setup; antidote_test_home; }
   assert_line "exit: 1"
 }
 
+# zsh puts 'filecode' (not 'file') in ZSH_EVAL_CONTEXT when a script is
+# loaded from its .zwc bytecode. Sourcing must still run setup instead
+# of falling through to the CLI branch.
+@test "sourcing works when compiled to zwc bytecode" {
+  local libdir="$BATS_TEST_TMPDIR/zwc"
+  mkdir -p "$libdir"
+  cp "$PRJDIR/antidote.zsh" "$libdir"
+  cp -R "$PRJDIR/functions" "$libdir"
+  zsh -fc "zcompile '$libdir/antidote.zsh'"
+  [ -f "$libdir/antidote.zsh.zwc" ]
+  cat >"$BATS_TEST_TMPDIR/probe.zsh" <<EOS
+source "$libdir/antidote.zsh"
+echo "source exit: \$?"
+echo "still alive: yes"
+EOS
+  run env HOME="$TESTHOME" zsh -f "$BATS_TEST_TMPDIR/probe.zsh"
+  assert_success
+  assert_output "source exit: 0
+still alive: yes"
+}
+
 @test "no args displays help and exits 2" {
   run_session <<'EOS'
 echo "antidote fn defined: $+functions[antidote]"

@@ -10,9 +10,10 @@ elif [ -z "$ZSH_VERSION" ]; then
   return 1 2>/dev/null || exit 1
 fi
 
-# When sourced, behave differently
+# When sourced, behave differently. Zsh uses the 'filecode' context
+# token instead of 'file' when a script loads from its .zwc bytecode.
 0=${(%):-%N}
-if [[ ":${ZSH_EVAL_CONTEXT}:" == *:file:* ]]; then
+if [[ ":${ZSH_EVAL_CONTEXT}:" == *:file(|code):* ]]; then
   typeset -f antidote-setup &>/dev/null && unfunction antidote-setup
   builtin autoload -Uz ${0:A:h}/functions/antidote-setup
   antidote-setup
