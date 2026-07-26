@@ -34,6 +34,12 @@
 # zstyle ':antidote:static' zcompile 'no'                                   # zcompile the static file
 
 # =============================================================================
+# Dynamic bundling settings (source <(antidote init))
+# =============================================================================
+
+# zstyle ':antidote:dynamic' zcompile 'no'  # zcompile the per-line dynamic cache scripts
+
+# =============================================================================
 # Defer settings
 # =============================================================================
 

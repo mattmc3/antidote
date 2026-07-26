@@ -6,13 +6,14 @@ load helpers/common
 setup() { antidote_common_setup; }
 
 @test "antidote init emits the dynamic-mode function" {
-  run_session <<<'antidote init'
+  run_session <<<'antidote init | subenv ANTIDOTE_HOME ANTIDOTE_CONFIG'
   expected=$(cat <<'EOF'
 #!/usr/bin/env zsh
 function antidote {
   case "$1" in
     bundle)
-      source <( ANTIDOTE_DYNAMIC=true antidote-dispatch $@ ) || ANTIDOTE_DYNAMIC=true antidote-dispatch $@
+      shift
+      antidote-bundle-dynamic '$ANTIDOTE_HOME' '$ANTIDOTE_CONFIG' "$@"
       ;;
     *)
       ANTIDOTE_DYNAMIC=true antidote-dispatch $@

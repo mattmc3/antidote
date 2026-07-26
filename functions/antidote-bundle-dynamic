@@ -1,0 +1,117 @@
+#!/bin/zsh
+
+### Dynamic-mode `antidote bundle` with an input-keyed script cache.
+#
+# usage: antidote-bundle-dynamic <antidote-home> <config-file> [<bundle>...]
+#
+# Generated load scripts live under
+# <antidote-home>/.dynamic/<djb2-of-generation-inputs>.zsh. Inputs include
+# ':antidote:*' zstyles, antidote/config mtimes, active using: context,
+# and bundle arguments. Cold scripts run before being published, and the
+# publish writes to a temp then renames, so a concurrent reader sees the
+# old file or the new one and never a partial. Write failures are
+# swallowed: a bundle that loaded is a success even if it did not cache.
+#function antidote-bundle-dynamic {
+  local __adote_ahome="$1" __adote_configfile="$2"
+  local __adote_ret=0 __adote_script= __adote_scriptfile=
+  shift 2
+
+  # Piped/redirected input (no bundle args) bypasses the cache - the
+  # whole batch is a single subprocess already.
+  if (( $# == 0 )); then
+    local __adote_script
+    __adote_script="$(ANTIDOTE_DYNAMIC=true antidote-dispatch bundle)" || return
+    source <( print -r -- "$__adote_script" )
+    return
+  fi
+
+  # djb2 hash of $1 in pure zsh; REPLY gets the decimal value.
+  __adote_dynamic_hash() {
+    emulate -L zsh
+    local c
+    local -a chs
+    local -i hash i
+    hash=5381
+    chs=(${(s::)1})
+    for (( i = 1; i <= $#chs; i++ )); do
+      c=$chs[i]
+      (( hash = (hash * 33 + #c) % 4294967296 ))
+    done
+    REPLY=$hash
+  }
+
+  # Hash every input that can change the generated script. REPLY gets
+  # the deterministic cache path.
+  __adote_dynamic_cachefile() {
+    emulate -L zsh
+    setopt local_options extended_glob
+    local ahome="$1" configfile="$2"; shift 2
+    local zstyles key pat sty k
+    local zsh_mtime=0 config_mtime=0
+    local -a mtimes patterns styles vals
+
+    zmodload -F zsh/stat b:zstat 2>/dev/null
+    zstat -A mtimes +mtime -- "$ANTIDOTE_ZSH" 2>/dev/null && zsh_mtime=$mtimes[1]
+    zstat -A mtimes +mtime -- "$configfile" 2>/dev/null && config_mtime=$mtimes[1]
+
+    zstyle -g patterns
+    for pat in ${(o)patterns}; do
+      [[ "$pat" == :antidote:* ]] || continue
+      zstyle -g styles "$pat"
+      for sty in ${(o)styles}; do
+        vals=()
+        zstyle -g vals "$pat" "$sty"
+        zstyles+="$pat $sty ${(j: :)vals}"$'\n'
+      done
+    done
+
+    key="$ANTIDOTE_ZSH:$zsh_mtime"$'\n'"$configfile:$config_mtime"$'\n'
+    key+="$zstyles"$'\n'"$*"
+    for k in ${(ok)_antidote_using_context}; do
+      key+="|$k=${_antidote_using_context[$k]}"
+    done
+    __adote_dynamic_hash "$key"
+    REPLY="$ahome/.dynamic/${REPLY}.zsh"
+  }
+
+  # Source outside any emulate scope so plugin setopts and setups stick
+  # in the caller's shell, same as sourcing a static file. A .zwc next
+  # to the script file is picked up automatically.
+  __adote_dynamic_cachefile "$__adote_ahome" "$__adote_configfile" "$@"
+  __adote_scriptfile="$REPLY"
+  if [[ -e "$__adote_scriptfile" || -e "$__adote_scriptfile.zwc" ]]; then
+    builtin source "$__adote_scriptfile"
+    __adote_ret=$?
+  else
+    __adote_script="$(ANTIDOTE_DYNAMIC=true antidote-dispatch bundle "$@")"
+    __adote_ret=$?
+    if (( ! __adote_ret )); then
+      builtin source <( print -r -- "$__adote_script" )
+      __adote_ret=$?
+      if (( ! __adote_ret )); then
+        (
+          emulate -L zsh
+          local tmp
+          # Reap our own temp on any exit path. Scoped to this subshell,
+          # so a concurrent writer's temp is never touched. After a
+          # successful mv the source is gone and this is a no-op.
+          trap '[[ -n "$tmp" ]] && command rm -f -- "$tmp"' EXIT INT TERM HUP
+          command mkdir -p -- "${__adote_scriptfile:h}" || exit
+          tmp=$(mktemp "${__adote_scriptfile}.new.XXXXXXXXXX") || exit
+          if ! print -r -- "$__adote_script" >| "$tmp" ||
+             ! command mv -f -- "$tmp" "$__adote_scriptfile"; then
+            exit
+          fi
+          if zstyle -t ':antidote:dynamic' zcompile; then
+            builtin autoload -Uz zrecompile
+            zrecompile -pq "$__adote_scriptfile"
+          fi
+        ) </dev/null &>/dev/null
+      fi
+    fi
+  fi
+
+  unfunction __adote_dynamic_hash __adote_dynamic_cachefile
+  unset REPLY
+  return $__adote_ret
+#}
