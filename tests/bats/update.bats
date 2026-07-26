@@ -44,6 +44,46 @@ Bundle updates complete."
   assert_output "$sha_before"
 }
 
+# A real update clears the load marker and zcompiled files; a dry run
+# must leave both in place.
+@test "dry run leaves the load marker and zwc files alone" {
+  touch "$AHOME/.antidote.load" "$BAZDIR/baz.plugin.zsh.zwc"
+  run antidote update --dry-run
+  assert_success
+  [ -f "$AHOME/.antidote.load" ]
+  [ -f "$BAZDIR/baz.plugin.zsh.zwc" ]
+}
+
+@test "update clears the load marker and zwc files" {
+  touch "$AHOME/.antidote.load" "$BAZDIR/baz.plugin.zsh.zwc"
+  run antidote update
+  assert_success
+  [ ! -e "$AHOME/.antidote.load" ]
+  [ ! -e "$BAZDIR/baz.plugin.zsh.zwc" ]
+}
+
+@test "dry run does not write an autosnapshot" {
+  local snapdir="$BATS_TEST_TMPDIR/snapshots"
+  ZSTYLES="$ZSTYLES
+zstyle ':antidote:snapshot' dir '$snapdir'
+zstyle ':antidote:snapshot:automatic' enabled yes"
+
+  run antidote update --dry-run
+  assert_success
+  [ ! -e "$snapdir" ]
+}
+
+# Deepening a shallow clone is permanent, so a dry run must not do it.
+@test "dry run leaves a shallow clone shallow" {
+  run git -C "$BAZDIR" rev-parse --is-shallow-repository
+  assert_output "true"
+
+  run antidote update --dry-run
+  assert_success
+  run git -C "$BAZDIR" rev-parse --is-shallow-repository
+  assert_output "true"
+}
+
 @test "update reports repositories with the same short name separately" {
   rollback_foo_baz
   local other="$AHOME/other.example/foo/baz"
@@ -78,6 +118,29 @@ zstyle ':antidote:snapshot:automatic' enabled yes"
   assert_output --partial "antidote: update failed for 'foo/baz'"
   refute_output --partial "Bundle updates complete."
   [ ! -e "$snapdir" ]
+}
+
+# The EXIT trap is the only thing that removes the worker temp dir, so a
+# leftover antidote.* dir here means the trap stopped firing.
+@test "update removes its temp dir" {
+  local tmpbase="$BATS_TEST_TMPDIR/atmp"
+  mkdir -p "$tmpbase"
+  EXTRA_ENV="ANTIDOTE_TMPDIR=$tmpbase"
+
+  run antidote update
+  assert_success
+  [ -z "$(ls -A "$tmpbase")" ]
+}
+
+@test "update removes its temp dir when a worker fails" {
+  local tmpbase="$BATS_TEST_TMPDIR/atmp"
+  mkdir -p "$tmpbase"
+  tgit -C "$BAZDIR" remote set-url origin /does/not/exist/foo/baz
+  EXTRA_ENV="ANTIDOTE_TMPDIR=$tmpbase"
+
+  run antidote update
+  assert_failure
+  [ -z "$(ls -A "$tmpbase")" ]
 }
 
 @test "parent-shell bundle update completes" {

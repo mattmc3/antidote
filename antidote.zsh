@@ -1470,8 +1470,12 @@ update_one_bundle() {
   statusfile="${tmpdir}/${slot}.status"
   oldsha=$(git_sha "$bundledir")
 
-  # Unshallow the repo if needed
-  if git_is_shallow "$bundledir"; then
+  # Unshallow the repo if needed. Never during a dry run: deepening the
+  # clone is permanent, and a plain fetch still sets FETCH_HEAD for the
+  # comparison below.
+  if (( $#o_dry_run )); then
+    git_fetch "$bundledir" || rc=1
+  elif git_is_shallow "$bundledir"; then
     git_fetch "$bundledir" --unshallow || rc=1
   else
     git_fetch "$bundledir" || rc=1
@@ -1522,7 +1526,7 @@ antidote_update() {
   setup_color
   local o_help o_dry_run
   local tmpfile tmpdir bundledir url repo pin_ref
-  local line loadable_check_path slot report_repo st
+  local line loadable_check_path slot report_repo statusfile
   local -a worker_repos failed_repos
 
   zparseopts ${ZPARSEOPTS} -- \
@@ -1553,7 +1557,9 @@ antidote_update() {
 
   # Set trap to ensure cleanup on exit, interrupt, etc.
   # (EXIT is special, 2=INT, 15=TERM, 1=HUP)
-  trap '[[ -d "$tmpdir" ]] && del "$tmpdir"' EXIT 2 15 1
+  # The path is expanded now, not at trap time: zsh tears down function
+  # locals before running an EXIT trap, so $tmpdir would be empty there.
+  trap "[[ -d ${(q)tmpdir} ]] && del ${(q)tmpdir}" EXIT 2 15 1
 
   # update all bundles
   for bundledir in $(antidote_list --dirs); do
@@ -1596,12 +1602,13 @@ antidote_update() {
       say ""
     fi
 
-    st=$(<"$tmpdir/$slot.status" 2>/dev/null) || st=1
-    (( st == 0 )) || failed_repos+=("$report_repo")
+    # A missing or empty status file means the worker died before it could
+    # report, so fail closed rather than scoring it a success.
+    statusfile="$tmpdir/$slot.status"
+    if [[ ! -s "$statusfile" ]] || [[ "$(<"$statusfile")" != 0 ]]; then
+      failed_repos+=("$report_repo")
+    fi
   done
-
-  # cleanup temp dir
-  [[ -d "$tmpdir" ]] && del "$tmpdir"
 
   # A failed worker must not report success or trigger an autosnapshot.
   if (( $#failed_repos )); then
