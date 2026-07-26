@@ -28,9 +28,6 @@ typeset -gr NL=$'\n'
 typeset -g REPLY
 typeset -ga reply=()
 
-# Zsh options needed by antidote
-setopt extended_glob # warn_create_global # warn_nested_var
-
 # Internal profiling support
 [[ -n "$ANTIDOTE_PROFILE" ]] && zmodload zsh/zprof
 zmodload zsh/datetime
@@ -40,6 +37,12 @@ typeset -g ANTIDOTE_CONFIG=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/
 [[ -f "$ANTIDOTE_CONFIG" ]] && source "$ANTIDOTE_CONFIG"
 [[ -n "$ANTIDOTE_ZSTYLES" ]] && eval "$ANTIDOTE_ZSTYLES"
 
+# Zsh options needed by antidote
+setopt extended_glob
+typeset -ga _ext_setopts
+zstyle -a ':antidote:test' setopts _ext_setopts && setopt $_ext_setopts
+unset _ext_setopts
+
 ##### OUTPUT HELPERS
 
 die()  { warn "$@"; exit "${ERR:-1}"; }
@@ -48,22 +51,23 @@ warn() { say "$@" >&2; }
 
 # Escape a string for use inside a JSON double-quoted value.
 json_escape() {
-  local i ch
-  REPLY=${1//\\/\\\\}
-  REPLY=${REPLY//\"/\\\"}
-  REPLY=${REPLY//$'\b'/\\b}
-  REPLY=${REPLY//$'\f'/\\f}
-  REPLY=${REPLY//$'\n'/\\n}
-  REPLY=${REPLY//$'\r'/\\r}
-  REPLY=${REPLY//$'\t'/\\t}
+  local i ch esc
+  esc=${1//\\/\\\\}
+  esc=${esc//\"/\\\"}
+  esc=${esc//$'\b'/\\b}
+  esc=${esc//$'\f'/\\f}
+  esc=${esc//$'\n'/\\n}
+  esc=${esc//$'\r'/\\r}
+  esc=${esc//$'\t'/\\t}
   # Any remaining C0 control chars need \u00XX form to be valid JSON.
-  if [[ "$REPLY" == *[$'\x01'-$'\x1f']* ]]; then
+  if [[ "$esc" == *[$'\x01'-$'\x1f']* ]]; then
     for (( i = 1; i <= 31; i++ )); do
       ch=${(#)i}
-      [[ "$REPLY" == *${ch}* ]] || continue
-      REPLY=${REPLY//${ch}/\\u$(printf '%04x' $i)}
+      [[ "$esc" == *${ch}* ]] || continue
+      esc=${esc//${ch}/\\u$(printf '%04x' $i)}
     done
   fi
+  typeset -g REPLY=$esc
 }
 
 # Prompt for a y/n answer unless a test zstyle provides one.
@@ -175,7 +179,7 @@ bulk_clone() {
 #
 parse_using_directive() {
   local key
-  _antidote_using_context=()
+  typeset -gA _antidote_using_context=()
   _antidote_using_context[bundle]=${bname#using:}
   bundle_type "${_antidote_using_context[bundle]}"; _antidote_using_context[__type__]=$REPLY
   if [[ "${_antidote_using_context[__type__]}" == ('?'|empty) ]]; then
@@ -195,7 +199,7 @@ parse_using_directive() {
     bundle[__bundle__]=${_antidote_using_context[bundle]}
     bundle[kind]=clone
     unset "bundle[path]"
-    bname=$bundle[__bundle__]
+    typeset -g bname=$bundle[__bundle__]
     return 0
   fi
   (( n-- ))
@@ -218,13 +222,13 @@ expand_using_subplugin() {
   if [[ "$ctx_type" == (path|dir|file) ]]; then
     # Path using: construct the full path as the bundle
     bundle[__bundle__]=${_antidote_using_context[bundle]}${ctx_path:+/$ctx_path}/$bname
-    bname=$bundle[__bundle__]
-    bundle_type "$bname"; btype=$REPLY
+    typeset -g bname=$bundle[__bundle__]
+    bundle_type "$bname"; typeset -g btype=$REPLY
   else
     # Repo using: keep repo as bundle, set path annotation
     [[ -n "${bundle[path]}" ]] || bundle[path]=${ctx_path:+$ctx_path/}$bname
     bundle[__bundle__]=${_antidote_using_context[bundle]}
-    bname=$bundle[__bundle__]
+    typeset -g bname=$bundle[__bundle__]
   fi
 }
 
@@ -480,18 +484,19 @@ supports_color() {
 }
 
 tourl() {
-  REPLY=$1
+  local url=$1
   if [[ $1 != *://* && $1 != git@*:*/* ]]; then
     if [[ ${ANTIDOTE_GIT_PROTOCOL:-https} == ssh ]]; then
-      REPLY=git@${ANTIDOTE_GIT_SITE}:$1
+      url=git@${ANTIDOTE_GIT_SITE}:$1
     else
-      REPLY=https://${ANTIDOTE_GIT_SITE}/$1
+      url=https://${ANTIDOTE_GIT_SITE}/$1
     fi
   fi
+  typeset -g REPLY=$url
 }
 
 bundle_type() {
-  local bundle=$1
+  local bundle=$1 btype
 
   # Try to expand path bundles with '$' and '~' prefixes so that we get a more
   # granular result than 'path'.
@@ -503,42 +508,46 @@ bundle_type() {
 
   # Determine the bundle type.
   if [[ -e "$bundle" ]]; then
-    [[ -f $bundle ]] && REPLY=file || REPLY=dir
+    [[ -f $bundle ]] && btype=file || btype=dir
   elif [[ -z "${bundle// }" ]]; then
-    REPLY=empty
+    btype=empty
   else
     case "$bundle" in
-      (/|~|'$'|'.')*)  REPLY=path     ;;
-      *://*)           REPLY=url      ;;
-      *@*:*/*)         REPLY=ssh_url  ;;
-      *(:|@)*)         REPLY='?'      ;;
-      *\ *|*$'\t'*)    REPLY='?'      ;;
-      */*/*)           REPLY='?'      ;;
-      */)              REPLY='?'      ;;
-      */*)             REPLY=repo     ;;
-      *)               REPLY=using_subplugin ;;
+      (/|~|'$'|'.')*)  btype=path     ;;
+      *://*)           btype=url      ;;
+      *@*:*/*)         btype=ssh_url  ;;
+      *(:|@)*)         btype='?'      ;;
+      *\ *|*$'\t'*)    btype='?'      ;;
+      */*/*)           btype='?'      ;;
+      */)              btype='?'      ;;
+      */*)             btype=repo     ;;
+      *)               btype=using_subplugin ;;
     esac
   fi
+  typeset -g REPLY=$btype
 }
 
 # Convert URLs and paths to short user/repo form
 short_repo_name() {
+  local name
   local -a parts
-  REPLY=${1%.git}
-  if [[ "$REPLY" != git@*:*/* ]]; then
-    REPLY=${REPLY:gs/\:/\/}
-    parts=(${(ps./.)REPLY})
-    REPLY=${parts[-2]}/${parts[-1]}
+  name=${1%.git}
+  if [[ "$name" != git@*:*/* ]]; then
+    name=${name:gs/\:/\/}
+    parts=(${(ps./.)name})
+    name=${parts[-2]}/${parts[-1]}
   fi
+  typeset -g REPLY=$name
 }
 
 bundle_name() {
+  local name
   bundle_type "$1"
   if [[ "$REPLY" == (url|ssh_url) ]] ; then
     short_repo_name "$1"
   else
-    REPLY=${1/#\~\//\$HOME/}
-    REPLY=${REPLY/#$HOME/\$HOME}
+    name=${1/#\~\//\$HOME/}
+    typeset -g REPLY=${name/#$HOME/\$HOME}
   fi
 }
 
@@ -546,13 +555,14 @@ bundle_name() {
 
 initfiles() {
   local dir
+  local -a found
   dir=${1:A}
-  reply=($dir/${dir:A:t}.plugin.zsh(N))
-  [[ $#reply -gt 0 ]] || reply=($dir/*.plugin.zsh(N))
-  [[ $#reply -gt 0 ]] || reply=($dir/*.zsh(N))
-  [[ $#reply -gt 0 ]] || reply=($dir/*.sh(N))
-  [[ $#reply -gt 0 ]] || reply=($dir/*.zsh-theme(N))
-  reply=(${(u)reply[@]})
+  found=($dir/${dir:A:t}.plugin.zsh(N))
+  [[ $#found -gt 0 ]] || found=($dir/*.plugin.zsh(N))
+  [[ $#found -gt 0 ]] || found=($dir/*.zsh(N))
+  [[ $#found -gt 0 ]] || found=($dir/*.sh(N))
+  [[ $#found -gt 0 ]] || found=($dir/*.zsh-theme(N))
+  typeset -ga reply=(${(u)found[@]})
   (( $#reply )) || return 1
 }
 
@@ -646,9 +656,9 @@ maketmp() {
 # Print a path, replacing $HOME with the literal string "$HOME" unless escaped style.
 print_path() {
   if [[ $ANTIDOTE_PATH_STYLE == escaped ]]; then
-    REPLY=$1
+    typeset -g REPLY=$1
   else
-    REPLY=${1/#$HOME/\$HOME}
+    typeset -g REPLY=${1/#$HOME/\$HOME}
   fi
 }
 
@@ -705,27 +715,27 @@ collect_input() {
 # without checking for existing directories.
 #
 __bundle_dir_by_style() {
-  local url=$1 style=${2:-$ANTIDOTE_PATH_STYLE}
-  REPLY=$url
+  local url=$1 style=${2:-$ANTIDOTE_PATH_STYLE} dir
+  dir=$url
   case $style in
     escaped)
-      REPLY=${REPLY:gs/\@/-AT-}
-      REPLY=${REPLY:gs/\:/-COLON-}
-      REPLY=${REPLY:gs/\//-SLASH-}
+      dir=${dir:gs/\@/-AT-}
+      dir=${dir:gs/\:/-COLON-}
+      dir=${dir:gs/\//-SLASH-}
       ;;
     *)
-      if [[ $REPLY == https://* ]]; then
-        REPLY=${REPLY#https://}
-      elif [[ $REPLY == git@*:* ]]; then
-        REPLY=${REPLY#git@}
-        REPLY=${REPLY:s/\:/\/}
+      if [[ $dir == https://* ]]; then
+        dir=${dir#https://}
+      elif [[ $dir == git@*:* ]]; then
+        dir=${dir#git@}
+        dir=${dir:s/\:/\/}
       fi
       if [[ $style == short ]]; then
-        REPLY=${REPLY#*/}
+        dir=${dir#*/}
       fi
       ;;
   esac
-  REPLY=$ANTIDOTE_HOME/$REPLY
+  typeset -g REPLY=$ANTIDOTE_HOME/$dir
 }
 
 bundle_dir() {
@@ -747,7 +757,7 @@ bundle_dir() {
     __bundle_dir_by_style "$url"; preferred=$REPLY
 
     if [[ -d "$preferred" ]]; then
-      REPLY=$preferred
+      typeset -g REPLY=$preferred
     else
       # Check other path-styles for existing clones.
       other_styles=( ${other_styles:#$ANTIDOTE_PATH_STYLE} )
@@ -758,12 +768,12 @@ bundle_dir() {
           break
         fi
       done
-      REPLY=${found:-$preferred}
+      typeset -g REPLY=${found:-$preferred}
     fi
   elif [[ -f "$bundle" ]]; then
-    REPLY=${bundle:A:h}
+    typeset -g REPLY=${bundle:A:h}
   else
-    REPLY=${bundle}
+    typeset -g REPLY=${bundle}
   fi
 }
 
@@ -874,12 +884,12 @@ bundle_check_critical() {
 # usage: autoload_script <dir> <append|prepend>
 autoload_script() {
   if [[ "$2" == prepend ]]; then
-    reply=(
+    typeset -ga reply=(
       "fpath=( \"$1\" \$fpath )"
       'builtin autoload -Uz $fpath[1]/*(N.:t)'
     )
   else
-    reply=(
+    typeset -ga reply=(
       "fpath+=( \"$1\" )"
       'builtin autoload -Uz $fpath[-1]/*(N.:t)'
     )
@@ -1021,7 +1031,7 @@ zsh_script_render() {
   local -a script
 
   # add path to bundle
-  [[ -n "$subpath" ]] && bundle_path+="/$subpath"
+  [[ -n "$subpath" ]] && typeset -g bundle_path="$bundle_path/$subpath"
 
   # add pre-load function
   [[ -n "$pre" ]] && script+=("$pre")
@@ -1053,7 +1063,7 @@ zsh_script_render() {
 
   # generate load script - recheck type since path may have been appended
   if [[ "$btype" != file ]] && [[ -f "$bundle_path" ]]; then
-    btype=file
+    typeset -g btype=file
   fi
   if [[ "$fpath_rule" == prepend ]]; then
     fpath_script="fpath=( \"$print_bundle_path\" \$fpath )"
@@ -1081,9 +1091,9 @@ zsh_script_render() {
         # if no init file was found, assume the default
         if [[ $#reply -eq 0 ]]; then
           if [[ -n "$subpath" ]]; then
-            reply=($bundle_path/${bundle_path:t}.plugin.zsh)
+            typeset -ga reply=($bundle_path/${bundle_path:t}.plugin.zsh)
           else
-            reply=($bundle_path/${bname:t}.plugin.zsh)
+            typeset -ga reply=($bundle_path/${bname:t}.plugin.zsh)
           fi
         fi
         script+="$fpath_script"
@@ -1213,9 +1223,9 @@ antidote_bundle() {
 
   # Ensure all stderr from this function starts with '#' so redirected bundle
   # output is safe to source.
-  exec 2> >(while IFS= read -r _line; do
-    [[ "$_line" == '#'* ]] || _line="# $_line"
-    print -r -- "$_line" >&2
+  exec 2> >(local line; while IFS= read -r line; do
+    [[ "$line" == '#'* ]] || line="# $line"
+    print -r -- "$line" >&2
   done)
 
   zparseopts ${ZPARSEOPTS} -- h=o_help -help=h || return 1
@@ -1978,7 +1988,7 @@ snapshot_remove() {
 private_dispatcher() {
   local cmd err
   cmd="$1"; shift
-  REPLY=
+  typeset -g REPLY=
   case $cmd in
     bundle_check_critical|bundle_scripter|zsh_script)
       bundle_parser < <(collect_input "$@")
@@ -2035,8 +2045,8 @@ antidote() {
 ##### INITIALIZATION
 
 # Initialize antidote global variables from zstyles and environment.
-() {
-  typeset -g ANTIDOTE_ZSH="$1"
+{
+  typeset -g ANTIDOTE_ZSH="${0:A}"
   typeset -g ANTIDOTE_VERSION="2.1.0"
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
@@ -2080,7 +2090,7 @@ antidote() {
 
   typeset -gA _antidote_using_context
   [[ -n "$ANTIDOTE_USING_CTX" ]] && eval "$ANTIDOTE_USING_CTX"
-} "${0:A}"
+}
 
 ANTIDOTE_INIT_SCRIPT=$(
 cat <<'EOS'

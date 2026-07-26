@@ -4,7 +4,7 @@
 
 load helpers/common
 
-setup() { antidote_common_setup; }
+setup() { antidote_common_setup; antidote_test_home; }
 
 @test "fails gracefully when someone tries bash" {
   run_session <<<'bash -c "source $T_PRJDIR/antidote.zsh"'
@@ -61,4 +61,26 @@ EOS
   assert_line "bad option exit: 1"
   assert_line "antidote: command not found 'foo'"
   assert_line "bad command exit: 1"
+}
+
+# The :antidote:test setopts style takes a list of extra shell options
+# for antidote.zsh's own code. The probe function is defined in the
+# config file, so it runs under whatever options the style requested.
+@test "test setopts style applies extra shell options" {
+  cat >"$TESTHOME/.config/antidote/setopts.zsh" <<'CFG'
+zstyle ':antidote:test' setopts warn_create_global
+leak_probe() { probe_global=1 }
+CFG
+  ACONFIG="$TESTHOME/.config/antidote/setopts.zsh"
+  run antidote __private__ leak_probe
+  assert_output --partial "created globally"
+}
+
+@test "no test setopts style means no extra shell options" {
+  cat >"$TESTHOME/.config/antidote/setopts.zsh" <<'CFG'
+leak_probe() { probe_global=1 }
+CFG
+  ACONFIG="$TESTHOME/.config/antidote/setopts.zsh"
+  run antidote __private__ leak_probe
+  refute_output --partial "created globally"
 }

@@ -9,4 +9,4 @@ zstyle ':antidote:defer'    bundle     'getantidote/zsh-defer'
 zstyle ':antidote:fpath'    rule       'append'
 zstyle ':antidote:static'   zcompile   'no'
 
-zstyle ':antidote:tests' set-warn-options 'on'
+zstyle ':antidote:test' setopts warn_create_global warn_nested_var
