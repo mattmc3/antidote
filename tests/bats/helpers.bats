@@ -156,6 +156,16 @@ zstyle ':antidote:bundle' use-friendly-names on"
   check https://fakegitsite.com/foo/bar "tourl" foo/bar
 }
 
+@test "tourl uses the git protocol zstyle" {
+  ZSTYLES="$ZSTYLES
+zstyle ':antidote:git' protocol ssh"
+  check git@fakegitsite.com:foo/bar "tourl" foo/bar
+}
+
+@test "tourl defaults to https when no protocol zstyle is set" {
+  check https://fakegitsite.com/foo/bar "tourl" foo/bar
+}
+
 @test "tourl leaves proper URLs unchanged" {
   check https://github.com/ohmyzsh/ohmyzsh "tourl" https://github.com/ohmyzsh/ohmyzsh
   check http://github.com/ohmyzsh/ohmyzsh "tourl" http://github.com/ohmyzsh/ohmyzsh

@@ -32,7 +32,8 @@ typeset -ga reply=()
 [[ -n "$ANTIDOTE_PROFILE" ]] && zmodload zsh/zprof
 zmodload zsh/datetime
 
-# Load config: source config file then apply any serialized zstyles
+# Load config: source config file then apply any serialized zstyles.
+# XDG resolution is fine here rather than via get_dir.
 typeset -g ANTIDOTE_CONFIG=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
 [[ -f "$ANTIDOTE_CONFIG" ]] && source "$ANTIDOTE_CONFIG"
 [[ -n "$ANTIDOTE_ZSTYLES" ]] && eval "$ANTIDOTE_ZSTYLES"
@@ -448,7 +449,7 @@ diagnostics() {
   say "  zsh path:     ${commands[zsh]:-(not found)}"
   say "  zsh version:  $(zsh --version 2>&1 || say '(unknown)')"
   say "  git path:     ${commands[${ANTIDOTE_GIT_CMD}]:-(not found)}"
-  say "  git version:  $(${ANTIDOTE_GIT_CMD:-git} --version 2>&1 || say '(unknown)')"
+  say "  git version:  $($ANTIDOTE_GIT_CMD --version 2>&1 || say '(unknown)')"
   say ""
   say "environment:"
   say "  ANTIDOTE_HOME:    ${ANTIDOTE_HOME:-(not set)}"
@@ -460,7 +461,7 @@ diagnostics() {
   say "  ZSH_VERSION:      ${ZSH_VERSION:-(not set)}"
   say ""
   say "zstyles:"
-  zstyle_output=$(eval "$ANTIDOTE_ZSTYLES"; zstyle -L ':antidote:*' 2>/dev/null)
+  zstyle_output=$(zstyle -L ':antidote:*' 2>/dev/null)
   if [[ -n "$zstyle_output" ]]; then
     for line in "${(@f)zstyle_output}"; do
       say "  $line"
@@ -486,7 +487,7 @@ supports_color() {
 tourl() {
   local url=$1
   if [[ $1 != *://* && $1 != git@*:*/* ]]; then
-    if [[ ${ANTIDOTE_GIT_PROTOCOL:-https} == ssh ]]; then
+    if [[ $ANTIDOTE_GIT_PROTOCOL == ssh ]]; then
       url=git@${ANTIDOTE_GIT_SITE}:$1
     else
       url=https://${ANTIDOTE_GIT_SITE}/$1
@@ -670,9 +671,10 @@ indent() {
 }
 
 bundle_zcompile() {
+  local bundle zfile
+  local -a bundles
   builtin autoload -Uz zrecompile
 
-  local -a bundles
   if [[ -z "$1" ]]; then
     bundles=($(antidote_list --dirs))
   elif [[ -f "$1" ]]; then
@@ -684,7 +686,6 @@ bundle_zcompile() {
     bundles=($(antidote_path "$1"))
   fi
 
-  local bundle zfile
   for bundle in $bundles; do
     for zfile in ${bundle}/**/*.zsh{,-theme}(N); do
       [[ $zfile != */test-data/* ]] || continue
@@ -1873,7 +1874,7 @@ snapshot_pick() {
     labels+=("$date_line	$snap")
   done
 
-  : ${ANTIDOTE_FZF_DFLT_OPTS:="--border=top --preview-window=right:75%"}
+  : ${ANTIDOTE_FZF_OPTS:="--border=top --preview-window=right:75%"}
   fzf_opts=(--no-sort ${C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t'
     --prompt="❯ " --border-label=" $label " --preview="$preview_cmd")
   if [[ "$2" == --multi ]]; then
@@ -1881,8 +1882,8 @@ snapshot_pick() {
   fi
 
   printf '%s\n' $labels \
-    | FZF_DEFAULT_OPTS=$ANTIDOTE_FZF_DFLT_OPTS \
-      FZF_DEFAULT_OPTS_FILE=$ANTIDOTE_FZF_DFLT_OPTS_FILE \
+    | FZF_DEFAULT_OPTS=$ANTIDOTE_FZF_OPTS \
+      FZF_DEFAULT_OPTS_FILE=$ANTIDOTE_FZF_OPTS_FILE \
       "${fzf_cmd[@]}" $fzf_opts \
     | cut -f2 \
     || { warn "antidote: snapshot: no snapshot selected"; return 1; }
@@ -2051,7 +2052,7 @@ antidote() {
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
   typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_FZF_CMD ANTIDOTE_PATH_STYLE
-  typeset -g ANTIDOTE_FZF_DFLT_OPTS ANTIDOTE_FZF_DFLT_OPTS_FILE ANTIDOTE_BAT_OPTS
+  typeset -g ANTIDOTE_FZF_OPTS ANTIDOTE_FZF_OPTS_FILE ANTIDOTE_BAT_OPTS
   typeset -g ANTIDOTE_DEFER_BUNDLE ANTIDOTE_FPATH_RULE ANTIDOTE_BUNDLE_FILE
   typeset -g ANTIDOTE_OSTYPE ANTIDOTE_LOCALAPPDATA
   typeset -g ANTIDOTE_VERSION_SHOW_SHA=true ANTIDOTE_GIT_AUTOSTASH=true
@@ -2061,8 +2062,8 @@ antidote() {
   zstyle -s ':antidote:defer'  bundle     ANTIDOTE_DEFER_BUNDLE         || ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
   zstyle -s ':antidote:fpath'  rule       ANTIDOTE_FPATH_RULE           || ANTIDOTE_FPATH_RULE=append
   zstyle -s ':antidote:fzf'    cmd        ANTIDOTE_FZF_CMD              || ANTIDOTE_FZF_CMD=fzf
-  zstyle -s ':antidote:fzf'    opts       ANTIDOTE_FZF_DFLT_OPTS        || ANTIDOTE_FZF_DFLT_OPTS=$FZF_DEFAULT_OPTS
-  zstyle -s ':antidote:fzf'    opts_file  ANTIDOTE_FZF_DFLT_OPTS_FILE   || ANTIDOTE_FZF_DFLT_OPTS_FILE=$FZF_DEFAULT_OPTS_FILE
+  zstyle -s ':antidote:fzf'    opts       ANTIDOTE_FZF_OPTS             || ANTIDOTE_FZF_OPTS=$FZF_DEFAULT_OPTS
+  zstyle -s ':antidote:fzf'    opts_file  ANTIDOTE_FZF_OPTS_FILE        || ANTIDOTE_FZF_OPTS_FILE=$FZF_DEFAULT_OPTS_FILE
   zstyle -s ':antidote:git'    cmd        ANTIDOTE_GIT_CMD              || ANTIDOTE_GIT_CMD=git
   zstyle -s ':antidote:git'    protocol   ANTIDOTE_GIT_PROTOCOL         || ANTIDOTE_GIT_PROTOCOL=https
   zstyle -s ':antidote:git'    site       ANTIDOTE_GIT_SITE             || ANTIDOTE_GIT_SITE=github.com

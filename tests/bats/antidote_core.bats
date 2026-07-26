@@ -84,3 +84,21 @@ CFG
   run antidote __private__ leak_probe
   refute_output --partial "created globally"
 }
+
+@test "diagnostics reports the git version via the git cmd zstyle" {
+  cat >"$TESTHOME/fakegit" <<'STUB'
+#!/bin/sh
+echo "fakegit version 9.9.9"
+STUB
+  chmod +x "$TESTHOME/fakegit"
+  ZSTYLES="zstyle ':antidote:git' cmd $TESTHOME/fakegit"
+  run antidote --diagnostics
+  assert_line --regexp '^ +git version: +fakegit version 9\.9\.9$'
+}
+
+@test "diagnostics lists the zstyles in effect" {
+  ZSTYLES="zstyle ':antidote:git' site zstyle-probe.example"
+  run antidote --diagnostics
+  assert_output --partial "zstyles:"
+  assert_output --partial "zstyle-probe.example"
+}
