@@ -35,6 +35,13 @@ init_git_environment() {
   export GIT_COMMITTER_DATE="2025-01-01T00:00:00Z"
 }
 
+# Date the next commits N days before now, for age-sensitive fixtures.
+commit_date_days_ago() {
+  zmodload zsh/datetime
+  export GIT_AUTHOR_DATE="$(TZ=UTC strftime '%Y-%m-%dT%H:%M:%SZ' $(( EPOCHSECONDS - 86400 * $1 )))"
+  export GIT_COMMITTER_DATE="$GIT_AUTHOR_DATE"
+}
+
 clean() {
   mkdir -p "$FIXTURE_DIR"
   rm -rf -- "$FIXTURE_DIR"/bare "$FIXTURE_DIR"/antidote
@@ -406,6 +413,30 @@ setup_fixture_test_install() {
   make_fixture "https://fakegitsite.com/test/install" "plugin.zsh"
 }
 
+# Dated fixture for min-age tests. Dates are relative to generation time
+# so a min-age of 200 days always splits the history the same way:
+# initial (~900d) and stable (~400d) qualify, latest (~1d) never does.
+setup_fixture_dino_saur() {
+  local url dir
+  url="https://fakegitsite.com/dino/saur"
+
+  commit_date_days_ago 900
+  make_fixture "$url" "plugin.zsh"
+  dir=$(get_fixture_dir "$url")
+  record_sha "dino/saur-initial" "$dir"
+
+  commit_date_days_ago 400
+  printf '%s\n' '# v1.1 stable' >> "$dir/saur.plugin.zsh"
+  commit_and_record "$dir" "dino/saur-stable" "v1.1 stable"
+
+  commit_date_days_ago 1
+  printf '%s\n' '# v1.2 bleeding edge' >> "$dir/saur.plugin.zsh"
+  commit_and_record "$dir" "dino/saur-latest" "v1.2 bleeding edge"
+
+  # restore the fixed dates the other fixtures rely on
+  init_git_environment
+}
+
 setup_fixture_pintest_pinme() {
   local url dir
   url="https://fakegitsite.com/pintest/pinme"
@@ -452,6 +483,7 @@ setup_fixture_purify
 setup_fixture_zsh_defer
 setup_fixture_zsh_users_zsh_autosuggestions
 setup_fixture_test_install
+setup_fixture_dino_saur
 setup_fixture_pintest_pinme
 
 # Generate the fixture_shas.tsv and gitconfig files

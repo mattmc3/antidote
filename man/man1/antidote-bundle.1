@@ -2,12 +2,12 @@
 .\"     Title: antidote-bundle
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-03-23
+.\"      Date: 2026-07-26
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE\-BUNDLE" "1" "2026-03-23" "antidote" "Antidote Manual"
+.TH "ANTIDOTE\-BUNDLE" "1" "2026-07-26" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -147,6 +147,40 @@ The autoload annotation allows you to autoload a zsh functions directory in addi
 .RS 4
 The pin annotation allows you to lock a bundle to a specific commit SHA (eg: \f(CRpin:abc1234\fP). A pinned bundle will be cloned at the specified commit and will be skipped during \f(CRantidote update\fP. This is useful for preventing unwanted upstream changes from affecting your environment. Use \f(CRbranch:\fP for tags or branches.
 .RE
+.sp
+Bundles can be kept a fixed number of days behind their upstream with the following \f(CRzstyle\fP:
+.sp
+.if n .RS 4
+.nf
+.fam C
+zstyle \*(Aq:antidote:bundle:*\*(Aq min\-age 7
+zstyle \*(Aq:antidote:bundle:foo/bar\*(Aq min\-age 30
+zstyle \*(Aq:antidote:bundle:foo/baz\*(Aq min\-age 0\&    # always take the latest commit
+.fam
+.fi
+.if n .RE
+.sp
+The default is unset, which is the same as \f(CR0\fP: no delay. Use \f(CR0\fP to opt a single bundle out of a \f(CRmin\-age\fP set for every bundle by pattern. With \f(CRmin\-age\fP set, cloning and updating stop at the newest commit that has been upstream at least that many days, which gives a bad push time to be noticed and pulled before it reaches your shell. Clones are unshallowed so the dated history is available, which makes them slower and larger than antidote\(cqs usual shallow clone. If no commit is old enough, a clone keeps the latest commit and an update is skipped. Pinned bundles ignore \f(CRmin\-age\fP, since a pin already fixes the commit.
+.sp
+Age is measured by commit date, and commit dates are set by whoever makes the commit, not by the host that receives the push. Anyone able to push a malicious commit can also date it far enough in the past to satisfy any \f(CRmin\-age\fP. Treat \f(CRmin\-age\fP as a cushion against a mistake or an unnoticed compromise, not as a supply chain guarantee. When you need a guarantee, use \f(CRpin:\fP, which fixes the commit SHA and makes no claim about dates.
+.sp
+Bundles can be kept a fixed number of days behind their upstream with the following \f(CRzstyle\fP:
+.sp
+.if n .RS 4
+.nf
+.fam C
+zstyle \*(Aq:antidote:bundle:*\*(Aq min\-age 7
+zstyle \*(Aq:antidote:bundle:foo/bar\*(Aq min\-age 30
+zstyle \*(Aq:antidote:bundle:foo/baz\*(Aq min\-age 0\&    # always take the latest commit
+.fam
+.fi
+.if n .RE
+.sp
+The default is unset, which is the same as \f(CR0\fP: no delay. Use \f(CR0\fP to opt a single bundle out of a \f(CRmin\-age\fP set for every bundle by pattern. With \f(CRmin\-age\fP set, cloning and updating stop at the newest commit that has been upstream at least that many days, which gives a bad push time to be noticed and pulled before it reaches your shell. Clones are unshallowed so the dated history is available, which makes them slower and larger than antidote\(cqs usual shallow clone. Pinned bundles ignore \f(CRmin\-age\fP, since a pin already fixes the commit.
+.sp
+A brand new plugin has no commit old enough to satisfy \f(CRmin\-age\fP. Rather than refuse to install it, antidote clones the plugin at its latest commit and prints a note saying so. An update in that situation is skipped instead, leaving the bundle where it is. Either way, \f(CRmin\-age\fP never blocks you from getting a plugin.
+.sp
+Age is measured by commit date, and commit dates are set by whoever makes the commit, not by the host that receives the push. Anyone able to push a malicious commit can also date it far enough in the past to satisfy any \f(CRmin\-age\fP. Treat \f(CRmin\-age\fP as a cushion against a mistake or an unnoticed compromise, not as a supply chain guarantee. When you need a guarantee, use \f(CRpin:\fP, which fixes the commit SHA and makes no claim about dates.
 .sp
 Cloned repo directory naming can be controlled with the following \f(CRzstyle\fP:
 .sp

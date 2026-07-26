@@ -139,6 +139,24 @@ zstyle ':antidote:bundle:*' defer-options '-a'
 zstyle ':antidote:bundle:foo/bar' defer-options '-p'
 ----
 
+Bundles can be held back from freshly pushed commits with the following `zstyle`, which takes a number of days:
+
+----
+zstyle ':antidote:bundle:*' min-age 7
+zstyle ':antidote:bundle:zsh-users/zsh-autosuggestions' min-age 30
+----
+
+It defaults to unset, and holding bundles back costs a full-history clone. Since commit dates are set by whoever writes the commit, `min-age` is a cushion rather than a guarantee. See *antidote-bundle* for the details, and use `pin:` when you need a commit fixed for certain.
+
+Bundles can be held back from freshly pushed commits with the following `zstyle`, which takes a number of days:
+
+----
+zstyle ':antidote:bundle:*' min-age 7
+zstyle ':antidote:bundle:zsh-users/zsh-autosuggestions' min-age 30
+----
+
+It defaults to unset, and holding bundles back costs a full-history clone. A plugin with no commit that old is still installed at its latest commit, so `min-age` never blocks a new plugin. Since commit dates are set by whoever writes the commit, `min-age` is a cushion rather than a guarantee. See *antidote-bundle* for the details, and use `pin:` when you need a commit fixed for certain.
+
 Bundles can be Zsh compiled with the following `zstyle`:
 
 ----

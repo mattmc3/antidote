@@ -110,6 +110,9 @@ git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
 git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
 git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
 git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
+git_merge_ffonly()      { git -C "$1" merge --quiet --ff-only "$2"; }
+git_min_age_sha()       { git -C "$1" rev-list --before="${2} days ago" -1 "${3:-FETCH_HEAD}" 2>/dev/null; }
+git_reset_hard()        { git -C "$1" reset --quiet --hard "$2"; }
 git_sha()               { local d=$1; shift; git -C "$d" rev-parse "$@" HEAD; }
 git_submodule_sync()    { git -C "$1" submodule --quiet sync --recursive; }
 git_submodule_update()  { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
@@ -128,6 +131,42 @@ git_pull() {
   local -a autostash_flag=(--autostash)
   [[ "$_ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
   git -C "$1" pull --quiet --rebase $autostash_flag
+}
+
+### Read the min-age zstyle for a bundle.
+#
+# usage: min_age_days <bundle-name>
+# Sets REPLY to the configured age in days, or 0 when unset.
+#
+min_age_days() {
+  local days
+  zstyle -s ":antidote:bundle:$1" min-age days || days=0
+  # Fail-safe: an unset style can still resolve to an empty value.
+  # Treat that as no delay rather than erroring. Use 0 to opt out.
+  [[ -z "$days" ]] && days=0
+  if [[ "$days" != <-> ]]; then
+    warn "antidote: error: min-age requires a whole number of days, got '$days'"
+    return 1
+  fi
+  typeset -g REPLY=$days
+}
+
+### Move a repo back to the newest commit older than N days.
+#
+# usage: git_min_age_reset <dir> <days> <bundle-name>
+# A shallow clone has no history to search, so unshallow first.
+#
+git_min_age_reset() {
+  local dir="$1" days="$2" bname="$3" sha
+  if git_is_shallow "$dir"; then
+    git_fetch "$dir" --unshallow || return 1
+  fi
+  sha=$(git_min_age_sha "$dir" "$days" HEAD)
+  if [[ -z "$sha" ]]; then
+    warn "# antidote: $bname: no commits older than $days days, using latest"
+    return 0
+  fi
+  git_reset_hard "$dir" "$sha"
 }
 
 ##### BUNDLE DISCOVERY & CLONING
@@ -978,7 +1017,7 @@ bundle_scripter_parallel() {
 ### Clone a repo bundle if missing, and sync removed pins.
 #
 # Reads zsh_script's locals (btype, bundle, bundle_str, bundle_path,
-# bname, pin, branch) via dynamic scoping.
+# bname, pin, branch, min_age) via dynamic scoping.
 #
 zsh_script_clone() {
   local giturl unpin_branch
@@ -1002,6 +1041,9 @@ zsh_script_clone() {
       branch_flag=()
       [[ -n "$branch" ]] && branch_flag=(-b "$branch")
       git_clone $bundle_path "${branch_flag[@]}" $giturl || return 1
+      if (( min_age )); then
+        git_min_age_reset "$bundle_path" "$min_age" "$bname" || return 1
+      fi
     fi
   fi
 
@@ -1136,7 +1178,7 @@ zsh_script_render() {
 # <kind> : zsh,path,fpath,defer,clone,autoload
 #
 zsh_script() {
-  local bundle_str bname bundle_path btype
+  local bundle_str bname bundle_path btype min_age
   local kind subpath branch pin cond autoload_path pre post fpath_rule skip_load_defer
   local -A bundle
 
@@ -1182,6 +1224,10 @@ zsh_script() {
   else
     bundle_name $bundle_str; bname=$REPLY
   fi
+
+  # Fail before any cloning happens on a bad min-age value.
+  min_age_days "$bname" || return 1
+  min_age=$REPLY
 
   # replace ~/ with $HOME/
   if [[ "$bundle_str" == '~/'* ]]; then
@@ -1464,31 +1510,60 @@ antidote_purge() {
 #
 update_one_bundle() {
   local bundledir="$1" repo="$2" slot="$3"
-  local tmpfile statusfile oldsha newsha rc=0
+  local tmpfile statusfile oldsha newsha min_age min_age_sha rc=0
 
   tmpfile="${tmpdir}/${slot}.output"
   statusfile="${tmpdir}/${slot}.status"
   oldsha=$(git_sha "$bundledir")
 
+  min_age_days "$repo" || rc=1
+  min_age=$REPLY
+
   # Unshallow the repo if needed. Never during a dry run: deepening the
   # clone is permanent, and a plain fetch still sets FETCH_HEAD for the
   # comparison below.
-  if (( $#o_dry_run )); then
-    git_fetch "$bundledir" || rc=1
-  elif git_is_shallow "$bundledir"; then
-    git_fetch "$bundledir" --unshallow || rc=1
-  else
-    git_fetch "$bundledir" || rc=1
+  if (( rc == 0 )); then
+    if (( $#o_dry_run )); then
+      git_fetch "$bundledir" || rc=1
+    elif git_is_shallow "$bundledir"; then
+      git_fetch "$bundledir" --unshallow || rc=1
+    else
+      git_fetch "$bundledir" || rc=1
+    fi
+  fi
+
+  # With min-age set, advance no further than the newest commit that has
+  # sat upstream long enough.
+  if (( rc == 0 && min_age )); then
+    min_age_sha=$(git_min_age_sha "$bundledir" "$min_age")
+    if [[ -z "$min_age_sha" ]]; then
+      warn "antidote: $repo: no commits older than $min_age days, skipping update"
+      # Skipping is a success, so say so: the parent treats a missing
+      # status file as a failed worker.
+      print -r -- 0 > "$statusfile"
+      return 0
+    fi
   fi
 
   if (( rc == 0 )); then
     if (( $#o_dry_run )); then
       # Compare local HEAD against fetched remote HEAD
-      newsha=$(git -C "$bundledir" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
-    elif git_pull "$bundledir" && git_submodule_sync "$bundledir" && git_submodule_update "$bundledir"; then
-      newsha=$(git_sha "$bundledir")
+      if (( min_age )); then
+        newsha=$min_age_sha
+      else
+        newsha=$(git -C "$bundledir" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+      fi
     else
-      rc=1
+      if (( min_age )); then
+        git_merge_ffonly "$bundledir" "$min_age_sha" || rc=1
+      else
+        git_pull "$bundledir" || rc=1
+      fi
+      if (( rc == 0 )) && git_submodule_sync "$bundledir" && git_submodule_update "$bundledir"; then
+        newsha=$(git_sha "$bundledir")
+      else
+        rc=1
+      fi
     fi
   fi
 
