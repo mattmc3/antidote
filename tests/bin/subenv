@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 # Filter that rewrites absolute paths on stdin back to $VAR placeholders,
 # so golden files stay stable across tmpdirs. Defaults to HOME.
 #

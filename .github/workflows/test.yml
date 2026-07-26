@@ -19,7 +19,10 @@ jobs:
           path: bin/clitest
       - run: sudo apt install zsh bats parallel
         if: ${{ runner.os == 'Linux' }}
-      - run: brew install bats-core parallel
+      - run: brew install bash bats-core parallel
+        if: ${{ runner.os == 'macOS' }}
+        # macOS ships bash 3.2; bats helpers need 4.0+ builtins like mapfile
+      - run: echo "$(brew --prefix)/bin" >> "$GITHUB_PATH"
         if: ${{ runner.os == 'macOS' }}
       - uses: extractions/setup-just@v4
       - run: PATH=$GITHUB_WORKSPACE/bin/clitest:$PATH just test-all local
