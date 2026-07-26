@@ -84,10 +84,10 @@ confirm() {
 
 ##### GIT HELPERS
 
-# Error-capturing wrapper around $ANTIDOTE_GIT_CMD.
+# Error-capturing wrapper around $_ANTIDOTE_GIT_CMD.
 git() {
   local result err
-  result="$(command "$ANTIDOTE_GIT_CMD" "$@" 2>&1)"
+  result="$(command "$_ANTIDOTE_GIT_CMD" "$@" 2>&1)"
   err=$?
   if [[ "$err" -ne 0 ]]; then
     warn "antidote: unexpected git error on command 'git $*'."
@@ -125,7 +125,7 @@ git_checkout_pin() {
 }
 git_pull() {
   local -a autostash_flag=(--autostash)
-  [[ "$ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
+  [[ "$_ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
   git -C "$1" pull --quiet --rebase $autostash_flag
 }
 
@@ -153,7 +153,7 @@ bulk_clone() {
 
     if [[ "${_parsed_bundles[$i,kind]}" == defer && $zsh_defer == 0 ]]; then
       zsh_defer=1
-      row=(__bundle__ "${(q)ANTIDOTE_DEFER_BUNDLE}" kind clone)
+      row=(__bundle__ "${(q)_ANTIDOTE_DEFER_BUNDLE}" kind clone)
       script+=("zsh_script ${(j: :)row} &")
     fi
 
@@ -378,9 +378,9 @@ bundle_parser_serialize() {
 ##### INFO & USAGE
 
 version() {
-  local ver="$ANTIDOTE_VERSION"
+  local ver="$_ANTIDOTE_VERSION"
   local gitsha
-  if [[ "$ANTIDOTE_VERSION_SHOW_SHA" == true ]] && [[ -e "${ANTIDOTE_ZSH:h}/.git" ]]; then
+  if [[ "$_ANTIDOTE_VERSION_SHOW_SHA" == true ]] && [[ -e "${ANTIDOTE_ZSH:h}/.git" ]]; then
     gitsha=$(git_sha "${ANTIDOTE_ZSH:h}" --short)
     [[ -z "$gitsha" ]] || ver="$ver ($gitsha)"
   fi
@@ -389,7 +389,7 @@ version() {
 
 diagnostics() {
   local antidote_dir="${ANTIDOTE_ZSH:A:h}"
-  local antidote_ver="$ANTIDOTE_VERSION"
+  local antidote_ver="$_ANTIDOTE_VERSION"
   local antidote_sha num_bundles num_snapshots zstyle_output line configfile bundlefile staticfile
   local -a bundle_dirs snapshots
 
@@ -400,8 +400,8 @@ diagnostics() {
   else
     num_bundles=0
   fi
-  if [[ -d "$ANTIDOTE_SNAPSHOT_DIR" ]]; then
-    snapshots=( "$ANTIDOTE_SNAPSHOT_DIR"/snapshot-*.txt(N) )
+  if [[ -d "$_ANTIDOTE_SNAPSHOT_DIR" ]]; then
+    snapshots=( "$_ANTIDOTE_SNAPSHOT_DIR"/snapshot-*.txt(N) )
     num_snapshots=${#snapshots}
   else
     num_snapshots=0
@@ -416,7 +416,7 @@ diagnostics() {
   say "  path:         $antidote_dir"
   say "  home:         $ANTIDOTE_HOME"
   say "  bundles:      $num_bundles"
-  say "  snapshot dir: $ANTIDOTE_SNAPSHOT_DIR"
+  say "  snapshot dir: $_ANTIDOTE_SNAPSHOT_DIR"
   say "  snapshots:    $num_snapshots"
   configfile=$ANTIDOTE_CONFIG
   if [[ -f "$configfile" ]]; then
@@ -424,7 +424,7 @@ diagnostics() {
   else
     say "  config:       $configfile (not found)"
   fi
-  bundlefile=$ANTIDOTE_BUNDLE_FILE
+  bundlefile=$_ANTIDOTE_BUNDLE_FILE
   if [[ -f "$bundlefile" ]]; then
     say "  bundle file:  $bundlefile"
   else
@@ -448,8 +448,8 @@ diagnostics() {
   say "  system:       $(uname -srm 2>/dev/null || say '(unknown)')"
   say "  zsh path:     ${commands[zsh]:-(not found)}"
   say "  zsh version:  $(zsh --version 2>&1 || say '(unknown)')"
-  say "  git path:     ${commands[${ANTIDOTE_GIT_CMD}]:-(not found)}"
-  say "  git version:  $($ANTIDOTE_GIT_CMD --version 2>&1 || say '(unknown)')"
+  say "  git path:     ${commands[${_ANTIDOTE_GIT_CMD}]:-(not found)}"
+  say "  git version:  $($_ANTIDOTE_GIT_CMD --version 2>&1 || say '(unknown)')"
   say ""
   say "environment:"
   say "  ANTIDOTE_HOME:    ${ANTIDOTE_HOME:-(not set)}"
@@ -472,7 +472,7 @@ diagnostics() {
 }
 
 usage() {
-  say "$ANTIDOTE_HELP"
+  say "$_ANTIDOTE_HELP"
 }
 
 ##### BUNDLE TYPES & NAMING
@@ -487,10 +487,10 @@ supports_color() {
 tourl() {
   local url=$1
   if [[ $1 != *://* && $1 != git@*:*/* ]]; then
-    if [[ $ANTIDOTE_GIT_PROTOCOL == ssh ]]; then
-      url=git@${ANTIDOTE_GIT_SITE}:$1
+    if [[ $_ANTIDOTE_GIT_PROTOCOL == ssh ]]; then
+      url=git@${_ANTIDOTE_GIT_SITE}:$1
     else
-      url=https://${ANTIDOTE_GIT_SITE}/$1
+      url=https://${_ANTIDOTE_GIT_SITE}/$1
     fi
   fi
   typeset -g REPLY=$url
@@ -569,13 +569,13 @@ initfiles() {
 
 get_dir() {
   local kind="$1" suffix="$2" result
-  if [[ "${ANTIDOTE_OSTYPE}" == darwin* ]]; then
+  if [[ "${_ANTIDOTE_OSTYPE}" == darwin* ]]; then
     case $kind in
       cache) result=$HOME/Library/Caches ;;
       data)  result="$HOME/Library/Application Support" ;;
     esac
-  elif [[ "${ANTIDOTE_OSTYPE}" == (cygwin|msys)* ]]; then
-    result=$ANTIDOTE_LOCALAPPDATA
+  elif [[ "${_ANTIDOTE_OSTYPE}" == (cygwin|msys)* ]]; then
+    result=$_ANTIDOTE_LOCALAPPDATA
     if (( $+commands[cygpath] )); then
       result=$(cygpath "$result")
     fi
@@ -656,7 +656,7 @@ maketmp() {
 
 # Print a path, replacing $HOME with the literal string "$HOME" unless escaped style.
 print_path() {
-  if [[ $ANTIDOTE_PATH_STYLE == escaped ]]; then
+  if [[ $_ANTIDOTE_PATH_STYLE == escaped ]]; then
     typeset -g REPLY=$1
   else
     typeset -g REPLY=${1/#$HOME/\$HOME}
@@ -716,7 +716,7 @@ collect_input() {
 # without checking for existing directories.
 #
 __bundle_dir_by_style() {
-  local url=$1 style=${2:-$ANTIDOTE_PATH_STYLE} dir
+  local url=$1 style=${2:-$_ANTIDOTE_PATH_STYLE} dir
   dir=$url
   case $style in
     escaped)
@@ -761,7 +761,7 @@ bundle_dir() {
       typeset -g REPLY=$preferred
     else
       # Check other path-styles for existing clones.
-      other_styles=( ${other_styles:#$ANTIDOTE_PATH_STYLE} )
+      other_styles=( ${other_styles:#$_ANTIDOTE_PATH_STYLE} )
       for style in $other_styles; do
         __bundle_dir_by_style "$url" "$style"; dir=$REPLY
         if [[ -d "$dir" ]]; then
@@ -796,7 +796,7 @@ bundle_dir_cleanup() {
     # Only clean up if the preferred path exists.
     [[ -d "$preferred" ]] || return 0
 
-    other_styles=( ${other_styles:#$ANTIDOTE_PATH_STYLE} )
+    other_styles=( ${other_styles:#$_ANTIDOTE_PATH_STYLE} )
     for style in $other_styles; do
       __bundle_dir_by_style "$url" "$style"; dir=$REPLY
       [[ -d "$dir" ]] && del "$dir"
@@ -1047,7 +1047,7 @@ zsh_script_render() {
     if (( !skip_load_defer )); then
       script+=(
         'if ! (( $+functions[zsh-defer] )); then'
-        "$(zsh_script __bundle__ $ANTIDOTE_DEFER_BUNDLE | indent)"
+        "$(zsh_script __bundle__ $_ANTIDOTE_DEFER_BUNDLE | indent)"
         'fi'
       )
     fi
@@ -1157,7 +1157,7 @@ zsh_script() {
   autoload_path=${bundle[autoload]:-}
   pre=${bundle[pre]:-}
   post=${bundle[post]:-}
-  fpath_rule=${bundle[fpath-rule]:-$ANTIDOTE_FPATH_RULE}
+  fpath_rule=${bundle[fpath-rule]:-$_ANTIDOTE_FPATH_RULE}
   skip_load_defer=${bundle[__skip_load_defer__]:-0}
 
   if [[ "$kind" != (autoload|clone|defer|fpath|path|zsh) ]]; then
@@ -1349,7 +1349,7 @@ antidote_install() {
   fi
 
   bundle=$1
-  bundlefile=${2:-$ANTIDOTE_BUNDLE_FILE}
+  bundlefile=${2:-$_ANTIDOTE_BUNDLE_FILE}
 
   bundle_dir $bundle; bundledir=$REPLY
   if [[ -d "$bundledir" ]]; then
@@ -1391,7 +1391,7 @@ antidote_purge() {
     die "antidote: error: required argument 'bundle' not provided, try --help"
   fi
 
-  bundlefile=$ANTIDOTE_BUNDLE_FILE
+  bundlefile=$_ANTIDOTE_BUNDLE_FILE
 
   if (( $#o_all )); then
     # last chance to save the user from themselves
@@ -1488,9 +1488,9 @@ update_one_bundle() {
   {
     if [[ $oldsha != $newsha ]]; then
       if (( $#o_dry_run )); then
-        say "${C_YELLOW}antidote:${C_NORMAL} update available: $repo ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
+        say "${_C_YELLOW}antidote:${_C_NORMAL} update available: $repo ${_C_GREEN}${oldsha[1,7]}${_C_NORMAL} -> ${_C_GREEN}${newsha[1,7]}${_C_NORMAL}"
       else
-        say "${C_GREEN}antidote:${C_NORMAL} updated: $repo ${C_GREEN}${oldsha[1,7]}${C_NORMAL} -> ${C_GREEN}${newsha[1,7]}${C_NORMAL}"
+        say "${_C_GREEN}antidote:${_C_NORMAL} updated: $repo ${_C_GREEN}${oldsha[1,7]}${_C_NORMAL} -> ${_C_GREEN}${newsha[1,7]}${_C_NORMAL}"
       fi
       git_log_oneline "$bundledir" "$oldsha" "$newsha"
     fi
@@ -1552,11 +1552,11 @@ antidote_update() {
     # Skip pinned bundles
     pin_ref=$(git_config_get "$bundledir" antidote.pin)
     if [[ -n "$pin_ref" ]]; then
-      say "${C_BLUE}antidote:${C_NORMAL} skipping update for pinned bundle: $repo (at ${C_GREEN}${pin_ref[1,7]}...${C_NORMAL})"
+      say "${_C_BLUE}antidote:${_C_NORMAL} skipping update for pinned bundle: $repo (at ${_C_GREEN}${pin_ref[1,7]}...${_C_NORMAL})"
       continue
     fi
 
-    say "${C_BLUE}antidote:${C_NORMAL} checking for updates: $repo"
+    say "${_C_BLUE}antidote:${_C_NORMAL} checking for updates: $repo"
     update_one_bundle "$bundledir" "$repo" &
   done
 
@@ -1571,12 +1571,12 @@ antidote_update() {
       repo_id=${filename%.output}
       repo_id=${repo_id//-SLASH-/\/}
 
-      say "${C_BLUE}Bundle ${repo_id} update check complete.${C_NORMAL}"
+      say "${_C_BLUE}Bundle ${repo_id} update check complete.${_C_NORMAL}"
 
       # Colorize the SHA in each line
       while IFS= read -r line; do
         if [[ -n "$line" ]] && [[ "$line" == [[:alnum:]]* ]]; then
-          say "${C_YELLOW}${line%% *}${C_NORMAL} ${line#* }"
+          say "${_C_YELLOW}${line%% *}${_C_NORMAL} ${line#* }"
         else
           say "$line"
         fi
@@ -1588,10 +1588,10 @@ antidote_update() {
   # cleanup temp dir
   [[ -d "$tmpdir" ]] && del "$tmpdir"
   if (( $#o_dry_run )); then
-    say "${C_GREEN}Dry run complete. No changes were made.${C_NORMAL}"
+    say "${_C_GREEN}Dry run complete. No changes were made.${_C_NORMAL}"
   else
-    say "${C_GREEN}Bundle updates complete.${C_NORMAL}"
-    [[ "$ANTIDOTE_AUTOSNAPSHOT" == true ]] && snapshot_save >/dev/null
+    say "${_C_GREEN}Bundle updates complete.${_C_NORMAL}"
+    [[ "$_ANTIDOTE_AUTOSNAPSHOT" == true ]] && snapshot_save >/dev/null
   fi
   say ""
 }
@@ -1613,7 +1613,7 @@ antidote_home() { say "$ANTIDOTE_HOME" }
 # `antidote bundle` instead of just generating the Zsh script.
 #
 antidote_init() {
-  say "$ANTIDOTE_INIT_SCRIPT"
+  say "$_ANTIDOTE_INIT_SCRIPT"
 }
 
 ### List cloned bundles.
@@ -1733,7 +1733,7 @@ antidote_snapshot() {
   subcmd=${1:-list}; shift 2>/dev/null
 
   case "$subcmd" in
-    home)    echo "$ANTIDOTE_SNAPSHOT_DIR" ;;
+    home)    echo "$_ANTIDOTE_SNAPSHOT_DIR" ;;
     list)    snapshot_list                 ;;
     remove)  snapshot_remove "$@"          ;;
     restore) snapshot_restore "$@"         ;;
@@ -1749,10 +1749,10 @@ snapshot_save() {
 
   [[ "$ANTIDOTE_DYNAMIC" == true ]] && return 0
 
-  [[ -d "$ANTIDOTE_SNAPSHOT_DIR" ]] || mkdir -p "$ANTIDOTE_SNAPSHOT_DIR"
+  [[ -d "$_ANTIDOTE_SNAPSHOT_DIR" ]] || mkdir -p "$_ANTIDOTE_SNAPSHOT_DIR"
 
   zstyle -s ':antidote:test:snapshot' epoch epoch || epoch=$EPOCHSECONDS
-  snapshot_file=${1:-$ANTIDOTE_SNAPSHOT_DIR/snapshot-$(TZ=UTC strftime '%Y%m%d-%H%M%SZ' $epoch).txt}
+  snapshot_file=${1:-$_ANTIDOTE_SNAPSHOT_DIR/snapshot-$(TZ=UTC strftime '%Y%m%d-%H%M%SZ' $epoch).txt}
 
   bundles=(${(f)"$(find_bundles)"})
 
@@ -1766,7 +1766,7 @@ snapshot_save() {
 
   {
     print "# antidote snapshot"
-    print "# version: $ANTIDOTE_VERSION"
+    print "# version: $_ANTIDOTE_VERSION"
     print "# date: $(TZ=UTC strftime '%Y-%m-%dT%H:%M:%SZ' $epoch)"
     printf '%s\n' ${(o)bundle_lines}
   } >| "$snapshot_file"
@@ -1779,42 +1779,47 @@ snapshot_save() {
 ### Prune snapshots beyond the configured max.
 snapshot_prune() {
   local -a snapshots to_remove
-  snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(N))
-  if (( $#snapshots > ANTIDOTE_SNAPSHOT_MAX )); then
-    to_remove=(${(o)snapshots[1,$(( $#snapshots - ANTIDOTE_SNAPSHOT_MAX ))]})
+  snapshots=($_ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(N))
+  if (( $#snapshots > _ANTIDOTE_SNAPSHOT_MAX )); then
+    to_remove=(${(o)snapshots[1,$(( $#snapshots - _ANTIDOTE_SNAPSHOT_MAX ))]})
     del $to_remove
   fi
 }
 
 ### Set color-related globals needed for interactive features (fzf previews, etc).
 setup_color() {
-  typeset -g ANTIDOTE_COLOR C_BLUE C_GREEN C_YELLOW C_NORMAL
+  typeset -g _ANTIDOTE_COLOR='' _C_BLUE='' _C_GREEN='' _C_YELLOW='' _C_NORMAL=''
   if supports_color; then
-    ANTIDOTE_COLOR=true
-    C_BLUE=$'\E[34m'
-    C_GREEN=$'\E[32m'
-    C_YELLOW=$'\E[33m'
-    C_NORMAL=$'\E[0m'
+    typeset -g _ANTIDOTE_COLOR=true
+    typeset -g _C_BLUE=$'\E[34m'
+    typeset -g _C_GREEN=$'\E[32m'
+    typeset -g _C_YELLOW=$'\E[33m'
+    typeset -g _C_NORMAL=$'\E[0m'
   fi
 }
 
 ### Detect bat for snapshot preview highlighting.
 setup_bat() {
-  typeset -g ANTIDOTE_BAT_CMD ANTIDOTE_BAT_LANG ANTIDOTE_BAT_OPTS
-  [[ "$ANTIDOTE_COLOR" == true ]] && command -v bat >/dev/null 2>&1 || return 0
-  ANTIDOTE_BAT_CMD=bat
+  typeset -g _ANTIDOTE_BAT_CMD='' _ANTIDOTE_BAT_LANG=''
+  [[ "$_ANTIDOTE_COLOR" == true ]] && command -v bat >/dev/null 2>&1 || return 0
+  typeset -g _ANTIDOTE_BAT_CMD=bat
   if bat --list-languages 2>/dev/null | grep -q 'Antidote Bundle'; then
-    ANTIDOTE_BAT_LANG='Antidote Bundle'
+    typeset -g _ANTIDOTE_BAT_LANG='Antidote Bundle'
   else
-    ANTIDOTE_BAT_LANG=properties
+    typeset -g _ANTIDOTE_BAT_LANG=properties
   fi
-  : ${ANTIDOTE_BAT_OPTS:="--color=always -l '${ANTIDOTE_BAT_LANG}'"}
+  # Unlike every other setting, this default cannot move to the init block:
+  # it names the language, and detecting that costs a bat subprocess that
+  # every antidote run would then pay for. Assign folded so the test suite's
+  # warn_nested_var stays quiet.
+  [[ -n "$_ANTIDOTE_BAT_OPTS" ]] ||
+    typeset -g _ANTIDOTE_BAT_OPTS="--color=always -l '${_ANTIDOTE_BAT_LANG}'"
 }
 
 ### Check for an fzf picker, warning and returning 1 if unavailable.
 snapshot_try_picker() {
   local -a fzf_cmd
-  fzf_cmd=(${(z)ANTIDOTE_FZF_CMD})
+  fzf_cmd=(${(z)_ANTIDOTE_FZF_CMD})
   if (( ${#fzf_cmd} == 0 )) || ! command -v -- "${fzf_cmd[1]}" >/dev/null 2>&1; then
     warn "antidote: snapshot: no snapshot file specified (use 'antidote snapshot list' to see available snapshots)"
     return 1
@@ -1829,17 +1834,17 @@ snapshot_pick() {
   local -a snapshots labels fzf_opts fzf_cmd
 
   setup_bat
-  snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
+  snapshots=($_ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(NOn))
   if (( $#snapshots == 0 )); then
     warn "antidote: snapshot: no snapshots found"
     return 1
   fi
 
-  fzf_cmd=(${(z)ANTIDOTE_FZF_CMD})
+  fzf_cmd=(${(z)_ANTIDOTE_FZF_CMD})
   preview_cmd='echo {2}; echo; tail -n +4 {2}'
-  if [[ -n "$ANTIDOTE_BAT_CMD" ]]; then
-    preview_cmd="BAT_OPTS=${(q)ANTIDOTE_BAT_OPTS} bat {2}"
-  elif [[ "$ANTIDOTE_COLOR" == true ]]; then
+  if [[ -n "$_ANTIDOTE_BAT_CMD" ]]; then
+    preview_cmd="BAT_OPTS=${(q)_ANTIDOTE_BAT_OPTS} bat {2}"
+  elif [[ "$_ANTIDOTE_COLOR" == true ]]; then
     preview_cmd='
   printf "\033[1;4m%s\033[0m\n\n" {2}
   tail -n +4 {2} |
@@ -1869,21 +1874,20 @@ snapshot_pick() {
   for snap in $snapshots; do
     date_line=${${(f)"$(<$snap)"}[3]#\# date: }
     if TZ=UTC strftime -r -s epoch '%Y-%m-%dT%H:%M:%SZ' "$date_line" 2>/dev/null; then
-      date_line=$(strftime "$ANTIDOTE_SNAPSHOT_DATEFMT" $epoch)
+      date_line=$(strftime "$_ANTIDOTE_SNAPSHOT_DATEFMT" $epoch)
     fi
     labels+=("$date_line	$snap")
   done
 
-  : ${ANTIDOTE_FZF_OPTS:="--border=top --preview-window=right:75%"}
-  fzf_opts=(--no-sort ${C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t'
+  fzf_opts=(--no-sort ${_C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t'
     --prompt="❯ " --border-label=" $label " --preview="$preview_cmd")
   if [[ "$2" == --multi ]]; then
     fzf_opts+=(--multi --marker='* ' --color='marker:red')
   fi
 
   printf '%s\n' $labels \
-    | FZF_DEFAULT_OPTS=$ANTIDOTE_FZF_OPTS \
-      FZF_DEFAULT_OPTS_FILE=$ANTIDOTE_FZF_OPTS_FILE \
+    | FZF_DEFAULT_OPTS=$_ANTIDOTE_FZF_OPTS \
+      FZF_DEFAULT_OPTS_FILE=$_ANTIDOTE_FZF_OPTS_FILE \
       "${fzf_cmd[@]}" $fzf_opts \
     | cut -f2 \
     || { warn "antidote: snapshot: no snapshot selected"; return 1; }
@@ -1910,7 +1914,7 @@ snapshot_restore() {
     bundle=${line%% *}
     pin=${line##*pin:}
     pin=${pin%% *}
-    say "${C_BLUE}antidote:${C_NORMAL} restoring $bundle (${C_GREEN}${pin[1,7]}...${C_NORMAL})"
+    say "${_C_BLUE}antidote:${_C_NORMAL} restoring $bundle (${_C_GREEN}${pin[1,7]}...${_C_NORMAL})"
     ANTIDOTE_EPHEMERAL_PIN=true antidote_bundle "$line" &>/dev/null &
     pids+=($!)
     bundles+=("$bundle")
@@ -1927,13 +1931,13 @@ snapshot_restore() {
     warn "Restore completed with errors."
     return 1
   fi
-  say "${C_GREEN}Restore complete.${C_NORMAL}"
+  say "${_C_GREEN}Restore complete.${_C_NORMAL}"
 }
 
 ### List available snapshots.
 snapshot_list() {
   local -a snapshots
-  snapshots=($ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(N))
+  snapshots=($_ANTIDOTE_SNAPSHOT_DIR/snapshot-*.txt(N))
   if (( $#snapshots == 0 )); then
     say "No snapshots found."
     return
@@ -2048,33 +2052,33 @@ antidote() {
 # Initialize antidote global variables from zstyles and environment.
 {
   typeset -g ANTIDOTE_ZSH="${0:A}"
-  typeset -g ANTIDOTE_VERSION="2.1.0"
+  typeset -g _ANTIDOTE_VERSION="2.1.0"
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 
-  typeset -g ANTIDOTE_GIT_SITE ANTIDOTE_GIT_PROTOCOL ANTIDOTE_GIT_CMD ANTIDOTE_FZF_CMD ANTIDOTE_PATH_STYLE
-  typeset -g ANTIDOTE_FZF_OPTS ANTIDOTE_FZF_OPTS_FILE ANTIDOTE_BAT_OPTS
-  typeset -g ANTIDOTE_DEFER_BUNDLE ANTIDOTE_FPATH_RULE ANTIDOTE_BUNDLE_FILE
-  typeset -g ANTIDOTE_OSTYPE ANTIDOTE_LOCALAPPDATA
-  typeset -g ANTIDOTE_VERSION_SHOW_SHA=true ANTIDOTE_GIT_AUTOSTASH=true
-  zstyle -s ':antidote:bat'    opts       ANTIDOTE_BAT_OPTS
-  zstyle -s ':antidote:bundle' file       ANTIDOTE_BUNDLE_FILE          || ANTIDOTE_BUNDLE_FILE=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
-  zstyle -s ':antidote:bundle' path-style ANTIDOTE_PATH_STYLE           || ANTIDOTE_PATH_STYLE=full
-  zstyle -s ':antidote:defer'  bundle     ANTIDOTE_DEFER_BUNDLE         || ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
-  zstyle -s ':antidote:fpath'  rule       ANTIDOTE_FPATH_RULE           || ANTIDOTE_FPATH_RULE=append
-  zstyle -s ':antidote:fzf'    cmd        ANTIDOTE_FZF_CMD              || ANTIDOTE_FZF_CMD=fzf
-  zstyle -s ':antidote:fzf'    opts       ANTIDOTE_FZF_OPTS             || ANTIDOTE_FZF_OPTS=$FZF_DEFAULT_OPTS
-  zstyle -s ':antidote:fzf'    opts_file  ANTIDOTE_FZF_OPTS_FILE        || ANTIDOTE_FZF_OPTS_FILE=$FZF_DEFAULT_OPTS_FILE
-  zstyle -s ':antidote:git'    cmd        ANTIDOTE_GIT_CMD              || ANTIDOTE_GIT_CMD=git
-  zstyle -s ':antidote:git'    protocol   ANTIDOTE_GIT_PROTOCOL         || ANTIDOTE_GIT_PROTOCOL=https
-  zstyle -s ':antidote:git'    site       ANTIDOTE_GIT_SITE             || ANTIDOTE_GIT_SITE=github.com
+  typeset -g _ANTIDOTE_GIT_SITE _ANTIDOTE_GIT_PROTOCOL _ANTIDOTE_GIT_CMD _ANTIDOTE_FZF_CMD _ANTIDOTE_PATH_STYLE
+  typeset -g _ANTIDOTE_FZF_OPTS _ANTIDOTE_FZF_OPTS_FILE _ANTIDOTE_BAT_OPTS
+  typeset -g _ANTIDOTE_DEFER_BUNDLE _ANTIDOTE_FPATH_RULE _ANTIDOTE_BUNDLE_FILE
+  typeset -g _ANTIDOTE_OSTYPE _ANTIDOTE_LOCALAPPDATA
+  typeset -g _ANTIDOTE_VERSION_SHOW_SHA=true _ANTIDOTE_GIT_AUTOSTASH=true
+  zstyle -s ':antidote:bat'    opts       _ANTIDOTE_BAT_OPTS
+  zstyle -s ':antidote:bundle' file       _ANTIDOTE_BUNDLE_FILE          || _ANTIDOTE_BUNDLE_FILE=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
+  zstyle -s ':antidote:bundle' path-style _ANTIDOTE_PATH_STYLE           || _ANTIDOTE_PATH_STYLE=full
+  zstyle -s ':antidote:defer'  bundle     _ANTIDOTE_DEFER_BUNDLE         || _ANTIDOTE_DEFER_BUNDLE=romkatv/zsh-defer
+  zstyle -s ':antidote:fpath'  rule       _ANTIDOTE_FPATH_RULE           || _ANTIDOTE_FPATH_RULE=append
+  zstyle -s ':antidote:fzf'    cmd        _ANTIDOTE_FZF_CMD              || _ANTIDOTE_FZF_CMD=fzf
+  zstyle -s ':antidote:fzf'    opts       _ANTIDOTE_FZF_OPTS             || _ANTIDOTE_FZF_OPTS=${FZF_DEFAULT_OPTS:-"--border=top --preview-window=right:75%"}
+  zstyle -s ':antidote:fzf'    opts_file  _ANTIDOTE_FZF_OPTS_FILE        || _ANTIDOTE_FZF_OPTS_FILE=$FZF_DEFAULT_OPTS_FILE
+  zstyle -s ':antidote:git'    cmd        _ANTIDOTE_GIT_CMD              || _ANTIDOTE_GIT_CMD=git
+  zstyle -s ':antidote:git'    protocol   _ANTIDOTE_GIT_PROTOCOL         || _ANTIDOTE_GIT_PROTOCOL=https
+  zstyle -s ':antidote:git'    site       _ANTIDOTE_GIT_SITE             || _ANTIDOTE_GIT_SITE=github.com
   # Tests also have zstyles, but they aren't user facing
-  zstyle -s ':antidote:test:env'     LOCALAPPDATA ANTIDOTE_LOCALAPPDATA || ANTIDOTE_LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}"
-  zstyle -s ':antidote:test:env'     OSTYPE       ANTIDOTE_OSTYPE       || ANTIDOTE_OSTYPE=$OSTYPE
-  zstyle -T ':antidote:test:git'     autostash                          || ANTIDOTE_GIT_AUTOSTASH=false
-  zstyle -T ':antidote:test:version' show-sha                           || ANTIDOTE_VERSION_SHOW_SHA=false
+  zstyle -s ':antidote:test:env'     LOCALAPPDATA _ANTIDOTE_LOCALAPPDATA || _ANTIDOTE_LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}"
+  zstyle -s ':antidote:test:env'     OSTYPE       _ANTIDOTE_OSTYPE       || _ANTIDOTE_OSTYPE=$OSTYPE
+  zstyle -T ':antidote:test:git'     autostash                          || _ANTIDOTE_GIT_AUTOSTASH=false
+  zstyle -T ':antidote:test:version' show-sha                           || _ANTIDOTE_VERSION_SHOW_SHA=false
   # Legacy use of friendly names overrides all
   if zstyle -t ':antidote:bundle' use-friendly-names; then
-    ANTIDOTE_PATH_STYLE=short
+    _ANTIDOTE_PATH_STYLE=short
   fi
 
   typeset -g ANTIDOTE_HOME
@@ -2082,18 +2086,18 @@ antidote() {
     zstyle -s ':antidote:home' dir ANTIDOTE_HOME || ANTIDOTE_HOME=$(get_cachedir antidote)
   fi
 
-  typeset -g ANTIDOTE_SNAPSHOT_DIR ANTIDOTE_SNAPSHOT_MAX ANTIDOTE_SNAPSHOT_DATEFMT ANTIDOTE_AUTOSNAPSHOT=false
-  zstyle -s ':antidote:snapshot' dir        ANTIDOTE_SNAPSHOT_DIR     || ANTIDOTE_SNAPSHOT_DIR=$(get_datadir antidote)/snapshots
-  zstyle -s ':antidote:snapshot' max        ANTIDOTE_SNAPSHOT_MAX     || ANTIDOTE_SNAPSHOT_MAX=100
-  zstyle -s ':antidote:snapshot' dateformat ANTIDOTE_SNAPSHOT_DATEFMT || ANTIDOTE_SNAPSHOT_DATEFMT='%Y-%m-%d %H:%M:%S %Z'
-  zstyle -T ':antidote:snapshot:automatic' enabled && ANTIDOTE_AUTOSNAPSHOT=true
-  ANTIDOTE_SNAPSHOT_DIR=${~ANTIDOTE_SNAPSHOT_DIR}
+  typeset -g _ANTIDOTE_SNAPSHOT_DIR _ANTIDOTE_SNAPSHOT_MAX _ANTIDOTE_SNAPSHOT_DATEFMT _ANTIDOTE_AUTOSNAPSHOT=false
+  zstyle -s ':antidote:snapshot' dir        _ANTIDOTE_SNAPSHOT_DIR     || _ANTIDOTE_SNAPSHOT_DIR=$(get_datadir antidote)/snapshots
+  zstyle -s ':antidote:snapshot' max        _ANTIDOTE_SNAPSHOT_MAX     || _ANTIDOTE_SNAPSHOT_MAX=100
+  zstyle -s ':antidote:snapshot' dateformat _ANTIDOTE_SNAPSHOT_DATEFMT || _ANTIDOTE_SNAPSHOT_DATEFMT='%Y-%m-%d %H:%M:%S %Z'
+  zstyle -T ':antidote:snapshot:automatic' enabled && _ANTIDOTE_AUTOSNAPSHOT=true
+  _ANTIDOTE_SNAPSHOT_DIR=${~_ANTIDOTE_SNAPSHOT_DIR}
 
   typeset -gA _antidote_using_context
   [[ -n "$ANTIDOTE_USING_CTX" ]] && eval "$ANTIDOTE_USING_CTX"
 }
 
-ANTIDOTE_INIT_SCRIPT=$(
+_ANTIDOTE_INIT_SCRIPT=$(
 cat <<'EOS'
 #!/usr/bin/env zsh
 function antidote {
@@ -2109,7 +2113,7 @@ function antidote {
 EOS
 )
 
-ANTIDOTE_HELP=$(
+_ANTIDOTE_HELP=$(
 cat <<'EOS'
 antidote - the cure to slow zsh plugin management
 

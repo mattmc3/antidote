@@ -37,7 +37,7 @@ antidote_common_setup() {
   PRJDIR=$PWD
   # Version tests assert against the source of truth, so version bumps
   # never touch test files.
-  EXPECTED_VERSION=$(sed -n 's/.*ANTIDOTE_VERSION="\([^"]*\)".*/\1/p' antidote.zsh)
+  EXPECTED_VERSION=$(sed -n 's/.*_ANTIDOTE_VERSION="\([^"]*\)".*/\1/p' antidote.zsh)
   [ -n "$EXPECTED_VERSION" ] || return 1
 }
 

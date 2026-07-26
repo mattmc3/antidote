@@ -102,3 +102,47 @@ STUB
   assert_output --partial "zstyles:"
   assert_output --partial "zstyle-probe.example"
 }
+
+# Runtime state that antidote probes for itself must not be settable from
+# the environment. The probe function is defined in the config file so it
+# runs inside antidote.zsh with the real globals in scope.
+@test "an exported color flag cannot force color on" {
+  cat >"$TESTHOME/.config/antidote/probe.zsh" <<'CFG'
+color_probe() { setup_color; print -r -- "color=[$_ANTIDOTE_COLOR]" }
+CFG
+  ACONFIG="$TESTHOME/.config/antidote/probe.zsh"
+  EXTRA_ENV="_ANTIDOTE_COLOR=true"
+  run antidote __private__ color_probe
+  assert_output "color=[]"
+}
+
+@test "an exported bat command cannot survive a failed bat probe" {
+  cat >"$TESTHOME/.config/antidote/probe.zsh" <<'CFG'
+bat_probe() { setup_color; setup_bat; print -r -- "bat=[$_ANTIDOTE_BAT_CMD]" }
+CFG
+  ACONFIG="$TESTHOME/.config/antidote/probe.zsh"
+  EXTRA_ENV="_ANTIDOTE_BAT_CMD=/nonexistent/bat"
+  run antidote __private__ bat_probe
+  assert_output "bat=[]"
+}
+
+# fzf opts get their default at init like every other setting, so the
+# value does not depend on whether snapshot_pick happened to run.
+@test "fzf opts have their default before any picker runs" {
+  cat >"$TESTHOME/.config/antidote/probe.zsh" <<'CFG'
+fzf_probe() { print -r -- "[$_ANTIDOTE_FZF_OPTS]" }
+CFG
+  ACONFIG="$TESTHOME/.config/antidote/probe.zsh"
+  run antidote __private__ fzf_probe
+  assert_output "[--border=top --preview-window=right:75%]"
+}
+
+@test "the fzf opts zstyle overrides the default" {
+  cat >"$TESTHOME/.config/antidote/probe.zsh" <<'CFG'
+zstyle ':antidote:fzf' opts '--height=40%'
+fzf_probe() { print -r -- "[$_ANTIDOTE_FZF_OPTS]" }
+CFG
+  ACONFIG="$TESTHOME/.config/antidote/probe.zsh"
+  run antidote __private__ fzf_probe
+  assert_output "[--height=40%]"
+}

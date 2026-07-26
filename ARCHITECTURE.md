@@ -96,7 +96,7 @@ one `source` of one flat file, with no subprocess and no parsing at startup. See
 [functions/antidote-load](functions/antidote-load).
 
 **Dynamic.** `source <(antidote init)` replaces the `antidote` function with one that
-pipes `antidote bundle` output straight into `source`, set via `ANTIDOTE_INIT_SCRIPT`
+pipes `antidote bundle` output straight into `source`, set via `_ANTIDOTE_INIT_SCRIPT`
 near the bottom of `antidote.zsh`. This trades startup speed for immediacy, so a few
 things change to match: `ANTIDOTE_DYNAMIC=true`, `antidote_bundle` also emits `typeset
 -p _antidote_using_context` so the parent shell keeps `using:` context between calls,
@@ -123,7 +123,7 @@ Sections in file order. Grep the banner text to jump.
 | `COMMANDS`                   | `antidote_bundle`, `antidote_install`, `antidote_purge`, `update_one_bundle`, `antidote_update`, `antidote_home`, `antidote_init`, `antidote_list`, `antidote_path` |
 | `SNAPSHOTS`                  | `antidote_snapshot` + `snapshot_{save,prune,list,remove,restore,pick,try_picker}`, `setup_color`, `setup_bat`                                                       |
 | `DISPATCH`                   | `private_dispatcher`, `antidote()`                                                                                                                                  |
-| `INITIALIZATION`             | Brace group reading every zstyle into `ANTIDOTE_*` globals, then `ANTIDOTE_INIT_SCRIPT`, `ANTIDOTE_HELP`, `antidote "$@"`                                    |
+| `INITIALIZATION`             | Brace group reading every zstyle into `ANTIDOTE_*` globals, then `_ANTIDOTE_INIT_SCRIPT`, `_ANTIDOTE_HELP`, `antidote "$@"`                                    |
 
 ## The parsed bundle matrix
 
@@ -236,7 +236,7 @@ input from turning into code.
 
 ## Clone paths and path styles
 
-`ANTIDOTE_PATH_STYLE` (zstyle `:antidote:bundle path-style`):
+`_ANTIDOTE_PATH_STYLE` (zstyle `:antidote:bundle path-style`):
 
 | Style            | Result under `$ANTIDOTE_HOME`                                 |
 | ---------------- | ------------------------------------------------------------- |
@@ -264,7 +264,7 @@ pinning it permanently.
 - Removing a pin: handled inside `zsh_script_clone` so it runs in parallel with
   everything else. Unsets the config and checks the branch back out.
 
-Snapshots are `snapshot-YYYYmmdd-HHMMSSZ.txt` files under `ANTIDOTE_SNAPSHOT_DIR`,
+Snapshots are `snapshot-YYYYmmdd-HHMMSSZ.txt` files under `_ANTIDOTE_SNAPSHOT_DIR`,
 holding `repo kind:clone pin:<sha>` lines. Restore replays each line through
 `antidote_bundle` with an ephemeral pin, in parallel. Because the format is plain bundle
 lines, a snapshot is readable, diffable, and restorable through the same code path as
@@ -311,18 +311,18 @@ of defaults:
 | Context                        | Style                       | Global                                               |
 | ------------------------------ | --------------------------- | ---------------------------------------------------- |
 | `:antidote:home`               | `dir`                       | `ANTIDOTE_HOME` (default `$(get_cachedir antidote)`) |
-| `:antidote:bundle`             | `file`                      | `ANTIDOTE_BUNDLE_FILE`                               |
-| `:antidote:bundle`             | `path-style`                | `ANTIDOTE_PATH_STYLE`                                |
+| `:antidote:bundle`             | `file`                      | `_ANTIDOTE_BUNDLE_FILE`                               |
+| `:antidote:bundle`             | `path-style`                | `_ANTIDOTE_PATH_STYLE`                                |
 | `:antidote:bundle`             | `use-friendly-names`        | legacy alias for `path-style short`                  |
 | `:antidote:bundle:<bundle>`    | `zcompile`, `defer-options` | read per bundle                                      |
 | `:antidote:static`             | `file`, `zcompile`          | owned by `antidote-load` / bundle output             |
-| `:antidote:defer`              | `bundle`                    | `ANTIDOTE_DEFER_BUNDLE`                              |
-| `:antidote:fpath`              | `rule`                      | `ANTIDOTE_FPATH_RULE` (`append`/`prepend`)           |
+| `:antidote:defer`              | `bundle`                    | `_ANTIDOTE_DEFER_BUNDLE`                              |
+| `:antidote:fpath`              | `rule`                      | `_ANTIDOTE_FPATH_RULE` (`append`/`prepend`)           |
 | `:antidote:git`                | `site`, `protocol`, `cmd`   | `ANTIDOTE_GIT_*`                                     |
 | `:antidote:fzf`                | `cmd`, `opts`, `opts_file`  | `ANTIDOTE_FZF_*`                                     |
-| `:antidote:bat`                | `opts`                      | `ANTIDOTE_BAT_OPTS`                                  |
+| `:antidote:bat`                | `opts`                      | `_ANTIDOTE_BAT_OPTS`                                  |
 | `:antidote:snapshot`           | `dir`, `max`, `dateformat`  | `ANTIDOTE_SNAPSHOT_*`                                |
-| `:antidote:snapshot:automatic` | `enabled`                   | `ANTIDOTE_AUTOSNAPSHOT`                              |
+| `:antidote:snapshot:automatic` | `enabled`                   | `_ANTIDOTE_AUTOSNAPSHOT`                              |
 | `:antidote:load:checkfile`     | `disabled`                  | read in `antidote-load`                              |
 
 Test-only zstyles. These are not user facing, and they stay out of the man pages on
@@ -436,6 +436,10 @@ from a real bug.
   branch does not run.
 - **A `_foo` prefix means global** in `antidote.zsh` (`_parsed_bundles`,
   `_antidote_using_context`). Never use a leading underscore for a local there.
+- **State antidote probes for itself must initialize explicitly**, as `setup_color` and
+  `setup_bat` do. `typeset -g VAR` on its own preserves a value inherited from the
+  environment, so a bare declaration lets an exported `VAR` override what antidote
+  actually detected.
 - **Never `local path`/`fpath`/`cdpath`/`manpath`.** They shadow the tied Zsh globals,
   and the failure shows up far from the declaration.
 - Hot-path helpers return values in `REPLY` (scalar) or `reply` (array) rather than on
@@ -454,8 +458,17 @@ from a real bug.
   is generated and edits there get overwritten.
 - A new flag means updating three places together: the usage comment, the man page
   `.adoc`, and the `functions/_antidote` completions.
-- The version lives in exactly one place, `ANTIDOTE_VERSION` in `antidote.zsh`. Tests
+- The version lives in exactly one place, `_ANTIDOTE_VERSION` in `antidote.zsh`. Tests
   read it from there. Bump it with `just bump-{maj,min,rev}`.
+- **`ANTIDOTE_*` is reserved for variables the user or `antidote-zsh` sets.** Exactly
+  ten qualify: `ANTIDOTE_CONFIG`, `ANTIDOTE_HOME`, `ANTIDOTE_TMPDIR`,
+  `ANTIDOTE_PROFILE`, `ANTIDOTE_PROFILE_OUT` and `ANTIDOTE_EPHEMERAL_PIN` come from the
+  environment; `ANTIDOTE_ZSTYLES`, `ANTIDOTE_DYNAMIC`, `ANTIDOTE_USING_CTX` and
+  `ANTIDOTE_ZSH` cross the process boundary from
+  [functions/antidote-zsh](functions/antidote-zsh). Everything else that `antidote.zsh`
+  computes for itself is script-only and takes a leading underscore:
+  `_ANTIDOTE_GIT_SITE`, `_ANTIDOTE_PATH_STYLE`, `_ANTIDOTE_COLOR`, `_C_BLUE`, and so on.
+  The prefix tells you at a glance whether a value can arrive from outside the process.
 - **Prefer a zstyle over a new env var.** Env vars are public surface and are awkward to
   scope; zstyles are already the configuration idiom. Reach for an env var only when a
   zstyle cannot work, which in practice means bootstrap ordering (`ANTIDOTE_CONFIG`) or
