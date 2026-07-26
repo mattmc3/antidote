@@ -53,9 +53,10 @@
   # sed rewrites stored paths to match current fixture location
   sed "s|/[^ \"]*/tests/fixtures/|${fixture_dir}/|g" "$fixture_dir/gitconfig" > "$HOME/.gitconfig"
 
-  # start from tmp home
-  pushd
-  cd $T_TEMPDIR
+  # start from tmp home, keeping the caller's cwd for t_teardown to
+  # restore. Bare pushd happens to land here too, but only because HOME
+  # was reassigned above.
+  pushd $T_TEMPDIR
 
   # source antidote
   source $T_PRJDIR/antidote.zsh

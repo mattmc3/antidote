@@ -1,13 +1,18 @@
 #!/bin/zsh
+#function t_unload_antidote {
+  emulate -L zsh
+  setopt local_options
 
-emulate -L zsh
-setopt local_options
+  local fn
 
-# unfunction all antidote
-for fn in ${(k)functions}; do
-  [[ $fn == *antidote* ]] && [[ $fn != t_* ]] && unfunction -- $fn
-done
-(( $+functions[git] )) && unfunction git
+  # drop antidote's own functions, plus the git stub and zsh-defer that
+  # bundles pull in
+  for fn in ${(k)functions}; do
+    [[ $fn == *antidote* ]] && [[ $fn != t_* ]] && unfunction -- $fn
+  done
+  (( $+functions[git] )) && unfunction git
+  (( $+functions[zsh-defer] )) && unfunction zsh-defer
 
-# unfunction zsh-defer
-(( $+functions[zsh-defer] )) && unfunction zsh-defer
+  # do not leak the status of the conditional above
+  true
+#}

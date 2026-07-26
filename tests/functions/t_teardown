@@ -4,9 +4,9 @@
   emulate -L zsh
   setopt local_options
 
-  # Every caller (run_session, clitest, fixture pregen) runs in a
-  # throwaway zsh, so there is no shell state to restore - just leave
-  # the tempdir and remove it.
+  # Callers are normally a throwaway zsh (run_session, clitest, fixture
+  # pregen), but t_setup is also sourced interactively for debugging, so
+  # put the caller back where it started before removing the tempdir.
   popd
   [[ -d "$T_TEMPDIR" ]] && command rm -rf -- "$T_TEMPDIR"
 
