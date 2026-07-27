@@ -48,18 +48,6 @@ zstyle ':antidote:bundle:foo/bar' min-age 30
 zstyle ':antidote:bundle:foo/baz' min-age 0    # always take the latest commit
 ----
 
-The default is unset, which is the same as `0`: no delay. Use `0` to opt a single bundle out of a `min-age` set for every bundle by pattern. With `min-age` set, cloning and updating stop at the newest commit that has been upstream at least that many days, which gives a bad push time to be noticed and pulled before it reaches your shell. Clones are unshallowed up front so the dated history is available, rather than in the background as antidote normally does, which makes the clone itself slower. If no commit is old enough, a clone keeps the latest commit and an update is skipped. Pinned bundles ignore `min-age`, since a pin already fixes the commit.
-
-Age is measured by commit date, and commit dates are set by whoever makes the commit, not by the host that receives the push. Anyone able to push a malicious commit can also date it far enough in the past to satisfy any `min-age`. Treat `min-age` as a cushion against a mistake or an unnoticed compromise, not as a supply chain guarantee. When you need a guarantee, use `pin:`, which fixes the commit SHA and makes no claim about dates.
-
-Bundles can be kept a fixed number of days behind their upstream with the following `zstyle`:
-
-----
-zstyle ':antidote:bundle:*' min-age 7
-zstyle ':antidote:bundle:foo/bar' min-age 30
-zstyle ':antidote:bundle:foo/baz' min-age 0    # always take the latest commit
-----
-
 The default is unset, which is the same as `0`: no delay. Use `0` to opt a single bundle out of a `min-age` set for every bundle by pattern. With `min-age` set, cloning and updating stop at the newest commit that has been upstream at least that many days, which gives a bad push time to be noticed and pulled before it reaches your shell. Clones are unshallowed up front so the dated history is available, rather than in the background as antidote normally does, which makes the clone itself slower. Pinned bundles ignore `min-age`, since a pin already fixes the commit.
 
 A brand new plugin has no commit old enough to satisfy `min-age`. Rather than refuse to install it, antidote clones the plugin at its latest commit and prints a note saying so. An update in that situation is skipped instead, leaving the bundle where it is. Either way, `min-age` never blocks you from getting a plugin.

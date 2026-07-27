@@ -2,6 +2,17 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.2.0]
+
+- Add `zstyle ':antidote:bundle:*' min-age <days>` to keep bundles a fixed number of days behind upstream, giving a bad push time to be noticed before it reaches your shell. Clones and updates stop at the newest commit that has been upstream long enough. A plugin with no commit that old is still installed at its latest commit. Pinned bundles ignore it. Commit dates are attacker-controlled, so treat this as a cushion, not a supply chain guarantee, and use `pin:` when you need a fixed commit.
+- Clone bundles shallow, then deepen them with a background fetch, so the first run stays fast but full history is available afterward. Set `zstyle ':antidote:bundle:*' shallow 'yes'` to hold a bundle at its shallow clone.
+- Make dynamic bundling dramatically faster by caching each `antidote bundle` line's generated script under `$ANTIDOTE_HOME/.dynamic`, so `source <(antidote init)` shells reuse the cached script instead of forking a subprocess per line. On local fixtures that takes a warm bundle line from roughly 30ms to under 0.5ms! Set `zstyle ':antidote:dynamic' zcompile 'yes'` to also compile the cached scripts.
+- Fix a theme repo sourcing every `.zsh-theme` it ships when none is named for the repo directory. Bundling `romkatv/powerlevel10k` sourced both `powerlevel10k.zsh-theme` and the `powerlevel9k` compatibility shim.
+- Fix `antidote update` reporting success when a worker failed, and fix bundles with the same short name overwriting each other's reports.
+- Fix `antidote update --dry-run` deepening shallow clones, a permanent side effect from a dry run, and repair the temp dir cleanup trap.
+- Fix `antidote update` treating a `shallow.lock` held by a background deepen as an update failure rather than contention.
+- Fix `antidote load` discarding the existing static file when regeneration failed.
+
 ## [v2.1.1]
 
 - Fix `antidote.zsh` exiting the shell when sourced from compiled `.zwc` bytecode ([#270](https://github.com/mattmc3/antidote/issues/270)). Zsh reports the eval context as `filecode` rather than `file` in that case, so the sourced check fell through to the CLI branch.

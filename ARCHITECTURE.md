@@ -26,16 +26,18 @@ ahead of time.
 
 ### functions/
 
-| File                | Runs in | Purpose                                                                       |
-| ------------------- | ------- | ----------------------------------------------------------------------------- |
-| `antidote`          | parent  | Function form of the shim                                                     |
-| `antidote-setup`    | parent  | Sets `ANTIDOTE_ZSH`, fpath, MANPATH, `_adote_zparopt_flags`. Called on source |
-| `antidote-dispatch` | parent  | Router. Decides parent-shell function vs subprocess                           |
-| `antidote-zsh`      | parent  | Serializes zstyles into env, runs `zsh $ANTIDOTE_ZSH "$@"`                    |
-| `antidote-load`     | parent  | `antidote load`: staleness check, generate static file, `source` it           |
-| `antidote-update`   | parent  | `antidote update`: bundle updates via subprocess + self-update via git pull   |
-| `antidote-help`     | parent  | `man` lookup with usage fallback                                              |
-| `_antidote`         | parent  | Zsh completions                                                               |
+| File                      | Runs in | Purpose                                                                       |
+| ------------------------- | ------- | ----------------------------------------------------------------------------- |
+| `antidote`                | parent  | Function form of the shim                                                     |
+| `antidote-setup`          | parent  | Sets `ANTIDOTE_ZSH`, fpath, MANPATH, `_adote_zparopt_flags`. Called on source |
+| `antidote-dispatch`       | parent  | Router. Decides parent-shell function vs subprocess                           |
+| `antidote-zsh`            | parent  | Serializes zstyles into env, runs `zsh $ANTIDOTE_ZSH "$@"`                    |
+| `antidote-load`           | parent  | `antidote load`: staleness check, generate static file, `source` it           |
+| `antidote-update`         | parent  | `antidote update`: bundle updates via subprocess + self-update via git pull   |
+| `antidote-help`           | parent  | `man` lookup with usage fallback                                              |
+| `antidote-home`           | parent  | `antidote home`: resolves `ANTIDOTE_HOME` without a subprocess                |
+| `antidote-bundle-dynamic` | parent  | Dynamic-mode `antidote bundle` with the `.dynamic` script cache               |
+| `_antidote`               | parent  | Zsh completions                                                               |
 
 The dividing line: if the code must mutate the user's shell (`source`, `fpath`, `PATH`,
 `autoload`), it belongs in `functions/`. Everything else belongs in `antidote.zsh`.
@@ -96,12 +98,19 @@ one `source` of one flat file, with no subprocess and no parsing at startup. See
 [functions/antidote-load](functions/antidote-load).
 
 **Dynamic.** `source <(antidote init)` replaces the `antidote` function with one that
-pipes `antidote bundle` output straight into `source`, set via `_ANTIDOTE_INIT_SCRIPT`
-near the bottom of `antidote.zsh`. This trades startup speed for immediacy, so a few
-things change to match: `ANTIDOTE_DYNAMIC=true`, `antidote_bundle` also emits `typeset
--p _antidote_using_context` so the parent shell keeps `using:` context between calls,
-and `snapshot_save` becomes a no-op (there is no single generated file to snapshot
-against).
+routes `bundle` to [functions/antidote-bundle-dynamic](functions/antidote-bundle-dynamic)
+and everything else to the subprocess, set via `_ANTIDOTE_INIT_SCRIPT` near the bottom of
+`antidote.zsh`. This trades startup speed for immediacy, so a few things change to match:
+`ANTIDOTE_DYNAMIC=true`, `antidote_bundle` also emits `typeset -p
+_antidote_using_context` so the parent shell keeps `using:` context between calls, and
+`snapshot_save` becomes a no-op (there is no single generated file to snapshot against).
+
+Each `antidote bundle` line caches its generated script in
+`$ANTIDOTE_HOME/.dynamic/<hash>.zsh`, so the steady state is a `source` of a cached file
+rather than a subprocess per line. The hash covers everything that can change the output:
+`:antidote:*` zstyles, `antidote.zsh` and config mtimes, the `using:` context, the bundle
+arguments, and antidote's version literal. Piped or redirected input bypasses the cache,
+since the whole batch is already one subprocess.
 
 ## antidote.zsh layout
 
@@ -123,7 +132,7 @@ Sections in file order. Grep the banner text to jump.
 | `COMMANDS`                   | `antidote_bundle`, `antidote_install`, `antidote_purge`, `update_one_bundle`, `antidote_update`, `antidote_home`, `antidote_init`, `antidote_list`, `antidote_path` |
 | `SNAPSHOTS`                  | `antidote_snapshot` + `snapshot_{save,prune,list,remove,restore,pick,try_picker}`, `setup_color`, `setup_bat`                                                       |
 | `DISPATCH`                   | `private_dispatcher`, `antidote()`                                                                                                                                  |
-| `INITIALIZATION`             | Brace group reading every zstyle into `ANTIDOTE_*` globals, then `_ANTIDOTE_INIT_SCRIPT`, `_ANTIDOTE_HELP`, `antidote "$@"`                                    |
+| `INITIALIZATION`             | Brace group reading every zstyle into `ANTIDOTE_*` globals, then `_ANTIDOTE_INIT_SCRIPT`, `_ANTIDOTE_HELP`, `antidote "$@"`                                         |
 
 ## The parsed bundle matrix
 
@@ -311,18 +320,18 @@ of defaults:
 | Context                        | Style                       | Global                                               |
 | ------------------------------ | --------------------------- | ---------------------------------------------------- |
 | `:antidote:home`               | `dir`                       | `ANTIDOTE_HOME` (default `$(get_cachedir antidote)`) |
-| `:antidote:bundle`             | `file`                      | `_ANTIDOTE_BUNDLE_FILE`                               |
-| `:antidote:bundle`             | `path-style`                | `_ANTIDOTE_PATH_STYLE`                                |
+| `:antidote:bundle`             | `file`                      | `_ANTIDOTE_BUNDLE_FILE`                              |
+| `:antidote:bundle`             | `path-style`                | `_ANTIDOTE_PATH_STYLE`                               |
 | `:antidote:bundle`             | `use-friendly-names`        | legacy alias for `path-style short`                  |
 | `:antidote:bundle:<bundle>`    | `zcompile`, `defer-options` | read per bundle                                      |
 | `:antidote:static`             | `file`, `zcompile`          | owned by `antidote-load` / bundle output             |
-| `:antidote:defer`              | `bundle`                    | `_ANTIDOTE_DEFER_BUNDLE`                              |
-| `:antidote:fpath`              | `rule`                      | `_ANTIDOTE_FPATH_RULE` (`append`/`prepend`)           |
+| `:antidote:defer`              | `bundle`                    | `_ANTIDOTE_DEFER_BUNDLE`                             |
+| `:antidote:fpath`              | `rule`                      | `_ANTIDOTE_FPATH_RULE` (`append`/`prepend`)          |
 | `:antidote:git`                | `site`, `protocol`, `cmd`   | `ANTIDOTE_GIT_*`                                     |
 | `:antidote:fzf`                | `cmd`, `opts`, `opts_file`  | `ANTIDOTE_FZF_*`                                     |
-| `:antidote:bat`                | `opts`                      | `_ANTIDOTE_BAT_OPTS`                                  |
+| `:antidote:bat`                | `opts`                      | `_ANTIDOTE_BAT_OPTS`                                 |
 | `:antidote:snapshot`           | `dir`, `max`, `dateformat`  | `ANTIDOTE_SNAPSHOT_*`                                |
-| `:antidote:snapshot:automatic` | `enabled`                   | `_ANTIDOTE_AUTOSNAPSHOT`                              |
+| `:antidote:snapshot:automatic` | `enabled`                   | `_ANTIDOTE_AUTOSNAPSHOT`                             |
 | `:antidote:load:checkfile`     | `disabled`                  | read in `antidote-load`                              |
 
 Test-only zstyles. These are not user facing, and they stay out of the man pages on
@@ -403,7 +412,7 @@ The harness authority is
 [tests/bats/helpers/common.bash](tests/bats/helpers/common.bash). Two styles:
 
 1. **Canonical bats** (preferred) - call `antidote_test_home` in `setup()`, then `run
-   antidote ...` per statement. The `antidote()` helper runs `antidote.zsh` as a
+antidote ...` per statement. The `antidote()` helper runs `antidote.zsh` as a
    subprocess in an isolated `$HOME`. Default to this.
 2. **`run_session`** - a real zsh session, for what a subprocess cannot show: dynamic
    mode, setopts, `load`, autoloading. Arrange state in `SESSION_PRELUDE`, have the body
@@ -444,7 +453,7 @@ from a real bug.
   and the failure shows up far from the declaration.
 - Hot-path helpers return values in `REPLY` (scalar) or `reply` (array) rather than on
   stdout, because capturing stdout costs a fork. Write them as a single folded `typeset
-  -g REPLY=value`, never a bare `REPLY=value`: the test suite runs under
+-g REPLY=value`, never a bare `REPLY=value`: the test suite runs under
   `warn_nested_var`, and a bare assignment to a script-level global from inside a
   function warns. A separate `typeset -g REPLY` line does not help, the declaration and
   the assignment have to be one command.
