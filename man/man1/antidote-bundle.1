@@ -145,7 +145,7 @@ The autoload annotation allows you to autoload a zsh functions directory in addi
 .sp
 \f(CRpin\fP
 .RS 4
-The pin annotation allows you to lock a bundle to a specific commit SHA (eg: \f(CRpin:abc1234\fP). A pinned bundle will be cloned at the specified commit and will be skipped during \f(CRantidote update\fP. This is useful for preventing unwanted upstream changes from affecting your environment. Use \f(CRbranch:\fP for tags or branches.
+The pin annotation allows you to lock a bundle to a specific commit SHA. A pinned bundle will be cloned at the specified commit and will be skipped during \f(CRantidote update\fP. This is useful for preventing unwanted upstream changes from affecting your environment. Use \f(CRbranch:\fP for tags or branches. A full 40\-character SHA is required here, but antidote\-pin(1) will resolve a tag, branch, or short SHA into one for you (eg: \f(CRantidote pin foo/bar pin:v1.2.0\fP).
 .RE
 .sp
 Bundles can be kept a fixed number of days behind their upstream with the following \f(CRzstyle\fP:

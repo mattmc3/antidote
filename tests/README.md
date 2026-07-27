@@ -67,6 +67,8 @@ commands:
   list      List cloned bundles
   path      Print the path of a cloned bundle
   snapshot  Save, restore, or list bundle snapshots
+  pin       Pin bundles to a commit
+  unpin     Unpin bundles
   init      Initialize the shell for dynamic bundles
   help      Show documentation
   load      Statically source all bundles from the plugins file

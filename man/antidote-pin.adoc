@@ -1,0 +1,99 @@
+= antidote-pin(1)
+:doctype: manpage
+:manmanual: Antidote Manual
+:mansource: antidote
+
+== Name
+antidote-pin - pin bundles to a commit
+
+== Synopsis
+*antidote pin* [-h | --help] [-i | --in-place] [-f | --force] [--as-of <date>] [--file <path>] [<bundle>...]
+
+== Description
+*antidote-pin* resolves each bundle's pin to a full 40-character commit SHA and prints the bundle lines back out. It never checks anything out, never writes git config, and never regenerates the static load script, so the plugins file stays the source of truth and `antidote bundle` stays the thing that acts on it.
+
+A bundle with no `pin:` annotation is pinned at the SHA its clone currently sits on. A bundle whose `pin:` holds a loose ref, such as a tag, a branch, or a short SHA, is resolved to the full SHA that ref points at. Loose refs resolve with or without *--force*, since `antidote bundle` rejects them as they are. A pin that is already a full SHA only moves under *--force*.
+
+Bundles are read the same way *antidote bundle* reads them: as arguments, or as bundle text on stdin. Unlike *antidote bundle*, empty input falls back to your plugins file, so a bare `antidote pin` pins everything you have.
+
+Input is resolved in this order:
+
+. Bundle arguments.
+. stdin, when it is not a terminal.
+. The file given by *--file*.
+. `$ZDOTDIR/.zsh_plugins.txt`, or whatever the `:antidote:bundle file` zstyle names.
+
+Output goes to stdout, so a run without *-i* shows exactly what would be written. That makes review a diff away:
+
+----
+antidote pin | diff -u ~/.zsh_plugins.txt -
+----
+
+Use *-i* to rewrite the file itself. Never redirect output onto the file you are reading: the shell truncates a `>` target before antidote can read it, so `antidote pin <file >file` destroys the file. Antidote refuses the case it can detect and *-i* is always the safe answer.
+
+A bundle has to be cloned before its pin can be resolved, so *antidote-pin* clones anything missing as it goes, at the head of its branch. Only a clone that fails is an error.
+
+*--as-of* resolves each bundle to the newest commit at or before a date, which is how you roll a whole plugins file back to a known-good day. The date is whatever git's approxidate understands, so `2026-07-01`, `"3 weeks ago"`, `yesterday`, `"last monday"`, `now`, and `@1750000000` all work. Naming a date does not overwrite pins on its own; combine it with *--force* to re-date bundles that are already pinned.
+
+Dates are resolved against the history antidote already has. Clones deepen themselves, so that is normally the full history, but a bundle held shallow by `zstyle ':antidote:bundle:<repo>' shallow yes` cannot be dated and is reported rather than silently deepened. Newer commits upstream are only visible once they have been fetched, so run *antidote update* first if you want *--as-of now* to mean the very latest.
+
+An explicit ref beats *--as-of* for that bundle, so you can date a whole file while holding one plugin at a known commit.
+
+== Options
+*-h, --help*:: Show the help documentation.
+*-i, --in-place*:: Rewrite the source file instead of writing to stdout, leaving a timestamped `.bak` beside it. Requires a file, so it cannot be combined with bundle arguments or stdin.
+*-f, --force*:: Re-resolve pins that are already full SHAs.
+*--as-of <date>*:: Resolve to the newest commit at or before `<date>`, in any format git understands.
+*--file <path>*:: Read bundle lines from `<path>` instead of the plugins file. Cannot be combined with bundle arguments or stdin.
+*<bundle>...*:: Bundle lines to pin. Annotations are preserved, and `pin:<ref>` names a ref to resolve.
+
+== Examples
+
+Pin everything in your plugins file, reviewing before applying:
+
+----
+antidote pin | diff -u ~/.zsh_plugins.txt -
+antidote pin -i
+----
+
+Pin a single bundle at a tag:
+
+----
+antidote pin ohmyzsh/ohmyzsh pin:v1.2.0
+----
+
+Expand a short SHA into something reproducible:
+
+----
+antidote pin zsh-users/zsh-autosuggestions pin:abc1234
+----
+
+Re-resolve every pin from what is currently cloned:
+
+----
+antidote pin -i --force
+----
+
+Roll the whole file back to a known-good day:
+
+----
+antidote pin -i --force --as-of 2026-07-01
+----
+
+Advance every pin to the newest commit antidote knows about:
+
+----
+antidote update
+antidote pin -i --force --as-of now
+----
+
+Turn a snapshot into durable pins, since a snapshot file is already bundle lines:
+
+----
+antidote pin <"$(antidote snapshot home)/snapshot-20260701-120000Z.txt"
+----
+
+== See Also
+antidote(1), antidote-unpin(1), antidote-bundle(1), antidote-snapshot(1)
+
+include::footer.adoc[]

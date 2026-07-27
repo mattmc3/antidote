@@ -1,0 +1,49 @@
+= antidote-unpin(1)
+:doctype: manpage
+:manmanual: Antidote Manual
+:mansource: antidote
+
+== Name
+antidote-unpin - unpin bundles
+
+== Synopsis
+*antidote unpin* [-h | --help] [-i | --in-place] [--file <path>] [<bundle>...]
+
+== Description
+*antidote-unpin* removes the `pin:` annotation from bundle lines and prints them back out. Nothing else on a line changes.
+
+Removing the annotation is all it does. The next *antidote bundle* or *antidote load* sees no pin, clears the recorded pin from the clone's git config, and checks the repo back onto its tracking branch, which is what lets *antidote update* move it again.
+
+Input and output work exactly as in antidote-pin(1): bundle arguments, else stdin, else *--file*, else the plugins file, with results on stdout unless *-i* is given.
+
+== Options
+*-h, --help*:: Show the help documentation.
+*-i, --in-place*:: Rewrite the source file instead of writing to stdout, leaving a timestamped `.bak` beside it. Requires a file, so it cannot be combined with bundle arguments or stdin.
+*--file <path>*:: Read bundle lines from `<path>` instead of the plugins file. Cannot be combined with bundle arguments or stdin.
+*<bundle>...*:: Bundle lines to unpin.
+
+== Examples
+
+Drop every pin in your plugins file:
+
+----
+antidote unpin -i
+antidote bundle <~/.zsh_plugins.txt >~/.zsh_plugins.zsh
+----
+
+Drop one pin:
+
+----
+antidote unpin -i ohmyzsh/ohmyzsh
+----
+
+Preview the change without touching the file:
+
+----
+antidote unpin | diff -u ~/.zsh_plugins.txt -
+----
+
+== See Also
+antidote(1), antidote-pin(1), antidote-bundle(1), antidote-update(1)
+
+include::footer.adoc[]

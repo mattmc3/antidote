@@ -98,6 +98,23 @@ function _antidote {
             "*::antidote bundles:_antidote_installed_bundles" \
             && ret=0
           ;;
+        (pin)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            '(-i --in-place)'{-i,--in-place}'[Rewrite the plugins file instead of writing to stdout]' \
+            '(-f --force)'{-f,--force}'[Re-resolve pins that are already full SHAs]' \
+            '--file[Read bundle lines from this file]:bundle file:_files' \
+            '*: :_antidote_installed_bundles' \
+            && ret=0
+          ;;
+        (unpin)
+          _arguments \
+            '(- *)'{-h,--help}'[Show usage information]' \
+            '(-i --in-place)'{-i,--in-place}'[Rewrite the plugins file instead of writing to stdout]' \
+            '--file[Read bundle lines from this file]:bundle file:_files' \
+            '*: :_antidote_installed_bundles' \
+            && ret=0
+          ;;
         (snapshot)
           if (( CURRENT == 2 )); then
             local -a snapshot_cmds=(

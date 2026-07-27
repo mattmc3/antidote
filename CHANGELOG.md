@@ -4,6 +4,9 @@ Notable changes to this project will be documented in this file.
 
 ## [v2.2.2]
 
+- Add `antidote pin` and `antidote unpin` to manage `pin:` annotations from the command line ([#261](https://github.com/mattmc3/antidote/issues/261)). Both read bundle lines the way `antidote bundle` does, as arguments or on stdin, falling back to your plugins file, and print the rewritten lines to stdout so a run is reviewable with `antidote pin | diff -u ~/.zsh_plugins.txt -`. Use `-i` to rewrite the file in place with a timestamped backup. A bundle with no pin is pinned at its current checkout, `--force` re-resolves pins that are already full SHAs, and anything not cloned yet is cloned first, since a pin has to come from somewhere.
+- Add `antidote pin --as-of <date>` to resolve pins to the newest commit at or before a date, so a plugins file can be rolled back to a known-good day. Any format git understands works, including `2026-07-01`, `"3 weeks ago"`, and `now`. Dates resolve against the history already on disk, deepening a shallow clone when needed, and a garbage date is rejected rather than quietly meaning "now". Pair it with `--force` to re-date bundles that are already pinned.
+- Let `pin:` name any commit-ish when `antidote pin` resolves it, so `antidote pin foo/bar pin:v1.2.0` writes the full SHA that tag points at. Tags, branches, and short SHAs all work, which means a hand-written `pin:v1.2.0` can be turned into something reproducible instead of being rejected.
 - Fix git's own output during a clone leaking into the generated static file, where a line like `warning: redirecting to https://...` becomes a command at shell startup.
 - Fix `pre:` and `post:` hooks not running for `kind:clone` bundles. Clone-only bundles still emit no load script unless a hook is present.
 - Fix dynamic-mode heredoc bundles leaking `__adote_script=''` to stdout at shell startup.

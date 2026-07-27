@@ -38,7 +38,7 @@ Bundles also support annotations. Annotations allow you have finer grained contr
 `autoload`::
   The autoload annotation allows you to autoload a zsh functions directory in addition to however the plugin was loaded as specified by `kind`. Supply a relative path to autoload (eg: `autoload:functions`).
 `pin`::
-  The pin annotation allows you to lock a bundle to a specific commit SHA. A full 40-character SHA is required; a short SHA is an error. A pinned bundle will be cloned at the specified commit and will be skipped during `antidote update`. This is useful for preventing unwanted upstream changes from affecting your environment. Use `branch:` for tags or branches.
+  The pin annotation allows you to lock a bundle to a specific commit SHA. A pinned bundle will be cloned at the specified commit and will be skipped during `antidote update`. This is useful for preventing unwanted upstream changes from affecting your environment. Use `branch:` for tags or branches. A full 40-character SHA is required here, but antidote-pin(1) will resolve a tag, branch, or short SHA into one for you (eg: `antidote pin foo/bar pin:v1.2.0`).
 
 A line can also start with a directive instead of a bundle. A directive is not a bundle itself, and it affects the lines that follow it.
 

@@ -1,0 +1,247 @@
+'\" t
+.\"     Title: antidote-pin
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.26
+.\"      Date: 1970-01-01
+.\"    Manual: Antidote Manual
+.\"    Source: antidote
+.\"  Language: English
+.\"
+.TH "ANTIDOTE\-PIN" "1" "1970-01-01" "antidote" "Antidote Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+antidote-pin \- pin bundles to a commit
+.SH "SYNOPSIS"
+.sp
+\fBantidote pin\fP [\-h | \-\-help] [\-i | \-\-in\-place] [\-f | \-\-force] [\-\-as\-of <date>] [\-\-file <path>] [<bundle>.\|.\|.]
+.SH "DESCRIPTION"
+.sp
+\fBantidote\-pin\fP resolves each bundle\(cqs pin to a full 40\-character commit SHA and prints the bundle lines back out. It never checks anything out, never writes git config, and never regenerates the static load script, so the plugins file stays the source of truth and \f(CRantidote bundle\fP stays the thing that acts on it.
+.sp
+A bundle with no \f(CRpin:\fP annotation is pinned at the SHA its clone currently sits on. A bundle whose \f(CRpin:\fP holds a loose ref, such as a tag, a branch, or a short SHA, is resolved to the full SHA that ref points at. Loose refs resolve with or without \fB\-\-force\fP, since \f(CRantidote bundle\fP rejects them as they are. A pin that is already a full SHA only moves under \fB\-\-force\fP.
+.sp
+Bundles are read the same way \fBantidote bundle\fP reads them: as arguments, or as bundle text on stdin. Unlike \fBantidote bundle\fP, empty input falls back to your plugins file, so a bare \f(CRantidote pin\fP pins everything you have.
+.sp
+Input is resolved in this order:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 1." 4.2
+.\}
+Bundle arguments.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 2." 4.2
+.\}
+stdin, when it is not a terminal.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 3." 4.2
+.\}
+The file given by \fB\-\-file\fP.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 4." 4.2
+.\}
+\f(CR$ZDOTDIR/.zsh_plugins.txt\fP, or whatever the \f(CR:antidote:bundle file\fP zstyle names.
+.RE
+.sp
+Output goes to stdout, so a run without \fB\-i\fP shows exactly what would be written. That makes review a diff away:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote pin | diff \-u ~/.zsh_plugins.txt \-
+.fam
+.fi
+.if n .RE
+.sp
+Use \fB\-i\fP to rewrite the file itself. Never redirect output onto the file you are reading: the shell truncates a \f(CR>\fP target before antidote can read it, so \f(CRantidote pin <file >file\fP destroys the file. Antidote refuses the case it can detect and \fB\-i\fP is always the safe answer.
+.sp
+A bundle has to be cloned before its pin can be resolved, so \fBantidote\-pin\fP clones anything missing as it goes, at the head of its branch. Only a clone that fails is an error.
+.sp
+\fB\-\-as\-of\fP resolves each bundle to the newest commit at or before a date, which is how you roll a whole plugins file back to a known\-good day. The date is whatever git\(cqs approxidate understands, so \f(CR2026\-07\-01\fP, \f(CR"3 weeks ago"\fP, \f(CRyesterday\fP, \f(CR"last monday"\fP, \f(CRnow\fP, and \f(CR@1750000000\fP all work. Naming a date does not overwrite pins on its own; combine it with \fB\-\-force\fP to re\-date bundles that are already pinned.
+.sp
+Dates are resolved against the history antidote already has. Clones deepen themselves, so that is normally the full history, but a bundle held shallow by \f(CRzstyle \*(Aq:antidote:bundle:<repo>\*(Aq shallow yes\fP cannot be dated and is reported rather than silently deepened. Newer commits upstream are only visible once they have been fetched, so run \fBantidote update\fP first if you want \fB\-\-as\-of now\fP to mean the very latest.
+.sp
+An explicit ref beats \fB\-\-as\-of\fP for that bundle, so you can date a whole file while holding one plugin at a known commit.
+.SH "OPTIONS"
+.sp
+\fB\-h, \-\-help\fP
+.RS 4
+Show the help documentation.
+.RE
+.sp
+\fB\-i, \-\-in\-place\fP
+.RS 4
+Rewrite the source file instead of writing to stdout, leaving a timestamped \f(CR.bak\fP beside it. Requires a file, so it cannot be combined with bundle arguments or stdin.
+.RE
+.sp
+\fB\-f, \-\-force\fP
+.RS 4
+Re\-resolve pins that are already full SHAs.
+.RE
+.sp
+\fB\-\-as\-of <date>\fP
+.RS 4
+Resolve to the newest commit at or before \f(CR<date>\fP, in any format git understands.
+.RE
+.sp
+\fB\-\-file <path>\fP
+.RS 4
+Read bundle lines from \f(CR<path>\fP instead of the plugins file. Cannot be combined with bundle arguments or stdin.
+.RE
+.sp
+\fB<bundle>.\|.\|.\fP
+.RS 4
+Bundle lines to pin. Annotations are preserved, and \f(CRpin:<ref>\fP names a ref to resolve.
+.RE
+.SH "EXAMPLES"
+.sp
+Pin everything in your plugins file, reviewing before applying:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote pin | diff \-u ~/.zsh_plugins.txt \-
+antidote pin \-i
+.fam
+.fi
+.if n .RE
+.sp
+Pin a single bundle at a tag:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote pin ohmyzsh/ohmyzsh pin:v1.2.0
+.fam
+.fi
+.if n .RE
+.sp
+Expand a short SHA into something reproducible:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote pin zsh\-users/zsh\-autosuggestions pin:abc1234
+.fam
+.fi
+.if n .RE
+.sp
+Re\-resolve every pin from what is currently cloned:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote pin \-i \-\-force
+.fam
+.fi
+.if n .RE
+.sp
+Roll the whole file back to a known\-good day:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote pin \-i \-\-force \-\-as\-of 2026\-07\-01
+.fam
+.fi
+.if n .RE
+.sp
+Advance every pin to the newest commit antidote knows about:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote update
+antidote pin \-i \-\-force \-\-as\-of now
+.fam
+.fi
+.if n .RE
+.sp
+Turn a snapshot into durable pins, since a snapshot file is already bundle lines:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote pin <"$(antidote snapshot home)/snapshot\-20260701\-120000Z.txt"
+.fam
+.fi
+.if n .RE
+.SH "SEE ALSO"
+.sp
+antidote(1), antidote\-unpin(1), antidote\-bundle(1), antidote\-snapshot(1)
+.sp
+Unresolved directive in antidote\-pin.adoc \- include::footer.adoc[]
+.SH "BUGS"
+.sp
+See GitHub Issues: \c
+.URL "https://github.com/mattmc3/antidote/issues" "" ""
+.SH "AUTHORS"
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Copyright (c) 2021\-2026 Matt McElheny
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+antidote contributors: \c
+.URL "https://github.com/mattmc3/antidote/graphs/contributors" "" ""
+.RE
+.SH "LICENSE"
+.sp
+MIT

@@ -1,0 +1,130 @@
+'\" t
+.\"     Title: antidote-unpin
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.26
+.\"      Date: 1970-01-01
+.\"    Manual: Antidote Manual
+.\"    Source: antidote
+.\"  Language: English
+.\"
+.TH "ANTIDOTE\-UNPIN" "1" "1970-01-01" "antidote" "Antidote Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+antidote-unpin \- unpin bundles
+.SH "SYNOPSIS"
+.sp
+\fBantidote unpin\fP [\-h | \-\-help] [\-i | \-\-in\-place] [\-\-file <path>] [<bundle>.\|.\|.]
+.SH "DESCRIPTION"
+.sp
+\fBantidote\-unpin\fP removes the \f(CRpin:\fP annotation from bundle lines and prints them back out. Nothing else on a line changes.
+.sp
+Removing the annotation is all it does. The next \fBantidote bundle\fP or \fBantidote load\fP sees no pin, clears the recorded pin from the clone\(cqs git config, and checks the repo back onto its tracking branch, which is what lets \fBantidote update\fP move it again.
+.sp
+Input and output work exactly as in antidote\-pin(1): bundle arguments, else stdin, else \fB\-\-file\fP, else the plugins file, with results on stdout unless \fB\-i\fP is given.
+.SH "OPTIONS"
+.sp
+\fB\-h, \-\-help\fP
+.RS 4
+Show the help documentation.
+.RE
+.sp
+\fB\-i, \-\-in\-place\fP
+.RS 4
+Rewrite the source file instead of writing to stdout, leaving a timestamped \f(CR.bak\fP beside it. Requires a file, so it cannot be combined with bundle arguments or stdin.
+.RE
+.sp
+\fB\-\-file <path>\fP
+.RS 4
+Read bundle lines from \f(CR<path>\fP instead of the plugins file. Cannot be combined with bundle arguments or stdin.
+.RE
+.sp
+\fB<bundle>.\|.\|.\fP
+.RS 4
+Bundle lines to unpin.
+.RE
+.SH "EXAMPLES"
+.sp
+Drop every pin in your plugins file:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote unpin \-i
+antidote bundle <~/.zsh_plugins.txt >~/.zsh_plugins.zsh
+.fam
+.fi
+.if n .RE
+.sp
+Drop one pin:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote unpin \-i ohmyzsh/ohmyzsh
+.fam
+.fi
+.if n .RE
+.sp
+Preview the change without touching the file:
+.sp
+.if n .RS 4
+.nf
+.fam C
+antidote unpin | diff \-u ~/.zsh_plugins.txt \-
+.fam
+.fi
+.if n .RE
+.SH "SEE ALSO"
+.sp
+antidote(1), antidote\-pin(1), antidote\-bundle(1), antidote\-update(1)
+.sp
+Unresolved directive in antidote\-unpin.adoc \- include::footer.adoc[]
+.SH "BUGS"
+.sp
+See GitHub Issues: \c
+.URL "https://github.com/mattmc3/antidote/issues" "" ""
+.SH "AUTHORS"
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Copyright (c) 2021\-2026 Matt McElheny
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+antidote contributors: \c
+.URL "https://github.com/mattmc3/antidote/graphs/contributors" "" ""
+.RE
+.SH "LICENSE"
+.sp
+MIT

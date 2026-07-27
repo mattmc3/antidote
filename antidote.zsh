@@ -123,6 +123,10 @@ git_unshallow()         { git_fetch "$1" --unshallow; }
 git_unshallow_try()     { gitq -C "$1" fetch --quiet --unshallow >/dev/null }
 git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(gitq -C "$1" rev-parse --is-shallow-repository)" == "true" ]] }
 git_is_ancestor()       { gitq -C "$1" merge-base --is-ancestor "$2" "$3" }
+git_asof_sha()          { gitq -C "$1" rev-list -1 --before="$2" "$3" }
+git_commit_sha()        { gitq -C "$1" rev-parse --verify --quiet "${2}^{commit}" }
+git_fetch_ref_try()     { gitq -C "$1" fetch --quiet --depth 1 origin "$2" >/dev/null }
+git_fetch_try()         { gitq -C "$1" fetch --quiet >/dev/null }
 git_log_oneline()       { gitsay -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}..${3}" 2>/dev/null; }
 git_merge_ffonly()      { gits -C "$1" merge --quiet --ff-only "$2"; }
 git_min_age_sha()       { gitsay -C "$1" rev-list --before="${2} days ago" -1 "$3" 2>/dev/null; }
@@ -588,11 +592,15 @@ usage() {
 # variable, then CLICOLOR=0, then a terminal with at least 8 colors.
 # Terminals shipping their own terminfo entry can be missing from the
 # system database, but those set COLORTERM.
+#
+# usage: supports_color [<fd>]
+# Defaults to stdout. Commands whose stdout is data, not a report, ask
+# about fd 2 instead: a redirected stdout says nothing about the terminal.
 supports_color() {
-  local force=${FORCE_COLOR:-$CLICOLOR_FORCE}
+  local fd=${1:-1} force=${FORCE_COLOR:-$CLICOLOR_FORCE}
   [[ -n "$NO_COLOR" ]] && return 1
   [[ -n "$force" ]] && { is_true "$force"; return }
-  is_true "${CLICOLOR-1}" && [[ "$_ANTIDOTE_IS_TTY" == true ]] || return 1
+  is_true "${CLICOLOR-1}" && { [[ -t $fd ]] || [[ "$_ANTIDOTE_IS_TTY" == true ]] } || return 1
   zmodload -F zsh/terminfo p:terminfo 2>/dev/null
   (( ${terminfo[colors]:-0} >= 8 )) ||
     [[ "$COLORTERM" == (truecolor|24bit) || "$TERM" == (*color*|*rxvt*) ]]
@@ -1125,7 +1133,7 @@ bundle_scripter_parallel() {
 ### Clone a repo bundle if missing, and sync removed pins.
 #
 # Reads zsh_script's locals (btype, bundle, bundle_str, bundle_path,
-# bname, pin, branch, min_age) via dynamic scoping.
+# bname, pin, branch, min_age, deepen) via dynamic scoping.
 #
 zsh_script_clone() {
   local giturl unpin_branch
@@ -1159,8 +1167,9 @@ zsh_script_clone() {
         git_min_age_reset "$bundle_path" "$min_age" "$bname" || return 1
       elif ! zstyle -t ":antidote:bundle:$bname" shallow; then
         # Disowned so the clone returns immediately. Tests run it in the
-        # foreground instead, since nothing can wait on a disowned job.
-        if [[ "$_ANTIDOTE_GIT_BG_DEEPEN" == true ]]; then
+        # foreground instead, since nothing can wait on a disowned job, and
+        # so does __deepen__ sync for a caller that needs history now.
+        if [[ "$_ANTIDOTE_GIT_BG_DEEPEN" == true && "$deepen" != sync ]]; then
           git_unshallow_try "$bundle_path" </dev/null >/dev/null 2>&1 &!
         else
           git_unshallow_try "$bundle_path"
@@ -1300,12 +1309,12 @@ zsh_script_render() {
 # usage: zsh_script __bundle__ <bundle> [key value ...]
 # Accepts a flat key-value list (assoc array pairs) describing the bundle.
 # Keys: __bundle__, kind, path, branch, pin, conditional, autoload, pre,
-#       post, fpath-rule, __skip_load_defer__, __type__, __dir__
+#       post, fpath-rule, __deepen__, __skip_load_defer__, __type__, __dir__
 # <kind> : zsh,path,fpath,defer,clone,autoload
 #
 zsh_script() {
   local bundle_str bname bundle_path btype min_age
-  local kind subpath branch pin cond autoload_path pre post fpath_rule skip_load_defer
+  local kind subpath branch pin cond autoload_path pre post fpath_rule skip_load_defer deepen
   local -A bundle
 
   # Reconstruct assoc array from flat key-value arg list
@@ -1328,6 +1337,7 @@ zsh_script() {
   post=${bundle[post]:-}
   fpath_rule=${bundle[fpath-rule]:-$_ANTIDOTE_FPATH_RULE}
   skip_load_defer=${bundle[__skip_load_defer__]:-0}
+  deepen=${bundle[__deepen__]:-}
 
   if [[ "$kind" != (autoload|clone|defer|fpath|path|zsh) ]]; then
     warn "antidote: error: unexpected kind value: '$kind'"
@@ -1632,7 +1642,7 @@ antidote_purge() {
 #
 # usage: update_one_bundle <bundledir> <repo> <slot>
 # Run in the background by antidote_update; reads its locals (tmpdir,
-# o_dry_run, _C_* colors) via dynamic scoping. <slot> is a unique index so
+# o_dry_run) via dynamic scoping. <slot> is a unique index so
 # repos that share a short name never overwrite each other's files.
 # Always writes the worker exit status to a .status file for aggregation.
 #
@@ -1974,6 +1984,373 @@ antidote_path() {
   say $results
 }
 
+##### PINS
+
+### Emit backgrounded clone calls for repo bundles missing from disk.
+#
+# usage: source <(pin_clone_missing)
+# Reads the parsed matrix. A pin cannot be resolved without a clone, so
+# pinning clones what is missing rather than handing back a to-do list.
+# The pin: annotation is deliberately dropped: it may be a loose ref that
+# zsh_script would reject, and pin resolves it locally right afterward.
+#
+pin_clone_missing() {
+  local i bundle
+  local -a row
+  local -aU script
+
+  for (( i = 1; i <= ${_parsed_bundles[__count__]:-0}; i++ )); do
+    [[ "${_parsed_bundles[$i,__type__]}" == (repo|url|ssh_url) ]] || continue
+    [[ -e "${_parsed_bundles[$i,__dir__]}" ]] && continue
+    bundle=${_parsed_bundles[$i,__bundle__]}
+    # __deepen__ sync because a pinned bundle never deepens later: update
+    # skips it, so pin time is the last chance to have any history at all.
+    row=(__bundle__ "${(q)bundle}" kind clone __deepen__ sync)
+    [[ -n "${_parsed_bundles[$i,branch]}" ]] && row+=(branch "${(q)_parsed_bundles[$i,branch]}")
+    script+=("zsh_script ${(j: :)row} &")
+  done
+
+  if (( $#script )); then
+    printf '%s\n' $script
+    printf 'wait\n'
+  fi
+}
+
+### Reject a date that git would silently read as "now".
+#
+# usage: pin_validate_asof <dir> <date>
+# Git's approxidate never fails. An unparseable string quietly becomes
+# the current time, which would pin everything at its newest commit
+# while looking like it honored the date.
+#
+pin_validate_asof() {
+  local dir="$1" asof="$2" probe nowval
+  # An epoch or an explicit "now" is unambiguous, so take it as given.
+  [[ "$asof" == (now|today|@<->) ]] && return 0
+  probe=$(gitq -C "$dir" rev-parse --since="$asof")
+  nowval=$(gitq -C "$dir" rev-parse --since=now)
+  probe=${probe#--max-age=} nowval=${nowval#--max-age=}
+  if [[ -z "$probe" || -z "$nowval" ]] || (( probe >= nowval - 2 )); then
+    warn "antidote: pin: '$asof' is not a date git understands"
+    return 1
+  fi
+}
+
+### Pick the ref whose history a date lookup should walk.
+#
+# usage: pin_asof_ref <dir> [<branch>]
+# Prefers the remote branch: a pinned clone sits detached, so walking
+# HEAD would hide every commit newer than the pin. Sets REPLY.
+#
+pin_asof_ref() {
+  local dir="$1" branch="$2" ref
+  if [[ -n "$branch" ]]; then
+    ref="origin/$branch"
+  else
+    ref=$(gitq -C "$dir" rev-parse --abbrev-ref origin/HEAD)
+  fi
+  if [[ -z "$ref" ]] || ! git_commit_sha "$dir" "$ref" >/dev/null; then
+    ref=HEAD
+  fi
+  typeset -g REPLY=$ref
+}
+
+### Resolve a bundle's pin to a full 40-char commit SHA.
+#
+# usage: pin_resolve_sha <dir> <bundle-name> [<ref>] [<branch>] [<as-of>]
+# Precedence: an explicit <ref>, which may be a tag, branch, or short
+# SHA, then <as-of>, then the current checkout. Sets REPLY to the
+# resolved SHA.
+#
+pin_resolve_sha() {
+  local dir="$1" bname="$2" ref="$3" branch="$4" asof="$5" sha
+
+  typeset -g REPLY=
+
+  # Missing here means the clone pass could not get it.
+  if [[ ! -d "$dir" ]]; then
+    warn "antidote: pin: unable to clone $bname"
+    return 1
+  fi
+
+  if [[ -n "$ref" ]]; then
+    sha=$(git_commit_sha "$dir" "$ref")
+    # A shallow clone may not have the object yet, so try fetching it.
+    if [[ -z "$sha" ]]; then
+      git_fetch_ref_try "$dir" "$ref"
+      sha=$(git_commit_sha "$dir" "$ref")
+    fi
+    if [[ -z "$sha" ]]; then
+      warn "antidote: pin: $bname has no commit for '$ref'"
+      return 1
+    fi
+  elif [[ -n "$asof" ]]; then
+    # Walking history needs history. Most clones deepened themselves at
+    # clone time or during an update, so this is the pinned and the
+    # opted-out cases only.
+    if git_is_shallow "$dir"; then
+      if zstyle -t ":antidote:bundle:$bname" shallow; then
+        warn "antidote: pin: $bname is held shallow by config, cannot resolve by date"
+        return 1
+      fi
+      # A deepen fired by our own clone pass, or by another antidote run,
+      # may still hold shallow.lock, so losing that race is not a failure.
+      # Re-probe rather than trust the exit status, the way update does.
+      git_unshallow_try "$dir" || git_fetch_try "$dir"
+      if git_is_shallow "$dir"; then
+        warn "antidote: pin: unable to deepen $bname, cannot resolve by date"
+        return 1
+      fi
+    fi
+    pin_asof_ref "$dir" "$branch"
+    sha=$(git_asof_sha "$dir" "$asof" "$REPLY")
+    if [[ -z "$sha" ]]; then
+      warn "antidote: pin: $bname has no commit at or before '$asof'"
+      return 1
+    fi
+  else
+    sha=$(git_config_get "$dir" antidote.pin)
+    [[ -n "$sha" ]] || sha=$(git_sha "$dir")
+  fi
+
+  if (( $#sha != 40 )) || [[ "$sha" != [0-9a-f](#c40) ]]; then
+    warn "antidote: pin: $bname resolved to '$sha', which is not a commit SHA"
+    return 1
+  fi
+  typeset -g REPLY=$sha
+}
+
+### Set, replace, or remove the pin annotation on a bundle line.
+#
+# usage: pin_rewrite_line <line> [<sha>]
+# An empty <sha> removes the pin. Any trailing inline comment and
+# carriage return stay put, and nothing else on the line is reflowed.
+# Sets REPLY.
+#
+pin_rewrite_line() {
+  local line="$1" sha="$2" body tail cr=''
+  local -a match mbegin mend
+
+  if [[ "$line" == *$'\r' ]]; then
+    cr=$'\r'
+    line=${line%$'\r'}
+  fi
+
+  # Split off the first inline comment so an appended pin lands before it
+  # and not inside it. The whitespace run that introduced the comment goes
+  # with the comment, so the gap in front of it survives untouched.
+  body=${line%%[[:space:]]##\#*}
+  tail=${line#$body}
+
+  if [[ "$body" == (#b)(*[[:space:]])pin:[^[:space:]]#(*) ]]; then
+    if [[ -n "$sha" ]]; then
+      body="${match[1]}pin:${sha}${match[2]}"
+    else
+      # Drop the annotation and the whitespace that introduced it.
+      body="${match[1]%%[[:space:]]##}${match[2]}"
+    fi
+  elif [[ -n "$sha" ]]; then
+    body+=" pin:${sha}"
+  fi
+
+  typeset -g REPLY="${body}${tail}${cr}"
+}
+
+### Rewrite bundle lines to pin or unpin them.
+#
+# usage: pin_command <pin|unpin> [<flags>] [<bundle>...]
+# Shared implementation for antidote_pin and antidote_unpin. Reads
+# bundle lines from arguments, stdin, --file, or the plugins file, and
+# writes them back to stdout or, with -i, to the source file.
+#
+pin_command() {
+  local mode="$1"; shift
+  local o_help o_inplace o_force o_file o_asof
+  local input bundlefile bname dir ref branch asof sha bakfile tmpfile dtstmp
+  local -i i count changed=0 failed=0 baknum=1
+  local -a lines
+  local -A shas
+
+  # Everything this command says goes to stderr, because stdout is a
+  # plugins file. Prefix each line with '#' so it stays a legal comment
+  # even when the two streams end up merged, and color it when stderr is
+  # a terminal. Color keys off fd 2: stdout is usually a redirect here, so
+  # asking about it would answer the wrong question.
+  setup_color 2
+  exec 2> >(local line; while IFS= read -r line; do
+    [[ "$line" == '#'* ]] || line="# $line"
+    print -r -- "${fg[cyan]}${line}${reset_color}" >&2
+  done)
+
+  if [[ "$mode" == pin ]]; then
+    zparseopts ${ZPARSEOPTS} -- \
+      h=o_help    -help=h     \
+      i=o_inplace -in-place=i \
+      f=o_force   -force=f    \
+      -file:=o_file           \
+      -as-of:=o_asof          ||
+      return 1
+    asof=${o_asof[2]:-}
+  else
+    zparseopts ${ZPARSEOPTS} -- \
+      h=o_help    -help=h     \
+      i=o_inplace -in-place=i \
+      -file:=o_file           ||
+      return 1
+  fi
+
+  if (( $#o_help )); then
+    usage
+    return
+  fi
+
+  # Same input contract as antidote bundle: arguments, else stdin. Unlike
+  # bundle, empty input falls back to the plugins file, which is what
+  # makes a bare `antidote pin` and -i useful.
+  input=$(collect_input "$@")
+  if [[ -n "$input" ]]; then
+    if (( $#o_file )); then
+      die "antidote: $mode: --file cannot be combined with bundle arguments or stdin"
+    fi
+  else
+    bundlefile=${o_file[2]:-$_ANTIDOTE_BUNDLE_FILE}
+    if [[ ! -r "$bundlefile" ]]; then
+      die "antidote: $mode: cannot read '$bundlefile'"
+    fi
+    input=$(<"$bundlefile")
+  fi
+
+  if (( $#o_inplace )); then
+    if [[ -z "$bundlefile" ]]; then
+      die "antidote: $mode: -i needs a file to write back to, not bundle arguments or stdin"
+    fi
+    if [[ ! -f "$bundlefile" ]]; then
+      die "antidote: $mode: -i requires a regular file, got '$bundlefile'"
+    fi
+  elif [[ -n "$bundlefile" && -e /dev/fd/1 && "$bundlefile" -ef /dev/fd/1 ]]; then
+    die "antidote: $mode: refusing to read and write the same file, use -i"
+  fi
+
+  lines=("${(@f)input}")
+  bundle_parser <<<"$input"
+  bundle_check_critical || return 1
+  if (( _parsed_bundles[__has_errors__] )); then
+    for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+      [[ -n "${_parsed_bundles[$i,__error__]}" ]] || continue
+      warn "antidote: $mode: line ${_parsed_bundles[$i,__lineno__]}: ${_parsed_bundles[$i,__error__]}"
+    done
+    die "antidote: $mode: refusing to rewrite input that does not parse"
+  fi
+
+  # A pin has to come from somewhere, so clone what is missing instead of
+  # reporting it. Discard stdout: kind:clone emits no load script, but the
+  # payload here is bundle lines and must stay clean regardless.
+  if [[ "$mode" == pin ]]; then
+    source <(pin_clone_missing) >/dev/null
+  fi
+
+  count=${_parsed_bundles[__count__]:-0}
+
+  # git rev-parse needs a repo to answer in, so this waits for the clone
+  # pass. Once is enough: the date is the same for every bundle.
+  if [[ -n "$asof" ]]; then
+    for (( i = 1; i <= count; i++ )); do
+      [[ -d "${_parsed_bundles[$i,__dir__]}" ]] || continue
+      pin_validate_asof "${_parsed_bundles[$i,__dir__]}" "$asof" || return 1
+      break
+    done
+  fi
+
+  for (( i = 1; i <= count; i++ )); do
+    [[ "${_parsed_bundles[$i,__type__]}" == (repo|url|ssh_url) ]] || continue
+    ref=${_parsed_bundles[$i,pin]:-}
+    branch=${_parsed_bundles[$i,branch]:-}
+    dir=${_parsed_bundles[$i,__dir__]}
+    bname=${_parsed_bundles[$i,__name__]}
+
+    if [[ "$mode" == unpin ]]; then
+      [[ -n "$ref" ]] || continue
+      pin_rewrite_line "${lines[${_parsed_bundles[$i,__lineno__]}]}"
+      lines[${_parsed_bundles[$i,__lineno__]}]=$REPLY
+      (( changed++ ))
+      continue
+    fi
+
+    # A pin that is already a full SHA only moves under --force. A loose
+    # ref always resolves, since antidote bundle would reject it as is.
+    if (( $#ref == 40 )) && [[ "$ref" == [0-9a-f](#c40) ]] && ! (( $#o_force )); then
+      continue
+    fi
+    (( $#o_force )) && [[ $#ref -eq 40 ]] && ref=''
+
+    if [[ -n "${shas[$dir]}" ]]; then
+      sha=${shas[$dir]}
+    elif pin_resolve_sha "$dir" "$bname" "$ref" "$branch" "$asof"; then
+      sha=$REPLY
+      shas[$dir]=$sha
+    else
+      (( failed++ ))
+      continue
+    fi
+
+    [[ "$sha" == "$ref" ]] && continue
+    pin_rewrite_line "${lines[${_parsed_bundles[$i,__lineno__]}]}" "$sha"
+    lines[${_parsed_bundles[$i,__lineno__]}]=$REPLY
+    (( changed++ ))
+  done
+
+  # Nothing is written when a named bundle could not be resolved, or when
+  # a whole file resolved nothing at all. A partial file is worse than an
+  # error, since it looks pinned.
+  if (( failed )) && { (( $# )) || (( changed == 0 )) }; then
+    die "antidote: $mode: $failed bundle(s) could not be resolved, nothing written"
+  fi
+
+  if (( $#o_inplace )); then
+    # An unchanged rewrite would still cost a backup, and a backup taken
+    # after the fact is a copy of the pinned file rather than the original.
+    if (( changed == 0 )); then
+      warn "antidote: $mode: nothing to do in '$bundlefile'"
+      return 0
+    fi
+    dtstmp=$(date -u '+%Y%m%d_%H%M%S')
+    tmpfile="${bundlefile}.${dtstmp}.$$"
+    bakfile="${bundlefile:r}.${dtstmp}.bak"
+    # Timestamps are second-granularity, so two runs in the same second
+    # must not leave the earlier backup as the one that gets clobbered.
+    while [[ -e "$bakfile" ]]; do
+      (( baknum++ ))
+      bakfile="${bundlefile:r}.${dtstmp}-${baknum}.bak"
+    done
+    printf '%s\n' "${lines[@]}" >| "$tmpfile" ||
+      die "antidote: $mode: unable to write '$tmpfile'"
+    command mv -f "$bundlefile" "$bakfile" ||
+      die "antidote: $mode: unable to back up '$bundlefile'"
+    command mv -f "$tmpfile" "$bundlefile" ||
+      die "antidote: $mode: unable to replace '$bundlefile'"
+    warn "antidote: $mode: rewrote $changed bundle(s) in '$bundlefile'"
+    warn "antidote: $mode: backup saved to '$bakfile'"
+    warn "antidote: $mode: run 'antidote bundle' to apply"
+  else
+    printf '%s\n' "${lines[@]}"
+  fi
+  return 0
+}
+
+### Pin bundles to a commit.
+#
+# usage: antidote pin [-h|--help] [-i|--in-place] [-f|--force]
+#                     [--file <path>] [<bundle>...]
+#
+antidote_pin() { pin_command pin "$@" }
+
+### Unpin bundles.
+#
+# usage: antidote unpin [-h|--help] [-i|--in-place]
+#                       [--file <path>] [<bundle>...]
+#
+antidote_unpin() { pin_command unpin "$@" }
+
 ##### SNAPSHOTS
 
 ### Save, restore, or list snapshots of cloned bundle state.
@@ -2052,9 +2429,10 @@ snapshot_prune() {
 # when color is off both have to exist and expand to nothing. Blanking
 # them also means an exported reset_color cannot force color on.
 #
+# usage: setup_color [<fd>]
 setup_color() {
   typeset -g _ANTIDOTE_COLOR=''
-  if supports_color; then
+  if supports_color "$@"; then
     typeset -g _ANTIDOTE_COLOR=true
     autoload -Uz colors && colors
   else
@@ -2340,7 +2718,7 @@ antidote() {
   # Tests also have zstyles, but they aren't user facing
   zstyle -s ':antidote:test:env'     LOCALAPPDATA _ANTIDOTE_LOCALAPPDATA || _ANTIDOTE_LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}"
   zstyle -s ':antidote:test:env'     OSTYPE       _ANTIDOTE_OSTYPE       || _ANTIDOTE_OSTYPE=$OSTYPE
-  zstyle -t ':antidote:test'         tty                                 || [[ -t 1 ]] || _ANTIDOTE_IS_TTY=false
+  zstyle -t ':antidote:test'         tty                                 || _ANTIDOTE_IS_TTY=false
   zstyle -T ':antidote:test:git'     autostash                           || _ANTIDOTE_GIT_AUTOSTASH=false
   zstyle -T ':antidote:test:git'     background-deepen                   || _ANTIDOTE_GIT_BG_DEEPEN=false
   zstyle -T ':antidote:test:version' show-sha                            || _ANTIDOTE_VERSION_SHOW_SHA=false
@@ -2402,6 +2780,8 @@ commands:
   list      List cloned bundles
   path      Print the path of a cloned bundle
   snapshot  Save, restore, or list bundle snapshots
+  pin       Pin bundles to a commit
+  unpin     Unpin bundles
   init      Initialize the shell for dynamic bundles
 EOS
 )

@@ -329,6 +329,32 @@ another style**, so changing `path-style` does not force a full re-clone.
 `bundle_dir_cleanup` removes the stale duplicates, but only once the preferred path
 exists, so the only copy is never the one deleted.
 
+## Shallow clones and deepening
+
+`--depth 1` is where a clone starts, not where it stays. Cloning shallow keeps a cold run
+fast, and history arrives afterward without anything waiting on it.
+
+| State                                          | What deepens it                                                                                                                                                                      |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Fresh unpinned clone                           | `zsh_script_clone` runs `git_unshallow_try` disowned (`&!`), so the clone returns immediately                                                                                        |
+| Fresh clone with `min-age`                     | `git_min_age_reset` unshallows in the foreground instead, since it needs history right now to find the commit to reset to                                                            |
+| Still shallow later                            | `update_one_bundle` re-checks with `git_is_shallow` and retries `git_unshallow_try`, falling back to a plain `git_fetch`                                                             |
+| Cloned with a pin                              | Nothing, ever. The pin branch of `zsh_script_clone` never deepens, and `antidote_update` skips pinned bundles before it spawns a worker, so update's catch-up never sees them either |
+| `zstyle ':antidote:bundle:<repo>' shallow yes` | Nothing, by request. Both the clone-time deepen and update's catch-up honor it, though update still fetches: it just does not deepen                                                 |
+
+The background deepen is best effort: a disowned job can lose to a `shallow.lock` held by
+another run, or to a dead network. That is why update re-checks instead of assuming, and
+why the `_try` variant swallows its own errors. Deepening is also skipped on
+`antidote update --dry-run`, where it would be a side effect of a command that promises
+not to have any.
+
+`_ANTIDOTE_GIT_BG_DEEPEN` exists for tests: nothing can `wait` on a disowned job, so the
+`:antidote:test:git background-deepen` zstyle runs the deepen in the foreground instead.
+
+Consequence for anything that walks history, like resolving a commit by date: assume full
+history is normally present, and treat shallow as the pinned or opted-out exception.
+Deepen opportunistically, the way update does, rather than unconditionally.
+
 ## Pins and snapshots
 
 A `pin:<sha>` annotation requires a full 40-char SHA; short SHAs are not guaranteed
@@ -342,6 +368,20 @@ pinning it permanently.
   clone.
 - Removing a pin: handled inside `zsh_script_clone` so it runs in parallel with
   everything else. Unsets the config and checks the branch back out.
+
+`antidote pin` and `antidote unpin` are the other half, and they deliberately do none of
+the above: `pin_command` is a **text transformer**. It reads bundle lines through
+`collect_input`, resolves each pin with `pin_resolve_sha`, and rewrites the annotation with
+`pin_rewrite_line`. It never checks anything out and never touches `antidote.pin`, so the
+plugins file stays the source of truth and the git config stays derived state owned by
+`antidote bundle`. That split is what keeps unpinning coherent: dropping the annotation is
+the whole operation, and the next `bundle` run reconciles the clone to match.
+
+Two consequences fall out of it. `pin` accepts any commit-ish in a `pin:` annotation and
+resolves it to the strict 40-char form the parser demands, so a loose `pin:v1.2.0` is valid
+input to `pin` even though it is an error to `bundle`. And since resolution is memoized per
+`__dir__`, every entry sharing a clone gets the same SHA, which is what
+`check_pin_branch_conflicts` requires.
 
 Snapshots are `snapshot-YYYYmmdd-HHMMSSZ.txt` files under `_ANTIDOTE_SNAPSHOT_DIR`,
 holding `repo kind:clone pin:<sha>` lines. Restore replays each line through
