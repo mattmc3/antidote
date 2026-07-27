@@ -89,9 +89,12 @@ zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/bar/baz/baz.plugin.zsh"'
   assert_success
 }
 
-# The detached fetch has no completion signal, so poll for it.
+# Tests deepen in the foreground, so opt this one back into the real
+# disowned job. It has no completion signal, so poll for it. Polling to
+# completion also leaves nothing running for teardown to trip over.
 @test "a clone kicks off a background unshallow" {
-  ZSTYLES="zstyle ':antidote:bundle:*' shallow no"
+  ZSTYLES="zstyle ':antidote:bundle:*' shallow no
+zstyle ':antidote:test:git' background-deepen yes"
   local dir="$AHOME/fakegitsite.com/pintest/pinme" i
 
   run antidote bundle 'pintest/pinme kind:clone'

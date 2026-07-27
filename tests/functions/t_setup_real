@@ -15,6 +15,11 @@
   # t_teardown's rm -rf of the tempdir
   printf '[gc]\n\tauto = 0\n[maintenance]\n\tauto = false\n' > "$HOME/.gitconfig"
 
+  # unsetting ANTIDOTE_CONFIG drops the test config, so set the deepen
+  # hook here: a disowned fetch outlives its clone and races the same
+  # rm -rf. Real repos have real history, so this is the slow one.
+  zstyle ':antidote:test:git' background-deepen 'no'
+
   # replace test versions of bundle files with real versions
   local file
   for file in .zsh_plugins.txt .zsh_plugins.zsh; do
