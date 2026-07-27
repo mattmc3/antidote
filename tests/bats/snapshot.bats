@@ -54,7 +54,7 @@ zstyle ':antidote:test:snapshot' epoch $1" antidote snapshot save >/dev/null
 # Update auto-saves a new snapshot capturing the restored state.
 @test "update auto-saves a snapshot" {
   save_at_epoch 1000000001
-  tgit -C "$AHOME/fakegitsite.com/foo/baz" fetch --quiet --unshallow
+  tgit_deepen "$AHOME/fakegitsite.com/foo/baz"
   tgit -C "$AHOME/fakegitsite.com/foo/baz" reset --quiet --hard HEAD~1
   ZSTYLES="$ZSTYLES
 zstyle ':antidote:test:snapshot' epoch 1000000002" antidote update &>/dev/null
@@ -191,7 +191,7 @@ zstyle ':antidote:fzf' cmd $PRJDIR/tests/bin/mock_fzf"
 
 @test "restore returns a rolled-back repo to the snapshotted SHA" {
   local bundledir="$AHOME/fakegitsite.com/foo/baz"
-  tgit -C "$bundledir" fetch --quiet --unshallow
+  tgit_deepen "$bundledir"
   local expected_sha
   expected_sha=$(git -C "$bundledir" rev-parse HEAD)
   save_at_epoch 1000000001

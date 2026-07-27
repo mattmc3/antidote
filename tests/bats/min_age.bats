@@ -52,7 +52,7 @@ zstyle ':antidote:bundle:dino/saur' min-age 5000"
 @test "update advances only as far as min-age allows" {
   run antidote bundle 'dino/saur kind:clone'
   assert_success
-  tgit -C "$SAURDIR" fetch --quiet --unshallow
+  tgit_deepen "$SAURDIR"
   local stable
   stable=$(qualifying_sha 200)
   tgit -C "$SAURDIR" reset --quiet --hard "$(git -C "$SAURDIR" rev-list --max-parents=0 HEAD)"

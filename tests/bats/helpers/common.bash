@@ -138,6 +138,14 @@ tgit() {
   HOME="$TESTHOME" git "$@"
 }
 
+# Make a bundle's full history available for a test that needs it. A
+# clone usually deepens itself, in which case --unshallow errors, so ask
+# for the end state rather than running the command blind.
+tgit_deepen() {
+  [ "$(tgit -C "$1" rev-parse --is-shallow-repository)" = false ] && return 0
+  tgit -C "$1" fetch --quiet --unshallow
+}
+
 # SESSION_PRELUDE, when set, is injected after setup. Use it for
 # per-file shorthand. SESSION_SETUP overrides the setup function
 # (default t_setup; real tests use t_setup_real). $status is the exit

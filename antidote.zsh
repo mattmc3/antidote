@@ -1046,7 +1046,13 @@ zsh_script_clone() {
       if (( min_age )); then
         git_min_age_reset "$bundle_path" "$min_age" "$bname" || return 1
       elif ! zstyle -t ":antidote:bundle:$bname" shallow; then
-        git_unshallow_try "$bundle_path" &!
+        # Disowned so the clone returns immediately. Tests run it in the
+        # foreground instead, since nothing can wait on a disowned job.
+        if [[ "$_ANTIDOTE_GIT_BG_DEEPEN" == true ]]; then
+          git_unshallow_try "$bundle_path" &!
+        else
+          git_unshallow_try "$bundle_path"
+        fi
       fi
     fi
   fi
@@ -2173,6 +2179,7 @@ antidote() {
   typeset -g _ANTIDOTE_DEFER_BUNDLE _ANTIDOTE_FPATH_RULE _ANTIDOTE_BUNDLE_FILE
   typeset -g _ANTIDOTE_OSTYPE _ANTIDOTE_LOCALAPPDATA
   typeset -g _ANTIDOTE_VERSION_SHOW_SHA=true _ANTIDOTE_GIT_AUTOSTASH=true
+  typeset -g _ANTIDOTE_GIT_BG_DEEPEN=true
   zstyle -s ':antidote:bat'    opts       _ANTIDOTE_BAT_OPTS
   zstyle -s ':antidote:bundle' file       _ANTIDOTE_BUNDLE_FILE          || _ANTIDOTE_BUNDLE_FILE=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
   zstyle -s ':antidote:bundle' path-style _ANTIDOTE_PATH_STYLE           || _ANTIDOTE_PATH_STYLE=full
@@ -2188,6 +2195,7 @@ antidote() {
   zstyle -s ':antidote:test:env'     LOCALAPPDATA _ANTIDOTE_LOCALAPPDATA || _ANTIDOTE_LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}"
   zstyle -s ':antidote:test:env'     OSTYPE       _ANTIDOTE_OSTYPE       || _ANTIDOTE_OSTYPE=$OSTYPE
   zstyle -T ':antidote:test:git'     autostash                           || _ANTIDOTE_GIT_AUTOSTASH=false
+  zstyle -T ':antidote:test:git'     background-deepen                   || _ANTIDOTE_GIT_BG_DEEPEN=false
   zstyle -T ':antidote:test:version' show-sha                            || _ANTIDOTE_VERSION_SHOW_SHA=false
   # Legacy use of friendly names overrides all
   if zstyle -t ':antidote:bundle' use-friendly-names; then

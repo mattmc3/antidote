@@ -12,10 +12,10 @@ zstyle ':antidote:test:git' autostash off"
   antidote_clone_fixtures
 }
 
-# Roll foo/baz back one commit so the remote is ahead. Clones are
-# depth-1, so unshallow first.
+# Roll foo/baz back one commit so the remote is ahead. Needs history,
+# so make sure the clone is deepened first.
 rollback_foo_baz() {
-  tgit -C "$BAZDIR" fetch --quiet --unshallow
+  tgit_deepen "$BAZDIR"
   tgit -C "$BAZDIR" reset --quiet --hard HEAD~1
 }
 
@@ -73,15 +73,29 @@ zstyle ':antidote:snapshot:automatic' enabled yes"
   [ ! -e "$snapdir" ]
 }
 
-# Deepening a shallow clone is permanent, so a dry run must not do it.
+# Deepening a clone is permanent, so a dry run must not do it. Clone one
+# bundle shallow and hold it there, then drop the hold so a real update
+# would deepen it, and check that only the real update does.
 @test "dry run leaves a shallow clone shallow" {
-  run git -C "$BAZDIR" rev-parse --is-shallow-repository
+  local dir="$AHOME/fakegitsite.com/pintest/pinme"
+  local base="$ZSTYLES"
+  ZSTYLES="$base
+zstyle ':antidote:bundle:pintest/pinme' shallow yes"
+  run antidote bundle 'pintest/pinme kind:clone'
+  assert_success
+  run git -C "$dir" rev-parse --is-shallow-repository
   assert_output "true"
 
+  ZSTYLES="$base"
   run antidote update --dry-run
   assert_success
-  run git -C "$BAZDIR" rev-parse --is-shallow-repository
+  run git -C "$dir" rev-parse --is-shallow-repository
   assert_output "true"
+
+  run antidote update
+  assert_success
+  run git -C "$dir" rev-parse --is-shallow-repository
+  assert_output "false"
 }
 
 # The clone's background deepen can still hold shallow.lock when update
