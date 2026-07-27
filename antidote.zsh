@@ -108,6 +108,7 @@ git_config_get()        { git -C "$1" config --get "$2" 2>/dev/null; }
 git_config_set()        { git -C "$1" config "$2" "$3"; }
 git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
 git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
+git_unshallow()         { git_fetch "$1" --unshallow; }
 git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
 git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
 git_merge_ffonly()      { git -C "$1" merge --quiet --ff-only "$2"; }
@@ -159,7 +160,7 @@ min_age_days() {
 git_min_age_reset() {
   local dir="$1" days="$2" bname="$3" sha
   if git_is_shallow "$dir"; then
-    git_fetch "$dir" --unshallow || return 1
+    git_unshallow "$dir" || return 1
   fi
   sha=$(git_min_age_sha "$dir" "$days" HEAD)
   if [[ -z "$sha" ]]; then
@@ -1043,6 +1044,8 @@ zsh_script_clone() {
       git_clone $bundle_path "${branch_flag[@]}" $giturl || return 1
       if (( min_age )); then
         git_min_age_reset "$bundle_path" "$min_age" "$bname" || return 1
+      elif ! zstyle -t ":antidote:bundle:$bname" shallow; then
+        ( git_unshallow "$bundle_path" ) &>/dev/null &!
       fi
     fi
   fi
@@ -1519,14 +1522,13 @@ update_one_bundle() {
   min_age_days "$repo" || rc=1
   min_age=$REPLY
 
-  # Unshallow the repo if needed. Never during a dry run: deepening the
-  # clone is permanent, and a plain fetch still sets FETCH_HEAD for the
-  # comparison below.
+  # The clone's background deepen is best effort, so pick up anything
+  # still shallow. Not for a bundle held shallow on purpose, and never
+  # on a dry run, where deepening would be a side effect.
   if (( rc == 0 )); then
-    if (( $#o_dry_run )); then
-      git_fetch "$bundledir" || rc=1
-    elif git_is_shallow "$bundledir"; then
-      git_fetch "$bundledir" --unshallow || rc=1
+    if ! (( $#o_dry_run )) && ! zstyle -t ":antidote:bundle:$repo" shallow \
+       && git_is_shallow "$bundledir"; then
+      git_unshallow "$bundledir" || rc=1
     else
       git_fetch "$bundledir" || rc=1
     fi
@@ -2182,8 +2184,8 @@ antidote() {
   # Tests also have zstyles, but they aren't user facing
   zstyle -s ':antidote:test:env'     LOCALAPPDATA _ANTIDOTE_LOCALAPPDATA || _ANTIDOTE_LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}"
   zstyle -s ':antidote:test:env'     OSTYPE       _ANTIDOTE_OSTYPE       || _ANTIDOTE_OSTYPE=$OSTYPE
-  zstyle -T ':antidote:test:git'     autostash                          || _ANTIDOTE_GIT_AUTOSTASH=false
-  zstyle -T ':antidote:test:version' show-sha                           || _ANTIDOTE_VERSION_SHOW_SHA=false
+  zstyle -T ':antidote:test:git'     autostash                           || _ANTIDOTE_GIT_AUTOSTASH=false
+  zstyle -T ':antidote:test:version' show-sha                            || _ANTIDOTE_VERSION_SHOW_SHA=false
   # Legacy use of friendly names overrides all
   if zstyle -t ':antidote:bundle' use-friendly-names; then
     _ANTIDOTE_PATH_STYLE=short

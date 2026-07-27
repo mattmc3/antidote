@@ -71,12 +71,6 @@ fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/bar/baz" )
 zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/bar/baz/baz.plugin.zsh"'
 }
 
-@test "bad kind values fail" {
-  run antidote bundle <<<$'foo/bar\nfoo/baz kind:whoops'
-  assert_failure 1
-  assert_line "# antidote: error: unexpected kind value: 'whoops'"
-}
-
 # A failed clone must not take down the rest of the bundle run: the
 # exit code reports the failure, the good bundles still come through.
 @test "a bad repo mixed with good ones fails but emits the good" {
@@ -93,4 +87,40 @@ zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/bar/baz/baz.plugin.zsh"'
   assert_success
   run antidote bundle 'foo/baz kind:clone'
   assert_success
+}
+
+# The detached fetch has no completion signal, so poll for it.
+@test "a clone kicks off a background unshallow" {
+  ZSTYLES="zstyle ':antidote:bundle:*' shallow no"
+  local dir="$AHOME/fakegitsite.com/pintest/pinme" i
+
+  run antidote bundle 'pintest/pinme kind:clone'
+  assert_success
+
+  for i in {1..100}; do
+    [[ "$(git -C "$dir" rev-parse --is-shallow-repository)" == false ]] && break
+    sleep 0.1
+  done
+  run git -C "$dir" rev-parse --is-shallow-repository
+  assert_output "false"
+}
+
+# A pin names one commit, so there is no history worth fetching.
+@test "a pinned clone is left shallow" {
+  ZSTYLES="zstyle ':antidote:bundle:*' shallow no"
+  local dir="$AHOME/fakegitsite.com/pintest/pinme"
+
+  run antidote bundle "pintest/pinme kind:clone pin:$PIN_V110"
+  assert_success
+
+  sleep 1
+  run git -C "$dir" rev-parse --is-shallow-repository
+  assert_output "true"
+}
+
+# Keep at bottom of file because this messes up syntax highlighting
+@test "bad kind values fail" {
+  run antidote bundle <<<$'foo/bar\nfoo/baz kind:whoops'
+  assert_failure 1
+  assert_line "# antidote: error: unexpected kind value: 'whoops'"
 }

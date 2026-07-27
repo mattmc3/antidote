@@ -233,6 +233,19 @@ zstyle \*(Aq:antidote:bundle\*(Aq path\-style escaped\&  # https\-COLON\-\-SLASH
 .fi
 .if n .RE
 .sp
+Bundles are cloned shallow so the first run is fast, then deepened by a background fetch that nothing waits on. To hold a bundle at its shallow clone and skip that fetch:
+.sp
+.if n .RS 4
+.nf
+.fam C
+zstyle \*(Aq:antidote:bundle:*\*(Aq shallow yes\&                       # every bundle
+zstyle \*(Aq:antidote:bundle:romkatv/powerlevel10k\*(Aq shallow yes\&   # just one
+.fam
+.fi
+.if n .RE
+.sp
+The default is \f(CRno\fP. A shallow bundle only gives up the list of individual commits in the \fBantidote\-update\fP report. See \fBantidote\-bundle\fP(1).
+.sp
 The default bundle file is \f(CR${ZDOTDIR:\-$HOME}/.zsh_plugins.txt\fP. This can be overridden with the following \f(CRzstyle\fP:
 .sp
 .if n .RS 4

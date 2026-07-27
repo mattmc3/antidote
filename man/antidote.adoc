@@ -120,6 +120,15 @@ zstyle ':antidote:bundle' path-style short    # owner/repo
 zstyle ':antidote:bundle' path-style escaped  # https-COLON--SLASH--SLASH-github.com-SLASH-owner-SLASH-repo
 ----
 
+Bundles are cloned shallow so the first run is fast, then deepened by a background fetch that nothing waits on. To hold a bundle at its shallow clone and skip that fetch:
+
+----
+zstyle ':antidote:bundle:*' shallow yes                       # every bundle
+zstyle ':antidote:bundle:romkatv/powerlevel10k' shallow yes   # just one
+----
+
+The default is `no`. A shallow bundle only gives up the list of individual commits in the *antidote-update* report. See *antidote-bundle*(1).
+
 The default bundle file is `${ZDOTDIR:-$HOME}/.zsh_plugins.txt`. This can be overridden with the following `zstyle`:
 
 ----
