@@ -167,6 +167,13 @@ EOS
   assert_line "sourcing bar.plugin.zsh from foo/bar..."
 }
 
+# The cache key carries a version literal, since an upgrade can land
+# with the same path and mtime. bumpver updates it; this catches a miss.
+@test "the cached version literal matches antidote's version" {
+  run grep -c "antidote:$EXPECTED_VERSION" "$PRJDIR/functions/antidote-bundle-dynamic"
+  assert_output "1"
+}
+
 # A changed config file mtime hashes to a different cache file.
 @test "cache regenerates when the config file is newer" {
   run_session <<'EOS'
