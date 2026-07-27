@@ -10,7 +10,7 @@
 function antidote {
   0=${(%):-%x}
   if ! typeset -f antidote-dispatch > /dev/null; then
-    source ${0:A:h}/antidote.zsh
+    source ${0:a:h}/antidote.zsh
   fi
   antidote-dispatch "$@"
 }

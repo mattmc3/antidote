@@ -2,6 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+- Fix antidote commands failing with `function definition file not found` after a package manager upgrade ([#271](https://github.com/mattmc3/antidote/issues/271)). Setup resolved its own install path through symlinks, so a Homebrew shell recorded the versioned keg directory instead of the stable `share/antidote` link. Upgrading deleted that keg out from under every running shell, breaking any function not yet autoloaded.
+
 ## [v2.2.0]
 
 - Add `zstyle ':antidote:bundle:*' min-age <days>` to keep bundles a fixed number of days behind upstream, giving a bad push time to be noticed before it reaches your shell. Clones and updates stop at the newest commit that has been upstream long enough. A plugin with no commit that old is still installed at its latest commit. Pinned bundles ignore it. Commit dates are attacker-controlled, so treat this as a cushion, not a supply chain guarantee, and use `pin:` when you need a fixed commit.

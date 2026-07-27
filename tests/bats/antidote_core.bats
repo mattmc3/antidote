@@ -38,6 +38,57 @@ EOS
 still alive: yes"
 }
 
+# functions/antidote exists so antidote can be autoloaded from fpath
+# without sourcing antidote.zsh up front. The first call sources it.
+@test "antidote can be lazy-loaded from its functions dir" {
+  cat >"$BATS_TEST_TMPDIR/probe.zsh" <<EOS
+fpath=( "$PRJDIR/functions" \$fpath )
+autoload -Uz antidote
+echo "dispatch before: \$+functions[antidote-dispatch]"
+antidote --version
+EOS
+  run env HOME="$TESTHOME" zsh -f "$BATS_TEST_TMPDIR/probe.zsh"
+  assert_success
+  assert_line --index 0 "dispatch before: 0"
+  assert_line --regexp '^antidote version [0-9]+\.[0-9]+\.[0-9]+ \([a-f0-9]+\)$'
+}
+
+# Homebrew et al install antidote behind a versioned symlink. Setup must
+# record the link path, not its target, or a shell that started under the
+# old version loses the functions dir the moment the target is replaced.
+@test "sourcing through a symlinked install dir keeps the link path" {
+  local libdir="$BATS_TEST_TMPDIR/kegs/1.0.0"
+  mkdir -p "$libdir"
+  cp "$PRJDIR/antidote.zsh" "$libdir"
+  cp -R "$PRJDIR/functions" "$libdir"
+  ln -s kegs/1.0.0 "$BATS_TEST_TMPDIR/opt"
+  run env HOME="$TESTHOME" zsh -fc \
+    "source '$BATS_TEST_TMPDIR/opt/antidote.zsh'; print -r -- \$fpath[1]"
+  assert_success
+  assert_output "$BATS_TEST_TMPDIR/opt/functions"
+}
+
+@test "commands still load after the symlink target is replaced" {
+  local kegs="$BATS_TEST_TMPDIR/kegs"
+  mkdir -p "$kegs/1.0.0"
+  cp "$PRJDIR/antidote.zsh" "$kegs/1.0.0"
+  cp -R "$PRJDIR/functions" "$kegs/1.0.0"
+  cp -R "$kegs/1.0.0" "$kegs/2.0.0"
+  ln -s kegs/1.0.0 "$BATS_TEST_TMPDIR/opt"
+  cat >"$BATS_TEST_TMPDIR/probe.zsh" <<EOS
+source "$BATS_TEST_TMPDIR/opt/antidote.zsh"
+antidote --version >/dev/null   # load the dispatcher from 1.0.0
+rm "$BATS_TEST_TMPDIR/opt"      # upgrade: repoint the link, drop the old keg
+ln -s kegs/2.0.0 "$BATS_TEST_TMPDIR/opt"
+rm -rf "$kegs/1.0.0"
+antidote help >/dev/null
+echo "help exit: \$?"
+EOS
+  run env HOME="$TESTHOME" PAGER=cat TERM=dumb zsh -f "$BATS_TEST_TMPDIR/probe.zsh"
+  assert_success
+  assert_output "help exit: 0"
+}
+
 @test "no args displays help and exits 2" {
   run_session <<'EOS'
 echo "antidote fn defined: $+functions[antidote]"

@@ -5,12 +5,22 @@
 # https://antidote.sh
 # run `antidote -h` for usage
 #
+# This file exists so antidote can be lazy-loaded from its functions
+# directory, without sourcing antidote.zsh up front:
+#
+#   fpath=(/path/to/antidote/functions $fpath)
+#   autoload -Uz antidote
+#
+# The first antidote call then sources antidote.zsh to define the rest.
+# Sourcing antidote.zsh directly reaches the same place via antidote-setup,
+# which autoloads every file in this directory.
+#
 # Note: this gets overridden if using `antidote init`.
 #
 #function antidote {
   0=${(%):-%x}
   if ! typeset -f antidote-dispatch > /dev/null; then
-    source ${0:A:h:h}/antidote.zsh
+    source ${0:a:h:h}/antidote.zsh
   fi
   antidote-dispatch "$@"
 #}

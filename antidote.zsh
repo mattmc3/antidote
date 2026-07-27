@@ -15,7 +15,7 @@ fi
 0=${(%):-%N}
 if [[ ":${ZSH_EVAL_CONTEXT}:" == *:file(|code):* ]]; then
   typeset -f antidote-setup &>/dev/null && unfunction antidote-setup
-  builtin autoload -Uz ${0:A:h}/functions/antidote-setup
+  builtin autoload -Uz ${0:a:h}/functions/antidote-setup
   antidote-setup
   return 0
 fi
@@ -2183,7 +2183,7 @@ antidote() {
 
 # Initialize antidote global variables from zstyles and environment.
 {
-  typeset -g ANTIDOTE_ZSH="${0:A}"
+  typeset -g ANTIDOTE_ZSH="${0:a}"
   typeset -g _ANTIDOTE_VERSION="2.2.0"
   typeset -g ANTIDOTE_TMPDIR=${ANTIDOTE_TMPDIR:-$TMPDIR}
 

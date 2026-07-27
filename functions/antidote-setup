@@ -6,9 +6,9 @@
   typeset -gH ANTIDOTE_ZSH="${0:a:h:h}/antidote.zsh"
 
   typeset -gU fpath
-  fpath=( "${0:A:h}" $fpath )
+  fpath=( "${0:a:h}" $fpath )
   local fn
-  for fn in ${0:A:h}/*; do
+  for fn in ${0:a:h}/*; do
     [[ ${fn:t} != 'antidote-setup' ]] || continue
     if typeset -f ${fn:t} > /dev/null; then
       unfunction -- ${fn:t}
@@ -19,8 +19,8 @@
   done
 
   # man pages
-  if [[ "$MANPATH" != *"${0:A:h:h}/man"* ]]; then
-    export MANPATH="${0:A:h:h}/man:$MANPATH"
+  if [[ "$MANPATH" != *"${0:a:h:h}/man"* ]]; then
+    export MANPATH="${0:a:h:h}/man:$MANPATH"
   fi
 
   builtin autoload -Uz is-at-least

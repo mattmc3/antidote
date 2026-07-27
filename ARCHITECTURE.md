@@ -15,7 +15,7 @@ ahead of time.
 
 | Path                                         | Role                                                                              |
 | -------------------------------------------- | --------------------------------------------------------------------------------- |
-| [antidote](antidote)                         | Sourceable/executable shim. Sources `antidote.zsh`, calls `antidote-dispatch`     |
+| [antidote](antidote)                         | Standalone shim. Sources `antidote.zsh`, calls `antidote-dispatch`. Not on `PATH` |
 | [antidote.zsh](antidote.zsh)                 | The whole engine. Runs as a **subprocess**, not in the user's shell (~2200 lines) |
 | [functions/](functions/)                     | Autoloaded functions that must run **in the parent shell**                        |
 | [templates/config.zsh](templates/config.zsh) | User-facing config template documenting every public zstyle                       |
@@ -28,7 +28,7 @@ ahead of time.
 
 | File                      | Runs in | Purpose                                                                       |
 | ------------------------- | ------- | ----------------------------------------------------------------------------- |
-| `antidote`                | parent  | Function form of the shim                                                     |
+| `antidote`                | parent  | Function form of the shim, so `autoload -Uz antidote` works from fpath        |
 | `antidote-setup`          | parent  | Sets `ANTIDOTE_ZSH`, fpath, MANPATH, `_adote_zparopt_flags`. Called on source |
 | `antidote-dispatch`       | parent  | Router. Decides parent-shell function vs subprocess                           |
 | `antidote-zsh`            | parent  | Serializes zstyles into env, runs `zsh $ANTIDOTE_ZSH "$@"`                    |
@@ -38,6 +38,12 @@ ahead of time.
 | `antidote-home`           | parent  | `antidote home`: resolves `ANTIDOTE_HOME` without a subprocess                |
 | `antidote-bundle-dynamic` | parent  | Dynamic-mode `antidote bundle` with the `.dynamic` script cache               |
 | `_antidote`               | parent  | Zsh completions                                                               |
+
+Two shims, two load styles. Sourcing [antidote.zsh](antidote.zsh) runs `antidote-setup`,
+which autoloads all of [functions/](functions/). Or put that directory on `fpath` and
+`autoload -Uz antidote`, which loads only [functions/antidote](functions/antidote) and
+sources the engine on first call. The top-level [antidote](antidote) wraps the same body
+in a real function plus a call, so it works as a standalone script too.
 
 The dividing line: if the code must mutate the user's shell (`source`, `fpath`, `PATH`,
 `autoload`), it belongs in `functions/`. Everything else belongs in `antidote.zsh`.
@@ -451,6 +457,11 @@ from a real bug.
   actually detected.
 - **Never `local path`/`fpath`/`cdpath`/`manpath`.** They shadow the tied Zsh globals,
   and the failure shows up far from the declaration.
+- **`${0:a}` when antidote locates its own code, `${0:A}` when it touches files it
+  manages.** `:A` resolves symlinks, `:a` only normalizes. Resolving Homebrew's
+  `opt/antidote` link records the versioned keg, which `brew upgrade` then deletes out
+  from under running shells ([#271](https://github.com/mattmc3/antidote/issues/271)).
+  Bundle dirs and the static file want the real inode, so those stay `:A`.
 - Hot-path helpers return values in `REPLY` (scalar) or `reply` (array) rather than on
   stdout, because capturing stdout costs a fork. Write them as a single folded `typeset
 -g REPLY=value`, never a bare `REPLY=value`: the test suite runs under
