@@ -847,6 +847,39 @@ bundle_dir_cleanup() {
   fi
 }
 
+### Remove the empty directories a failed clone left behind.
+#
+# git deletes the clone target itself but keeps any parent directory it
+# had to create, and those leftovers then look like an existing clone.
+# Everything here goes through rmdir, which refuses a non-empty
+# directory, so a real bundle can never be removed by mistake.
+#
+# Always succeeds. Pruning nothing is the normal case, and callers run as
+# parallel jobs whose status becomes the bundle run's exit code.
+#
+clone_dir_prune() {
+  local dir
+
+  # never prune the home itself, or anything outside it
+  [[ "$1" == "$ANTIDOTE_HOME"/?* ]] || return 0
+
+  # a clone is never leftovers, and .git carries empty dirs of its own
+  # (objects/info, refs/tags) that rmdir would happily take.
+  [[ -e "$1/.git" ]] && return 0
+
+  # descending name order puts children ahead of their parents
+  for dir in "$1"/**/*(ND/On) "$1"; do
+    [[ "$dir" == *"/.git"(|/*) ]] && continue
+    rmdir "$dir" 2>/dev/null
+  done
+  dir=${1:h}
+  while [[ "$dir" == "$ANTIDOTE_HOME"/?* ]]; do
+    rmdir "$dir" 2>/dev/null || break
+    dir=${dir:h}
+  done
+  return 0
+}
+
 ##### MATRIX PASSES
 
 ### Remove legacy path-style duplicates for all bundles in the matrix.
@@ -1028,22 +1061,28 @@ zsh_script_clone() {
 
   [[ "$btype" == (repo|url|ssh_url) ]] || return 0
 
+  # An older failed clone can leave empty dirs that pass the check below.
+  if [[ -d "$bundle_path" && ! -e "$bundle_path/.git" ]]; then
+    clone_dir_prune "$bundle_path"
+  fi
+
   # handle cloning repo bundles
   if [[ ! -e "$bundle_path" ]]; then
     giturl=${bundle[__url__]:-}
     [[ -z "$giturl" ]] && { tourl $bundle_str; giturl=$REPLY }
     warn "# antidote cloning $bname..."
     if [[ -n "$pin" ]]; then
-      git_clone $bundle_path $giturl || return 1
+      git_clone $bundle_path $giturl || { clone_dir_prune $bundle_path; return 1 }
       if ! git_checkout_pin "$bundle_path" "$pin" "$bname"; then
         del "$bundle_path"
+        clone_dir_prune "$bundle_path"
         return 1
       fi
       [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin
     else
       branch_flag=()
       [[ -n "$branch" ]] && branch_flag=(-b "$branch")
-      git_clone $bundle_path "${branch_flag[@]}" $giturl || return 1
+      git_clone $bundle_path "${branch_flag[@]}" $giturl || { clone_dir_prune $bundle_path; return 1 }
       if (( min_age )); then
         git_min_age_reset "$bundle_path" "$min_age" "$bname" || return 1
       elif ! zstyle -t ":antidote:bundle:$bname" shallow; then

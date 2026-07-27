@@ -80,6 +80,72 @@ zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/bar/baz/baz.plugin.zsh"'
   assert_line 'source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"'
 }
 
+# git removes the clone target on failure but keeps the parent dirs it
+# had to create, so a mistyped bundle salts ANTIDOTE_HOME with empties.
+@test "a failed clone leaves no directories behind" {
+  local before after
+  before=$(cd "$AHOME" && find . -type d | sort)
+  run antidote bundle 'https://fakegitsite.com/zsh-users/zsh-autosuggestions/src/foo.zsh'
+  assert_failure 1
+  after=$(cd "$AHOME" && find . -type d | sort)
+  run diff <(printf '%s\n' "$before") <(printf '%s\n' "$after")
+  assert_success
+}
+
+# Those leftovers used to satisfy the "already cloned" check, so fixing
+# the bundle line produced a static file pointing at an empty directory.
+@test "a corrected bundle still clones after a failed one" {
+  antidote bundle 'https://fakegitsite.com/zsh-users/zsh-autosuggestions/src/foo.zsh' &>/dev/null || true
+  run antidote bundle zsh-users/zsh-autosuggestions
+  assert_success
+  subenv_output ANTIDOTE_HOME
+  assert_line 'source "$ANTIDOTE_HOME/fakegitsite.com/zsh-users/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh"'
+  [ -f "$AHOME/fakegitsite.com/zsh-users/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh" ]
+}
+
+# A clone carries empty dirs of its own inside .git (objects/info,
+# refs/tags), which rmdir would take. Pruning must never enter one.
+@test "pruning leaves a real clone alone" {
+  local repo="$AHOME/fakegitsite.com/foo/bar"
+  local before after
+  before=$(find "$repo" | sort)
+  run antidote __private__ clone_dir_prune "$repo"
+  assert_success
+  after=$(find "$repo" | sort)
+  run diff <(printf '%s\n' "$before") <(printf '%s\n' "$after")
+  assert_success
+}
+
+# Pruning walks upward, so it must refuse the home itself and anything
+# living outside it.
+@test "pruning stays inside ANTIDOTE_HOME" {
+  mkdir -p "$AHOME/junk/chain" "$TESTHOME/outside/a/b"
+
+  run antidote __private__ clone_dir_prune "$AHOME"
+  assert_success
+  [ -d "$AHOME" ]
+
+  run antidote __private__ clone_dir_prune "$TESTHOME/outside"
+  assert_success
+  [ -d "$TESTHOME/outside/a/b" ]
+
+  run antidote __private__ clone_dir_prune "$AHOME/junk/chain"
+  assert_success
+  [ ! -d "$AHOME/junk" ]
+}
+
+# Pruning always succeeds. Its callers are parallel jobs whose status
+# becomes the bundle run's exit code, so halting early is not a failure.
+@test "pruning succeeds when it halts on a non-empty parent" {
+  mkdir -p "$AHOME/site/junk/chain" "$AHOME/site/keep"
+  echo 'x' >"$AHOME/site/keep/f.zsh"
+
+  run antidote __private__ clone_dir_prune "$AHOME/site/junk/chain"
+  assert_success
+  [ ! -d "$AHOME/site/junk" ]
+  [ -f "$AHOME/site/keep/f.zsh" ]
+}
+
 # A bundle file of only kind:clone entries emits nothing, but that is
 # success, not failure.
 @test "clone-only bundles succeed with no output" {
