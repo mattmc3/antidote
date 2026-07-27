@@ -89,6 +89,16 @@ zsh-defer source "$ANTIDOTE_HOME/fakegitsite.com/bar/baz/baz.plugin.zsh"'
   assert_success
 }
 
+# A theme repo can ship more than one .zsh-theme (powerlevel10k also
+# ships powerlevel9k). Source the one named for the repo, not both.
+@test "a theme repo sources only the theme named for the repo" {
+  run antidote bundle themes/ohmytheme
+  subenv_output ANTIDOTE_HOME
+  expect '# antidote cloning themes/ohmytheme...
+fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/themes/ohmytheme" )
+source "$ANTIDOTE_HOME/fakegitsite.com/themes/ohmytheme/ohmytheme.zsh-theme"'
+}
+
 # Tests deepen in the foreground, so opt this one back into the real
 # disowned job. It has no completion signal, so poll for it. Polling to
 # completion also leaves nothing running for teardown to trip over.

@@ -231,7 +231,8 @@ export PLUGINDIR=$T_TEMPDIR/initfiles/myplugin  # subenv is a subprocess
 mkdir -p $PLUGINDIR/lib
 touch $PLUGINDIR/myplugin.plugin.zsh $PLUGINDIR/whatever.plugin.zsh
 touch $PLUGINDIR/file.zsh $PLUGINDIR/file.sh $PLUGINDIR/file.bash
-touch $PLUGINDIR/mytheme.zsh-theme $PLUGINDIR/README.md $PLUGINDIR/file
+touch $PLUGINDIR/myplugin.zsh-theme $PLUGINDIR/mytheme.zsh-theme
+touch $PLUGINDIR/README.md $PLUGINDIR/file
 touch $PLUGINDIR/lib/lib1.zsh $PLUGINDIR/lib/lib2.zsh $PLUGINDIR/lib/lib3.zsh
 antidote __private__ initfiles $PLUGINDIR | subenv PLUGINDIR
 rm $PLUGINDIR/myplugin.plugin.zsh
@@ -243,6 +244,8 @@ antidote __private__ initfiles $PLUGINDIR | subenv PLUGINDIR
 rm $PLUGINDIR/file.sh
 antidote __private__ initfiles $PLUGINDIR | subenv PLUGINDIR
 antidote __private__ initfiles $PLUGINDIR/lib | subenv PLUGINDIR
+rm $PLUGINDIR/myplugin.zsh-theme
+antidote __private__ initfiles $PLUGINDIR | subenv PLUGINDIR
 rm $PLUGINDIR/mytheme.zsh-theme
 antidote __private__ initfiles $PLUGINDIR; echo "no match exit: $?"
 mkdir -p $T_TEMPDIR/initfiles/foo
@@ -253,10 +256,11 @@ $PLUGINDIR/myplugin.plugin.zsh
 $PLUGINDIR/whatever.plugin.zsh
 $PLUGINDIR/file.zsh
 $PLUGINDIR/file.sh
-$PLUGINDIR/mytheme.zsh-theme
+$PLUGINDIR/myplugin.zsh-theme
 $PLUGINDIR/lib/lib1.zsh
 $PLUGINDIR/lib/lib2.zsh
 $PLUGINDIR/lib/lib3.zsh
+$PLUGINDIR/mytheme.zsh-theme
 no match exit: 1
 empty exit: 1
 EOF

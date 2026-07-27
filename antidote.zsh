@@ -604,6 +604,7 @@ initfiles() {
   [[ $#found -gt 0 ]] || found=($dir/*.plugin.zsh(N))
   [[ $#found -gt 0 ]] || found=($dir/*.zsh(N))
   [[ $#found -gt 0 ]] || found=($dir/*.sh(N))
+  [[ $#found -gt 0 ]] || found=($dir/${dir:A:t}.zsh-theme(N))
   [[ $#found -gt 0 ]] || found=($dir/*.zsh-theme(N))
   typeset -ga reply=(${(u)found[@]})
   (( $#reply )) || return 1

@@ -376,7 +376,17 @@ setup_fixture_foo_bar() {
 }
 
 setup_fixture_themes_ohmytheme() {
+  local dir
   make_fixture "https://fakegitsite.com/themes/ohmytheme" "zsh-theme"
+  dir=$(get_fixture_dir "https://fakegitsite.com/themes/ohmytheme")
+
+  # A second theme in the root, like powerlevel10k ships powerlevel9k.
+  # Only the one named for the repo should be sourced.
+  cat > "$dir/oldtheme.zsh-theme" <<EOF
+echo "sourcing oldtheme.zsh-theme from themes/ohmytheme..."
+EOF
+  touch -t 202601010000 "$dir/oldtheme.zsh-theme"
+  commit_and_record "$dir" "themes/ohmytheme-updated" "Add legacy theme file"
 }
 
 # setup_fixture_zsh_users_zsh_bench() {
