@@ -109,6 +109,7 @@ git_config_set()        { git -C "$1" config "$2" "$3"; }
 git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
 git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
 git_unshallow()         { git_fetch "$1" --unshallow; }
+git_unshallow_try()     { command "$_ANTIDOTE_GIT_CMD" -C "$1" fetch --quiet --unshallow &>/dev/null }
 git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
 git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
 git_merge_ffonly()      { git -C "$1" merge --quiet --ff-only "$2"; }
@@ -1045,7 +1046,7 @@ zsh_script_clone() {
       if (( min_age )); then
         git_min_age_reset "$bundle_path" "$min_age" "$bname" || return 1
       elif ! zstyle -t ":antidote:bundle:$bname" shallow; then
-        ( git_unshallow "$bundle_path" ) &>/dev/null &!
+        git_unshallow_try "$bundle_path" &!
       fi
     fi
   fi
@@ -1524,11 +1525,13 @@ update_one_bundle() {
 
   # The clone's background deepen is best effort, so pick up anything
   # still shallow. Not for a bundle held shallow on purpose, and never
-  # on a dry run, where deepening would be a side effect.
+  # on a dry run, where deepening would be a side effect. Deepening is
+  # opportunistic: a background job may still hold shallow.lock, which
+  # is not an update failure, so fall back to a plain fetch.
   if (( rc == 0 )); then
     if ! (( $#o_dry_run )) && ! zstyle -t ":antidote:bundle:$repo" shallow \
        && git_is_shallow "$bundledir"; then
-      git_unshallow "$bundledir" || rc=1
+      git_unshallow_try "$bundledir" || git_fetch "$bundledir" || rc=1
     else
       git_fetch "$bundledir" || rc=1
     fi

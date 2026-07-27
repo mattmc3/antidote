@@ -84,6 +84,19 @@ zstyle ':antidote:snapshot:automatic' enabled yes"
   assert_output "true"
 }
 
+# The clone's background deepen can still hold shallow.lock when update
+# runs. That is contention, not a failed update.
+@test "update tolerates a shallow.lock held by a background deepen" {
+  ZSTYLES="$ZSTYLES
+zstyle ':antidote:bundle:foo/baz' shallow no"
+  : >"$BAZDIR/.git/shallow.lock"
+
+  run antidote update
+  assert_success
+  refute_output --partial "update failed for 'foo/baz'"
+  refute_output --partial "unexpected git error"
+}
+
 @test "update reports repositories with the same short name separately" {
   rollback_foo_baz
   local other="$AHOME/other.example/foo/baz"
