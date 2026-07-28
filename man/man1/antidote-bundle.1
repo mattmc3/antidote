@@ -2,12 +2,12 @@
 .\"     Title: antidote-bundle
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-07-27
+.\"      Date: 2026-07-28
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE\-BUNDLE" "1" "2026-07-27" "antidote" "Antidote Manual"
+.TH "ANTIDOTE\-BUNDLE" "1" "2026-07-28" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -172,7 +172,7 @@ Bundles are cloned shallow, at a single commit, so the first run is fast, then d
 .nf
 .fam C
 zstyle \*(Aq:antidote:bundle:*\*(Aq shallow yes\&                       # every bundle
-zstyle \*(Aq:antidote:bundle:romkatv/powerlevel10k\*(Aq shallow yes\&   # just one
+zstyle \*(Aq:antidote:bundle:foo/bar\*(Aq shallow yes\&                 # just one
 .fam
 .fi
 .if n .RE

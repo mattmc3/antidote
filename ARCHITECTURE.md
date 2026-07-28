@@ -16,7 +16,7 @@ ahead of time.
 | Path                                         | Role                                                                              |
 | -------------------------------------------- | --------------------------------------------------------------------------------- |
 | [antidote](antidote)                         | Standalone shim. Sources `antidote.zsh`, calls `antidote-dispatch`. Not on `PATH` |
-| [antidote.zsh](antidote.zsh)                 | The whole engine. Runs as a **subprocess**, not in the user's shell (~2200 lines) |
+| [antidote.zsh](antidote.zsh)                 | The whole engine. Runs as a **subprocess**, not in the user's shell (<2000 sloc)  |
 | [functions/](functions/)                     | Autoloaded functions that must run **in the parent shell**                        |
 | [templates/config.zsh](templates/config.zsh) | User-facing config template documenting every public zstyle                       |
 | [man/\*.adoc](man/)                          | Man page sources. `man/man1/*.1` is generated, never edit it                      |
@@ -126,7 +126,7 @@ Sections in file order. Grep the banner text to jump.
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | (top)                        | Zsh guard, sourced-vs-executed branch, config file source, `ANTIDOTE_ZSTYLES` eval, `:antidote:test setopts`                                                        |
 | `OUTPUT HELPERS`             | `die`, `say`, `warn`, `json_escape`, `confirm`                                                                                                                      |
-| `GIT HELPERS`                | `gits()` error-capturing wrapper, `gitq()` quiet, `gitsay()` value-on-stdout + `git_*` one-liners, `git_checkout_pin`, `git_upstream_ref`, `git_rebase`             |
+| `GIT HELPERS`                | `gits()` wrapper, `gitq()` quiet, `gitsay()` value-on-stdout + `git_*` one-liners, `git_checkout_pin`, `git_upstream_ref`, `git_rebase`, `git_reset_to`             |
 | `BUNDLE DISCOVERY & CLONING` | `find_bundles`, `bulk_clone`                                                                                                                                        |
 | `BUNDLE PARSER`              | `parse_using_directive`, `expand_using_subplugin`, `check_pin_branch_conflicts`, `bundle_parser`, `bundle_parser_serialize`                                         |
 | `INFO & USAGE`               | `version`, `diagnostics`, `usage`                                                                                                                                   |
@@ -249,6 +249,70 @@ passed as arguments in Zsh. `bundle_scripter` quotes values with `(q)`/`(qq)` wh
 serializing rows into those arg lists, which keeps spaces and glob characters in user
 input from turning into code.
 
+### Cloning and the background deepen
+
+Four processes deep, with the parent blocked on a pipe it cannot see. Worth a diagram,
+because the shape is what makes the deepen easy to get wrong.
+
+```mermaid
+sequenceDiagram
+    participant sh as your shell
+    participant sub as antidote.zsh (subprocess)
+    participant job as zsh_script job (&)
+    participant git as git clone
+    participant deep as deepen (&!, disowned)
+
+    sh->>sub: $(antidote bundle ...) or source <(...)
+    Note over sh,sub: capture reads to EOF, so it waits on<br/>every process still holding the write end
+    sub->>job: source <(bulk_clone): one job per missing repo
+    job->>git: git clone --depth 1 --no-local --recurse-submodules
+    git-->>job: shallow clone, one commit
+    job->>deep: git fetch --unshallow, disowned, fds redirected
+    job-->>sub: load script lines on stdout
+    sub-->>sh: script, sourced
+    Note over deep: keeps running after every other<br/>process here has exited
+```
+
+Consequences worth remembering:
+
+- **The deepen's redirections go on the job**, not inside `git_unshallow_try`.
+  Disowning it is not enough: a job still holding the captured stdout keeps the
+  pipe open, and the shell waits out the whole fetch.
+- **Nothing waits on the deepen.** It has no completion signal, so tests poll for
+  the end state rather than waiting. `zstyle ':antidote:test:git' background-deepen`
+  runs it in the foreground instead, since a disowned job cannot be waited on.
+- **A backgrounded job loses its exit status**, which is why clone failure is
+  detected by checking that every repo directory exists, not by a return code.
+- **Anything a clone writes to stdout ends up in the script.** Hence the `gits`
+  wrapper returning output in `REPLY`, and the `#` prefix filter on stderr.
+
+### Updating
+
+```mermaid
+sequenceDiagram
+    participant p as antidote_update
+    participant w as update_one_bundle (&)
+    participant fs as $tmpdir
+
+    p->>p: antidote_list --dirs, skip anything with antidote.pin
+    p->>w: one worker per bundle dir
+    w->>w: git_sha -> oldsha, min_age_days
+    w->>w: deepen if shallow and not held, else git_fetch
+    w->>w: git_upstream_ref
+    Note over w: no remote-tracking ref, eg branch: naming a<br/>tag, means nothing to update to: skip as success
+    w->>w: min-age? merge --ff-only<br/>shallow graft hiding ancestry? git_reset_to<br/>otherwise git_rebase onto the ref
+    w->>w: submodule sync + update, git_sha -> newsha
+    w->>fs: <slot>.output report, <slot>.status exit code
+    p->>p: wait
+    fs-->>p: each slot's output and status, in slot order
+    Note over p,fs: a missing or empty status file counts as<br/>failure, so a dead worker cannot pass
+    p->>p: any failure? report and return 1, no autosnapshot
+```
+
+Workers never print directly: reports go to `$tmpdir/<slot>.output` and the parent
+replays them in slot order, so parallel updates still read sequentially. `<slot>` is
+an index rather than a repo name because two remotes can share a short name.
+
 ## Clone paths and path styles
 
 `_ANTIDOTE_PATH_STYLE` (zstyle `:antidote:bundle path-style`):
@@ -346,7 +410,7 @@ purpose:
 | Context                          | Style                    | Purpose                                                                                         |
 | -------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------- |
 | `:antidote:test:env`             | `LOCALAPPDATA`, `OSTYPE` | Fake the platform so path logic can be tested off-platform                                      |
-| `:antidote:test:git`             | `autostash`              | Drop `--autostash` from `git pull`. Defaults on, so tests opt out                               |
+| `:antidote:test:git`             | `autostash`              | Drop `--autostash` from the update rebase. Defaults on, so tests opt out                        |
 | `:antidote:test:version`         | `show-sha`               | Suppress the git SHA in `version` output. Defaults on                                           |
 | `:antidote:test:snapshot`        | `epoch`                  | Pin the snapshot timestamp so filenames are predictable                                         |
 | `:antidote:test`                 | `setopts`                | A list of extra shell options for antidote's own code, eg: `warn_create_global warn_nested_var` |
@@ -432,9 +496,21 @@ a whole-output golden compare and prints a diff on failure. Golden blocks under 
 
 `tests/bin/init_fixtures.zsh` generates local bare repos under `tests/fixtures` (falling
 back to `/tmp/antidote-fixtures`), plus a gitconfig with `insteadOf` rules mapping
-`fakegitsite.com` to those bares. That is how clone, fetch, and pull get tested with no
-network, which keeps the suite fast and deterministic. The few tests that do need the
-network live in `tests/bats/real/`.
+`fakegitsite.com` to those bares. That is how cloning, fetching, and updating get tested
+with no network, which keeps the suite fast and deterministic. The few tests that need
+the network live in `tests/bats/real/`.
+
+Each fixture exists for a reason, so reach for an existing one before adding another:
+`pintest/pinme` is tagged and has a bad HEAD to pin away from, `dino/saur` has dated
+commits for `min-age`, `sub/parent` carries a submodule, and `devhead/devrepo` has main
+and dev diverged with the bare repo's HEAD on dev. That last one has to diverge, or
+following the wrong branch would look identical to following the right one.
+
+Two things about the fixtures being local paths rather than real URLs. Submodules need
+`protocol.file.allow` set in the generated gitconfig, since git refuses the file
+transport for them by default. And git ignores `--depth` for a plain local path, so the
+submodule's recorded URL is a `file://` URL: a path would silently hide
+`--shallow-submodules` and print a warning on every clone.
 
 Session helpers in `tests/functions/` (`t_setup`, `t_teardown`, `t_setup_real`,
 `subenv`, `bundle_val`, `print_parsed_bundle`, `t_unload_antidote`) are autoloaded by
@@ -522,6 +598,8 @@ House rules for anything written in this repo: this file, the README, `man/*.ado
   local editors: `[functions/antidote-load](functions/antidote-load)`.
 - **Never cite line numbers** in prose; they rot within a commit or two. Name the
   function or the `##### SECTION` banner instead.
+- **Size a file in sloc, not raw lines**, and get the number from `tools/sloc`. Comments
+  and blank lines are not the thing a reader is sizing up.
 - **Hard wrap prose at 88 columns.** Tables and code blocks are exempt.
 - **Explain why, not just what.** The what is readable in the code. When a decision
   looks odd, say what it buys.

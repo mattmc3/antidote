@@ -126,7 +126,7 @@ Bundles are cloned shallow so the first run is fast, then deepened by a backgrou
 
 ----
 zstyle ':antidote:bundle:*' shallow yes                       # every bundle
-zstyle ':antidote:bundle:romkatv/powerlevel10k' shallow yes   # just one
+zstyle ':antidote:bundle:foo/bar' shallow yes                 # just one
 ----
 
 The default is `no`. Setting `min-age` on a bundle overrides it, since searching history for a commit old enough needs the full clone. See *antidote-bundle*(1).
