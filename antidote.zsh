@@ -102,6 +102,11 @@ git() {
     say "$result"
   fi
 }
+
+# Quiet wrapper for calls where a nonzero exit is the expected answer.
+gitq() { command "$_ANTIDOTE_GIT_CMD" "$@" 2>/dev/null; }
+
+# Having all the git usage in one place helps me easily see at a glance what all we run.
 git_checkout_detach()   { git -C "$1" checkout --quiet --detach "$2"; }
 git_clone()             { local d=$1; shift; git clone --depth 1 --no-local --quiet --recurse-submodules --shallow-submodules "$@" "$d"; }
 git_config_get()        { git -C "$1" config --get "$2" 2>/dev/null; }
@@ -109,11 +114,11 @@ git_config_set()        { git -C "$1" config "$2" "$3"; }
 git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
 git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
 git_unshallow()         { git_fetch "$1" --unshallow; }
-git_unshallow_try()     { command "$_ANTIDOTE_GIT_CMD" -C "$1" fetch --quiet --unshallow &>/dev/null }
-git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(git -C "$1" rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]] }
+git_unshallow_try()     { gitq -C "$1" fetch --quiet --unshallow >/dev/null }
+git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(gitq -C "$1" rev-parse --is-shallow-repository)" == "true" ]] }
 git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
 git_merge_ffonly()      { git -C "$1" merge --quiet --ff-only "$2"; }
-git_min_age_sha()       { git -C "$1" rev-list --before="${2} days ago" -1 "${3:-FETCH_HEAD}" 2>/dev/null; }
+git_min_age_sha()       { git -C "$1" rev-list --before="${2} days ago" -1 "$3" 2>/dev/null; }
 git_reset_hard()        { git -C "$1" reset --quiet --hard "$2"; }
 git_sha()               { local d=$1; shift; git -C "$d" rev-parse "$@" HEAD; }
 git_submodule_sync()    { git -C "$1" submodule --quiet sync --recursive; }
@@ -129,10 +134,33 @@ git_checkout_pin() {
     fi
   fi
 }
-git_pull() {
+
+# Print the ref a bundle updates against, or return 1. Falls back past
+# @{upstream} for a detached HEAD (eg an ephemeral pin).
+git_upstream_ref() {
+  local ref
+  local -a refs
+  ref=$(gitq -C "$1" rev-parse --symbolic-full-name '@{upstream}')
+  if [[ -z "$ref" ]]; then
+    refs=(${(f)"$(gitq -C "$1" for-each-ref --format='%(refname)' refs/remotes/origin)"})
+    refs=(${refs:#refs/remotes/origin/HEAD})
+    if (( $#refs == 1 )); then
+      ref=$refs[1]
+    else
+      ref=$(gitq -C "$1" symbolic-ref refs/remotes/origin/HEAD)
+    fi
+  fi
+  [[ -n "$ref" ]] || return 1
+  print -r -- "$ref"
+}
+
+# Rebase onto an already-fetched ref. Not `git pull`: a concurrent fetch
+# on the same repo can leave two branches for merge in FETCH_HEAD, which
+# kills the rebase. A ref can't.
+git_rebase() {
   local -a autostash_flag=(--autostash)
   [[ "$_ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
-  git -C "$1" pull --quiet --rebase $autostash_flag
+  git -C "$1" rebase --quiet $autostash_flag "$2"
 }
 
 ### Read the min-age zstyle for a bundle.
@@ -1089,7 +1117,7 @@ zsh_script_clone() {
         # Disowned so the clone returns immediately. Tests run it in the
         # foreground instead, since nothing can wait on a disowned job.
         if [[ "$_ANTIDOTE_GIT_BG_DEEPEN" == true ]]; then
-          git_unshallow_try "$bundle_path" &!
+          git_unshallow_try "$bundle_path" </dev/null >/dev/null 2>&1 &!
         else
           git_unshallow_try "$bundle_path"
         fi
@@ -1563,7 +1591,7 @@ antidote_purge() {
 #
 update_one_bundle() {
   local bundledir="$1" repo="$2" slot="$3"
-  local tmpfile statusfile oldsha newsha min_age min_age_sha rc=0
+  local tmpfile statusfile oldsha newsha min_age min_age_sha upstream_ref rc=0
 
   tmpfile="${tmpdir}/${slot}.output"
   statusfile="${tmpdir}/${slot}.status"
@@ -1586,10 +1614,18 @@ update_one_bundle() {
     fi
   fi
 
+  # Compare and rebase against this, never FETCH_HEAD.
+  if (( rc == 0 )); then
+    upstream_ref=$(git_upstream_ref "$bundledir") || {
+      warn "antidote: $repo: cannot determine an upstream branch to update against"
+      rc=1
+    }
+  fi
+
   # With min-age set, advance no further than the newest commit that has
   # sat upstream long enough.
   if (( rc == 0 && min_age )); then
-    min_age_sha=$(git_min_age_sha "$bundledir" "$min_age")
+    min_age_sha=$(git_min_age_sha "$bundledir" "$min_age" "$upstream_ref")
     if [[ -z "$min_age_sha" ]]; then
       warn "antidote: $repo: no commits older than $min_age days, skipping update"
       # Skipping is a success, so say so: the parent treats a missing
@@ -1605,13 +1641,13 @@ update_one_bundle() {
       if (( min_age )); then
         newsha=$min_age_sha
       else
-        newsha=$(git -C "$bundledir" rev-parse FETCH_HEAD 2>/dev/null) || newsha=$oldsha
+        newsha=$(git -C "$bundledir" rev-parse "$upstream_ref" 2>/dev/null) || newsha=$oldsha
       fi
     else
       if (( min_age )); then
         git_merge_ffonly "$bundledir" "$min_age_sha" || rc=1
       else
-        git_pull "$bundledir" || rc=1
+        git_rebase "$bundledir" "$upstream_ref" || rc=1
       fi
       if (( rc == 0 )) && git_submodule_sync "$bundledir" && git_submodule_update "$bundledir"; then
         newsha=$(git_sha "$bundledir")

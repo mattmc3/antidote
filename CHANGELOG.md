@@ -2,8 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [v2.2.1]
 
+- Fix a cold dynamic-mode startup stalling on bundles with a big history.
+- Fix `antidote update` intermittently failing with `fatal: Cannot rebase onto multiple branches` right after a fresh clone ([#273](https://github.com/mattmc3/antidote/issues/273)). Git appends to `FETCH_HEAD` without locking it, so the background deepen started by a clone could corrupt what `git pull` read on the same repo. Update now rebases onto the remote-tracking ref instead of `FETCH_HEAD`.
 - Fix antidote commands failing with `function definition file not found` after a package manager upgrade ([#271](https://github.com/mattmc3/antidote/issues/271)). Setup resolved its own install path through symlinks, so a Homebrew shell recorded the versioned keg directory instead of the stable `share/antidote` link. Upgrading deleted that keg out from under every running shell, breaking any function not yet autoloaded.
 
 ## [v2.2.0]

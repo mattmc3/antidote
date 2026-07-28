@@ -126,7 +126,7 @@ Sections in file order. Grep the banner text to jump.
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | (top)                        | Zsh guard, sourced-vs-executed branch, config file source, `ANTIDOTE_ZSTYLES` eval, `:antidote:test setopts`                                                        |
 | `OUTPUT HELPERS`             | `die`, `say`, `warn`, `json_escape`, `confirm`                                                                                                                      |
-| `GIT HELPERS`                | `git()` error-capturing wrapper + `git_*` one-liners, `git_checkout_pin`, `git_pull`                                                                                |
+| `GIT HELPERS`                | `git()` error-capturing wrapper, `gitq()` quiet wrapper + `git_*` one-liners, `git_checkout_pin`, `git_upstream_ref`, `git_rebase`                                  |
 | `BUNDLE DISCOVERY & CLONING` | `find_bundles`, `bulk_clone`                                                                                                                                        |
 | `BUNDLE PARSER`              | `parse_using_directive`, `expand_using_subplugin`, `check_pin_branch_conflicts`, `bundle_parser`, `bundle_parser_serialize`                                         |
 | `INFO & USAGE`               | `version`, `diagnostics`, `usage`                                                                                                                                   |

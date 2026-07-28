@@ -184,6 +184,30 @@ zstyle ':antidote:test:git' background-deepen yes"
   assert_output "false"
 }
 
+# Dynamic mode captures bundle output with a command substitution, so a
+# deepen still holding that fd stalls the shell. Slow git stands in for
+# a repo with a big history.
+@test "a clone does not wait on the background unshallow" {
+  local shim="$BATS_TEST_TMPDIR/slowgit" start elapsed out
+  {
+    echo '#!/usr/bin/env bash'
+    echo 'for a in "$@"; do [ "$a" = "--unshallow" ] && exec sleep 10; done'
+    echo 'exec git "$@"'
+  } >"$shim"
+  chmod +x "$shim"
+
+  ZSTYLES="zstyle ':antidote:bundle:*' shallow no
+zstyle ':antidote:test:git' background-deepen yes
+zstyle ':antidote:git' cmd '$shim'"
+
+  start=$SECONDS
+  out=$(antidote bundle pintest/pinme 2>/dev/null)
+  elapsed=$((SECONDS - start))
+
+  [ -n "$out" ]
+  [ "$elapsed" -lt 5 ]
+}
+
 # A pin names one commit, so there is no history worth fetching.
 @test "a pinned clone is left shallow" {
   ZSTYLES="zstyle ':antidote:bundle:*' shallow no"

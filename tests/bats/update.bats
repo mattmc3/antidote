@@ -98,6 +98,24 @@ zstyle ':antidote:bundle:pintest/pinme' shallow yes"
   assert_output "false"
 }
 
+# A bundle held shallow still has to move, and stay shallow doing it.
+@test "update advances a bundle held shallow" {
+  ZSTYLES="$ZSTYLES
+zstyle ':antidote:bundle:foo/baz' shallow yes"
+  tgit -C "$BAZDIR" fetch --quiet --depth 2 origin main
+  tgit -C "$BAZDIR" reset --quiet --hard HEAD~1
+  run git -C "$BAZDIR" rev-parse --is-shallow-repository
+  assert_output "true"
+
+  run antidote update
+  assert_success
+  assert_output --partial "updated: foo/baz bde701c -> 98cdde2"
+  run git -C "$BAZDIR" rev-parse --short HEAD
+  assert_output "98cdde2"
+  run git -C "$BAZDIR" rev-parse --is-shallow-repository
+  assert_output "true"
+}
+
 # The clone's background deepen can still hold shallow.lock when update
 # runs. That is contention, not a failed update.
 @test "update tolerates a shallow.lock held by a background deepen" {
@@ -129,6 +147,28 @@ zstyle ':antidote:bundle:foo/baz' shallow no"
   rollback_foo_baz
   run antidote update
   assert_output --partial "antidote: updated: foo/baz bde701c -> 98cdde2"
+  run git -C "$BAZDIR" rev-parse --short HEAD
+  assert_output "98cdde2"
+}
+
+# Concurrent fetches accumulate in FETCH_HEAD, so anything merging it
+# sees multiple branches and dies. Fetch a private ref to contend on
+# FETCH_HEAD alone.
+@test "update survives a concurrent fetch on the same bundle" {
+  local stopfile="$BATS_TEST_TMPDIR/stop-hammer"
+  rollback_foo_baz
+
+  while [ ! -f "$stopfile" ]; do
+    tgit -C "$BAZDIR" fetch --quiet --no-tags -f origin \
+      '+refs/heads/*:refs/hammer/*' 2>/dev/null || true
+  done &
+
+  run antidote update
+  touch "$stopfile"
+  wait
+
+  assert_success
+  refute_output --partial "update failed for 'foo/baz'"
   run git -C "$BAZDIR" rev-parse --short HEAD
   assert_output "98cdde2"
 }
