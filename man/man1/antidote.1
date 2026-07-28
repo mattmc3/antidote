@@ -2,12 +2,12 @@
 .\"     Title: antidote
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.26
-.\"      Date: 2026-07-26
+.\"      Date: 2026-07-27
 .\"    Manual: Antidote Manual
 .\"    Source: antidote
 .\"  Language: English
 .\"
-.TH "ANTIDOTE" "1" "2026-07-26" "antidote" "Antidote Manual"
+.TH "ANTIDOTE" "1" "2026-07-27" "antidote" "Antidote Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -246,7 +246,7 @@ zstyle \*(Aq:antidote:bundle:romkatv/powerlevel10k\*(Aq shallow yes\&   # just o
 .fi
 .if n .RE
 .sp
-The default is \f(CRno\fP. A shallow bundle only gives up the list of individual commits in the \fBantidote\-update\fP report. See \fBantidote\-bundle\fP(1).
+The default is \f(CRno\fP. Setting \f(CRmin\-age\fP on a bundle overrides it, since searching history for a commit old enough needs the full clone. See \fBantidote\-bundle\fP(1).
 .sp
 The default bundle file is \f(CR${ZDOTDIR:\-$HOME}/.zsh_plugins.txt\fP. This can be overridden with the following \f(CRzstyle\fP:
 .sp

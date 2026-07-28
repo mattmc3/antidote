@@ -24,6 +24,7 @@
 # zstyle ':antidote:bundle:*'       zcompile       'no'   # zcompile all cloned bundles
 # zstyle ':antidote:bundle:*'       shallow        'no'   # 'yes' keeps a bundle shallow, skipping the background deepen
 # zstyle ':antidote:bundle:*'       min-age        ''     # days to hold a bundle behind upstream (unset or 0 = no delay)
+                                                          # min-age needs history to search, so it wins over shallow
 # zstyle ':antidote:bundle:*'       defer-options  ''     # extra options passed to zsh-defer for all bundles
 # zstyle ':antidote:bundle:foo/bar' defer-options  ''     # extra options for a specific bundle
 

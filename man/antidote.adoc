@@ -129,7 +129,7 @@ zstyle ':antidote:bundle:*' shallow yes                       # every bundle
 zstyle ':antidote:bundle:romkatv/powerlevel10k' shallow yes   # just one
 ----
 
-The default is `no`. A shallow bundle only gives up the list of individual commits in the *antidote-update* report. See *antidote-bundle*(1).
+The default is `no`. Setting `min-age` on a bundle overrides it, since searching history for a commit old enough needs the full clone. See *antidote-bundle*(1).
 
 The default bundle file is `${ZDOTDIR:-$HOME}/.zsh_plugins.txt`. This can be overridden with the following `zstyle`:
 

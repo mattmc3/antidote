@@ -177,7 +177,7 @@ zstyle \*(Aq:antidote:bundle:romkatv/powerlevel10k\*(Aq shallow yes\&   # just o
 .fi
 .if n .RE
 .sp
-The default is \f(CRno\fP. Pinned bundles are always left shallow, since a pin already fixes the commit. Loading, updating, pinning, and restoring a snapshot all work on a shallow bundle. The one thing it gives up is the list of individual commits in the \f(CRantidote update\fP report: the old commit\(cqs parent is not present locally, so the report shows the before and after SHAs but not what came between. \f(CRantidote update\fP deepens any bundle it finds shallow unless that bundle is held shallow here, since the background fetch is best effort.
+The default is \f(CRno\fP. Pinned bundles are always left shallow, since a pin already fixes the commit. Loading, updating, pinning, and restoring a snapshot all work on a shallow bundle, and so does the commit list in the \f(CRantidote update\fP report. \f(CRantidote update\fP deepens any bundle it finds shallow unless that bundle is held shallow here, since the background fetch is best effort. Setting \f(CRmin\-age\fP on a bundle overrides holding it shallow: finding a commit old enough means searching history, which needs the full clone.
 .sp
 Cloned repo directory naming can be controlled with the following \f(CRzstyle\fP:
 .sp
