@@ -116,7 +116,8 @@ git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
 git_unshallow()         { git_fetch "$1" --unshallow; }
 git_unshallow_try()     { gitq -C "$1" fetch --quiet --unshallow >/dev/null }
 git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(gitq -C "$1" rev-parse --is-shallow-repository)" == "true" ]] }
-git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}^..${3}" 2>/dev/null; }
+git_is_ancestor()       { gitq -C "$1" merge-base --is-ancestor "$2" "$3" }
+git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}..${3}" 2>/dev/null; }
 git_merge_ffonly()      { git -C "$1" merge --quiet --ff-only "$2"; }
 git_min_age_sha()       { git -C "$1" rev-list --before="${2} days ago" -1 "$3" 2>/dev/null; }
 git_reset_hard()        { git -C "$1" reset --quiet --hard "$2"; }
@@ -161,6 +162,17 @@ git_rebase() {
   local -a autostash_flag=(--autostash)
   [[ "$_ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
   git -C "$1" rebase --quiet $autostash_flag "$2"
+}
+
+# Move a bundle straight onto a ref, stashing local edits the way
+# git_rebase's --autostash would.
+git_reset_to() {
+  local stashed=
+  if [[ "$_ANTIDOTE_GIT_AUTOSTASH" == true ]] && ! gitq -C "$1" diff --quiet HEAD; then
+    gitq -C "$1" stash push --quiet && stashed=1
+  fi
+  git_reset_hard "$1" "$2" || return 1
+  [[ -z "$stashed" ]] || git -C "$1" stash pop --quiet
 }
 
 ### Read the min-age zstyle for a bundle.
@@ -1614,11 +1626,13 @@ update_one_bundle() {
     fi
   fi
 
-  # Compare and rebase against this, never FETCH_HEAD.
+  # Compare and rebase against this, never FETCH_HEAD. A clone with no
+  # remote-tracking branch at all, eg a branch: naming a tag, has nothing
+  # to update to, which is a skip and not a failure.
   if (( rc == 0 )); then
     upstream_ref=$(git_upstream_ref "$bundledir") || {
-      warn "antidote: $repo: cannot determine an upstream branch to update against"
-      rc=1
+      print -r -- 0 > "$statusfile"
+      return 0
     }
   fi
 
@@ -1646,6 +1660,11 @@ update_one_bundle() {
     else
       if (( min_age )); then
         git_merge_ffonly "$bundledir" "$min_age_sha" || rc=1
+      elif git_is_shallow "$bundledir" &&
+           ! git_is_ancestor "$bundledir" HEAD "$upstream_ref"; then
+        # A shallow graft can hide the shared history, and a rebase then
+        # replays commits that are already upstream and conflicts.
+        git_reset_to "$bundledir" "$upstream_ref" || rc=1
       else
         git_rebase "$bundledir" "$upstream_ref" || rc=1
       fi

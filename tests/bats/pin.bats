@@ -121,6 +121,17 @@ source "$HOME/.cache/antidote/fakegitsite.com/pintest/pinme/pinme.plugin.zsh"'
   assert_output "$PIN_V100"
 }
 
+# A tag clone fetches only that tag, so it has no remote-tracking branch
+# and nothing to update to. Leave it alone rather than failing.
+@test "update leaves a branch:tag bundle where it is" {
+  antidote bundle 'pintest/pinme branch:v1.0.0' &>/dev/null
+  run antidote update
+  assert_success
+  refute_output --partial "update failed"
+  run git -C "$PINDIR" rev-parse HEAD
+  assert_output "$PIN_V100"
+}
+
 @test "pin with an unknown SHA fails and cleans up the clone" {
   run antidote __private__ zsh_script __bundle__ pintest/pinme kind clone pin deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
   assert_failure

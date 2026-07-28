@@ -110,10 +110,34 @@ zstyle ':antidote:bundle:foo/baz' shallow yes"
   run antidote update
   assert_success
   assert_output --partial "updated: foo/baz bde701c -> 98cdde2"
+  assert_line "98cdde2 Add function files"
   run git -C "$BAZDIR" rev-parse --short HEAD
   assert_output "98cdde2"
   run git -C "$BAZDIR" rev-parse --is-shallow-repository
   assert_output "true"
+}
+
+# A shallow clone can end up grafted so that git cannot see its commit
+# as an ancestor of upstream. Rebasing then replays commits already
+# upstream and conflicts, so update takes upstream as-is instead.
+@test "update moves a shallow bundle whose graft hides its history" {
+  local dir="$AHOME/fakegitsite.com/pintest/pinme"
+  ZSTYLES="$ZSTYLES
+zstyle ':antidote:bundle:pintest/pinme' shallow yes"
+
+  run antidote bundle 'pintest/pinme kind:clone'
+  assert_success
+  tgit_deepen "$dir"
+  tgit -C "$dir" reset --quiet --hard HEAD~2
+  tgit -C "$dir" rev-parse HEAD refs/remotes/origin/main >"$dir/.git/shallow"
+  run git -C "$dir" merge-base --is-ancestor HEAD refs/remotes/origin/main
+  assert_failure
+
+  run antidote update
+  assert_success
+  refute_output --partial "update failed for 'pintest/pinme'"
+  run git -C "$dir" rev-parse HEAD
+  assert_output "$PIN_V120"
 }
 
 # The clone's background deepen can still hold shallow.lock when update
@@ -147,6 +171,8 @@ zstyle ':antidote:bundle:foo/baz' shallow no"
   rollback_foo_baz
   run antidote update
   assert_output --partial "antidote: updated: foo/baz bde701c -> 98cdde2"
+  assert_line "98cdde2 Add function files"
+  refute_line "bde701c Add plugin file"
   run git -C "$BAZDIR" rev-parse --short HEAD
   assert_output "98cdde2"
 }

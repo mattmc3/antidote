@@ -6,6 +6,8 @@ Notable changes to this project will be documented in this file.
 
 - Fix a cold dynamic-mode startup stalling on bundles with a big history.
 - Fix `antidote update` intermittently failing with `fatal: Cannot rebase onto multiple branches` right after a fresh clone ([#273](https://github.com/mattmc3/antidote/issues/273)). Git appends to `FETCH_HEAD` without locking it, so the background deepen started by a clone could corrupt what `git pull` read on the same repo. Update now rebases onto the remote-tracking ref instead of `FETCH_HEAD`.
+- Fix `antidote update` failing on a bundle whose shallow clone is grafted so git cannot see its commit as an ancestor of upstream. The rebase replayed commits that were already upstream and conflicted; update now takes upstream as-is for that case.
+- Fix `antidote update` printing no commit list under the `updated:` line whenever the old commit had no parent in the clone, which is any shallow bundle and any repo updated from its root commit. The list also no longer repeats the commit you were already on.
 - Fix antidote commands failing with `function definition file not found` after a package manager upgrade ([#271](https://github.com/mattmc3/antidote/issues/271)). Setup resolved its own install path through symlinks, so a Homebrew shell recorded the versioned keg directory instead of the stable `share/antidote` link. Upgrading deleted that keg out from under every running shell, breaking any function not yet autoloaded.
 
 ## [v2.2.0]
