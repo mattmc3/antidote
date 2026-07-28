@@ -88,11 +88,12 @@ $AHOME/fakegitsite.com/ohmy/ohmy"
 }
 
 # Control characters (\b, \f, other C0) must be JSON-escaped too, or
-# the line is not valid JSON.
+# the line is not valid JSON. ESC covers a \u code containing a hex
+# letter, which has to come out lowercase.
 @test "list --jsonl escapes control characters" {
   git -C "$AHOME/fakegitsite.com/foo/bar" config remote.origin.url \
-    "$(printf 'https://fakegitsite.com/foo/b\bar\fbaz\001qux')"
+    "$(printf 'https://fakegitsite.com/foo/b\bar\fbaz\001qux\033end')"
   run antidote list --jsonl
-  assert_output --partial '/foo/b\bar\fbaz\u0001qux'
+  assert_output --partial '/foo/b\bar\fbaz\u0001qux\u001bend'
   antidote list --jsonl | jq -e . >/dev/null
 }

@@ -67,7 +67,7 @@ json_escape() {
     for (( i = 1; i <= 31; i++ )); do
       ch=${(#)i}
       [[ "$esc" == *${ch}* ]] || continue
-      esc=${esc//${ch}/\\u$(printf '%04x' $i)}
+      esc=${esc//${ch}/\\u${(L)${(l:4::0:)$(([##16]i))}}}
     done
   fi
   typeset -g REPLY=$esc
@@ -223,10 +223,14 @@ git_min_age_reset() {
 
 ##### BUNDLE DISCOVERY & CLONING
 
-# Find all cloned bundles under ANTIDOTE_HOME.
+# Find all cloned bundles under ANTIDOTE_HOME. A glob rather than find,
+# so no forks: (/) keeps directories, which skips a submodule's .git
+# file, and (D) matches dot directories the way find does.
 find_bundles() {
-  command find -H "$ANTIDOTE_HOME" -type d -name .git -prune -print 2>/dev/null | \
-    sed 's|/.git$||' | sort
+  local -a gitdirs
+  gitdirs=($ANTIDOTE_HOME/**/.git(ND/))
+  (( $#gitdirs )) || return 0
+  print -rl -- ${(o)gitdirs:h}
 }
 
 bulk_clone() {
@@ -2048,7 +2052,7 @@ setup_color() {
 ### Detect bat for snapshot preview highlighting.
 setup_bat() {
   typeset -g _ANTIDOTE_BAT_CMD='' _ANTIDOTE_BAT_LANG=''
-  [[ "$_ANTIDOTE_COLOR" == true ]] && command -v bat >/dev/null 2>&1 || return 0
+  [[ "$_ANTIDOTE_COLOR" == true ]] && (( $+commands[bat] )) || return 0
   typeset -g _ANTIDOTE_BAT_CMD=bat
   if bat --list-languages 2>/dev/null | grep -q 'Antidote Bundle'; then
     typeset -g _ANTIDOTE_BAT_LANG='Antidote Bundle'
