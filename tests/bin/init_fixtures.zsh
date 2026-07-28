@@ -79,6 +79,9 @@ generate_fixture_gitconfig() {
   # Background maintenance detaches from git and races test teardown's
   # rm -rf of the tempdir.
   printf '[gc]\n\tauto = 0\n[maintenance]\n\tauto = false\n' >> "$gitconfig_file"
+  # Fixture remotes are local paths, and git refuses the file transport
+  # for submodules by default (CVE-2022-39253).
+  printf '[protocol "file"]\n\tallow = always\n' >> "$gitconfig_file"
   for url in "${fixture_urls[@]}"; do
     safe_dir="$(url_to_dir "$url")"
     printf '[url "%s"]\n\tinsteadOf = %s\n' \
@@ -423,6 +426,33 @@ setup_fixture_test_install() {
   make_fixture "https://fakegitsite.com/test/install" "plugin.zsh"
 }
 
+setup_fixture_sub_child() {
+  make_fixture "https://fakegitsite.com/sub/child" "plugin.zsh"
+}
+
+# A repo whose default branch is not main, for the origin/HEAD fallbacks.
+# main and dev have to diverge, or following the wrong one is invisible.
+setup_fixture_devhead_devrepo() {
+  local url dir bare
+  url="https://fakegitsite.com/devhead/devrepo"
+  make_fixture "$url" "plugin.zsh"
+  dir=$(get_fixture_dir "$url")
+  bare="$FIXTURE_DIR/bare/$(url_to_dir "$url")"
+
+  printf '%s\n' '# on main' >> "$dir/devrepo.plugin.zsh"
+  commit_and_record "$dir" "devhead/devrepo-main" "Commit on main"
+
+  git -C "$dir" checkout --quiet -b dev
+  printf '%s\n' '# on dev' >> "$dir/devrepo.plugin.zsh"
+  git -C "$dir" add .
+  git -C "$dir" commit --quiet -m "Commit on dev"
+  git -C "$dir" push --quiet -u origin dev
+  record_sha "devhead/devrepo-dev" "$dir"
+
+  git -C "$bare" symbolic-ref HEAD refs/heads/dev
+  git -C "$dir" checkout --quiet main
+}
+
 # Dated fixture for min-age tests. Dates are relative to generation time
 # so a min-age of 200 days always splits the history the same way:
 # initial (~900d) and stable (~400d) qualify, latest (~1d) never does.
@@ -445,6 +475,24 @@ setup_fixture_dino_saur() {
 
   # restore the fixed dates the other fixtures rely on
   init_git_environment
+}
+
+# A plugin that carries a submodule, for --recurse-submodules coverage.
+# The recorded URL is file:// rather than a fake URL plus an insteadOf
+# rule: git ignores --depth when cloning a plain local path, so a path
+# would both hide --shallow-submodules and print a warning on every
+# clone. Bare repos are regenerated per environment, so baking the
+# absolute path into .gitmodules is safe.
+setup_fixture_sub_parent() {
+  local url dir child_bare
+  url="https://fakegitsite.com/sub/parent"
+  make_fixture "$url" "plugin.zsh"
+  dir=$(get_fixture_dir "$url")
+  child_bare="$FIXTURE_DIR/bare/$(url_to_dir 'https://fakegitsite.com/sub/child')"
+
+  git -C "$dir" -c protocol.file.allow=always \
+    submodule add --quiet "file://$child_bare" child
+  commit_and_record "$dir" "sub/parent-updated" "Add child submodule"
 }
 
 setup_fixture_pintest_pinme() {
@@ -495,6 +543,9 @@ setup_fixture_zsh_users_zsh_autosuggestions
 setup_fixture_test_install
 setup_fixture_dino_saur
 setup_fixture_pintest_pinme
+setup_fixture_sub_child
+setup_fixture_sub_parent
+setup_fixture_devhead_devrepo
 
 # Generate the fixture_shas.tsv and gitconfig files
 generate_fixture_shas
