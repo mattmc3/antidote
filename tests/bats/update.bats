@@ -19,6 +19,17 @@ rollback_foo_baz() {
   tgit -C "$BAZDIR" reset --quiet --hard HEAD~1
 }
 
+# Clone pinme, put it two commits back, then cut the graft so git cannot
+# see HEAD as an ancestor of upstream.
+graft_pinme_shallow() {
+  local dir="$1"
+  run antidote bundle 'pintest/pinme kind:clone'
+  assert_success
+  tgit_deepen "$dir"
+  tgit -C "$dir" reset --quiet --hard HEAD~2
+  tgit -C "$dir" rev-parse HEAD refs/remotes/origin/main >"$dir/.git/shallow"
+}
+
 # The full update run is the command's output contract.
 @test "update checks every cloned bundle" {
   run antidote update
@@ -138,6 +149,60 @@ zstyle ':antidote:bundle:pintest/pinme' shallow yes"
   refute_output --partial "update failed for 'pintest/pinme'"
   run git -C "$dir" rev-parse HEAD
   assert_output "$PIN_V120"
+}
+
+# That path resets instead of rebasing, so it has to autostash too.
+@test "update autostashes when a shallow graft forces a reset" {
+  local dir="$AHOME/fakegitsite.com/pintest/pinme"
+  ZSTYLES="zstyle ':antidote:test:version' show-sha off
+zstyle ':antidote:test:git' autostash on
+zstyle ':antidote:bundle:pintest/pinme' shallow yes"
+  graft_pinme_shallow "$dir"
+  echo "mine" >"$dir/mine.zsh"
+  tgit -C "$dir" add mine.zsh
+  echo "untracked" >"$dir/untracked.txt"
+
+  run antidote update
+  assert_success
+  run git -C "$dir" rev-parse HEAD
+  assert_output "$PIN_V120"
+  [ -f "$dir/mine.zsh" ]
+  [ -f "$dir/untracked.txt" ]
+}
+
+# A stash that no longer applies must not land as conflict markers in a
+# file the shell is about to source.
+@test "update keeps unappliable local changes in the stash" {
+  local dir="$AHOME/fakegitsite.com/pintest/pinme"
+  ZSTYLES="zstyle ':antidote:test:version' show-sha off
+zstyle ':antidote:test:git' autostash on
+zstyle ':antidote:bundle:pintest/pinme' shallow yes"
+  graft_pinme_shallow "$dir"
+  echo "junk" >>"$dir/pinme.plugin.zsh"
+
+  run antidote update
+  assert_success
+  assert_output --partial "pintest/pinme: local changes conflicted, kept in the stash"
+  run git -C "$dir" rev-parse HEAD
+  assert_output "$PIN_V120"
+  run grep -cE 'junk|<<<<<<<' "$dir/pinme.plugin.zsh"
+  assert_failure
+  run git -C "$dir" stash list
+  assert_output --partial "stash@{0}"
+}
+
+# A branch with no upstream config still has exactly one remote-tracking
+# branch to follow, since every antidote clone is single-branch.
+@test "update follows a branch with no upstream config" {
+  rollback_foo_baz
+  tgit -C "$BAZDIR" config --unset branch.main.remote
+  tgit -C "$BAZDIR" config --unset branch.main.merge
+
+  run antidote update
+  assert_success
+  assert_output --partial "updated: foo/baz bde701c -> 98cdde2"
+  run git -C "$BAZDIR" rev-parse --short HEAD
+  assert_output "98cdde2"
 }
 
 # The clone's background deepen can still hold shallow.lock when update

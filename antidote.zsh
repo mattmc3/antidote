@@ -165,14 +165,18 @@ git_rebase() {
 }
 
 # Move a bundle straight onto a ref, stashing local edits the way
-# git_rebase's --autostash would.
+# git_rebase's --autostash would. Edits that no longer apply stay in the
+# stash rather than landing as conflict markers in a sourced plugin.
 git_reset_to() {
-  local stashed=
-  if [[ "$_ANTIDOTE_GIT_AUTOSTASH" == true ]] && ! gitq -C "$1" diff --quiet HEAD; then
-    gitq -C "$1" stash push --quiet && stashed=1
+  local dir="$1" ref="$2" bname="$3" stashed=
+  if [[ "$_ANTIDOTE_GIT_AUTOSTASH" == true ]] && ! gitq -C "$dir" diff --quiet HEAD; then
+    gitq -C "$dir" stash push --quiet && stashed=1
   fi
-  git_reset_hard "$1" "$2" || return 1
-  [[ -z "$stashed" ]] || git -C "$1" stash pop --quiet
+  git_reset_hard "$dir" "$ref" || return 1
+  if [[ -n "$stashed" ]] && ! gitq -C "$dir" stash pop --quiet; then
+    git_reset_hard "$dir" "$ref" || return 1
+    warn "antidote: $bname: local changes conflicted, kept in the stash (git -C $dir stash pop)"
+  fi
 }
 
 ### Read the min-age zstyle for a bundle.
@@ -1664,7 +1668,7 @@ update_one_bundle() {
            ! git_is_ancestor "$bundledir" HEAD "$upstream_ref"; then
         # A shallow graft can hide the shared history, and a rebase then
         # replays commits that are already upstream and conflicts.
-        git_reset_to "$bundledir" "$upstream_ref" || rc=1
+        git_reset_to "$bundledir" "$upstream_ref" "$repo" || rc=1
       else
         git_rebase "$bundledir" "$upstream_ref" || rc=1
       fi

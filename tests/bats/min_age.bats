@@ -134,6 +134,20 @@ zstyle ':antidote:bundle:dino/saur' min-age 200"
   assert_output "$latest"
 }
 
+# min-age has to search history for a commit old enough, so it wins over
+# a shallow hold and deepens the clone anyway.
+@test "min-age deepens a bundle held shallow" {
+  ZSTYLES+="
+zstyle ':antidote:bundle:dino/saur' min-age 200
+zstyle ':antidote:bundle:dino/saur' shallow yes"
+  run antidote bundle 'dino/saur kind:clone'
+  assert_success
+  run git -C "$SAURDIR" rev-parse --is-shallow-repository
+  assert_output "false"
+  run git -C "$SAURDIR" rev-parse HEAD
+  assert_output "$(qualifying_sha 200)"
+}
+
 @test "min-age 0 opts a bundle out of a pattern style" {
   ZSTYLES+="
 zstyle ':antidote:bundle:*' min-age 200
