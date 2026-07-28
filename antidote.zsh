@@ -85,46 +85,51 @@ confirm() {
 
 ##### GIT HELPERS
 
-# Error-capturing wrapper around $_ANTIDOTE_GIT_CMD.
-git() {
-  local result err
-  result="$(command "$_ANTIDOTE_GIT_CMD" "$@" 2>&1)"
+# Error-capturing wrapper around $_ANTIDOTE_GIT_CMD. Named so a bare
+# `git` in this file is unambiguously the real thing. Output lands in
+# REPLY, never on stdout: git chatters on success (eg "warning:
+# redirecting to") and stdout during bundling is the generated script.
+gits() {
+  local err out
+  # Two steps: assigning inside typeset would report typeset's status.
+  out="$(command "$_ANTIDOTE_GIT_CMD" "$@" 2>&1)"
   err=$?
-  if [[ "$err" -ne 0 ]]; then
+  typeset -g REPLY=$out
+  if (( err )); then
     warn "antidote: unexpected git error on command 'git $*'."
-    if [[ -n "$result" ]]; then
+    if [[ -n "$REPLY" ]]; then
       warn "antidote: error details:"
-      warn "$result"
+      warn "$REPLY"
     fi
     return $err
-  fi
-  if [[ -n "$result" ]]; then
-    say "$result"
   fi
 }
 
 # Quiet wrapper for calls where a nonzero exit is the expected answer.
 gitq() { command "$_ANTIDOTE_GIT_CMD" "$@" 2>/dev/null; }
 
+# gits, for the calls whose output the caller reads off stdout.
+gitsay() { gits "$@" || return $?; [[ -z "$REPLY" ]] || say "$REPLY" }
+
 # Having all the git usage in one place helps me easily see at a glance what all we run.
-git_checkout_detach()   { git -C "$1" checkout --quiet --detach "$2"; }
-git_clone()             { local d=$1; shift; git clone --depth 1 --no-local --quiet --recurse-submodules --shallow-submodules "$@" "$d"; }
-git_config_get()        { git -C "$1" config --get "$2" 2>/dev/null; }
-git_config_set()        { git -C "$1" config "$2" "$3"; }
-git_config_unset()      { git -C "$1" config --unset "$2" 2>/dev/null; }
-git_fetch()             { local d=$1; shift; git -C "$d" fetch --quiet "$@"; }
+git_checkout_detach()   { gits -C "$1" checkout --quiet --detach "$2"; }
+git_clone()             { local d=$1; shift; gits clone --depth 1 --no-local --quiet --recurse-submodules --shallow-submodules "$@" "$d"; }
+git_config_get()        { gitsay -C "$1" config --get "$2" 2>/dev/null; }
+git_config_set()        { gits -C "$1" config "$2" "$3"; }
+git_config_unset()      { gits -C "$1" config --unset "$2" 2>/dev/null; }
+git_fetch()             { local d=$1; shift; gits -C "$d" fetch --quiet "$@"; }
 git_unshallow()         { git_fetch "$1" --unshallow; }
 git_unshallow_try()     { gitq -C "$1" fetch --quiet --unshallow >/dev/null }
 git_is_shallow()        { [[ -f "$1/.git/shallow" ]] || [[ "$(gitq -C "$1" rev-parse --is-shallow-repository)" == "true" ]] }
 git_is_ancestor()       { gitq -C "$1" merge-base --is-ancestor "$2" "$3" }
-git_log_oneline()       { git -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}..${3}" 2>/dev/null; }
-git_merge_ffonly()      { git -C "$1" merge --quiet --ff-only "$2"; }
-git_min_age_sha()       { git -C "$1" rev-list --before="${2} days ago" -1 "$3" 2>/dev/null; }
-git_reset_hard()        { git -C "$1" reset --quiet --hard "$2"; }
-git_sha()               { local d=$1; shift; git -C "$d" rev-parse "$@" HEAD; }
-git_submodule_sync()    { git -C "$1" submodule --quiet sync --recursive; }
-git_submodule_update()  { git -C "$1" submodule --quiet update --init --recursive --depth 1; }
-git_url()               { git -C "$1" config remote.origin.url; }
+git_log_oneline()       { gitsay -C "$1" --no-pager log --abbrev=7 --oneline --ancestry-path --first-parent "${2}..${3}" 2>/dev/null; }
+git_merge_ffonly()      { gits -C "$1" merge --quiet --ff-only "$2"; }
+git_min_age_sha()       { gitsay -C "$1" rev-list --before="${2} days ago" -1 "$3" 2>/dev/null; }
+git_reset_hard()        { gits -C "$1" reset --quiet --hard "$2"; }
+git_sha()               { local d=$1; shift; gitsay -C "$d" rev-parse "$@" HEAD; }
+git_submodule_sync()    { gits -C "$1" submodule --quiet sync --recursive; }
+git_submodule_update()  { gits -C "$1" submodule --quiet update --init --recursive --depth 1; }
+git_url()               { gitsay -C "$1" config remote.origin.url; }
 git_checkout_pin() {
   local dir="$1" sha="$2" bname="$3"
   if ! git_checkout_detach "$dir" "$sha" 2>/dev/null; then
@@ -161,7 +166,7 @@ git_upstream_ref() {
 git_rebase() {
   local -a autostash_flag=(--autostash)
   [[ "$_ANTIDOTE_GIT_AUTOSTASH" != true ]] && autostash_flag=()
-  git -C "$1" rebase --quiet $autostash_flag "$2"
+  gits -C "$1" rebase --quiet $autostash_flag "$2"
 }
 
 # Move a bundle straight onto a ref, stashing local edits the way
@@ -1148,10 +1153,10 @@ zsh_script_clone() {
       git_config_unset "$bundle_path" antidote.pin
       unpin_branch="$branch"
       if [[ -z "$unpin_branch" ]]; then
-        unpin_branch=$(git -C "$bundle_path" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)
+        unpin_branch=$(gitsay -C "$bundle_path" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)
         unpin_branch=${unpin_branch#origin/}
       fi
-      [[ -n "$unpin_branch" ]] && git -C "$bundle_path" checkout --quiet "$unpin_branch" 2>/dev/null
+      [[ -n "$unpin_branch" ]] && gits -C "$bundle_path" checkout --quiet "$unpin_branch" 2>/dev/null
     fi
   fi
   return 0
@@ -1659,7 +1664,7 @@ update_one_bundle() {
       if (( min_age )); then
         newsha=$min_age_sha
       else
-        newsha=$(git -C "$bundledir" rev-parse "$upstream_ref" 2>/dev/null) || newsha=$oldsha
+        newsha=$(gitsay -C "$bundledir" rev-parse "$upstream_ref" 2>/dev/null) || newsha=$oldsha
       fi
     else
       if (( min_age )); then

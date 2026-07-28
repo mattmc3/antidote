@@ -2,6 +2,10 @@
 
 Notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+- Fix git's own output during a clone leaking into the generated static file, where a line like `warning: redirecting to https://...` becomes a command at shell startup.
+
 ## [v2.2.1]
 
 - Fix a cold dynamic-mode startup stalling on bundles with a big history.

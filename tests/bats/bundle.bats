@@ -18,6 +18,31 @@ setup() {
   expect "$(cat "$PRJDIR/tests/testdata/.zsh_plugins.zsh")"
 }
 
+# git chatters on its own during a clone, eg "warning: redirecting to"
+# for any URL the host redirects. Static mode sources this output, so a
+# line that is not part of the script has to stay off stdout.
+@test "git chatter during a clone stays out of the script" {
+  local shim="$BATS_TEST_TMPDIR/chattygit"
+  {
+    echo '#!/usr/bin/env bash'
+    echo 'if [ "$1" = clone ]; then'
+    echo '  echo "warning: redirecting to https://fakegitsite.com/pintest/pinme/" >&2'
+    echo 'fi'
+    echo 'exec git "$@"'
+  } >"$shim"
+  chmod +x "$shim"
+  ZSTYLES="zstyle ':antidote:git' cmd '$shim'"
+
+  # stdout alone is the contract here, so drop stderr rather than let
+  # bats merge the two streams together.
+  local script
+  script=$(antidote bundle pintest/pinme 2>/dev/null)
+  run printf '%s\n' "$script"
+  subenv_output ANTIDOTE_HOME
+  expect 'fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme" )
+source "$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme/pinme.plugin.zsh"'
+}
+
 # Test |piping, <redirection, and --args
 @test "bundle accepts args, pipes, and redirection" {
   run antidote bundle foo/bar
