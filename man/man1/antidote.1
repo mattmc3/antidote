@@ -356,18 +356,31 @@ zstyle \*(Aq:antidote:defer\*(Aq bundle \*(Aqgetantidote/zsh\-defer\*(Aq
 .sp
 Output in antidote can be customized as well.
 .sp
-Colorization of certain output is supported in antidote, and color support detection
-is controlled by the \fBCOLORTERM\fP variable, which modern terminals should set. If you
-want to override that behavior, setting the following variables can help control that:
+Colorization of certain output is supported in antidote. A terminal is taken as color
+capable when terminfo says it has at least 8 colors, when \fBCOLORTERM\fP says truecolor or
+24bit, or when \fBTERM\fP names a color or rxvt terminal. Output also has to be going to a
+terminal rather than a pipe or a file.
+.sp
+To override that detection, use the usual variables, most explicit first:
 .sp
 \fBNO_COLOR\fP
 .RS 4
 Set \*(AqNO_COLOR=1\*(Aq to disable color in output.
 .RE
 .sp
+\fBFORCE_COLOR\fP
+.RS 4
+Set \*(AqFORCE_COLOR=1\*(Aq to force color, or \*(Aq0\*(Aq to disable it.
+.RE
+.sp
 \fBCLICOLOR_FORCE\fP
 .RS 4
-Set \*(AqCLICOLOR_FORCE=1\*(Aq to force color in output. NO_COLOR must be 0 or unset.
+Set \*(AqCLICOLOR_FORCE=1\*(Aq to force color even when output is not a terminal.
+.RE
+.sp
+\fBCLICOLOR\fP
+.RS 4
+Set \*(AqCLICOLOR=0\*(Aq to opt out of color. A force variable still wins over it.
 .RE
 .sp
 Additionally, JSON Lines (JSONL) output is supported for certain commands such as

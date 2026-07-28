@@ -188,6 +188,18 @@ CFG
   assert_output "color=[]"
 }
 
+# Color comes straight from $fg and $reset_color, and reset_color is
+# a scalar, so it can arrive from the environment. It must still blank.
+@test "an exported reset_color cannot force color on" {
+  cat >"$TESTHOME/.config/antidote/probe.zsh" <<'CFG'
+reset_probe() { setup_color; print -r -- "reset=[$reset_color] blue=[$fg[blue]]" }
+CFG
+  ACONFIG="$TESTHOME/.config/antidote/probe.zsh"
+  EXTRA_ENV="reset_color=$'\E[0m'"
+  run antidote __private__ reset_probe
+  assert_output "reset=[] blue=[]"
+}
+
 @test "an exported bat command cannot survive a failed bat probe" {
   cat >"$TESTHOME/.config/antidote/probe.zsh" <<'CFG'
 bat_probe() { setup_color; setup_bat; print -r -- "bat=[$_ANTIDOTE_BAT_CMD]" }

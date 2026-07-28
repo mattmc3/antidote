@@ -199,12 +199,17 @@ zstyle ':antidote:defer' bundle 'getantidote/zsh-defer'
 == Controlling Output
 Output in antidote can be customized as well.
 
-Colorization of certain output is supported in antidote, and color support detection
-is controlled by the *COLORTERM* variable, which modern terminals should set. If you
-want to override that behavior, setting the following variables can help control that:
+Colorization of certain output is supported in antidote. A terminal is taken as color
+capable when terminfo says it has at least 8 colors, when *COLORTERM* says truecolor or
+24bit, or when *TERM* names a color or rxvt terminal. Output also has to be going to a
+terminal rather than a pipe or a file.
+
+To override that detection, use the usual variables, most explicit first:
 
 *NO_COLOR*:: Set 'NO_COLOR=1' to disable color in output.
-*CLICOLOR_FORCE*:: Set 'CLICOLOR_FORCE=1' to force color in output. NO_COLOR must be 0 or unset.
+*FORCE_COLOR*:: Set 'FORCE_COLOR=1' to force color, or '0' to disable it.
+*CLICOLOR_FORCE*:: Set 'CLICOLOR_FORCE=1' to force color even when output is not a terminal.
+*CLICOLOR*:: Set 'CLICOLOR=0' to opt out of color. A force variable still wins over it.
 
 Additionally, JSON Lines (JSONL) output is supported for certain commands such as
 'antidote list'. If you need JSONL support, look for this flag:

@@ -47,9 +47,10 @@ unset _ext_setopts
 
 ##### OUTPUT HELPERS
 
-die()  { warn "$@"; exit "${ERR:-1}"; }
-say()  { printf '%s\n' "$@"; }
-warn() { say "$@" >&2; }
+die()     { warn "$@"; exit "${ERR:-1}"; }
+say()     { printf '%s\n' "$@"; }
+warn()    { say "$@" >&2; }
+is_true() { [[ "${1:l}" != (0|no|false|off) ]]; }
 
 # Escape a string for use inside a JSON double-quoted value.
 json_escape() {
@@ -568,11 +569,18 @@ usage() {
 
 ##### BUNDLE TYPES & NAMING
 
+### True when output should be colorized. NO_COLOR wins, then either force
+# variable, then CLICOLOR=0, then a terminal with at least 8 colors.
+# Terminals shipping their own terminfo entry can be missing from the
+# system database, but those set COLORTERM.
 supports_color() {
+  local force=${FORCE_COLOR:-$CLICOLOR_FORCE}
   [[ -n "$NO_COLOR" ]] && return 1
-  [[ -n "$CLICOLOR_FORCE" ]] && return 0
-  [[ ! -t 1 ]] && return 1
-  [[ "$COLORTERM" == (truecolor|24bit) || "$TERM" == (*256color*|*rxvt*) ]]
+  [[ -n "$force" ]] && { is_true "$force"; return }
+  is_true "${CLICOLOR-1}" && [[ "$_ANTIDOTE_IS_TTY" == true ]] || return 1
+  zmodload -F zsh/terminfo p:terminfo 2>/dev/null
+  (( ${terminfo[colors]:-0} >= 8 )) ||
+    [[ "$COLORTERM" == (truecolor|24bit) || "$TERM" == (*color*|*rxvt*) ]]
 }
 
 tourl() {
@@ -1690,9 +1698,9 @@ update_one_bundle() {
     {
       if [[ $oldsha != $newsha ]]; then
         if (( $#o_dry_run )); then
-          say "${_C_YELLOW}antidote:${_C_NORMAL} update available: $repo ${_C_GREEN}${oldsha[1,7]}${_C_NORMAL} -> ${_C_GREEN}${newsha[1,7]}${_C_NORMAL}"
+          say "${fg[yellow]}antidote:${reset_color} update available: $repo ${fg[green]}${oldsha[1,7]}${reset_color} -> ${fg[green]}${newsha[1,7]}${reset_color}"
         else
-          say "${_C_GREEN}antidote:${_C_NORMAL} updated: $repo ${_C_GREEN}${oldsha[1,7]}${_C_NORMAL} -> ${_C_GREEN}${newsha[1,7]}${_C_NORMAL}"
+          say "${fg[green]}antidote:${reset_color} updated: $repo ${fg[green]}${oldsha[1,7]}${reset_color} -> ${fg[green]}${newsha[1,7]}${reset_color}"
         fi
         git_log_oneline "$bundledir" "$oldsha" "$newsha"
       fi
@@ -1765,11 +1773,11 @@ antidote_update() {
     # Skip pinned bundles
     pin_ref=$(git_config_get "$bundledir" antidote.pin)
     if [[ -n "$pin_ref" ]]; then
-      say "${_C_BLUE}antidote:${_C_NORMAL} skipping update for pinned bundle: $repo (at ${_C_GREEN}${pin_ref[1,7]}...${_C_NORMAL})"
+      say "${fg[blue]}antidote:${reset_color} skipping update for pinned bundle: $repo (at ${fg[green]}${pin_ref[1,7]}...${reset_color})"
       continue
     fi
 
-    say "${_C_BLUE}antidote:${_C_NORMAL} checking for updates: $repo"
+    say "${fg[blue]}antidote:${reset_color} checking for updates: $repo"
     worker_repos+=("$repo")
     update_one_bundle "$bundledir" "$repo" $#worker_repos &
   done
@@ -1785,12 +1793,12 @@ antidote_update() {
     report_repo=$worker_repos[$slot]
 
     if [[ -s "$tmpfile" ]]; then
-      say "${_C_BLUE}Bundle ${report_repo} update check complete.${_C_NORMAL}"
+      say "${fg[blue]}Bundle ${report_repo} update check complete.${reset_color}"
 
       # Colorize the SHA in each line
       while IFS= read -r line; do
         if [[ -n "$line" ]] && [[ "$line" == [[:alnum:]]* ]]; then
-          say "${_C_YELLOW}${line%% *}${_C_NORMAL} ${line#* }"
+          say "${fg[yellow]}${line%% *}${reset_color} ${line#* }"
         else
           say "$line"
         fi
@@ -1809,16 +1817,16 @@ antidote_update() {
   # A failed worker must not report success or trigger an autosnapshot.
   if (( $#failed_repos )); then
     for report_repo in $failed_repos; do
-      say "${_C_RED}antidote:${_C_NORMAL} update failed for '$report_repo'"
+      say "${fg[red]}antidote:${reset_color} update failed for '$report_repo'"
     done
     say ""
     return 1
   fi
 
   if (( $#o_dry_run )); then
-    say "${_C_GREEN}Dry run complete. No changes were made.${_C_NORMAL}"
+    say "${fg[green]}Dry run complete. No changes were made.${reset_color}"
   else
-    say "${_C_GREEN}Bundle updates complete.${_C_NORMAL}"
+    say "${fg[green]}Bundle updates complete.${reset_color}"
     [[ "$_ANTIDOTE_AUTOSNAPSHOT" == true ]] && snapshot_save >/dev/null
   fi
   say ""
@@ -2021,15 +2029,19 @@ snapshot_prune() {
 }
 
 ### Set color-related globals needed for interactive features (fzf previews, etc).
+#
+# Callers interpolate ${fg[...]} and ${reset_color} unconditionally, so
+# when color is off both have to exist and expand to nothing. Blanking
+# them also means an exported reset_color cannot force color on.
+#
 setup_color() {
-  typeset -g _ANTIDOTE_COLOR='' _C_BLUE='' _C_GREEN='' _C_YELLOW='' _C_RED='' _C_NORMAL=''
+  typeset -g _ANTIDOTE_COLOR=''
   if supports_color; then
     typeset -g _ANTIDOTE_COLOR=true
-    typeset -g _C_BLUE=$'\E[34m'
-    typeset -g _C_GREEN=$'\E[32m'
-    typeset -g _C_YELLOW=$'\E[33m'
-    typeset -g _C_RED=$'\E[31m'
-    typeset -g _C_NORMAL=$'\E[0m'
+    autoload -Uz colors && colors
+  else
+    typeset -gA fg=()
+    typeset -g reset_color=''
   fi
 }
 
@@ -2114,7 +2126,7 @@ snapshot_pick() {
     labels+=("$date_line	$snap")
   done
 
-  fzf_opts=(--no-sort ${_C_NORMAL:+--ansi} --with-nth=1 --delimiter=$'\t'
+  fzf_opts=(--no-sort ${_ANTIDOTE_COLOR:+--ansi} --with-nth=1 --delimiter=$'\t'
     --prompt="❯ " --border-label=" $label " --preview="$preview_cmd")
   if [[ "$2" == --multi ]]; then
     fzf_opts+=(--multi --marker='* ' --color='marker:red')
@@ -2149,7 +2161,7 @@ snapshot_restore() {
     bundle=${line%% *}
     pin=${line##*pin:}
     pin=${pin%% *}
-    say "${_C_BLUE}antidote:${_C_NORMAL} restoring $bundle (${_C_GREEN}${pin[1,7]}...${_C_NORMAL})"
+    say "${fg[blue]}antidote:${reset_color} restoring $bundle (${fg[green]}${pin[1,7]}...${reset_color})"
     ANTIDOTE_EPHEMERAL_PIN=true antidote_bundle "$line" &>/dev/null &
     pids+=($!)
     bundles+=("$bundle")
@@ -2166,7 +2178,7 @@ snapshot_restore() {
     warn "Restore completed with errors."
     return 1
   fi
-  say "${_C_GREEN}Restore complete.${_C_NORMAL}"
+  say "${fg[green]}Restore complete.${reset_color}"
 }
 
 ### List available snapshots.
@@ -2295,7 +2307,7 @@ antidote() {
   typeset -g _ANTIDOTE_DEFER_BUNDLE _ANTIDOTE_FPATH_RULE _ANTIDOTE_BUNDLE_FILE
   typeset -g _ANTIDOTE_OSTYPE _ANTIDOTE_LOCALAPPDATA
   typeset -g _ANTIDOTE_VERSION_SHOW_SHA=true _ANTIDOTE_GIT_AUTOSTASH=true
-  typeset -g _ANTIDOTE_GIT_BG_DEEPEN=true
+  typeset -g _ANTIDOTE_GIT_BG_DEEPEN=true _ANTIDOTE_IS_TTY=true
   zstyle -s ':antidote:bat'    opts       _ANTIDOTE_BAT_OPTS
   zstyle -s ':antidote:bundle' file       _ANTIDOTE_BUNDLE_FILE          || _ANTIDOTE_BUNDLE_FILE=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
   zstyle -s ':antidote:bundle' path-style _ANTIDOTE_PATH_STYLE           || _ANTIDOTE_PATH_STYLE=full
@@ -2310,6 +2322,7 @@ antidote() {
   # Tests also have zstyles, but they aren't user facing
   zstyle -s ':antidote:test:env'     LOCALAPPDATA _ANTIDOTE_LOCALAPPDATA || _ANTIDOTE_LOCALAPPDATA="${LOCALAPPDATA:-$LocalAppData}"
   zstyle -s ':antidote:test:env'     OSTYPE       _ANTIDOTE_OSTYPE       || _ANTIDOTE_OSTYPE=$OSTYPE
+  zstyle -t ':antidote:test'         tty                                 || [[ -t 1 ]] || _ANTIDOTE_IS_TTY=false
   zstyle -T ':antidote:test:git'     autostash                           || _ANTIDOTE_GIT_AUTOSTASH=false
   zstyle -T ':antidote:test:git'     background-deepen                   || _ANTIDOTE_GIT_BG_DEEPEN=false
   zstyle -T ':antidote:test:version' show-sha                            || _ANTIDOTE_VERSION_SHOW_SHA=false

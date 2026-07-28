@@ -409,6 +409,7 @@ purpose:
 
 | Context                          | Style                    | Purpose                                                                                         |
 | -------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------- |
+| `:antidote:test`                 | `tty`                    | Claim stdout is a terminal, since bats captures it through a pipe                               |
 | `:antidote:test:env`             | `LOCALAPPDATA`, `OSTYPE` | Fake the platform so path logic can be tested off-platform                                      |
 | `:antidote:test:git`             | `autostash`              | Drop `--autostash` from the update rebase. Defaults on, so tests opt out                        |
 | `:antidote:test:version`         | `show-sha`               | Suppress the git SHA in `version` output. Defaults on                                           |
