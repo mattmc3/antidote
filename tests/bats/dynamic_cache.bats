@@ -246,6 +246,18 @@ EOS
   assert_line "cache dir absent"
 }
 
+@test "piped bundles load silently" {
+  run_session <<'EOS'
+source <(antidote init)
+antidote bundle <<EOB
+foo/bar
+EOB
+echo "done"
+EOS
+  assert_line "done"
+  refute_line --partial "__adote"
+}
+
 @test "annotated and plain lines cache separately" {
   run_session <<'EOS'
 source <(antidote init)
