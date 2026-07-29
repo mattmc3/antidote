@@ -5,8 +5,9 @@
   emulate -L zsh; setopt local_options
 
   ANTIDOTE_ZSTYLES="$(zstyle -L ':antidote:*')" \
+  ANTIDOTE_CONFIG="${ANTIDOTE_CONFIG}" \
   ANTIDOTE_HOME="${ANTIDOTE_HOME}" \
-  ANTIDOTE_TMPDIR="${TMPDIR}" \
+  ANTIDOTE_TMPDIR="${ANTIDOTE_TMPDIR:-$TMPDIR}" \
   ANTIDOTE_DYNAMIC="${ANTIDOTE_DYNAMIC}" \
   ANTIDOTE_USING_CTX="$(typeset -p _antidote_using_context 2>/dev/null)" \
   zsh "$ANTIDOTE_ZSH" "$@"

@@ -310,6 +310,18 @@ nope/nope"
   assert_output '0'
 }
 
+# --force on a pin that resolves right back to itself is not a change,
+# and must not cost a backup of an identical file.
+@test "pin -i --force leaves the file alone when pins resolve to themselves" {
+  antidote bundle "pintest/pinme pin:$PIN_V100" &>/dev/null
+  printf '%s\n' "pintest/pinme pin:$PIN_V100" >"$PLUGINSFILE"
+  run antidote pin -i --force
+  assert_success
+  assert_output --partial 'nothing to do'
+  run bash -c "ls '$ZDOTDIR'/.zsh_plugins.*.bak 2>/dev/null | wc -l | tr -d ' '"
+  assert_output '0'
+}
+
 @test "pin -i never clobbers an existing backup" {
   clone_pinme
   printf '%s\n' 'pintest/pinme' >"$PLUGINSFILE"

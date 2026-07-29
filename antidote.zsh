@@ -799,14 +799,14 @@ bundle_zcompile() {
   builtin autoload -Uz zrecompile
 
   if [[ -z "$1" ]]; then
-    bundles=($(antidote_list --dirs))
+    bundles=(${(f)"$(antidote_list --dirs)"})
   elif [[ -f "$1" ]]; then
     zrecompile -pq "$1"
     return
   elif [[ -d "$1" ]]; then
     bundles=($1)
   else
-    bundles=($(antidote_path "$1"))
+    bundles=(${(f)"$(antidote_path "$1")"})
   fi
 
   for bundle in $bundles; do
@@ -1515,7 +1515,11 @@ antidote_install() {
         return
       ;;
       --)   shift; break  ;;
-      --*)  annotations+=( "${arg#*--}:$2" ); shift  ;;
+      --*)
+        [[ "${arg#--}" == (autoload|branch|conditional|kind|path|pin|post|pre) ]] ||
+          die "antidote: error: unknown flag '$arg', try --help"
+        annotations+=( "${arg#--}:$2" ); shift
+      ;;
       -*)
         [[ -n "${flag_to_annotation[$arg]}" ]] ||
           die "antidote: error: unknown flag '$arg', try --help"
@@ -1794,7 +1798,7 @@ antidote_update() {
   trap "[[ -d ${(q)tmpdir} ]] && del ${(q)tmpdir}" EXIT 2 15 1
 
   # update all bundles
-  for bundledir in $(antidote_list --dirs); do
+  for bundledir in ${(f)"$(antidote_list --dirs)"}; do
     url=$(git_url "$bundledir")
     short_repo_name "$url"; repo=$REPLY
 
@@ -2166,7 +2170,7 @@ pin_rewrite_line() {
 pin_command() {
   local mode="$1"; shift
   local o_help o_inplace o_force o_file o_asof
-  local input bundlefile bname dir ref branch asof sha bakfile tmpfile dtstmp
+  local input bundlefile bname dir ref orig branch asof sha bakfile tmpfile dtstmp
   local -i i count changed=0 failed=0 baknum=1
   local -a lines
   local -A shas
@@ -2281,6 +2285,9 @@ pin_command() {
     if (( $#ref == 40 )) && [[ "$ref" == [0-9a-f](#c40) ]] && ! (( $#o_force )); then
       continue
     fi
+    # Keep the annotation as written: an unchanged-line check against the
+    # cleared ref would count every forced re-resolve as a rewrite.
+    orig=$ref
     (( $#o_force )) && [[ $#ref -eq 40 ]] && ref=''
 
     if [[ -n "${shas[$dir]}" ]]; then
@@ -2293,7 +2300,7 @@ pin_command() {
       continue
     fi
 
-    [[ "$sha" == "$ref" ]] && continue
+    [[ "$sha" == "$orig" ]] && continue
     pin_rewrite_line "${lines[${_parsed_bundles[$i,__lineno__]}]}" "$sha"
     lines[${_parsed_bundles[$i,__lineno__]}]=$REPLY
     (( changed++ ))
@@ -2340,7 +2347,7 @@ pin_command() {
 ### Pin bundles to a commit.
 #
 # usage: antidote pin [-h|--help] [-i|--in-place] [-f|--force]
-#                     [--file <path>] [<bundle>...]
+#                     [--as-of <date>] [--file <path>] [<bundle>...]
 #
 antidote_pin() { pin_command pin "$@" }
 

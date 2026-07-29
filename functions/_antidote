@@ -103,6 +103,7 @@ function _antidote {
             '(- *)'{-h,--help}'[Show usage information]' \
             '(-i --in-place)'{-i,--in-place}'[Rewrite the plugins file instead of writing to stdout]' \
             '(-f --force)'{-f,--force}'[Re-resolve pins that are already full SHAs]' \
+            '--as-of[Resolve pins to the newest commit at or before a date]:date:' \
             '--file[Read bundle lines from this file]:bundle file:_files' \
             '*: :_antidote_installed_bundles' \
             && ret=0

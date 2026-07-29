@@ -34,6 +34,4 @@
     typeset -gHa _adote_zparopt_flags=( -D -M )
   fi
 
-  typeset -gHi __adote_ksh_arrays
-  typeset -gHi __adote_sh_glob
 #}

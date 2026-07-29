@@ -45,6 +45,18 @@ EOS
   assert_line "purify lines: 0"
 }
 
+# Long flags get the same treatment: no silently inventing a 'bogus:x'
+# annotation in the plugins file.
+@test "install rejects unknown long flags" {
+  fixture_session <<'EOS'
+antidote install --bogus x themes/purify 2>&1; echo "exit: $?"
+print -r -- "purify lines: $(grep -c purify $ZDOTDIR/.zsh_plugins.txt)"
+EOS
+  assert_line "antidote: error: unknown flag '--bogus', try --help"
+  assert_line "exit: 1"
+  assert_line "purify lines: 0"
+}
+
 @test "install clones and appends to the plugins file" {
   fixture_session <<'EOS'
 antidote install themes/purify | subenv ZDOTDIR
