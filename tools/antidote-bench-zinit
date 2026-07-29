@@ -1,0 +1,71 @@
+#!/usr/bin/env zsh
+# Benchmark antidote static mode against zinit with the same plugins.
+# Usage: ./tools/antidote-bench-zinit [<basedir>]
+#
+# Builds two throwaway HOMEs so neither manager sees real dotfiles,
+# then times interactive shell startup with hyperfine against a bare
+# shell baseline. Needs the network on the first run to clone zinit
+# and the plugins; the base dir persists so later runs stay warm.
+#
+# Sync loading on both sides: zinit turbo and antidote kind:defer both
+# move work past the first prompt, which `zsh -i -c exit` cannot see.
+# Use zsh-bench against these homes to compare the deferred paths.
+emulate -L zsh
+setopt err_return
+
+0=${(%):-%x}
+typeset T_PRJDIR="${0:A:h:h}"
+
+if ! (( $+commands[hyperfine] )); then
+  print -ru2 -- "antidote-bench-zinit: missing required command: hyperfine"
+  exit 127
+fi
+
+BASE=${1:-${${TMPDIR:-/tmp}%/}/antidote-bench-zinit}
+plugins=(
+  zsh-users/zsh-autosuggestions
+  zsh-users/zsh-completions
+  zsh-users/zsh-syntax-highlighting
+)
+
+# --- bare home: the no-manager baseline ---
+BH=$BASE/bare-home
+mkdir -p $BH
+: >$BH/.zshrc
+
+# --- antidote home ---
+AH=$BASE/antidote-home
+mkdir -p $AH
+printf '%s\n' $plugins >$AH/.zsh_plugins.txt
+>$AH/.zshrc <<EOF
+source $T_PRJDIR/antidote.zsh
+antidote load
+EOF
+
+# --- zinit home ---
+ZH=$BASE/zinit-home
+mkdir -p $ZH/.zinit
+if [[ ! -d $ZH/.zinit/zinit.git ]]; then
+  git clone --quiet --depth 1 https://github.com/zdharma-continuum/zinit.git \
+    $ZH/.zinit/zinit.git
+fi
+{
+  print 'typeset -g ZINIT_HOME=$HOME/.zinit'
+  print 'source $ZINIT_HOME/zinit.git/zinit.zsh'
+  local p
+  for p in $plugins; do print "zinit light $p"; done
+} >$ZH/.zshrc
+
+# Warm runs: clone plugins, generate the static file.
+print "==> antidote-bench-zinit: ${#plugins} plugins, homes under $BASE"
+local home
+for home in $AH $ZH; do
+  env -i HOME=$home ZDOTDIR=$home PATH=$PATH TERM=dumb zsh -i -c exit &>/dev/null
+done
+
+# (qq)-quote everything interpolated into the command strings: hyperfine
+# re-parses them with sh, and PATH often has spaces (eg VS Code's bin).
+hyperfine --warmup 5 \
+  -n bare     "env -i HOME=${(qq)BH} ZDOTDIR=${(qq)BH} PATH=${(qq)PATH} TERM=dumb zsh -i -c exit" \
+  -n antidote "env -i HOME=${(qq)AH} ZDOTDIR=${(qq)AH} PATH=${(qq)PATH} TERM=dumb zsh -i -c exit" \
+  -n zinit    "env -i HOME=${(qq)ZH} ZDOTDIR=${(qq)ZH} PATH=${(qq)PATH} TERM=dumb zsh -i -c exit"
