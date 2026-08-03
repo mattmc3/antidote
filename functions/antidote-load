@@ -13,7 +13,8 @@
     emulate -L zsh
     setopt local_options extended_glob no_monitor pipefail
 
-    local bundlefile="$1"
+    local bundlefile="$1" newstatic=
+    local -a stale=()
     if [[ -z "$bundlefile" ]]; then
       zstyle -s ':antidote:bundle' file 'bundlefile' ||
         bundlefile=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
@@ -55,18 +56,28 @@
 
     if [[ ! $staticfile -nt $bundlefile ]] || [[ $force_bundle -eq 1 ]]; then
       mkdir -p "${staticfile:A:h}" || return 2
-      if antidote bundle <"$bundlefile" >|"${staticfile}.new"; then
-        command mv -f -- "${staticfile}.new" "$staticfile" || {
-          command rm -f -- "${staticfile}.new"; return 2
-        }
+      # Concurrent shells might attempt to rebuild simultaneously so we use a temp
+      # static file. The first rename wins and the rest hit ENOENT (no such file).
+      # We use pid instead of mktemp to avoid a fork since this is a hot path.
+      newstatic="${staticfile:h}/.${staticfile:t}.new.$$"
+
+      # Reap any lingering temp files in the background using an age cutoff so we
+      # avoid anything currently being rebuilt.
+      { stale=( ${staticfile:h}/.${staticfile:t}.new.*(Nmm+60) )
+        (( $#stale )) && command rm -f -- $stale } &!
+
+      # Rebuild the static file.
+      if antidote bundle <"$bundlefile" >|"$newstatic" &&
+         command mv -f -- "$newstatic" "$staticfile"; then
+        if [[ -r "${staticfile}.zwc" ]] && ! zstyle -t ':antidote:static' zcompile; then
+          antidote-zsh __private__ del -f -- "${staticfile}.zwc"
+        fi
       else
-        command rm -f -- "${staticfile}.new"
+        # Fall back to the last known-good static file.
+        command rm -f -- "$newstatic"
         (( force_bundle )) && command rm -f -- "$loadable_check_path"
         typeset -g REPLY=$staticfile
         return 1
-      fi
-      if [[ -r "${staticfile}.zwc" ]] && ! zstyle -t ':antidote:static' zcompile; then
-        antidote-zsh __private__ del -f -- "${staticfile}.zwc"
       fi
     fi
 

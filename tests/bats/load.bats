@@ -103,6 +103,50 @@ print "false" > $ZDOTDIR/.zplugins_err.zsh'
   assert_failure 2
 }
 
+# tmux panes after an update: every shell sees a stale static file and
+# rebuilds at once. Real child shells, not subshells, since zsh keeps $$
+# at the parent pid in a subshell and they would share one temp.
+@test "concurrent loads all rebuild and source the static file" {
+  SESSION_PRELUDE='antidote load $ZDOTDIR/.zplugins_fake_load &>/dev/null
+touch $ZDOTDIR/.zplugins_fake_load'
+  fixture_session <<'EOS'
+for i in 1 2 3 4; do
+  zsh -f -c "source \$T_PRJDIR/antidote.zsh
+antidote load \$ZDOTDIR/.zplugins_fake_load >\$ZDOTDIR/out.$i 2>&1
+print \"load $i: \$? \$(grep -c '^sourcing' \$ZDOTDIR/out.$i)\"" &
+done
+wait
+temps=($ZDOTDIR/..zplugins_fake_load.zsh.new.*(N))
+print "temps: $#temps"
+EOS
+  assert_line "load 1: 0 12"
+  assert_line "load 2: 0 12"
+  assert_line "load 3: 0 12"
+  assert_line "load 4: 0 12"
+  assert_line "temps: 0"
+}
+
+# A shell killed mid-rebuild orphans its temp. The next rebuild reaps
+# the old ones in the background, sparing any young enough to belong to
+# a live rebuild. Poll: the reaper is detached, so wait cannot see it.
+@test "rebuild sweeps orphaned temps but spares fresh ones" {
+  SESSION_PRELUDE='antidote load $ZDOTDIR/.zplugins_fake_load &>/dev/null
+print orphan > $ZDOTDIR/..zplugins_fake_load.zsh.new.99998
+touch -t 202001010000 $ZDOTDIR/..zplugins_fake_load.zsh.new.99998
+print inflight > $ZDOTDIR/..zplugins_fake_load.zsh.new.99999
+touch $ZDOTDIR/.zplugins_fake_load'
+  fixture_session <<'EOS'
+antidote load $ZDOTDIR/.zplugins_fake_load &>/dev/null
+for i in {1..40}; do
+  temps=($ZDOTDIR/..zplugins_fake_load.zsh.new.*(N))
+  (( $#temps == 1 )) && break
+  sleep 0.1
+done
+print "temps: ${(j: :)${temps[@]:t}}"
+EOS
+  assert_line "temps: ..zplugins_fake_load.zsh.new.99999"
+}
+
 @test "failed regeneration preserves the last known-good static file" {
   SESSION_PRELUDE='print "bad:bundle:value" > $ZDOTDIR/.zplugins_bad.txt
 print "print last-known-good" > $ZDOTDIR/.zplugins_bad.zsh'
@@ -110,12 +154,13 @@ print "print last-known-good" > $ZDOTDIR/.zplugins_bad.zsh'
 antidote load $ZDOTDIR/.zplugins_bad.txt $ZDOTDIR/.zplugins_bad.zsh 2>/dev/null
 echo "exit: $?"
 grep -q last-known-good $ZDOTDIR/.zplugins_bad.zsh && echo "static preserved" || echo "static clobbered"
-[[ -e $ZDOTDIR/.zplugins_bad.zsh.new ]] && echo ".new present" || echo ".new absent"
+temps=($ZDOTDIR/..zplugins_bad.zsh.new.*(N))
+echo "temps: $#temps"
 [[ -e $ANTIDOTE_HOME/.antidote.load ]] && echo "checkfile present" || echo "checkfile absent"
 EOS
   assert_line "last-known-good"
   assert_line "exit: 1"
   assert_line "static preserved"
-  assert_line ".new absent"
+  assert_line "temps: 0"
   assert_line "checkfile absent"
 }
