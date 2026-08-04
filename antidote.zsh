@@ -185,6 +185,43 @@ git_reset_to() {
   fi
 }
 
+### Take an exclusive lock so two processes never attempt the same git operation
+repo_lock() {
+  # Locks live in their own hidden dir: a lock file beside a bundle
+  # would show up in listings and keep prune from clearing the parent.
+  local lockfile="${ANTIDOTE_HOME}/.locks/${${1#${ANTIDOTE_HOME}/}//\//_}.lock" fd
+
+  typeset -g REPLY=
+  (( $+builtins[zsystem] )) || zmodload -F zsh/system b:zsystem 2>/dev/null || return 1
+  zsystem supports flock 2>/dev/null || return 1
+
+  [[ -d "${lockfile:h}" ]] || command mkdir -p "${lockfile:h}" 2>/dev/null || return 1
+  [[ -e "$lockfile" ]] || : >>"$lockfile" 2>/dev/null || return 1
+
+  # A waiting flock retries on an interval rather than waking on
+  # release, and the default interval is a full second. Ask for a short
+  # one so a handoff costs ~50ms, not ~1s.
+  #
+  # Grab it outright first: that also probes -i, which zsh gained after
+  # 5.4. Status 2 is a timeout (so -i took), status 1 is anything else,
+  # including the older zsh rejecting the option.
+  zsystem flock -f fd -t 0.05 -i 0.05 "$lockfile" 2>/dev/null
+  case $? in
+    0) ;;
+    # Bounded: a stuck holder must not hang a shell's startup forever.
+    # Timing out means proceeding unlocked, same as no flock at all.
+    2) zsystem flock -f fd -t $_ANTIDOTE_LOCK_TIMEOUT -i 0.05 "$lockfile" 2>/dev/null || return 1 ;;
+    *) zsystem flock -f fd -t $_ANTIDOTE_LOCK_TIMEOUT "$lockfile" 2>/dev/null || return 1 ;;
+  esac
+  typeset -g REPLY=$fd
+}
+
+### Release a lock taken by repo_lock.
+repo_unlock() {
+  [[ -n "$1" ]] || return 0
+  zsystem flock -u "$1" 2>/dev/null
+}
+
 ### Read the min-age zstyle for a bundle.
 #
 # usage: min_age_days <bundle-name>
@@ -1117,7 +1154,7 @@ bundle_scripter_parallel() {
 # bname, pin, branch, min_age) via dynamic scoping.
 #
 zsh_script_clone() {
-  local giturl unpin_branch
+  local giturl unpin_branch lockfd rc=0
   local -a branch_flag
 
   [[ "$btype" == (repo|url|ssh_url) ]] || return 0
@@ -1129,33 +1166,54 @@ zsh_script_clone() {
 
   # handle cloning repo bundles
   if [[ ! -e "$bundle_path" ]]; then
+    # Hold the bundle while cloning: git clone fails outright when the
+    # target directory already has another clone in it. Re-test after
+    # the wait, since the process we waited on was likely cloning this.
+    repo_lock "$bundle_path" && lockfd=$REPLY
+    if [[ -e "$bundle_path" ]]; then
+      repo_unlock "$lockfd"
+      return 0
+    fi
     giturl=${bundle[__url__]:-}
     [[ -z "$giturl" ]] && { tourl $bundle_str; giturl=$REPLY }
     warn "# antidote cloning $bname..."
     if [[ -n "$pin" ]]; then
-      git_clone $bundle_path $giturl || { clone_dir_prune $bundle_path; return 1 }
-      if ! git_checkout_pin "$bundle_path" "$pin" "$bname"; then
-        del "$bundle_path"
-        clone_dir_prune "$bundle_path"
-        return 1
+      if git_clone $bundle_path $giturl; then
+        if git_checkout_pin "$bundle_path" "$pin" "$bname"; then
+          [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin
+        else
+          del "$bundle_path"
+          clone_dir_prune "$bundle_path"
+          rc=1
+        fi
+      else
+        clone_dir_prune $bundle_path
+        rc=1
       fi
-      [[ "$ANTIDOTE_EPHEMERAL_PIN" != true ]] && git_config_set "$bundle_path" antidote.pin $pin
     else
       branch_flag=()
       [[ -n "$branch" ]] && branch_flag=(-b "$branch")
-      git_clone $bundle_path "${branch_flag[@]}" $giturl || { clone_dir_prune $bundle_path; return 1 }
-      if (( min_age )); then
-        git_min_age_reset "$bundle_path" "$min_age" "$bname" || return 1
-      elif ! zstyle -t ":antidote:bundle:$bname" shallow; then
-        # Disowned so the clone returns immediately. Tests run it in the
-        # foreground instead, since nothing can wait on a disowned job.
-        if [[ "$_ANTIDOTE_GIT_BG_DEEPEN" == true ]]; then
-          git_unshallow_try "$bundle_path" </dev/null >/dev/null 2>&1 &!
-        else
-          git_unshallow_try "$bundle_path"
+      if git_clone $bundle_path "${branch_flag[@]}" $giturl; then
+        if (( min_age )); then
+          git_min_age_reset "$bundle_path" "$min_age" "$bname" || rc=1
+        elif ! zstyle -t ":antidote:bundle:$bname" shallow; then
+          # Disowned so the clone returns immediately. Tests run it in the
+          # foreground instead, since nothing can wait on a disowned job.
+          if [[ "$_ANTIDOTE_GIT_BG_DEEPEN" == true ]]; then
+            git_unshallow_try "$bundle_path" </dev/null >/dev/null 2>&1 &!
+          else
+            git_unshallow_try "$bundle_path"
+          fi
         fi
+      else
+        clone_dir_prune $bundle_path
+        rc=1
       fi
     fi
+    repo_unlock "$lockfd"
+    # Unlocked (no flock here), a lost race still leaves a good clone.
+    (( rc )) && [[ -e "$bundle_path/.git" ]] && rc=0
+    (( rc )) && return $rc
   fi
 
   # Pin removed - clear config and return to branch so update can pull.
@@ -1627,10 +1685,16 @@ antidote_purge() {
 #
 update_one_bundle() {
   local bundledir="$1" repo="$2" slot="$3"
-  local tmpfile statusfile oldsha newsha min_age min_age_sha upstream_ref rc=0
+  local tmpfile statusfile oldsha newsha min_age min_age_sha upstream_ref lockfd rc=0
 
   tmpfile="${tmpdir}/${slot}.output"
   statusfile="${tmpdir}/${slot}.status"
+
+  # Hold the bundle for the whole fetch/rebase. Two updates overlapping
+  # here collide in git's own lock files and the loser dies mid-rebase.
+  # Per bundle, so unrelated bundles still update in parallel.
+  repo_lock "$bundledir" && lockfd=$REPLY
+
   oldsha=$(git_sha "$bundledir")
 
   min_age_days "$repo" || rc=1
@@ -1655,6 +1719,7 @@ update_one_bundle() {
   # to update to, which is a skip and not a failure.
   if (( rc == 0 )); then
     upstream_ref=$(git_upstream_ref "$bundledir") || {
+      repo_unlock "$lockfd"
       print -r -- 0 > "$statusfile"
       return 0
     }
@@ -1668,6 +1733,7 @@ update_one_bundle() {
       warn "antidote: $repo: no commits older than $min_age days, skipping update"
       # Skipping is a success, so say so: the parent treats a missing
       # status file as a failed worker.
+      repo_unlock "$lockfd"
       print -r -- 0 > "$statusfile"
       return 0
     fi
@@ -1720,6 +1786,8 @@ update_one_bundle() {
       fi
     } > "$tmpfile" 2>&1
   fi
+
+  repo_unlock "$lockfd"
 
   # The .status file is the only failure signal the parent reads; bare
   # wait discards the worker's own exit status.
@@ -2315,6 +2383,7 @@ antidote() {
   typeset -g _ANTIDOTE_OSTYPE _ANTIDOTE_LOCALAPPDATA
   typeset -g _ANTIDOTE_VERSION_SHOW_SHA=true _ANTIDOTE_GIT_AUTOSTASH=true
   typeset -g _ANTIDOTE_GIT_BG_DEEPEN=true _ANTIDOTE_IS_TTY=true
+  typeset -g _ANTIDOTE_LOCK_TIMEOUT=60
   zstyle -s ':antidote:bat'    opts       _ANTIDOTE_BAT_OPTS
   zstyle -s ':antidote:bundle' file       _ANTIDOTE_BUNDLE_FILE          || _ANTIDOTE_BUNDLE_FILE=${ZDOTDIR:-$HOME}/.zsh_plugins.txt
   zstyle -s ':antidote:bundle' path-style _ANTIDOTE_PATH_STYLE           || _ANTIDOTE_PATH_STYLE=full
