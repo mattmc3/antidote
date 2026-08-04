@@ -182,6 +182,15 @@ source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 run_after'
 }
 
+@test "pre and post functions run for clone bundles" {
+  fixture_session <<'EOS'
+antidote __private__ zsh_script __bundle__ foo/bar kind clone pre run_before | subenv ANTIDOTE_HOME
+antidote __private__ zsh_script __bundle__ foo/bar kind clone post run_after | subenv ANTIDOTE_HOME
+EOS
+  expect 'run_before
+run_after'
+}
+
 # If a plugin is deferred, so is its post event; the pre event still
 # runs immediately.
 @test "deferred bundles defer the post event" {

@@ -1211,7 +1211,7 @@ zsh_script_render() {
   print_path "$bundle_path"; print_bundle_path=$REPLY
 
   # handle autoloading before sourcing
-  if [[ -n "$autoload_path" ]]; then
+  if [[ -n "$autoload_path" && "$kind" != clone ]]; then
     autoload_script "${print_bundle_path}/${autoload_path}" "$fpath_rule"
     script+=("${reply[@]}")
   fi
@@ -1227,6 +1227,8 @@ zsh_script_render() {
   fi
 
   case "$kind" in
+    clone)
+      ;;
     fpath)
       script+="$fpath_script"
       ;;
@@ -1268,6 +1270,8 @@ zsh_script_render() {
       script+=("$post")
     fi
   fi
+
+  (( $#script )) || return 0
 
   # wrap conditional
   if [[ -n "$cond" ]]; then
@@ -1366,7 +1370,6 @@ zsh_script() {
 
   # clone if needed, then emit the load script
   zsh_script_clone || return 1
-  [[ "$kind" == clone ]] && return 0
   zsh_script_render
 }
 
