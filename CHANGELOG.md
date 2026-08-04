@@ -2,9 +2,16 @@
 
 Notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [v2.2.2]
 
 - Fix git's own output during a clone leaking into the generated static file, where a line like `warning: redirecting to https://...` becomes a command at shell startup.
+- Fix `pre:` and `post:` hooks not running for `kind:clone` bundles. Clone-only bundles still emit no load script unless a hook is present.
+- Fix dynamic-mode heredoc bundles leaking `__adote_script=''` to stdout at shell startup.
+- Fix concurrent `antidote load` shells racing while rebuilding the same static file. Rebuilds now use per-process temp files, fall back to the last known-good static file on failure, and clean up stale temp files from interrupted builds.
+- Improve color detection by asking terminfo for terminal color support, honoring `FORCE_COLOR`, and treating `CLICOLOR=0` as an opt-out.
+- Speed up internal helpers by replacing fork-heavy paths with Zsh builtins for bundle discovery, JSON escaping, and command checks.
+- Add test fixtures for submodules and non-`main` default branches, covering clone/update paths that were previously untested.
+- Update the architecture guide with cloning and update sequence diagrams and refreshed implementation notes.
 
 ## [v2.2.1]
 
