@@ -68,7 +68,7 @@
     # -a, a package manager restoring archive times), so key on the
     # version too. Literal, not a subprocess call: bumpver keeps it in
     # sync and dynamic_cache.bats fails if it drifts.
-    key="antidote:2.2.1"$'\n'
+    key="antidote:2.2.2"$'\n'
     key+="$ANTIDOTE_ZSH:$zsh_mtime"$'\n'"$configfile:$config_mtime"$'\n'
     key+="$zstyles"$'\n'"$*"
     for k in ${(ok)_antidote_using_context}; do
