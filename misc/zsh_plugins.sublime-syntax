@@ -33,7 +33,7 @@ contexts:
   # A directive takes the first word, so match it before the unknown-annotation
   # rule claims it as a typo.
   directive:
-    - match: '\b(using)(:)'
+    - match: '\b(using|preset)(:)'
       captures:
         1: keyword.control
         2: punctuation.separator.key-value

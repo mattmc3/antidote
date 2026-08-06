@@ -44,11 +44,14 @@ literally.
 
 A directive occupies the first word of a line and is not a bundle itself.
 
-| Directive        | Effect                                                                                                                                                                              |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `using:<target>` | Sets a context. Bare words on later lines become subplugins of `<target>`, inheriting its annotations. A repo target also emits a `kind:clone` entry; a path target emits no entry. |
+| Directive         | Effect                                                                                                                                                                              |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `using:<target>`  | Sets a context. Bare words on later lines become subplugins of `<target>`, inheriting its annotations. A repo target also emits a `kind:clone` entry; a path target emits no entry. |
+| `preset:<bundle>` | Records fallback annotations for every later entry of `<bundle>`. Emits no entry and clones nothing.                                                                                |
 
-One directive per line.
+One directive per line. Only one `using:` is active at a time, so a new one replaces the
+previous. Presets are keyed per bundle, so presets for different bundles coexist and only
+a preset for the same bundle replaces an earlier one.
 
 ## Annotations
 
@@ -59,16 +62,16 @@ describes which annotations _have meaning_ where, not which ones are accepted.
 
 ### Which annotations apply to which entry
 
-| Annotation       |         `using:`         |     git bundle     |    local bundle    |
-| ---------------- | :----------------------: | :----------------: | :----------------: |
-| `kind:`          |    default for words     | :white_check_mark: | :white_check_mark: |
-| `path:`          | subpath prefix for words | :white_check_mark: | :white_check_mark: |
-| `branch:`        |        inherited         | :white_check_mark: |         -          |
-| `pin:`           |        inherited         | :white_check_mark: |         -          |
-| `conditional:`   |        inherited         | :white_check_mark: | :white_check_mark: |
-| `pre:` / `post:` |        inherited         | :white_check_mark: | :white_check_mark: |
-| `autoload:`      |        inherited         | :white_check_mark: | :white_check_mark: |
-| `fpath-rule:`    |        inherited         | :white_check_mark: | :white_check_mark: |
+| Annotation       |         `using:`         |     `preset:`      |     git bundle     |    local bundle    |
+| ---------------- | :----------------------: | :----------------: | :----------------: | :----------------: |
+| `kind:`          |    default for words     | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| `path:`          | subpath prefix for words | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| `branch:`        |        inherited         | :white_check_mark: | :white_check_mark: |         -          |
+| `pin:`           |        inherited         | :white_check_mark: | :white_check_mark: |         -          |
+| `conditional:`   |        inherited         | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| `pre:` / `post:` |        inherited         | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| `autoload:`      |        inherited         | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| `fpath-rule:`    |        inherited         | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 
 - **git bundle** is type `repo`, `url`, or `ssh_url`. **local bundle** is `path`, `dir`,
   or `file`.
@@ -78,6 +81,13 @@ describes which annotations _have meaning_ where, not which ones are accepted.
   overrides the inherited one. The `using:` entry itself is forced to `kind:clone` and
   has its own `path:` dropped.
 - A subplugin word takes the annotation set of its `using:` target's type.
+- Any annotation can be preset. A preset is the last place antidote looks, so the value
+  order is line, then `using:`, then `preset:`. On a `preset:` line `path:` is an ordinary
+  default path, not the bare-word prefix it becomes on a `using:` line.
+- Presets are keyed by the directory a bundle clones into, so every spelling of a repo
+  shares one set, and they reach bare words under a `using:` for that repo. A path-style
+  `using:` is the exception: its bare words resolve to their own subdirectories, so a
+  preset on the parent directory does not reach them.
 
 ### Values
 
@@ -123,6 +133,7 @@ the `/` test.
 Fatal to the line (the entry is dropped, the run exits non-zero):
 
 - `invalid using: target` - unresolvable target.
+- `invalid preset: target` - unresolvable target.
 - `invalid bundle` - unresolvable type, or a bare word with no active `using:`.
 - `Expecting 'key:value' form for annotation` - an annotation word with no `:`.
 - `pin requires a full 40-character commit SHA` - a short SHA.
