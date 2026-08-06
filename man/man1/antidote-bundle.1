@@ -145,8 +145,51 @@ The autoload annotation allows you to autoload a zsh functions directory in addi
 .sp
 \f(CRpin\fP
 .RS 4
-The pin annotation allows you to lock a bundle to a specific commit SHA (eg: \f(CRpin:abc1234\fP). A pinned bundle will be cloned at the specified commit and will be skipped during \f(CRantidote update\fP. This is useful for preventing unwanted upstream changes from affecting your environment. Use \f(CRbranch:\fP for tags or branches.
+The pin annotation allows you to lock a bundle to a specific commit SHA. A full 40\-character SHA is required; a short SHA is an error. A pinned bundle will be cloned at the specified commit and will be skipped during \f(CRantidote update\fP. This is useful for preventing unwanted upstream changes from affecting your environment. Use \f(CRbranch:\fP for tags or branches.
 .RE
+.sp
+Lines can also start with a directive. A directive occupies the first word of a line, is not a bundle itself, and affects the lines that follow it.
+.sp
+\f(CRusing:\fP
+.RS 4
+Lets you write plugins from a monorepo or a local directory as bare names (eg: \f(CRusing:ohmyzsh/ohmyzsh path:plugins\fP). Annotations you put on the directive carry over to those names, and anything a name sets for itself wins. Only one \f(CRusing:\fP is active at a time, so a new one replaces the last.
+.RE
+.sp
+\f(CRpreset:\fP
+.RS 4
+Sets annotations that every later use of a bundle falls back on (eg: \f(CRpreset:ohmyzsh/ohmyzsh pin:<sha>\fP). It isn\(cqt a bundle itself, so nothing gets cloned.
+.RE
+.sp
+A repo only gets cloned once, which means \f(CRpin:\fP and \f(CRbranch:\fP have to agree everywhere you use it. Miss one and antidote tells you the pin or branch is inconsistent. Rather than repeat yourself on every line, set it once:
+.sp
+.if n .RS 4
+.nf
+.fam C
+preset:ohmyzsh/ohmyzsh pin:4f8a1c2b9e7d3a6f5c0b8e2d7a9f4c1b6e3d8a52
+
+ohmyzsh/ohmyzsh path:lib
+ohmyzsh/ohmyzsh path:plugins/git
+.fam
+.fi
+.if n .RE
+.sp
+You can preset any annotation, not just \f(CRpin:\fP and \f(CRbranch:\fP. Presets are the last place antidote looks, so anything on the line itself wins, and so does anything picked up from a \f(CRusing:\fP. Watch \f(CRpath:\fP though: on a \f(CRpreset:\fP line it is simply a default path, while on a \f(CRusing:\fP line it is a prefix for bare names.
+.sp
+Presets are matched on the directory a bundle clones into, so it makes no difference how you spell the repo. They reach bare names under a \f(CRusing:\fP too:
+.sp
+.if n .RS 4
+.nf
+.fam C
+preset:ohmyzsh/ohmyzsh pin:4f8a1c2b9e7d3a6f5c0b8e2d7a9f4c1b6e3d8a52
+
+using:ohmyzsh/ohmyzsh path:plugins
+git
+magic\-enter
+.fam
+.fi
+.if n .RE
+.sp
+A preset only affects the lines below it. Set one twice for the same bundle and the second replaces the first, but presets for different bundles stack up rather than replacing each other the way \f(CRusing:\fP does.
 .sp
 Bundles can be kept a fixed number of days behind their upstream with the following \f(CRzstyle\fP:
 .sp
@@ -288,7 +331,7 @@ Using the \fBpin:\fP annotation:
 .nf
 .fam C
 # pin a plugin to a specific commit SHA
-antidote bundle zsh\-users/zsh\-autosuggestions pin:abc1234
+antidote bundle zsh\-users/zsh\-autosuggestions pin:4f8a1c2b9e7d3a6f5c0b8e2d7a9f4c1b6e3d8a52
 .fam
 .fi
 .if n .RE
@@ -297,7 +340,7 @@ antidote bundle zsh\-users/zsh\-autosuggestions pin:abc1234
 .nf
 .fam C
 # pin a plugin to a specific commit SHA
-antidote bundle zsh\-users/zsh\-syntax\-highlighting pin:abc1234
+antidote bundle zsh\-users/zsh\-syntax\-highlighting pin:4f8a1c2b9e7d3a6f5c0b8e2d7a9f4c1b6e3d8a52
 .fam
 .fi
 .if n .RE
