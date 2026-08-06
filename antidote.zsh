@@ -269,6 +269,52 @@ bulk_clone() {
 
 ##### BUNDLE PARSER
 
+### Get the key a 'preset:' annotation is stored under.
+#
+# A repo is cloned once, so every spelling of it maps to the same clone dir
+# and shares one preset. Local bundles key on their $HOME-normalized path.
+#
+preset_key() {
+  local b=$1
+  bundle_type "$b"
+  if [[ "$REPLY" == (repo|url|ssh_url) ]]; then
+    bundle_dir "$b"
+  else
+    b=${b/#\~\//$HOME/}
+    typeset -g REPLY=${b/#$HOME/\$HOME}
+  fi
+}
+
+### Handle a preset: directive line - record fallback annotations for a bundle.
+#
+# Emits no entry. Presetting the same bundle again replaces its whole set.
+# Reads/writes bundle_parser's locals via dynamic scoping.
+#
+parse_preset_directive() {
+  local key target dkey
+  target=${bname#preset:}
+  bundle_type "$target"
+  if [[ "$REPLY" == ('?'|empty) ]]; then
+    bundle[__error__]="invalid preset: target '$target'"
+    bundle[__severity__]=error
+    for key in ${(k)bundle}; do
+      _parsed_bundles[$n,$key]=$bundle[$key]
+    done
+    _parsed_bundles[__has_errors__]=1
+    return 1
+  fi
+  preset_key "$target"; dkey=$REPLY
+  for key in ${(k)_antidote_preset_context[(I)${(b)dkey},*]}; do
+    unset "_antidote_preset_context[$key]"
+  done
+  for key in ${(k)bundle}; do
+    [[ $key == __* ]] && continue
+    _antidote_preset_context[$dkey,$key]=$bundle[$key]
+  done
+  (( n-- ))
+  return 1
+}
+
 ### Handle a using: directive line - set the active using context.
 #
 # Repo using: converts the entry to kind:clone and returns 0 to keep it.
@@ -326,7 +372,6 @@ expand_using_subplugin() {
     [[ $key == (bundle|path|__type__) ]] && continue
     [[ -n "${bundle[$key]}" ]] || bundle[$key]=${_antidote_using_context[$key]}
   done
-  [[ -n "${bundle[kind]}" ]] || bundle[kind]=zsh
   if [[ "$ctx_type" == (path|dir|file) ]]; then
     # Path using: construct the full path as the bundle
     bundle[__bundle__]=${_antidote_using_context[bundle]}${ctx_path:+/$ctx_path}/$bname
@@ -376,13 +421,13 @@ check_pin_branch_conflicts() {
 # Sets matrix-level flags: __count__, __has_pins__, __has_errors__, __has_critical__.
 #
 bundle_parser() {
-  local line lineno arg partno key bname btype bnameval input
+  local line lineno arg partno key bname btype bnameval input dkey akey
   local -a args lines
   local -A bundle seen_bundles seen_bundle_vals
   local -i n=0
 
   typeset -gA _parsed_bundles=()
-  typeset -gA _antidote_using_context
+  typeset -gA _antidote_using_context _antidote_preset_context
 
   # Read all input and normalize line endings (\r\n, \r, \n -> \n)
   input=$(cat)
@@ -415,6 +460,13 @@ bundle_parser() {
     if [[ $partno -gt 0 ]]; then
       (( n++ ))
       bname="$bundle[__bundle__]"
+
+      # Handle preset: directive - record fallbacks, emit no entry.
+      if [[ "$bname" == preset:* ]]; then
+        parse_preset_directive
+        (( lineno++ ))
+        continue
+      fi
 
       # Handle using: directive - set the active using context.
       if [[ "$bname" == using:* ]]; then
@@ -456,6 +508,20 @@ bundle_parser() {
       else
         bnameval=${bname/#\~\//\$HOME/}
         bundle[__name__]=${bnameval/#$HOME/\$HOME}
+      fi
+
+      # Presets go on last, so a value from the line or from using: wins.
+      dkey=${bundle[__dir__]:-${bundle[__name__]}}
+      if [[ -n "$dkey" ]]; then
+        for key in ${(k)_antidote_preset_context[(I)${(b)dkey},*]}; do
+          akey=${key#*,}
+          (( ${+bundle[$akey]} )) || bundle[$akey]=${_antidote_preset_context[$key]}
+        done
+      fi
+
+      # Defaulted after presets so a preset kind: is not shadowed.
+      if [[ "$btype" == using_subplugin ]]; then
+        [[ -n "${bundle[kind]}" ]] || bundle[kind]=zsh
       fi
 
       for key in ${(k)bundle}; do
@@ -2361,8 +2427,9 @@ antidote() {
   zstyle -T ':antidote:snapshot:automatic' enabled && _ANTIDOTE_AUTOSNAPSHOT=true
   _ANTIDOTE_SNAPSHOT_DIR=${~_ANTIDOTE_SNAPSHOT_DIR}
 
-  typeset -gA _antidote_using_context
+  typeset -gA _antidote_using_context _antidote_preset_context
   [[ -n "$ANTIDOTE_USING_CTX" ]] && eval "$ANTIDOTE_USING_CTX"
+  [[ -n "$ANTIDOTE_PRESET_CTX" ]] && eval "$ANTIDOTE_PRESET_CTX"
 }
 
 _ANTIDOTE_INIT_SCRIPT=$(
