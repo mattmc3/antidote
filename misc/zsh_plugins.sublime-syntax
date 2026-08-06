@@ -1,6 +1,6 @@
 %YAML 1.2
 ---
-# syntax-version: 1
+# syntax-version: 2.2
 name: Antidote Bundle
 file_extensions:
   - zsh_plugins.txt
@@ -25,9 +25,18 @@ contexts:
     - match: '#.*$'
       scope: comment.line.number-sign
       pop: true
+    - include: directive
     - include: annotation
     - include: bundle-reference
     - include: whitespace
+
+  # A directive takes the first word, so match it before the unknown-annotation
+  # rule claims it as a typo.
+  directive:
+    - match: '\b(using)(:)'
+      captures:
+        1: keyword.control
+        2: punctuation.separator.key-value
 
   whitespace:
     - match: '\s+'
