@@ -1478,10 +1478,12 @@ antidote_bundle() {
   bundle_parser < <(collect_input "$@")
   (( _parsed_bundles[__has_errors__] )) && err=1
   if ! (( _parsed_bundles[__count__] )); then
-    # A pure using: directive (path-based) produces no bundle entries but does
-    # update the context - emit it in dynamic mode so the parent shell sees it.
-    if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_using_context} -gt 0 ]]; then
-      typeset -p _antidote_using_context
+    # A directive line produces no bundle entries but does update a context -
+    # emit it in dynamic mode so the parent shell sees it.
+    if [[ "$ANTIDOTE_DYNAMIC" == true ]] &&
+       (( ${#_antidote_using_context} + ${#_antidote_preset_context} )); then
+      (( ${#_antidote_using_context} )) && typeset -p _antidote_using_context
+      (( ${#_antidote_preset_context} )) && typeset -p _antidote_preset_context
       return 0
     fi
     return 1
@@ -1533,10 +1535,11 @@ antidote_bundle() {
     printf '%s\n' "$bundle_output" || err=$?
   fi
 
-  # In dynamic mode, emit the use context so the parent shell can source it
-  # and pass it back into the next subprocess call via ANTIDOTE_USING_CTX.
-  if [[ "$ANTIDOTE_DYNAMIC" == true && ${#_antidote_using_context} -gt 0 ]]; then
-    typeset -p _antidote_using_context
+  # In dynamic mode, emit the contexts so the parent shell can source them and
+  # pass them back into the next subprocess call.
+  if [[ "$ANTIDOTE_DYNAMIC" == true ]]; then
+    (( ${#_antidote_using_context} )) && typeset -p _antidote_using_context
+    (( ${#_antidote_preset_context} )) && typeset -p _antidote_preset_context
   fi
   return $err
 }

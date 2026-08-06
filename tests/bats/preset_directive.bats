@@ -216,3 +216,17 @@ EOS
   )
   [ -n "$literal" ] && [ "$literal" = "$viapreset" ]
 }
+
+##### dynamic mode
+
+# each `antidote bundle` call is its own subprocess, so a preset has to
+# round-trip back to the parent shell the way a using: context does
+@test "preset: survives across dynamic bundle calls" {
+  run_session <<'EOS'
+source <(antidote init)
+antidote bundle preset:foo/bar branch:frompreset &>/dev/null
+antidote __private__ bundle_parser_serialize <<<'foo/bar' |
+  sed -n 's/.*branch[]= ]*\([a-z]*\).*/branch: \1/p'
+EOS
+  assert_line "branch: frompreset"
+}
