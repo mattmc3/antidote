@@ -43,6 +43,18 @@ setup() {
 source "$ANTIDOTE_HOME/fakegitsite.com/pintest/pinme/pinme.plugin.zsh"'
 }
 
+# an entry that already failed to parse must not cost a clone; the scripter
+# drops it either way
+@test "a bundle with an error is not cloned" {
+  run antidote bundle <<'EOS'
+totally/bogusrepo junk
+foo/bar
+EOS
+  assert_failure 1
+  refute_line --partial "cloning totally/bogusrepo"
+  assert_line --partial "Expecting 'key:value' form for annotation 'junk'"
+}
+
 # Test |piping, <redirection, and --args
 @test "bundle accepts args, pipes, and redirection" {
   run antidote bundle foo/bar

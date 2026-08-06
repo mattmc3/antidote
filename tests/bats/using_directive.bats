@@ -291,6 +291,16 @@ EOS
   assert_line "# antidote: error on line 1: invalid using: target ''"
 }
 
+# a path using: emits no entry, so an error on that line must not vanish with it
+@test "a stray word on a path using: line is still reported" {
+  fixture_session <<'EOS'
+mkdir -p $ZDOTDIR/plugins
+antidote bundle "using:$ZDOTDIR/plugins junk" 2>&1
+EOS
+  assert_failure 1
+  assert_line --partial "Expecting 'key:value' form for annotation 'junk'"
+}
+
 @test "using: with malformed target is an error" {
   fixture_session <<'EOS'
 antidote bundle 'using:foo@bar' 2>&1

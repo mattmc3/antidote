@@ -243,6 +243,8 @@ bulk_clone() {
   fi
 
   for (( i = 1; i <= _parsed_bundles[__count__]; i++ )); do
+    # Never clone an entry already known bad; the scripter drops it anyway.
+    [[ -z "${_parsed_bundles[$i,__error__]}" ]] || continue
     bundle=${_parsed_bundles[$i,__bundle__]}
     bundle_type "$bundle"
     [[ $REPLY == (repo|url|ssh_url) ]] || continue
@@ -298,6 +300,15 @@ parse_using_directive() {
     unset "bundle[path]"
     typeset -g bname=$bundle[__bundle__]
     return 0
+  fi
+  # Dropping the entry would drop any error recorded on the line with it.
+  if [[ -n "${bundle[__error__]}" ]]; then
+    bundle[__severity__]=error
+    for key in ${(k)bundle}; do
+      _parsed_bundles[$n,$key]=$bundle[$key]
+    done
+    _parsed_bundles[__has_errors__]=1
+    return 1
   fi
   (( n-- ))
   return 1

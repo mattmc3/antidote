@@ -134,6 +134,5 @@ Fatal to the whole run, before any cloning:
 - conflicting `pin:`/`branch:` for one bundle directory
 - inconsistent `pin:`/`branch:` across entries sharing a bundle directory
 
-An entry with an error emits no load script, but it can still be cloned first if its
-bundle word looks like a repo - the clone pass filters on bundle shape, not on errors.
-When one line trips several errors, the last one is the one reported.
+An entry with an error is never cloned and emits no load script. When one line trips
+several errors, the last one is the one reported.
