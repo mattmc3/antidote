@@ -32,6 +32,7 @@ typeset -ga reply=()
 # Internal profiling support
 [[ -n "$ANTIDOTE_PROFILE" ]] && zmodload zsh/zprof
 zmodload zsh/datetime
+zmodload -F zsh/parameter p:parameters
 
 # Load config: source config file then apply any serialized zstyles.
 # XDG resolution is fine here rather than via get_dir.
@@ -268,6 +269,21 @@ bulk_clone() {
 }
 
 ##### BUNDLE PARSER
+
+### Print every non-empty parser context, for a dynamic-mode parent to source.
+#
+# Contexts are found by name, so a new _antidote_*_context needs no plumbing
+# here, in antidote-zsh, or in the init block. Returns 1 when there are none.
+#
+emit_contexts() {
+  local name
+  local -a ctx
+  for name in ${(ok)parameters[(I)_antidote_*_context]}; do
+    (( ${#${(P)name}} )) && ctx+=($name)
+  done
+  (( $#ctx )) || return 1
+  typeset -p $ctx
+}
 
 ### Get the key a 'preset:' annotation is stored under.
 #
@@ -1480,10 +1496,7 @@ antidote_bundle() {
   if ! (( _parsed_bundles[__count__] )); then
     # A directive line produces no bundle entries but does update a context -
     # emit it in dynamic mode so the parent shell sees it.
-    if [[ "$ANTIDOTE_DYNAMIC" == true ]] &&
-       (( ${#_antidote_using_context} + ${#_antidote_preset_context} )); then
-      (( ${#_antidote_using_context} )) && typeset -p _antidote_using_context
-      (( ${#_antidote_preset_context} )) && typeset -p _antidote_preset_context
+    if [[ "$ANTIDOTE_DYNAMIC" == true ]] && emit_contexts; then
       return 0
     fi
     return 1
@@ -1537,10 +1550,7 @@ antidote_bundle() {
 
   # In dynamic mode, emit the contexts so the parent shell can source them and
   # pass them back into the next subprocess call.
-  if [[ "$ANTIDOTE_DYNAMIC" == true ]]; then
-    (( ${#_antidote_using_context} )) && typeset -p _antidote_using_context
-    (( ${#_antidote_preset_context} )) && typeset -p _antidote_preset_context
-  fi
+  [[ "$ANTIDOTE_DYNAMIC" == true ]] && emit_contexts
   return $err
 }
 
@@ -2431,8 +2441,7 @@ antidote() {
   _ANTIDOTE_SNAPSHOT_DIR=${~_ANTIDOTE_SNAPSHOT_DIR}
 
   typeset -gA _antidote_using_context _antidote_preset_context
-  [[ -n "$ANTIDOTE_USING_CTX" ]] && eval "$ANTIDOTE_USING_CTX"
-  [[ -n "$ANTIDOTE_PRESET_CTX" ]] && eval "$ANTIDOTE_PRESET_CTX"
+  [[ -n "$ANTIDOTE_CONTEXT" ]] && eval "$ANTIDOTE_CONTEXT"
 }
 
 _ANTIDOTE_INIT_SCRIPT=$(
