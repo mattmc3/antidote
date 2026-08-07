@@ -23,6 +23,27 @@
     export MANPATH="${0:a:h:h}/man:$MANPATH"
   fi
 
+  # Only the subprocess sourced the config file, so parent-shell code
+  # never saw its zstyles. Source it once, here.
+  typeset -g ANTIDOTE_CONFIG=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
+  if [[ -r "$ANTIDOTE_CONFIG" ]]; then
+    # The autoload route reaches this after the user's own zstyles, so
+    # keep the config from overwriting them: it supplies defaults only.
+    zstyle() {
+      local -a _adote_set
+      if [[ "$1" != -* ]] && (( $# >= 3 )) &&
+         builtin zstyle -g _adote_set "$1" "$2"; then
+        return 0
+      fi
+      builtin zstyle "$@"
+    }
+    builtin source "$ANTIDOTE_CONFIG"
+    unfunction zstyle
+  fi
+  # Tells the subprocess the file was already tried, so it skips its own
+  # source and takes the result from the zstyles handed across.
+  builtin zstyle ':antidote:config' sourced 'yes'
+
   builtin autoload -Uz is-at-least
   if is-at-least 5.8; then
     # -D : Delete flags from the param array once they are detected

@@ -83,6 +83,67 @@ EOS
   assert_line "foobar: match"
 }
 
+# Only the subprocess sources the config file, so a config-file
+# ':antidote:home' has to reach the parent resolver too.
+@test "antidote-home honors a config-file home" {
+  SESSION_PRELUDE='unset ANTIDOTE_HOME
+export ANTIDOTE_CONFIG=$HOME/cfg.zsh
+print -r -- "zstyle \":antidote:home\" dir \$HOME/custom-home" >$ANTIDOTE_CONFIG
+antidote-setup'
+  run_session <<'EOS'
+parent=$(antidote home)
+sub=$(antidote-zsh home)
+[[ $parent == $sub ]] && echo "match: ${parent:t}" || echo "MISMATCH parent=$parent sub=$sub"
+EOS
+  assert_output "match: custom-home"
+}
+
+# A broken ANTIDOTE_ZSH makes any subprocess call fail, so answering
+# here proves the config file was read in this shell.
+@test "antidote-home reads a config-file home without a subprocess" {
+  SESSION_PRELUDE='unset ANTIDOTE_HOME
+export ANTIDOTE_CONFIG=$HOME/cfg.zsh
+print -r -- "zstyle \":antidote:home\" dir \$HOME/custom-home" >$ANTIDOTE_CONFIG
+antidote-setup
+echo "exit 3" >$HOME/broken.zsh
+ANTIDOTE_ZSH=$HOME/broken.zsh'
+  run_session <<<'echo "${$(antidote home):t}"'
+  assert_success
+  assert_output "custom-home"
+}
+
+# The autoload route runs antidote-setup after the user's zstyles, so
+# the config file must not overwrite what this shell already set.
+@test "a zstyle set before setup beats the config file" {
+  SESSION_PRELUDE='unset ANTIDOTE_HOME
+export ANTIDOTE_CONFIG=$HOME/cfg.zsh
+print -rl -- "zstyle \":antidote:home\" dir \$HOME/from-config" \
+  "zstyle \":antidote:bundle\" path-style short" >$ANTIDOTE_CONFIG
+zstyle ":antidote:home" dir $HOME/from-shell
+antidote-setup'
+  run_session <<'EOS'
+echo "home: ${$(antidote home):t}"
+echo "path-style: $(zstyle -L :antidote:bundle path-style)"
+EOS
+  assert_line "home: from-shell"
+  assert_line "path-style: zstyle :antidote:bundle path-style short"
+}
+
+# update deletes the checkfile from the real ANTIDOTE_HOME, so load has
+# to write it there or the forced rebundle after an update never fires.
+@test "load writes the checkfile to a config-file home" {
+  SESSION_PRELUDE='unset ANTIDOTE_HOME
+export ANTIDOTE_CONFIG=$HOME/cfg.zsh
+print -r -- "zstyle \":antidote:home\" dir \$HOME/custom-home" >$ANTIDOTE_CONFIG
+antidote-setup
+print -r -- "$ZDOTDIR/custom/lib" >$ZDOTDIR/.zplugins_localdir.txt'
+  run_session <<'EOS'
+antidote load $ZDOTDIR/.zplugins_localdir.txt >/dev/null 2>&1
+[[ -e $HOME/custom-home/.antidote.load ]] && echo "checkfile in real home" || echo "checkfile elsewhere"
+EOS
+  assert_line "checkfile in real home"
+}
+
 @test "load fails on a missing bundle file" {
   fixture_session <<<'antidote load /no/such/file.txt 2>&1'
   assert_output "antidote: bundle file not found '/no/such/file.txt'."

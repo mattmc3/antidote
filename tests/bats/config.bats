@@ -32,6 +32,34 @@ setup() {
   assert_output "$AHOME/https-COLON--SLASH--SLASH-github.com-SLASH-foo-SLASH-bar"
 }
 
+# antidote-setup sources the config into the parent and marks it, so a
+# subprocess launched from that shell must not source it a second time.
+@test "the config file is sourced once per shell, not per command" {
+  SESSION_PRELUDE='export ANTIDOTE_CONFIG=$HOME/cfg.zsh
+print -r -- "print -n x >>\$HOME/srccount" >$ANTIDOTE_CONFIG
+rm -f $HOME/srccount
+antidote-setup'
+  run_session <<'EOS'
+antidote home >/dev/null
+antidote --version >/dev/null
+echo "sourced: ${#$(<$HOME/srccount)}"
+EOS
+  assert_output "sourced: 1"
+}
+
+# Nothing marked it, so a standalone subprocess still reads it itself.
+@test "an unmarked subprocess sources the config itself" {
+  SESSION_PRELUDE='export ANTIDOTE_CONFIG=$HOME/cfg.zsh
+print -r -- "print -n x >>\$HOME/srccount" >$ANTIDOTE_CONFIG
+rm -f $HOME/srccount'
+  run_session <<'EOS'
+zstyle -d ':antidote:config' sourced
+antidote-zsh home >/dev/null
+echo "sourced: ${#$(<$HOME/srccount)}"
+EOS
+  assert_output "sourced: 1"
+}
+
 @test "a missing config file is tolerated" {
   ACONFIG=""
   rm "$TESTHOME/.config/antidote/config.zsh"

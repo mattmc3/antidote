@@ -5,9 +5,6 @@
 # Mirrors antidote_init in antidote.zsh, but resolves home and config in
 # the parent shell so `source <(antidote init)` costs no subprocess.
 #
-# Only the subprocess sources the config file, and a config file can set
-# ':antidote:home', so that case falls back rather than guess. Kept honest
-# by the "no subprocess drift" test in init.bats.
 #function antidote-init {
   emulate -L zsh
   setopt local_options
@@ -17,14 +14,8 @@
     return $?
   fi
 
-  local ahome aconfig script
-  aconfig=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
-  if [[ -f "$aconfig" ]]; then
-    antidote-zsh init
-    return $?
-  fi
-
-  # Sets REPLY. >/dev/null drops the print.
+  # antidote-setup normalized ANTIDOTE_CONFIG. >/dev/null drops the print.
+  local ahome script
   antidote-home >/dev/null; ahome=$REPLY
 
   # Keep this template byte-identical to _ANTIDOTE_INIT_SCRIPT.
@@ -43,6 +34,6 @@ function antidote {
 }
 EOS
   script=${script//@ANTIDOTE_HOME@/${(qq)ahome}}
-  script=${script//@ANTIDOTE_CONFIG@/${(qq)aconfig}}
+  script=${script//@ANTIDOTE_CONFIG@/${(qq)ANTIDOTE_CONFIG}}
   print -rn -- "$script"
 #}

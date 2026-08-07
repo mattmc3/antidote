@@ -362,6 +362,14 @@ Config load order in `antidote.zsh`: source the config file, then `eval
 $ANTIDOTE_ZSTYLES` from the parent shell. The parent wins, so an interactive zstyle
 overrides the config file.
 
+`antidote-setup` sources the same file into the parent shell, so parent-side functions
+see its zstyles too. It wraps `zstyle` while sourcing so anything the shell already set
+survives, giving the same precedence in the `autoload -Uz antidote` route, where setup
+runs after the user's own zstyles. It then sets `:antidote:config sourced`, an internal
+marker that rides across in `ANTIDOTE_ZSTYLES` and tells `antidote.zsh` the file was
+already tried, so it is read once per shell rather than once per command. A lone
+`antidote.zsh` sees no marker and reads the file itself.
+
 `ANTIDOTE_CONFIG` is the only variable involved. It is a single self-normalizing name:
 the user may set it as an env var to override the path, and if unset, `antidote.zsh`
 fills it in with the XDG default in place.

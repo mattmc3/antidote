@@ -6,7 +6,7 @@ zstyle ':antidote:git'      site       'fakegitsite.com'
 # zstyle ':antidote:git'      cmd        'git'
 # zstyle ':antidote:bundle'   path-style 'full'
 zstyle ':antidote:defer'    bundle     'getantidote/zsh-defer'
-zstyle ':antidote:fpath'    rule       'append'
+# zstyle ':antidote:fpath'    rule       'append'
 zstyle ':antidote:static'   zcompile   'no'
 
 # Deepen clones in the foreground so tests never race a disowned job.

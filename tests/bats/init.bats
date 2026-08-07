@@ -56,12 +56,25 @@ ANTIDOTE_ZSH=$HOME/broken.zsh'
   assert_output "}"
 }
 
-# The parent shell never sources the config file, and a config file can
-# set ':antidote:home', so init falls back to the subprocess.
-@test "init falls back to the subprocess when a config file exists" {
+# A config file only matters here if it sets the home, so the common
+# case of a config file setting something else keeps the fast path.
+@test "init needs no subprocess for a config file that skips home" {
+  SESSION_PRELUDE='export ANTIDOTE_CONFIG=$HOME/cfg.zsh
+print -r -- "zstyle \":antidote:bundle\" path-style short" >$ANTIDOTE_CONFIG
+echo "exit 3" >$HOME/broken.zsh
+ANTIDOTE_ZSH=$HOME/broken.zsh'
+  run_session <<<'antidote init | tail -n1'
+  assert_success
+  assert_output "}"
+}
+
+# The parent shell never sources the config file, so a config-file home
+# has to reach the emitted script anyway.
+@test "init honors a config-file home" {
   SESSION_PRELUDE='export ANTIDOTE_CONFIG=$HOME/cfg.zsh
 echo "zstyle \":antidote:home\" dir /from/config" >$ANTIDOTE_CONFIG
-unset ANTIDOTE_HOME'
+unset ANTIDOTE_HOME
+antidote-setup'
   run_session <<<'antidote init | grep antidote-bundle-dynamic | subenv HOME'
   assert_output "      antidote-bundle-dynamic '/from/config' '\$HOME/cfg.zsh' \"\$@\""
 }

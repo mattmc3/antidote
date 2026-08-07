@@ -42,8 +42,13 @@ zmodload -F zsh/parameter p:parameters
 
 # Load config: source config file then apply any serialized zstyles.
 # XDG resolution is fine here rather than via get_dir.
+#
+# antidote-setup sets ':antidote:config sourced' once it has tried the
+# file in the parent, whose zstyles then carry the result here. Matched
+# as a string because the styles are not eval'd until the line below.
 typeset -g ANTIDOTE_CONFIG=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
-[[ -f "$ANTIDOTE_CONFIG" ]] && source "$ANTIDOTE_CONFIG"
+[[ "$ANTIDOTE_ZSTYLES" != *':antidote:config sourced'* && -f "$ANTIDOTE_CONFIG" ]] &&
+  source "$ANTIDOTE_CONFIG"
 [[ -n "$ANTIDOTE_ZSTYLES" ]] && eval "$ANTIDOTE_ZSTYLES"
 
 # Zsh options needed by antidote
@@ -656,7 +661,8 @@ diagnostics() {
   say "  ZSH_VERSION:      ${ZSH_VERSION:-(not set)}"
   say ""
   say "zstyles:"
-  zstyle_output=$(zstyle -L ':antidote:*' 2>/dev/null)
+  # ':antidote:config sourced' is internal plumbing, not user config.
+  zstyle_output=$(zstyle -L ':antidote:*' 2>/dev/null | grep -v '^zstyle :antidote:config sourced ')
   if [[ -n "$zstyle_output" ]]; then
     for line in "${(@f)zstyle_output}"; do
       say "  $line"
