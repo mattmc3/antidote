@@ -9,6 +9,26 @@ setup() {
   antidote_test_home
 }
 
+# bundle_zcompile reads dir lists back through a subshell, so a home
+# with spaces has to split on lines, not words. One test per branch.
+@test "bundle_zcompile compiles all bundles under a home with spaces" {
+  AHOME="$TESTHOME/.cache/anti dote"
+  antidote bundle foo/bar >/dev/null
+  run antidote __private__ bundle_zcompile
+  assert_success
+  run find "$AHOME" -name '*.zwc'
+  assert_output --partial '.zwc'
+}
+
+@test "bundle_zcompile compiles a named bundle under a home with spaces" {
+  AHOME="$TESTHOME/.cache/anti dote"
+  antidote bundle foo/bar >/dev/null
+  run antidote __private__ bundle_zcompile 'foo/bar'
+  assert_success
+  run find "$AHOME" -name '*.zwc'
+  assert_output --partial '.zwc'
+}
+
 @test "zcompile off leaves no zwc for a file bundle" {
   ZSTYLES="zstyle ':antidote:bundle:*' zcompile 'no'"
   run antidote bundle "$ZDOTDIR/custom/lib/lib1.zsh"

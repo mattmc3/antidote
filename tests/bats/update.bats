@@ -45,6 +45,19 @@ Waiting for bundle updates to complete...
 Bundle updates complete."
 }
 
+# The bundle dir list crosses a subshell, so a home with spaces has to
+# split on lines, not words.
+@test "update works when ANTIDOTE_HOME contains spaces" {
+  AHOME="$TESTHOME/.cache/anti dote"
+  antidote bundle foo/bar &>/dev/null
+  run antidote update
+  expect "Updating bundles...
+antidote: checking for updates: foo/bar
+Waiting for bundle updates to complete...
+
+Bundle updates complete."
+}
+
 @test "dry run reports an available update without applying it" {
   rollback_foo_baz
   local sha_before

@@ -7,8 +7,11 @@
 #function antidote-dispatch {
   0=${(%):-%x}
 
-  [[ -o KSH_ARRAYS ]] && __adote_ksh_arrays=1 && unsetopt KSH_ARRAYS
-  [[ -o SH_GLOB    ]] && __adote_sh_glob=1    && unsetopt SH_GLOB
+  # KSH_ARRAYS and SH_GLOB break this code, but emulate -L would stop
+  # sourced plugin setopts sticking. Turn them off, restore on exit.
+  local ksh_arrays=0 sh_glob=0
+  [[ -o KSH_ARRAYS ]] && ksh_arrays=1 && unsetopt KSH_ARRAYS
+  [[ -o SH_GLOB    ]] && sh_glob=1    && unsetopt SH_GLOB
 
   __antidote_dispatch_usage() {
     antidote-zsh __private__ usage
@@ -63,7 +66,7 @@
   # guard: nested dispatch calls (eg load -> bundle) share this function name
   (( $+functions[__antidote_dispatch_usage] )) && unfunction __antidote_dispatch_usage
 
-  (( __adote_ksh_arrays )) && __adote_ksh_arrays=0 && setopt KSH_ARRAYS
-  (( __adote_sh_glob ))    && __adote_sh_glob=0    && setopt SH_GLOB
+  (( ksh_arrays )) && setopt KSH_ARRAYS
+  (( sh_glob ))    && setopt SH_GLOB
   return $ret
 #}

@@ -46,6 +46,30 @@ commands:
   init      Initialize the shell for dynamic bundles"
 }
 
+# ANTIDOTE_TMPDIR comes from the environment, so antidote-zsh must hand
+# the user's value across the process boundary, not clobber it with TMPDIR.
+@test "exported ANTIDOTE_TMPDIR survives the process boundary" {
+  run_session <<'EOS'
+mkdir -p $HOME/mytmp
+export ANTIDOTE_TMPDIR=$HOME/mytmp
+antidote __private__ temp_dir | subenv HOME
+EOS
+  assert_success
+  assert_output '$HOME/mytmp'
+}
+
+# Same for ANTIDOTE_CONFIG: like ANTIDOTE_HOME, it has to reach the
+# subprocess even when the user never exported it.
+@test "unexported ANTIDOTE_CONFIG survives the process boundary" {
+  run_session <<'EOS'
+typeset +x ANTIDOTE_CONFIG
+ANTIDOTE_CONFIG=$HOME/custom_config.zsh
+antidote --diagnostics | grep 'config:' | subenv HOME
+EOS
+  assert_success
+  assert_output --regexp '^ +config: +\$HOME/custom_config\.zsh \(not found\)$'
+}
+
 @test "bundle clones a repo by short name" {
   run antidote bundle foo/bar
   expect '# antidote cloning foo/bar...

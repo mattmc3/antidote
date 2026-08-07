@@ -45,6 +45,17 @@ EOS
   expect "$(cat "$PRJDIR/tests/testdata/.zsh_plugins.zsh")"
 }
 
+# load runs a nested dispatch (load -> bundle), and the option
+# save/restore has to survive the nesting without losing the options.
+@test "nested dispatch through load preserves KSH_ARRAYS and SH_GLOB" {
+  SESSION_PRELUDE='setopt KSH_ARRAYS SH_GLOB'
+  fixture_session <<'EOS'
+antidote load >/dev/null 2>&1
+echo "ksh_arrays=${options[ksharrays]} sh_glob=${options[shglob]}"
+EOS
+  assert_line "ksh_arrays=on sh_glob=on"
+}
+
 @test "dispatch preserves KSH_ARRAYS and SH_GLOB" {
   SESSION_PRELUDE='setopt KSH_ARRAYS SH_GLOB'
   fixture_session <<'EOS'

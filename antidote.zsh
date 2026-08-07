@@ -873,14 +873,14 @@ bundle_zcompile() {
   builtin autoload -Uz zrecompile
 
   if [[ -z "$1" ]]; then
-    bundles=($(antidote_list --dirs))
+    bundles=(${(f)"$(antidote_list --dirs)"})
   elif [[ -f "$1" ]]; then
     zrecompile -pq "$1"
     return
   elif [[ -d "$1" ]]; then
     bundles=($1)
   else
-    bundles=($(antidote_path "$1"))
+    bundles=(${(f)"$(antidote_path "$1")"})
   fi
 
   for bundle in $bundles; do
@@ -1586,7 +1586,11 @@ antidote_install() {
         return
       ;;
       --)   shift; break  ;;
-      --*)  annotations+=( "${arg#*--}:$2" ); shift  ;;
+      --*)
+        [[ "${arg#--}" == (autoload|branch|conditional|kind|path|pin|post|pre) ]] ||
+          die "antidote: error: unknown flag '$arg', try --help"
+        annotations+=( "${arg#--}:$2" ); shift
+      ;;
       -*)
         [[ -n "${flag_to_annotation[$arg]}" ]] ||
           die "antidote: error: unknown flag '$arg', try --help"
@@ -1865,7 +1869,7 @@ antidote_update() {
   trap "[[ -d ${(q)tmpdir} ]] && del ${(q)tmpdir}" EXIT 2 15 1
 
   # update all bundles
-  for bundledir in $(antidote_list --dirs); do
+  for bundledir in ${(f)"$(antidote_list --dirs)"}; do
     url=$(git_url "$bundledir")
     short_repo_name "$url"; repo=$REPLY
 

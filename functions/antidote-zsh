@@ -12,8 +12,9 @@
 
 
   ANTIDOTE_ZSTYLES="$(zstyle -L ':antidote:*')" \
+  ANTIDOTE_CONFIG="${ANTIDOTE_CONFIG}" \
   ANTIDOTE_HOME="${ANTIDOTE_HOME}" \
-  ANTIDOTE_TMPDIR="${TMPDIR}" \
+  ANTIDOTE_TMPDIR="${ANTIDOTE_TMPDIR:-$TMPDIR}" \
   ANTIDOTE_DYNAMIC="${ANTIDOTE_DYNAMIC}" \
   ANTIDOTE_CONTEXT="${ctx:+$(typeset -p $ctx 2>/dev/null)}" \
   zsh "$ANTIDOTE_ZSH" "$@"
