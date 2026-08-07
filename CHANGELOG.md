@@ -2,6 +2,24 @@
 
 Notable changes to this project will be documented in this file.
 
+## [v2.3.0]
+
+- Add a `preset:` directive setting fallback annotations for every later entry of a bundle, so `pin:` and the like need not repeat on each line. Keyed by clone directory, so the short, https, and ssh spellings share one set. Line-level and `using:` values win.
+- Speed up dynamic mode by resolving `antidote init` in the parent shell instead of a subprocess, and dropping four forks from every `antidote` invocation. A warm `source <(antidote init)` startup goes from roughly 50ms to 35ms, and `antidote init` itself from 13.5ms to 1ms.
+- Read the config file once per shell instead of once per command. `antidote-setup` sources it into the parent shell so parent-side code sees its zstyles; anything set before antidote loads still wins.
+- Make a lone `antidote.zsh` usable when sourced, falling back to a shim that routes commands to the subprocess. `antidote load` and dynamic mode still need the full install.
+- Fix a config file's `zstyle ':antidote:home' dir ...` being invisible to parent-shell code. `antidote home` reported the default path and the rebundle checkfile landed there, so `antidote update` never cleared it and the forced rebundle after an update stopped happening.
+- Fix a static `.zwc` built by a different Zsh version never being rebuilt, leaving every shell on that version silently parsing the source.
+- Fix `kind:autoload` functions never loading under `ksh_arrays`. The generated script indexed `$fpath[1]`, which is not a subscript under that option, so `autoload` got no arguments.
+- Fix nested dispatch (`load` calling `bundle`) dropping the user's `KSH_ARRAYS` and `SH_GLOB`.
+- Fix `ANTIDOTE_CONFIG` not crossing the process boundary, and an exported `ANTIDOTE_TMPDIR` being clobbered by `TMPDIR`.
+- Fix `antidote update` and bundle zcompilation failing when `ANTIDOTE_HOME` contains spaces.
+- Fix `antidote install` writing `:value` garbage to the plugins file for unknown long flags. It now errors.
+- Fix a `preset:` not carrying across dynamic-mode `antidote bundle` calls.
+- Fix bundles that failed to parse still being cloned, and parse errors on a path-style `using:` line being lost with the dropped entry.
+- Add [misc/grammar.md](https://github.com/mattmc3/antidote/blob/main/misc/grammar.md) documenting the plugins file format: tokenization, directives, annotations, bundle type resolution, and errors. Document `using:` and `preset:` in the `antidote-bundle` man page and the syntax highlighter.
+- Internal: discover parser contexts by name instead of listing each by hand in four places, where a missed edit failed silently.
+
 ## [v2.2.2]
 
 - Fix git's own output during a clone leaking into the generated static file, where a line like `warning: redirecting to https://...` becomes a command at shell startup.
