@@ -45,3 +45,27 @@ print -r -- "zwc files: ${(o)$(print -l $ZDOTDIR/*.zwc(N:t))}"
 EOS
   assert_output "zwc files: "
 }
+
+# A zwc built by a different zsh is silently ignored when sourced, and the
+# timestamp test cannot see it, so the static file would never recompile.
+# Forge a foreign version by patching the version string in the zwc header.
+@test "a static zwc from another zsh version is recompiled" {
+  SESSION_PRELUDE="zstyle ':antidote:static' zcompile 'yes'
+zstyle ':antidote:static' file \$ZDOTDIR/.zplugins.static.zsh"
+  fixture_session <<'EOS'
+zwc=$ZDOTDIR/.zplugins.static.zsh.zwc
+antidote load $ZDOTDIR/.zplugins_fake_load >/dev/null
+zcompile -t $zwc &>/dev/null; print "fresh: $?"
+
+chmod u+w $zwc
+print -n '0.0.0' | dd of=$zwc bs=1 seek=8 conv=notrunc 2>/dev/null
+zcompile -t $zwc &>/dev/null; print "forged: $?"
+
+# sourcing the static file must notice and rebuild
+source $ZDOTDIR/.zplugins.static.zsh >/dev/null 2>&1
+zcompile -t $zwc &>/dev/null; print "after: $?"
+EOS
+  assert_line "fresh: 0"
+  assert_line "forged: 1"
+  assert_line "after: 0"
+}

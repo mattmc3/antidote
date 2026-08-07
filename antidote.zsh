@@ -1508,12 +1508,14 @@ antidote_bundle() {
   bundle_check_critical || return 1
 
   # output static file compilation
+  # zcompile -t catches a zwc built by another zsh; mtime cannot see that.
   zcompile_script=(
     "function {"
     '  0=${(%):-%x}'
     '  local staticfile=${0:A}'
     '  [[ -e ${staticfile} ]] || return 1'
-    '  if [[ ! -s ${staticfile}.zwc || ${staticfile} -nt ${staticfile}.zwc ]]; then'
+    '  if [[ ! -s ${staticfile}.zwc || ${staticfile} -nt ${staticfile}.zwc ]] ||'
+    '     ! zcompile -t ${staticfile}.zwc &>/dev/null; then'
     '    builtin autoload -Uz zrecompile'
     '    zrecompile -pq ${staticfile}'
     '  fi'

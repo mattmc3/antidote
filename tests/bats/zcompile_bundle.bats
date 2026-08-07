@@ -61,3 +61,24 @@ source "$HOME/.zsh/custom/plugins/mytheme/mytheme.zsh-theme"'
   antidote bundle "$ZDOTDIR/custom/plugins/mytheme" >/dev/null
   [ -e "$ZDOTDIR/custom/plugins/mytheme/mytheme.zsh-theme.zwc" ]
 }
+
+# A zwc from another zsh is silently ignored when the plugin is sourced.
+# bundle_zcompile always calls zrecompile, which does its own version
+# check, so bundling again must repair it. Forge the mismatch by patching
+# the version string in the zwc header.
+@test "a bundle zwc from another zsh version is recompiled" {
+  ZSTYLES="zstyle ':antidote:bundle:*' zcompile 'yes'"
+  local zwc="$ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh.zwc"
+  antidote bundle "$ZDOTDIR/custom/plugins/myplugin" >/dev/null
+  run zsh -fc "zcompile -t '$zwc'"
+  assert_success
+
+  chmod u+w "$zwc"
+  printf '0.0.0' | dd of="$zwc" bs=1 seek=8 conv=notrunc 2>/dev/null
+  run zsh -fc "zcompile -t '$zwc'"
+  assert_failure
+
+  antidote bundle "$ZDOTDIR/custom/plugins/myplugin" >/dev/null 2>&1
+  run zsh -fc "zcompile -t '$zwc'"
+  assert_success
+}

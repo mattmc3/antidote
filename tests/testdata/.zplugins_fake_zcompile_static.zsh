@@ -2,7 +2,8 @@ function {
   0=${(%):-%x}
   local staticfile=${0:A}
   [[ -e ${staticfile} ]] || return 1
-  if [[ ! -s ${staticfile}.zwc || ${staticfile} -nt ${staticfile}.zwc ]]; then
+  if [[ ! -s ${staticfile}.zwc || ${staticfile} -nt ${staticfile}.zwc ]] ||
+     ! zcompile -t ${staticfile}.zwc &>/dev/null; then
     builtin autoload -Uz zrecompile
     zrecompile -pq ${staticfile}
   fi
