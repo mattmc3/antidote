@@ -10,6 +10,17 @@
   typeset -g T_TESTDATA=$T_PRJDIR/tests/testdata/real
   unset ANTIDOTE_CONFIG
 
+  # t_setup's antidote-setup already sourced the test config into this
+  # shell, so unsetting the var is not enough. Drop the zstyles it left
+  # behind, or they ride into every subprocess via ANTIDOTE_ZSTYLES and
+  # point real clones at the fake git site.
+  local line
+  local -a parts
+  for line in ${(f)"$(zstyle -L ':antidote:*')"}; do
+    parts=( ${(z)line} )
+    zstyle -d "${parts[2]}" "${parts[3]}"
+  done
+
   # replace fixture gitconfig so we clone from real GitHub; keep
   # background maintenance off since detached git gc processes race
   # t_teardown's rm -rf of the tempdir
