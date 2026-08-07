@@ -40,23 +40,23 @@ source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
 @test "fpath rules apply to kind:autoload" {
   run antidote bundle foo/baz path:baz kind:autoload fpath-rule:append
   expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
-builtin autoload -Uz $fpath[-1]/*(N.:t)'
+builtin autoload -Uz "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz"/*(N.:t)'
 
   run antidote bundle foo/baz path:baz kind:autoload fpath-rule:prepend
   expect 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
-builtin autoload -Uz $fpath[1]/*(N.:t)'
+builtin autoload -Uz "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz"/*(N.:t)'
 }
 
 @test "fpath rules apply to autoload:funcdir annotations" {
   run antidote bundle foo/baz autoload:baz fpath-rule:append
   expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
-builtin autoload -Uz $fpath[-1]/*(N.:t)
+builtin autoload -Uz "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz"/*(N.:t)
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"'
 
   run antidote bundle foo/baz autoload:baz fpath-rule:prepend
   expect 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
-builtin autoload -Uz $fpath[1]/*(N.:t)
+builtin autoload -Uz "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz"/*(N.:t)
 fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz" $fpath )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz.plugin.zsh"'
 }
@@ -75,7 +75,7 @@ source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
 
   run antidote bundle foo/baz path:baz kind:autoload
   expect 'fpath=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" $fpath )
-builtin autoload -Uz $fpath[1]/*(N.:t)'
+builtin autoload -Uz "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz"/*(N.:t)'
 }
 
 # It is NOT recommended, but explicit fpath-rules still beat the zstyle.
@@ -91,5 +91,5 @@ source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"'
 
   run antidote bundle foo/baz path:baz kind:autoload fpath-rule:append
   expect 'fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz" )
-builtin autoload -Uz $fpath[-1]/*(N.:t)'
+builtin autoload -Uz "$HOME/.cache/antidote/fakegitsite.com/foo/baz/baz"/*(N.:t)'
 }

@@ -71,3 +71,29 @@ EOS
   [ "${lines[0]}" -lt 10 ]
   [ "${lines[1]}" -gt 150 ]
 }
+
+# The generated script is sourced in the user's shell under whatever options
+# they have set, so it cannot depend on zsh array indexing.
+@test "an autoloaded functions dir still loads under KSH_ARRAYS" {
+  SESSION_PRELUDE='setopt KSH_ARRAYS'
+  run_session <<'EOS'
+mkdir -p $ZDOTDIR/myfuncs
+print 'print ran-myfunc' >$ZDOTDIR/myfuncs/myfunc
+antidote bundle "$ZDOTDIR/myfuncs kind:autoload" >$ZDOTDIR/out.zsh
+source $ZDOTDIR/out.zsh
+print "autoloadable: ${+functions[myfunc]}"
+EOS
+  assert_line "autoloadable: 1"
+}
+
+@test "an autoloaded functions dir still loads under KSH_ARRAYS with fpath-rule prepend" {
+  SESSION_PRELUDE='setopt KSH_ARRAYS'
+  run_session <<'EOS'
+mkdir -p $ZDOTDIR/myfuncs
+print 'print ran-myfunc' >$ZDOTDIR/myfuncs/myfunc
+antidote bundle "$ZDOTDIR/myfuncs kind:autoload fpath-rule:prepend" >$ZDOTDIR/out.zsh
+source $ZDOTDIR/out.zsh
+print "autoloadable: ${+functions[myfunc]}"
+EOS
+  assert_line "autoloadable: 1"
+}

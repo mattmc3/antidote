@@ -9,7 +9,7 @@ source "$ANTIDOTE_HOME/zsh-users/zsh-syntax-highlighting/zsh-syntax-highlighting
 fpath+=( "$ANTIDOTE_HOME/sindresorhus/pure" )
 export PATH="$ANTIDOTE_HOME/romkatv/zsh-bench:$PATH"
 fpath+=( "$ANTIDOTE_HOME/mattmc3/zman/functions" )
-builtin autoload -Uz $fpath[-1]/*(N.:t)
+builtin autoload -Uz "$ANTIDOTE_HOME/mattmc3/zman/functions"/*(N.:t)
 fpath=( "$ANTIDOTE_HOME/ohmyzsh/ohmyzsh/plugins/gradle" $fpath )
 source "$ANTIDOTE_HOME/ohmyzsh/ohmyzsh/plugins/gradle/gradle.plugin.zsh"
 fpath+=( "$ANTIDOTE_HOME/ohmyzsh/ohmyzsh/plugins/docker" )

@@ -76,7 +76,7 @@ source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 export PATH="$ANTIDOTE_HOME/fakegitsite.com/foo/bar:$PATH"
 fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/foo/bar" )
 fpath+=( "$ZDOTDIR/functions" )
-builtin autoload -Uz $fpath[-1]/*(N.:t)
+builtin autoload -Uz "$ZDOTDIR/functions"/*(N.:t)
 EOF
 )
   expect "$expected"
@@ -159,7 +159,7 @@ if is-macos; then
   source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos/macos.plugin.zsh"
 fi
 fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos/functions" )
-builtin autoload -Uz $fpath[-1]/*(N.:t)
+builtin autoload -Uz "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos/functions"/*(N.:t)
 fpath+=( "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos" )
 source "$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/plugins/macos/macos.plugin.zsh"
 EOF

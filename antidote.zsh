@@ -1114,15 +1114,17 @@ bundle_check_critical() {
 ### Generate script lines to add a dir to fpath and autoload its functions.
 # usage: autoload_script <dir> <append|prepend>
 autoload_script() {
+  # Name the dir; $fpath[1] is not an index under ksh_arrays.
+  local autoload_cmd="builtin autoload -Uz \"$1\"/*(N.:t)"
   if [[ "$2" == prepend ]]; then
     typeset -ga reply=(
       "fpath=( \"$1\" \$fpath )"
-      'builtin autoload -Uz $fpath[1]/*(N.:t)'
+      "$autoload_cmd"
     )
   else
     typeset -ga reply=(
       "fpath+=( \"$1\" )"
-      'builtin autoload -Uz $fpath[-1]/*(N.:t)'
+      "$autoload_cmd"
     )
   fi
 }
