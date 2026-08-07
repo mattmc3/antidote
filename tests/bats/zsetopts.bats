@@ -58,12 +58,12 @@ EOS
   assert_line --index 1 "ksh_arrays=off sh_glob=off"
 }
 
-# Clark Grizwold lighting ceremony! A plugin that enables zillions of
-# zsh options must have all of them take effect.
-@test "grizwold plugin lights up all the zsh options" {
+# A plugin that enables zillions of zsh options must have all of them
+# take effect.
+@test "bedlam plugin lights up all the zsh options" {
   run_session <<'EOS'
 setopt | wc -l | tr -d ' '
-echo '$ZDOTDIR/custom/plugins/grizwold' > $ZDOTDIR/.zsh_plugins.txt
+echo '$ZDOTDIR/custom/plugins/bedlam' > $ZDOTDIR/.zsh_plugins.txt
 antidote load
 setopt | wc -l | tr -d ' '
 EOS

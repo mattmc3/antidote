@@ -25,4 +25,4 @@ bar.plugin.zsh
 # Path-based using: no clone, words expand to full local paths
 using:$ZDOTDIR/custom path:plugins
 myplugin
-grizwold
+bedlam

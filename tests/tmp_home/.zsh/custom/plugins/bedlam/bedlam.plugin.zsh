@@ -1,6 +1,6 @@
 () {
   setopt interactivecomments
-  typeset -ga grizwold_zopts=(
+  typeset -ga bedlam_zopts=(
     noaliases
     aliasfuncdef
     allexport
@@ -183,5 +183,5 @@
     # xtrace
     # zle
   )
-  setopt $grizwold_zopts
+  setopt $bedlam_zopts
 }

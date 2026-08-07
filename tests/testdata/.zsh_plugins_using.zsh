@@ -13,5 +13,5 @@ export PATH="$ANTIDOTE_HOME/fakegitsite.com/ohmy/ohmy/themes/pretty.zsh-theme:$P
 source "$ANTIDOTE_HOME/fakegitsite.com/foo/bar/bar.plugin.zsh"
 fpath+=( "$ZDOTDIR/custom/plugins/myplugin" )
 source "$ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh"
-fpath+=( "$ZDOTDIR/custom/plugins/grizwold" )
-source "$ZDOTDIR/custom/plugins/grizwold/grizwold.plugin.zsh"
+fpath+=( "$ZDOTDIR/custom/plugins/bedlam" )
+source "$ZDOTDIR/custom/plugins/bedlam/bedlam.plugin.zsh"

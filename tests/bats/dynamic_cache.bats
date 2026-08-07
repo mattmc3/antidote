@@ -321,10 +321,10 @@ EOS
 @test "plugin setopts stick on warm serves" {
   run_session <<'EOS'
 source <(antidote init)
-antidote bundle $ZDOTDIR/custom/plugins/grizwold &>/dev/null
+antidote bundle $ZDOTDIR/custom/plugins/bedlam &>/dev/null
 print -r -- "cold globdots: $options[globdots]"
 unsetopt globdots
-antidote bundle $ZDOTDIR/custom/plugins/grizwold &>/dev/null
+antidote bundle $ZDOTDIR/custom/plugins/bedlam &>/dev/null
 print -r -- "warm globdots: $options[globdots]"
 EOS
   assert_line "cold globdots: on"
