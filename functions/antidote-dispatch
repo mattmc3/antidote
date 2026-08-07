@@ -42,7 +42,7 @@
     local cmd=$1; shift
 
     if (( $+functions[antidote-${cmd}] )); then
-      # Commands with parent-shell wrappers: help, load, update
+      # Commands with parent-shell wrappers: help, home, init, load, update
       antidote-${cmd} "$@"
       ret=$?
     else

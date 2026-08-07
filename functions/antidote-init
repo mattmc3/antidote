@@ -1,0 +1,48 @@
+#!/bin/zsh
+
+### Emit the dynamic-mode antidote function.
+#
+# Mirrors antidote_init in antidote.zsh, but resolves home and config in
+# the parent shell so `source <(antidote init)` costs no subprocess.
+#
+# Only the subprocess sources the config file, and a config file can set
+# ':antidote:home', so that case falls back rather than guess. Kept honest
+# by the "no subprocess drift" test in init.bats.
+#function antidote-init {
+  emulate -L zsh
+  setopt local_options
+
+  if [[ "$1" == -h || "$1" == --help ]]; then
+    antidote-help init
+    return $?
+  fi
+
+  local ahome aconfig script
+  aconfig=${ANTIDOTE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/antidote/config.zsh}
+  if [[ -f "$aconfig" ]]; then
+    antidote-zsh init
+    return $?
+  fi
+
+  # Sets REPLY. >/dev/null drops the print.
+  antidote-home >/dev/null; ahome=$REPLY
+
+  # Keep this template byte-identical to _ANTIDOTE_INIT_SCRIPT.
+  read -rd '' script <<'EOS' || true
+#!/usr/bin/env zsh
+function antidote {
+  case "$1" in
+    bundle)
+      shift
+      antidote-bundle-dynamic @ANTIDOTE_HOME@ @ANTIDOTE_CONFIG@ "$@"
+      ;;
+    *)
+      ANTIDOTE_DYNAMIC=true antidote-dispatch $@
+      ;;
+  esac
+}
+EOS
+  script=${script//@ANTIDOTE_HOME@/${(qq)ahome}}
+  script=${script//@ANTIDOTE_CONFIG@/${(qq)aconfig}}
+  print -rn -- "$script"
+#}

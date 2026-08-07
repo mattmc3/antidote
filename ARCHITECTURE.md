@@ -36,6 +36,7 @@ ahead of time.
 | `antidote-update`         | parent  | `antidote update`: bundle updates via subprocess + self-update via git pull   |
 | `antidote-help`           | parent  | `man` lookup with usage fallback                                              |
 | `antidote-home`           | parent  | `antidote home`: resolves `ANTIDOTE_HOME` without a subprocess                |
+| `antidote-init`           | parent  | `antidote init`: emits the dynamic function without a subprocess              |
 | `antidote-bundle-dynamic` | parent  | Dynamic-mode `antidote bundle` with the `.dynamic` script cache               |
 | `_antidote`               | parent  | Zsh completions                                                               |
 
@@ -44,6 +45,11 @@ which autoloads all of [functions/](functions/). Or put that directory on `fpath
 `autoload -Uz antidote`, which loads only [functions/antidote](functions/antidote) and
 sources the engine on first call. The top-level [antidote](antidote) wraps the same body
 in a real function plus a call, so it works as a standalone script too.
+
+With no `functions/` beside it, sourcing [antidote.zsh](antidote.zsh) falls back to an
+`antidote` shim that routes everything to the subprocess. That covers every command the
+subprocess answers alone, but not `load` or dynamic mode, which need parent-shell
+functions. Covered by [tests/bats/standalone.bats](tests/bats/standalone.bats).
 
 The dividing line: if the code must mutate the user's shell (`source`, `fpath`, `PATH`,
 `autoload`), it belongs in `functions/`. Everything else belongs in `antidote.zsh`.
@@ -58,7 +64,7 @@ is that state has to be handed across the process boundary deliberately, covered
 flowchart TD
     subgraph parent["parent shell (functions/)"]
         cmd["antidote &lt;cmd&gt;"] --> disp[antidote-dispatch]
-        disp -->|"wrapper exists"| wrap["antidote-help<br/>antidote-load<br/>antidote-update"]
+        disp -->|"wrapper exists"| wrap["antidote-help<br/>antidote-init<br/>antidote-load<br/>antidote-update"]
         disp -->|"internal / test"| priv["antidote-zsh __private__ &lt;fn&gt;"]
         disp -->|"everything else"| azsh["antidote-zsh &lt;cmd&gt;"]
     end

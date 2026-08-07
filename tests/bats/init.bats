@@ -25,6 +25,47 @@ EOF
   expect "$expected"
 }
 
+# antidote-init emits the script from the parent shell (no subprocess)
+# when there is no config file. Guard against its resolver drifting from
+# antidote.zsh: across every OS branch, parent must equal subprocess.
+@test "antidote init matches the subprocess across OS branches" {
+  SESSION_PRELUDE='export ANTIDOTE_CONFIG=$HOME/no/such/config.zsh
+unset ANTIDOTE_HOME'
+  run_session <<'EOS'
+for os in darwin21.3.0 msys foobar; do
+  zstyle ':antidote:test:env' OSTYPE $os
+  [[ $os == msys ]] && zstyle ':antidote:test:env' LOCALAPPDATA $HOME/AppData
+  parent=$(antidote init)
+  sub=$(antidote-zsh init)
+  [[ $parent == $sub ]] && echo "$os: match" || echo "$os: MISMATCH"
+done
+EOS
+  assert_line "darwin21.3.0: match"
+  assert_line "msys: match"
+  assert_line "foobar: match"
+}
+
+# A broken ANTIDOTE_ZSH makes any subprocess call fail, so succeeding
+# here proves the parent-shell path never spawned one.
+@test "init needs no subprocess when there is no config file" {
+  SESSION_PRELUDE='export ANTIDOTE_CONFIG=$HOME/no/such/config.zsh
+echo "exit 3" >$HOME/broken.zsh
+ANTIDOTE_ZSH=$HOME/broken.zsh'
+  run_session <<<'antidote init | tail -n1'
+  assert_success
+  assert_output "}"
+}
+
+# The parent shell never sources the config file, and a config file can
+# set ':antidote:home', so init falls back to the subprocess.
+@test "init falls back to the subprocess when a config file exists" {
+  SESSION_PRELUDE='export ANTIDOTE_CONFIG=$HOME/cfg.zsh
+echo "zstyle \":antidote:home\" dir /from/config" >$ANTIDOTE_CONFIG
+unset ANTIDOTE_HOME'
+  run_session <<<'antidote init | grep antidote-bundle-dynamic | subenv HOME'
+  assert_output "      antidote-bundle-dynamic '/from/config' '\$HOME/cfg.zsh' \"\$@\""
+}
+
 @test "dynamic mode clones and sources a bundle on the fly" {
   run_session <<'EOS'
 source <(antidote init)

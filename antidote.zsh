@@ -14,9 +14,15 @@ fi
 # token instead of 'file' when a script loads from its .zwc bytecode.
 0=${(%):-%N}
 if [[ ":${ZSH_EVAL_CONTEXT}:" == *:file(|code):* ]]; then
-  typeset -f antidote-setup &>/dev/null && unfunction antidote-setup
-  builtin autoload -Uz ${0:a:h}/functions/antidote-setup
-  antidote-setup
+  if [[ -d ${0:a:h}/functions ]]; then
+    typeset -f antidote-setup &>/dev/null && unfunction antidote-setup
+    builtin autoload -Uz ${0:a:h}/functions/antidote-setup
+    antidote-setup
+  else
+    # Standalone file: shim to the subprocess. No load or dynamic mode.
+    typeset -gH ANTIDOTE_ZSH=${0:a}
+    antidote() { zsh $ANTIDOTE_ZSH "$@" }
+  fi
   return 0
 fi
 
@@ -790,6 +796,8 @@ get_dir() {
       result+="/$suffix"
     fi
   fi
+  # REPLY too, so callers can skip the $( ) fork.
+  typeset -g REPLY=$result
   say $result
 }
 get_cachedir() { get_dir cache "$@"; }
@@ -2438,11 +2446,13 @@ antidote() {
 
   typeset -g ANTIDOTE_HOME
   if [[ -z "$ANTIDOTE_HOME" ]]; then
-    zstyle -s ':antidote:home' dir ANTIDOTE_HOME || ANTIDOTE_HOME=$(get_cachedir antidote)
+    zstyle -s ':antidote:home' dir ANTIDOTE_HOME ||
+      { get_cachedir antidote >/dev/null; ANTIDOTE_HOME=$REPLY }
   fi
 
   typeset -g _ANTIDOTE_SNAPSHOT_DIR _ANTIDOTE_SNAPSHOT_MAX _ANTIDOTE_SNAPSHOT_DATEFMT _ANTIDOTE_AUTOSNAPSHOT=false
-  zstyle -s ':antidote:snapshot' dir        _ANTIDOTE_SNAPSHOT_DIR     || _ANTIDOTE_SNAPSHOT_DIR=$(get_datadir antidote)/snapshots
+  zstyle -s ':antidote:snapshot' dir        _ANTIDOTE_SNAPSHOT_DIR     ||
+    { get_datadir antidote >/dev/null; _ANTIDOTE_SNAPSHOT_DIR=$REPLY/snapshots }
   zstyle -s ':antidote:snapshot' max        _ANTIDOTE_SNAPSHOT_MAX     || _ANTIDOTE_SNAPSHOT_MAX=100
   zstyle -s ':antidote:snapshot' dateformat _ANTIDOTE_SNAPSHOT_DATEFMT || _ANTIDOTE_SNAPSHOT_DATEFMT='%Y-%m-%d %H:%M:%S %Z'
   zstyle -T ':antidote:snapshot:automatic' enabled && _ANTIDOTE_AUTOSNAPSHOT=true
@@ -2452,8 +2462,8 @@ antidote() {
   [[ -n "$ANTIDOTE_CONTEXT" ]] && eval "$ANTIDOTE_CONTEXT"
 }
 
-_ANTIDOTE_INIT_SCRIPT=$(
-cat <<'EOS'
+# read is a builtin; $(cat <<EOS) forks, on every antidote invocation.
+read -rd '' _ANTIDOTE_INIT_SCRIPT <<'EOS' || true
 #!/usr/bin/env zsh
 function antidote {
   case "$1" in
@@ -2467,10 +2477,9 @@ function antidote {
   esac
 }
 EOS
-)
+_ANTIDOTE_INIT_SCRIPT=${_ANTIDOTE_INIT_SCRIPT%$'\n'}
 
-_ANTIDOTE_HELP=$(
-cat <<'EOS'
+read -rd '' _ANTIDOTE_HELP <<'EOS' || true
 antidote - the cure to slow zsh plugin management
 
 usage: antidote [<flags>] <command> [<args> ...]
@@ -2491,7 +2500,7 @@ commands:
   snapshot  Save, restore, or list bundle snapshots
   init      Initialize the shell for dynamic bundles
 EOS
-)
+_ANTIDOTE_HELP=${_ANTIDOTE_HELP%$'\n'}
 
 antidote "$@"
 ERR=$?
