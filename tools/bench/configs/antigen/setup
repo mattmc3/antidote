@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+# Bench setup for antigen.
+#
+# Antigen caches to $ADOTDIR/init.zsh, so timed runs read a static file. It
+# puts every bundle dir on both fpath and PATH itself, so the fpath-only and
+# PATH-only bundles are plain `antigen bundle` calls.
+#
+# Antigen clones master and has no default-branch detection, so repos that
+# use main need --branch=main or they fail to install.
+emulate -L zsh
+setopt err_return
+
+: ${BENCH_HOME:?not set}
+
+if [[ ! -f $BENCH_HOME/.antigen/bin/antigen.zsh ]]; then
+  rm -rf $BENCH_HOME/.antigen
+  # The repo default is develop; bench the stable branch instead.
+  git clone --quiet --depth 1 --branch master https://github.com/zsh-users/antigen.git \
+    $BENCH_HOME/.antigen
+fi
+
+cp -r -- ${0:A:h}/skel/*(D) $BENCH_HOME/

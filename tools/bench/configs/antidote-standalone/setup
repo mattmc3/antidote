@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+# Bench setup for antidote as a lone antidote.zsh, with no functions/ dir.
+#
+# Copies the one file into the throwaway home rather than pointing at the
+# working tree, because the standalone path is defined by what is NOT
+# beside it: with functions/ present, sourcing takes the normal route.
+#
+# Reads $BENCH_HOME and $BENCH_PRJDIR; populates $BENCH_HOME.
+emulate -L zsh
+setopt err_return
+
+: ${BENCH_HOME:?not set}
+: ${BENCH_PRJDIR:?not set}
+
+cp -r -- ${0:A:h}/skel/*(D) $BENCH_HOME/
+cp -- $BENCH_PRJDIR/antidote.zsh $BENCH_HOME/antidote.zsh

@@ -1,0 +1,166 @@
+#!/usr/bin/env zsh
+# Benchmark antidote against other plugin managers on the same plugin set.
+# Usage: ./tools/antidote-bench-vs [-d <basedir>] [<manager>...]
+#
+# Builds a throwaway HOME per manager so none of them see real dotfiles,
+# then times interactive shell startup with hyperfine. Needs the network
+# to clone the managers and the plugins.
+#
+# Each manager is a tools/bench/configs/<name>/ directory holding a setup
+# script and a skel/ of dotfiles the setup copies into the throwaway HOME.
+# Naming managers on the command line benchmarks only those, otherwise all
+# of them run. Adding a manager means adding a directory, nothing here.
+#
+# Every config spells the same plugin set in its own manager's idiom. What
+# makes that claim checkable is the verify pass below, not the spelling: each
+# shell is inspected at its first prompt against tools/bench/verify-expect.txt
+# and the timing only runs once every manager passes.
+#
+# The default base dir is a mktemp dir removed on exit, so every run clones
+# fresh. Pass -d to reuse a dir between runs; it is left alone on exit.
+#
+# Timing drives a real prompt rather than `zsh -i -c exit`, because a manager
+# can hide work in a precmd hook. Antigen defers compinit that way, so -c exit
+# scored it ~30ms too fast. Feeding stdin makes zsh print a prompt, which runs
+# precmd, which pays for that work.
+#
+# Still blind to turbo/defer modes, which move work past the FIRST prompt. A
+# deferred config finishes startup having loaded nothing and scores well for
+# it, so no such config belongs here. Run zsh-bench -s against these homes
+# instead; it drives a pty and reports first_command_lag_ms too.
+emulate -L zsh
+setopt err_return
+
+0=${(%):-%x}
+typeset T_PRJDIR="${0:A:h:h}"
+typeset T_BENCHDIR="${0:A:h}/bench"
+typeset T_CFGDIR="${0:A:h}/bench/configs"
+
+local home mgr out inner vmarker vstate
+local -a basedir cmds managers missing
+local -A basecmd runcmd verifycmd
+
+# Each benchmarked shell runs in its own session with no controlling terminal.
+# An interactive zsh opens /dev/tty on its own, whatever its three fds point
+# at, and leaves that terminal's modes changed when it exits - enough to break
+# the caller's line editor. After setsid the open fails, so it never gets one.
+#
+# Not a pty: allocating one makes the shell read from the pty instead of the
+# pipe, so the piped input never runs and the shell dies on SIGHUP when the
+# pty closes rather than exiting through a prompt.
+if (( $+commands[setsid] )); then
+  NOTTY="setsid"
+else
+  NOTTY="perl -MPOSIX -e \"POSIX::setsid(); exec @ARGV\" --"
+fi
+
+zparseopts -D -E d:=basedir
+
+managers=(${@:-$T_CFGDIR/*(N/:t)})
+for mgr in $managers; do
+  [[ -f $T_CFGDIR/$mgr/setup ]] || {
+    print -ru2 -- "antidote-bench-vs: no such manager: $mgr"
+    exit 2
+  }
+done
+
+# antidote configs first, then the rest, each alphabetical.
+managers=(${(o)${(M)managers:#antidote*}} ${(o)${managers:#antidote*}})
+
+if ! (( $+commands[hyperfine] )); then
+  print -ru2 -- "antidote-bench-vs: missing required command: hyperfine"
+  exit 127
+fi
+
+# Cleanup runs on the trap, after hyperfine, so it never lands in a timing.
+if (( $#basedir )); then
+  BASE=${basedir[2]:A}
+  mkdir -p $BASE
+else
+  BASE=${$(mktemp -d -t antidote-bench-vs.XXXXXXXX):A}
+  trap 'rm -rf -- $BASE' EXIT INT TERM
+fi
+
+print "==> antidote-bench-vs: ${#managers} managers, zsh $ZSH_VERSION, homes under $BASE"
+
+# One command string per manager, reused for the warm runs and the timing so
+# a cache a manager builds in precmd is warm before hyperfine starts. The pipe
+# needs a real shell, so hyperfine gets no -N; it measures the sh spawn once
+# and subtracts it. (qq)-quote everything interpolated: eval, sh, and script -c
+# all re-parse these strings, and PATH often has spaces (eg VS Code's bin).
+#
+# env -i drops the caller's environment, the pty drops its terminal, and HOME
+# points at a throwaway dir, so a benchmarked shell shares nothing with the
+# shell that launched it. Feeding stdin makes zsh print a prompt, which runs
+# precmd, which pays for work a manager defers there.
+#
+# GIT_TERMINAL_PROMPT and GIT_ASKPASS matter because these shells now have a
+# terminal: a clone of a missing or private repo would otherwise sit forever
+# on a username prompt nobody can see. Failing is the wanted behavior.
+for mgr in $managers; do
+  home=$BASE/$mgr-home
+  mkdir -p $home
+  print -n -- "    setup $mgr ... "
+  GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=true \
+    BENCH_HOME=$home BENCH_PRJDIR=$T_PRJDIR zsh $T_CFGDIR/$mgr/setup
+  print -- "ok"
+  inner="env -i HOME=${(qq)home} ZDOTDIR=${(qq)home} PATH=${(qq)PATH} TERM=xterm-256color"
+  inner+=" GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=true zsh -i"
+  basecmd[$mgr]="printf 'exit\n' | $NOTTY $inner"
+  runcmd[$mgr]="$basecmd[$mgr] >/dev/null 2>&1"
+  verifycmd[$mgr]="printf 'source \$ZDOTDIR/.verify.zsh\nexit\n' | $NOTTY $inner >/dev/null 2>&1"
+done
+
+# Warm runs: clone plugins, generate whatever static file the manager caches
+# to. The install pass is noisy and can exit nonzero, so only the second,
+# fully warm pass is checked; a failure there means the benchmark would be
+# timing a broken shell. These use the undiscarded form so a failure can be
+# reported, but both streams still land in a capture rather than the tty.
+for mgr in $managers; do
+  print -n -- "    warm $mgr ... "
+  eval $runcmd[$mgr] || true
+  if ! out=$(eval $basecmd[$mgr] 2>&1); then
+    print -- "failed"
+    print -ru2 -- "antidote-bench-vs: warm run failed for $mgr:"
+    print -ru2 -- $out
+    exit 1
+  fi
+  print -- "ok"
+done
+
+# Verify before timing. A config that quietly loads nothing finishes startup
+# fast and wins, so a number is only worth reporting once the shell behind it
+# is known to have done the work. Every manager is held to the same list; a
+# manager that gets one of those another way says so in its verify-skip.
+for mgr in $managers; do
+  home=$BASE/$mgr-home
+  missing=()
+  cp $T_BENCHDIR/verify.zsh $home/.verify.zsh
+  if [[ -f $T_CFGDIR/$mgr/verify-skip ]]; then
+    grep -vxFf $T_CFGDIR/$mgr/verify-skip $T_BENCHDIR/verify-expect.txt >$home/.verify-expect
+  else
+    cp $T_BENCHDIR/verify-expect.txt $home/.verify-expect
+  fi
+
+  print -n -- "    verify $mgr ... "
+  eval $verifycmd[$mgr] || true
+  if [[ ! -s $home/.verify-out ]]; then
+    print -- "failed"
+    print -ru2 -- "antidote-bench-vs: $mgr produced no verify output; its shell never reached a prompt"
+    exit 1
+  fi
+  while read -r vmarker vstate; do
+    (( vstate )) || missing+=($vmarker)
+  done <$home/.verify-out
+  if (( $#missing )); then
+    print -- "failed"
+    print -ru2 -- "antidote-bench-vs: $mgr did not load: ${(j:, :)missing}"
+    exit 1
+  fi
+  print -- "ok"
+done
+
+for mgr in $managers; do
+  cmds+=(-n $mgr $runcmd[$mgr])
+done
+hyperfine --warmup 10 --min-runs 30 $cmds

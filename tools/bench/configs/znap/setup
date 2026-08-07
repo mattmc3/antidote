@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+# Bench setup for znap.
+#
+# `znap source` takes subpaths, so the OMZ files are one call. The fpath-only
+# and PATH-only bundles use `znap clone` plus the ~[repo] named dir.
+emulate -L zsh
+setopt err_return
+
+: ${BENCH_HOME:?not set}
+
+if [[ ! -f $BENCH_HOME/.znap/znap.zsh ]]; then
+  rm -rf $BENCH_HOME/.znap
+  git clone --quiet --depth 1 https://github.com/marlonrichert/zsh-snap.git \
+    $BENCH_HOME/.znap
+fi
+
+cp -r -- ${0:A:h}/skel/*(D) $BENCH_HOME/

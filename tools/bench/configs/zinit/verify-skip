@@ -1,0 +1,5 @@
+# zinit installs completions with blockf + creinstall, which links them into
+# its own completion dir rather than putting the repo's src/ on fpath. The
+# completions are available either way - comps counts match the other managers
+# to within three - so this is a different mechanism, not missing work.
+fpath:zsh-completions

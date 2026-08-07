@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+# Bench setup for antidote in dynamic mode, against the working tree.
+#
+# Dynamic mode replaces the static file with `source <(antidote init)` plus a
+# bundle call per plugin, so this measures the dynamic cache rather than the
+# generated static script. The using: context carries across bundle calls.
+#
+# Reads $BENCH_HOME and $BENCH_PRJDIR; populates $BENCH_HOME. The generated
+# .zshrc reads $BENCH_PRJDIR, and timed runs use env -i, so .zshenv carries
+# the path in rather than the skel file baking it.
+emulate -L zsh
+setopt err_return
+
+: ${BENCH_HOME:?not set}
+
+cp -r -- ${0:A:h}/skel/*(D) $BENCH_HOME/
+
+>$BENCH_HOME/.zshenv <<EOF
+export BENCH_PRJDIR=$BENCH_PRJDIR
+EOF

@@ -1,0 +1,33 @@
+#!/usr/bin/env zsh
+# Bench setup for antibody in dynamic mode.
+#
+# Same pinned release as the antibody config, loaded through
+# `source <(antibody init)` plus a bundle call per plugin instead of a
+# generated static file. `antibody init` bakes the absolute path of the
+# binary that produced it, so the download has to land before the shell runs.
+#
+# Reads $BENCH_HOME; populates $BENCH_HOME.
+emulate -L zsh
+setopt err_return
+
+: ${BENCH_HOME:?not set}
+
+typeset bindir=$BENCH_HOME/.antibody/bin
+typeset os arch
+
+if [[ ! -x $bindir/antibody ]]; then
+  os=${(L)$(uname -s)}
+  case $(uname -m) in
+    arm64|aarch64) arch=arm64 ;;
+    x86_64|amd64)  arch=amd64 ;;
+    *) print -ru2 -- "antibody setup: unsupported arch $(uname -m)"; exit 1 ;;
+  esac
+  mkdir -p $bindir
+  # The tarball holds one file, named for the platform rather than "antibody".
+  curl -sfL "https://github.com/mattmc3/antibody/releases/latest/download/antibody_${os}_${arch}.tar.gz" \
+    | tar -xz -C $bindir
+  mv -f $bindir/antibody_${os}_${arch} $bindir/antibody
+  chmod +x $bindir/antibody
+fi
+
+cp -r -- ${0:A:h}/skel/*(D) $BENCH_HOME/

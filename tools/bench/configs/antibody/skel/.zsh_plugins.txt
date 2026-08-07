@@ -1,0 +1,28 @@
+# defaults
+mattmc3/z1
+mattmc3/use-xdg-basedirs
+
+# utils
+getantidote/contrib
+mattmc3/zman
+aloxaf/fzf-tab
+
+# omz
+# No using: directive - antibody has no such directive, and resolves the bare
+# names that follow one to the repo root instead of the subpath.
+ohmyzsh/ohmyzsh path:lib/clipboard.zsh
+ohmyzsh/ohmyzsh path:plugins/copybuffer
+ohmyzsh/ohmyzsh path:plugins/copyfile
+ohmyzsh/ohmyzsh path:plugins/copypath
+ohmyzsh/ohmyzsh path:plugins/extract
+ohmyzsh/ohmyzsh path:plugins/fancy-ctrl-z
+ohmyzsh/ohmyzsh path:plugins/magic-enter
+
+# misc
+romkatv/zsh-bench kind:path
+romkatv/zsh-no-ps2
+
+# fishlike
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-completions kind:fpath path:src
+zsh-users/zsh-history-substring-search post:'autoload -Uz bindkey-hss && bindkey-hss'

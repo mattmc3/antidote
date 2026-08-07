@@ -1,0 +1,27 @@
+# defaults
+mattmc3/z1
+mattmc3/use-xdg-basedirs
+
+# utils
+getantidote/contrib
+mattmc3/zman
+aloxaf/fzf-tab
+
+# omz
+ohmyzsh/ohmyzsh path:lib/clipboard.zsh
+using:ohmyzsh/ohmyzsh path:plugins
+copybuffer
+copyfile
+copypath
+extract
+fancy-ctrl-z
+magic-enter
+
+# misc
+romkatv/zsh-bench kind:path
+romkatv/zsh-no-ps2
+
+# fishlike
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-completions kind:fpath path:src
+zsh-users/zsh-history-substring-search post:'autoload -Uz bindkey-hss && bindkey-hss'

@@ -1,0 +1,31 @@
+# What a shell must have loaded by its first prompt for its timing to count.
+# Every manager is checked against this same list, because the whole point is
+# that they all did the same work. A manager that legitimately achieves one of
+# these another way gets a configs/<manager>/verify-skip line saying why.
+
+# Better Zsh defaults
+env:XDG_CONFIG_HOME
+
+# Utils
+fn:zman
+fn:bindkey-hss
+fn:fzf-tab-complete
+
+# OMZ plugins
+fn:detect-clipboard
+fn:extract
+fn:magic-enter
+widget:copybuffer
+
+# Misc
+path:zsh-bench
+
+# Fish-like
+fn:_zsh_autosuggest_start
+widget:autosuggest-fetch
+fpath:zsh-completions
+fn:history-substring-search-up
+bindkey:history-substring-search-up
+
+# Completion system, which every config starts itself
+fn:compdef

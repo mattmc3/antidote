@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+# Bench setup for antidote with zcompile on, against the working tree.
+#
+# Same plugin set as the antidote config, with `zstyle ':antidote:*' zcompile`
+# set. Antidote leaves zcompile off by default while every other manager here
+# compiles to bytecode on its own, so this measures what that default costs.
+#
+# Reads $BENCH_HOME and $BENCH_PRJDIR; populates $BENCH_HOME. The .zshrc reads
+# $BENCH_PRJDIR, and timed runs use env -i, so .zshenv carries the path in
+# rather than the skel file baking it.
+emulate -L zsh
+setopt err_return
+
+: ${BENCH_HOME:?not set}
+
+cp -r -- ${0:A:h}/skel/*(D) $BENCH_HOME/
+
+>$BENCH_HOME/.zshenv <<EOF
+export BENCH_PRJDIR=$BENCH_PRJDIR
+EOF
