@@ -58,8 +58,11 @@ antidote_common_setup() {
 # Locate the generated git fixtures (tests/run pre-generates them).
 antidote_fixture_dir() {
   local d="$PRJDIR/tests/fixtures"
-  if [[ -d "$d/bare" && -f "$d/.git_version" &&
-        "$(cat "$d/.git_version")" == "$(git --version)" ]]; then
+  local want_id
+  want_id="$(git hash-object "$PRJDIR/tests/bin/init_fixtures.zsh")"
+  if [[ -d "$d/bare" &&
+        "$(cat "$d/.git_version" 2>/dev/null)" == "$(git --version)" &&
+        "$(cat "$d/.fixtures_id" 2>/dev/null)" == "$want_id" ]]; then
     echo "$d"
   else
     echo /tmp/antidote-fixtures

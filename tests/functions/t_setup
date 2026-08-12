@@ -10,16 +10,18 @@
 
   # Generate fixtures if needed. Use a container-local path so container
   # fixtures never bleed onto the host mount (or vice versa).
+  # The id is the generator's content hash, so fixtures added to it after a
+  # dir was built count as stale instead of failing later as DNS errors.
   local fixture_dir="$testdir/fixtures"
-  local fixture_git_ver="$fixture_dir/.git_version"
+  local want_git_ver="$(git --version)"
+  local want_id="$(git hash-object $testdir/bin/init_fixtures.zsh)"
   if [[ ! -d $fixture_dir/bare ]] || \
-     [[ ! -f $fixture_git_ver ]] || \
-     [[ "$(cat $fixture_git_ver)" != "$(git --version)" ]]; then
+     [[ "$(cat $fixture_dir/.git_version 2>/dev/null)" != "$want_git_ver" ]] || \
+     [[ "$(cat $fixture_dir/.fixtures_id 2>/dev/null)" != "$want_id" ]]; then
     fixture_dir="/tmp/antidote-fixtures"
-    fixture_git_ver="$fixture_dir/.git_version"
     if [[ ! -d $fixture_dir/bare ]] || \
-       [[ ! -f $fixture_git_ver ]] || \
-       [[ "$(cat $fixture_git_ver)" != "$(git --version)" ]]; then
+       [[ "$(cat $fixture_dir/.git_version 2>/dev/null)" != "$want_git_ver" ]] || \
+       [[ "$(cat $fixture_dir/.fixtures_id 2>/dev/null)" != "$want_id" ]]; then
       rm -rf "$fixture_dir"
       FIXTURE_DIR="$fixture_dir" zsh $testdir/bin/init_fixtures.zsh &>/dev/null
     fi

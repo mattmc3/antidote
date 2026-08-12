@@ -551,5 +551,7 @@ setup_fixture_devhead_devrepo
 generate_fixture_shas
 generate_fixture_gitconfig
 
-# Stamp the git version so t_setup knows these fixtures match the current toolchain.
+# Stamp the git version and this script's content hash so t_setup knows these
+# fixtures match the current toolchain, and hold every fixture it now defines.
 git --version > "$FIXTURE_DIR/.git_version"
+git hash-object "${0:A}" > "$FIXTURE_DIR/.fixtures_id"
