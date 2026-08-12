@@ -54,6 +54,21 @@ EOS
   expect "$(cat "$PRJDIR/tests/testdata/antibody/script-foobar.zsh" "$PRJDIR/tests/testdata/antibody/script-foobar.zsh" "$PRJDIR/tests/testdata/antibody/script-foobar.zsh" "$PRJDIR/tests/testdata/antibody/script-fooqux.zsh")"
 }
 
+# The escaped path-style names the clone dir after the whole URL, so the
+# repo-named init file has to be found by repo name, not by dir name. Without
+# that, a repo carrying a second .plugin.zsh gets both of them sourced.
+@test "escaped path-style still picks the repo-named init file" {
+  fixture_session <<'EOS'
+zstyle ':antidote:bundle' path-style escaped
+ANTIDOTE_HOME=$HOME/.cache/antibody
+bardir=$ANTIDOTE_HOME/https-COLON--SLASH--SLASH-fakegitsite.com-SLASH-foo-SLASH-bar
+mkdir -p $bardir
+touch $bardir/bar.plugin.zsh $bardir/deprecated.plugin.zsh
+antidote __private__ zsh_script __bundle__ https://fakegitsite.com/foo/bar | subenv ANTIDOTE_HOME
+EOS
+  expect "$(cat "$PRJDIR/tests/testdata/antibody/script-foobar.zsh")"
+}
+
 # kind:clone does nothing when the plugin exists, clones when missing.
 @test "kind:clone clones only when missing" {
   fixture_session <<'EOS'

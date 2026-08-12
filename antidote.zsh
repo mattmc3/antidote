@@ -762,15 +762,19 @@ bundle_name() {
 
 ##### FILESYSTEM & MISC HELPERS
 
+### Find a bundle's init files, best match first.
+# $2 is the name to prefer, for path-styles whose directory is not named after
+# the repo. Defaults to the directory name.
 initfiles() {
-  local dir
+  local dir name
   local -a found
   dir=${1:A}
-  found=($dir/${dir:A:t}.plugin.zsh(N))
+  name=${2:-${dir:A:t}}
+  found=($dir/$name.plugin.zsh(N))
   [[ $#found -gt 0 ]] || found=($dir/*.plugin.zsh(N))
   [[ $#found -gt 0 ]] || found=($dir/*.zsh(N))
   [[ $#found -gt 0 ]] || found=($dir/*.sh(N))
-  [[ $#found -gt 0 ]] || found=($dir/${dir:A:t}.zsh-theme(N))
+  [[ $#found -gt 0 ]] || found=($dir/$name.zsh-theme(N))
   [[ $#found -gt 0 ]] || found=($dir/*.zsh-theme(N))
   typeset -ga reply=(${(u)found[@]})
   (( $#reply )) || return 1
@@ -1353,14 +1357,13 @@ zsh_script_render() {
         script+="$source_cmd \"$print_bundle_path\""
       else
         # directory/default
-        initfiles $bundle_path
+        # A subpath bundle is named by its subdir, everything else by its repo.
+        local initname=${bname:t}
+        [[ -n "$subpath" ]] && initname=${bundle_path:t}
+        initfiles $bundle_path $initname
         # if no init file was found, assume the default
         if [[ $#reply -eq 0 ]]; then
-          if [[ -n "$subpath" ]]; then
-            typeset -ga reply=($bundle_path/${bundle_path:t}.plugin.zsh)
-          else
-            typeset -ga reply=($bundle_path/${bname:t}.plugin.zsh)
-          fi
+          typeset -ga reply=($bundle_path/$initname.plugin.zsh)
         fi
         script+="$fpath_script"
         for initfile in $reply; do
