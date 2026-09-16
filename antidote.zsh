@@ -885,15 +885,21 @@ indent() {
   printf '  %s\n' $lines
 }
 
+# Compile a zsh file unless its zwc is current and from this zsh version.
+zcompile_file() {
+  [[ -s "$1.zwc" && ! "$1" -nt "$1.zwc" ]] && zcompile -t "$1.zwc" &>/dev/null && return
+  command rm -f -- "$1.zwc"
+  zcompile "$1"
+}
+
 bundle_zcompile() {
   local bundle zfile
   local -a bundles
-  builtin autoload -Uz zrecompile
 
   if [[ -z "$1" ]]; then
     bundles=(${(f)"$(antidote_list --dirs)"})
   elif [[ -f "$1" ]]; then
-    zrecompile -pq "$1"
+    zcompile_file "$1"
     return
   elif [[ -d "$1" ]]; then
     bundles=($1)
@@ -904,7 +910,7 @@ bundle_zcompile() {
   for bundle in $bundles; do
     for zfile in ${bundle}/**/*.zsh{,-theme}(N); do
       [[ $zfile != */test-data/* ]] || continue
-      zrecompile -pq "$zfile"
+      zcompile_file "$zfile"
     done
   done
 }
@@ -1525,17 +1531,14 @@ antidote_bundle() {
   bundle_check_critical || return 1
 
   # output static file compilation
-  # zcompile -t catches a zwc built by another zsh; mtime cannot see that.
+  # 'filecode' means zsh loaded a fresh zwc of its own version, so skip work.
   zcompile_script=(
-    "function {"
+    '[[ $ZSH_EVAL_CONTEXT == *:filecode ]] || function {'
     '  0=${(%):-%x}'
     '  local staticfile=${0:A}'
-    '  [[ -e ${staticfile} ]] || return 1'
-    '  if [[ ! -s ${staticfile}.zwc || ${staticfile} -nt ${staticfile}.zwc ]] ||'
-    '     ! zcompile -t ${staticfile}.zwc &>/dev/null; then'
-    '    builtin autoload -Uz zrecompile'
-    '    zrecompile -pq ${staticfile}'
-    '  fi'
+    '  [[ -f ${staticfile} ]] || return 1'
+    '  command rm -f -- ${staticfile}.zwc'
+    '  builtin zcompile ${staticfile}'
     '}'
   )
   # Clone all missing repos in parallel, sync pins, zcompile

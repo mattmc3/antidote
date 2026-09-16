@@ -1,12 +1,9 @@
-function {
+[[ $ZSH_EVAL_CONTEXT == *:filecode ]] || function {
   0=${(%):-%x}
   local staticfile=${0:A}
-  [[ -e ${staticfile} ]] || return 1
-  if [[ ! -s ${staticfile}.zwc || ${staticfile} -nt ${staticfile}.zwc ]] ||
-     ! zcompile -t ${staticfile}.zwc &>/dev/null; then
-    builtin autoload -Uz zrecompile
-    zrecompile -pq ${staticfile}
-  fi
+  [[ -f ${staticfile} ]] || return 1
+  command rm -f -- ${staticfile}.zwc
+  builtin zcompile ${staticfile}
 }
 fpath+=( "$HOME/.cache/antidote/fakegitsite.com/foo/bar" )
 source "$HOME/.cache/antidote/fakegitsite.com/foo/bar/bar.plugin.zsh"

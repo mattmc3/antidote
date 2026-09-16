@@ -62,10 +62,9 @@ source "$HOME/.zsh/custom/plugins/mytheme/mytheme.zsh-theme"'
   [ -e "$ZDOTDIR/custom/plugins/mytheme/mytheme.zsh-theme.zwc" ]
 }
 
-# A zwc from another zsh is silently ignored when the plugin is sourced.
-# bundle_zcompile always calls zrecompile, which does its own version
-# check, so bundling again must repair it. Forge the mismatch by patching
-# the version string in the zwc header.
+# A zwc from another zsh is silently ignored when the plugin is sourced,
+# so bundling again must repair it without a version error.
+# Forge the mismatch by patching the version string in the zwc header.
 @test "a bundle zwc from another zsh version is recompiled" {
   ZSTYLES="zstyle ':antidote:bundle:*' zcompile 'yes'"
   local zwc="$ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh.zwc"
@@ -78,7 +77,21 @@ source "$HOME/.zsh/custom/plugins/mytheme/mytheme.zsh-theme"'
   run zsh -fc "zcompile -t '$zwc'"
   assert_failure
 
-  antidote bundle "$ZDOTDIR/custom/plugins/myplugin" >/dev/null 2>&1
+  antidote bundle "$ZDOTDIR/custom/plugins/myplugin" >/dev/null 2>"$BATS_TEST_TMPDIR/err"
+  run cat "$BATS_TEST_TMPDIR/err"
+  assert_output ""
   run zsh -fc "zcompile -t '$zwc'"
   assert_success
+}
+
+# A stale zwc is rebuilt in place, with no .zwc.old left behind.
+@test "a stale bundle zwc is recompiled without a backup" {
+  ZSTYLES="zstyle ':antidote:bundle:*' zcompile 'yes'"
+  local zfile="$ZDOTDIR/custom/plugins/myplugin/myplugin.plugin.zsh"
+  antidote bundle "$ZDOTDIR/custom/plugins/myplugin" >/dev/null
+  touch -t 202001010000 "$zfile.zwc"
+
+  antidote bundle "$ZDOTDIR/custom/plugins/myplugin" >/dev/null
+  [ "$zfile.zwc" -nt "$zfile" ]
+  [ ! -e "$zfile.zwc.old" ]
 }
